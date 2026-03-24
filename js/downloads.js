@@ -3,7 +3,7 @@
  * Handles: GitHub Releases API fetch, OS detection, dynamic download links
  */
 
-const GITHUB_REPO = 'jeancatarina/catarina-ai';
+const GITHUB_REPO = 'catarina-claude/catarina-claude.github.io';
 const API_URL = `https://api.github.com/repos/${GITHUB_REPO}/releases/latest`;
 const RELEASES_URL = `https://github.com/${GITHUB_REPO}/releases`;
 
