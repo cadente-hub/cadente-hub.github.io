@@ -1,6 +1,23 @@
 {
-  "version": "0.1.0",
-  "notes": "Initial release",
-  "pub_date": "2026-03-24T00:00:00Z",
-  "platforms": {}
+  "version": "0.1.2",
+  "notes": "Catarina Claude v0.1.2",
+  "pub_date": "2026-03-24T18:12:52Z",
+  "platforms": {
+    "darwin-aarch64": {
+      "signature": "",
+      "url": "https://github.com/catarina-claude/catarina-claude.github.io/releases/download/v0.1.2/catarina-claude-0.1.2-macos-arm64.app.tar.gz"
+    },
+    "darwin-x86_64": {
+      "signature": "",
+      "url": "https://github.com/catarina-claude/catarina-claude.github.io/releases/download/v0.1.2/catarina-claude-0.1.2-macos-x64.app.tar.gz"
+    },
+    "linux-x86_64": {
+      "signature": "",
+      "url": "https://github.com/catarina-claude/catarina-claude.github.io/releases/download/v0.1.2/catarina-claude-0.1.2-linux-x64.AppImage.tar.gz"
+    },
+    "windows-x86_64": {
+      "signature": "",
+      "url": "https://github.com/catarina-claude/catarina-claude.github.io/releases/download/v0.1.2/catarina-claude-0.1.2-windows-x64.nsis.zip"
+    }
+  }
 }
