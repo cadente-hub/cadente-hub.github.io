@@ -1143,6 +1143,64 @@ code {
   line-height: 1.6;
 }
 
+.install-card__recommended {
+  margin-bottom: 16px;
+}
+
+.install-card__recommended-label {
+  display: inline-block;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-accent);
+  margin-bottom: 8px;
+}
+
+.install-card__code {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  font-family: "SF Mono", "Fira Code", "Cascadia Code", monospace;
+  font-size: 0.8125rem;
+  color: var(--color-text-primary);
+  user-select: all;
+}
+
+.install-card__code code {
+  display: block;
+  line-height: 1.7;
+}
+
+.install-card__code code::before {
+  content: "$ ";
+  color: var(--color-accent);
+  opacity: 0.6;
+}
+
+.install-card__divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0;
+  font-size: 0.75rem;
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.install-card__divider::before,
+.install-card__divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--color-border);
+}
+
 /* ---------- Stats Bar ---------- */
 .stats-bar {
   display: flex;
