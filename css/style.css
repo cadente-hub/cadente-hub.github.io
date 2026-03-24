@@ -954,6 +954,13 @@ code {
   gap: 10px;
 }
 
+.download-hero-card__options {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+}
+
 .download-hero-card__btn {
   width: 100%;
   max-width: 400px;
@@ -964,6 +971,41 @@ code {
   align-items: center;
   justify-content: center;
   gap: 10px;
+}
+
+.download-hero-card__btn--secondary {
+  padding: 12px 24px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.download-hero-card__or {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 400px;
+  margin: 12px 0;
+  font-size: 0.75rem;
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.download-hero-card__or::before,
+.download-hero-card__or::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--color-border);
+}
+
+.download-hero-card__hint {
+  margin-top: 12px;
+  font-size: 0.8125rem;
+  color: var(--color-text-tertiary);
+  max-width: 400px;
+  line-height: 1.5;
 }
 
 /* --- Shared meta tag styles --- */

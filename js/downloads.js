@@ -122,6 +122,31 @@ function buildDownloadsLayout(detectedOS) {
 
   // Build the hero (primary) card
   const primaryInfo = PLATFORM_INFO[primaryPlatform];
+  const isMac = primaryPlatform.startsWith('macos-');
+
+  // macOS gets a one-click installer option
+  const macInstallerHTML = isMac
+    ? `
+      <div class="download-hero-card__options">
+        <a class="btn btn--primary btn--lg download-hero-card__btn" href="./install.command" download="install.command">
+          <span class="btn__icon">⚡</span>
+          One-Click Install
+        </a>
+        <div class="download-hero-card__or">
+          <span>or download manually</span>
+        </div>
+        <a class="btn btn--outline btn--lg download-hero-card__btn download-hero-card__btn--secondary" data-download="${primaryPlatform}" href="${RELEASES_URL}" target="_blank" rel="noopener noreferrer">
+          <span class="btn__icon">↓</span>
+          ${primaryInfo.btnLabel}
+        </a>
+        <p class="download-hero-card__hint">One-Click Install uses Homebrew — double-click the file, it handles everything.</p>
+      </div>`
+    : `
+      <a class="btn btn--primary btn--lg download-hero-card__btn" data-download="${primaryPlatform}" href="${RELEASES_URL}" target="_blank" rel="noopener noreferrer">
+        <span class="btn__icon">↓</span>
+        ${primaryInfo.btnLabel}
+      </a>`;
+
   const heroHTML = `
     <div class="download-hero-card animate-on-scroll" data-platform="${primaryPlatform}">
       <div class="download-hero-card__badge">
@@ -139,10 +164,7 @@ function buildDownloadsLayout(detectedOS) {
           </div>
         </div>
       </div>
-      <a class="btn btn--primary btn--lg download-hero-card__btn" data-download="${primaryPlatform}" href="${RELEASES_URL}" target="_blank" rel="noopener noreferrer">
-        <span class="btn__icon">↓</span>
-        ${primaryInfo.btnLabel}
-      </a>
+      ${macInstallerHTML}
     </div>
   `;
 
