@@ -26,9 +26,12 @@ const SVG_ICONS = {
 };
 
 // CLI install commands per platform
+// macOS: installs Homebrew if missing, then installs the app
+const BREW_INSTALL = 'command -v brew >/dev/null || /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"';
+const BREW_CASK = 'brew tap catarina-claude/apps && brew install --cask catarina-claude';
 const CLI_COMMANDS = {
-  'macos-arm64': 'brew tap catarina-claude/apps && brew install --cask catarina-claude',
-  'macos-x64': 'brew tap catarina-claude/apps && brew install --cask catarina-claude',
+  'macos-arm64': `${BREW_INSTALL} && ${BREW_CASK}`,
+  'macos-x64': `${BREW_INSTALL} && ${BREW_CASK}`,
   'linux-appimage': 'curl -fsSL https://github.com/catarina-claude/catarina-claude.github.io/releases/latest/download/catarina-claude-linux-x64.AppImage -o catarina-claude.AppImage && chmod +x catarina-claude.AppImage',
   'linux-deb': 'curl -fsSL https://github.com/catarina-claude/catarina-claude.github.io/releases/latest/download/catarina-claude-linux-x64.deb -o catarina-claude.deb && sudo dpkg -i catarina-claude.deb',
   'windows-exe': 'winget install catarina-claude',
@@ -174,7 +177,7 @@ function initMacInstallButton() {
   if (!btn || !steps) return;
 
   btn.addEventListener('click', async () => {
-    const cmd = 'brew tap catarina-claude/apps && brew install --cask catarina-claude';
+    const cmd = CLI_COMMANDS['macos-arm64'];
     try {
       await navigator.clipboard.writeText(cmd);
     } catch {
@@ -236,7 +239,7 @@ function buildDownloadsLayout(detectedOS) {
             </div>
             <div class="install-step">
               <span class="install-step__num">3</span>
-              <span>Done! The app installs and opens automatically.</span>
+              <span>Done! It installs Homebrew if needed, then the app — fully automatic.</span>
             </div>
           </div>
         </div>
