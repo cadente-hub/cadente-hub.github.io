@@ -239,7 +239,11 @@ function buildDownloadsLayout(detectedOS) {
             </div>
             <div class="install-step">
               <span class="install-step__num">3</span>
-              <span>Done! It installs Homebrew if needed, then the app — fully automatic.</span>
+              <span>If it asks for a password, type your <strong>Mac password</strong> and press Enter <span class="install-step__note">(the characters won't appear — that's normal)</span></span>
+            </div>
+            <div class="install-step">
+              <span class="install-step__num">4</span>
+              <span>Done! It installs everything automatically and opens the app.</span>
             </div>
           </div>
         </div>

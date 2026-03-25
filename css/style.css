@@ -1079,6 +1079,13 @@ code {
   margin-top: 1px;
 }
 
+.install-step__note {
+  display: inline;
+  font-size: 0.8125rem;
+  color: var(--color-text-tertiary);
+  font-style: italic;
+}
+
 .install-step kbd {
   display: inline-block;
   padding: 2px 6px;
