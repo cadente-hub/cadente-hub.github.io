@@ -167,6 +167,37 @@ function initCopyButtons() {
   });
 }
 
+// ---------- macOS Guided Install ----------
+function initMacInstallButton() {
+  const btn = document.getElementById('mac-install-btn');
+  const steps = document.getElementById('mac-install-steps');
+  if (!btn || !steps) return;
+
+  btn.addEventListener('click', async () => {
+    const cmd = 'brew tap catarina-claude/apps && brew install --cask catarina-claude';
+    try {
+      await navigator.clipboard.writeText(cmd);
+    } catch {
+      const textarea = document.createElement('textarea');
+      textarea.value = cmd;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+    }
+
+    // Show steps with animation
+    steps.hidden = false;
+    steps.classList.add('visible');
+    btn.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><polyline points="20 6 9 17 4 12"/></svg>
+      Copied! Follow steps below
+    `;
+    btn.classList.add('btn--success');
+    btn.disabled = true;
+  });
+}
+
 // ---------- Dynamic Layout Builder ----------
 function buildDownloadsLayout(detectedOS) {
   const container = document.getElementById('downloads-dynamic');
@@ -181,14 +212,34 @@ function buildDownloadsLayout(detectedOS) {
   const primaryInfo = PLATFORM_INFO[primaryPlatform];
   const isMac = primaryPlatform.startsWith('macos-');
 
-  // macOS gets a one-click installer option
+  // macOS gets a "Recommended: install via terminal" with a guided flow
   const macInstallerHTML = isMac
     ? `
       <div class="download-hero-card__options">
-        <a class="btn btn--primary btn--lg download-hero-card__btn" href="./install.command" download="install.command">
-          <span class="btn__icon">⚡</span>
-          One-Click Install
-        </a>
+        <button class="btn btn--primary btn--lg download-hero-card__btn" id="mac-install-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          Copy Install Command
+        </button>
+        <div class="install-steps" id="mac-install-steps" hidden>
+          <div class="install-steps__success">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="install-steps__check"><polyline points="20 6 9 17 4 12"/></svg>
+            Command copied!
+          </div>
+          <div class="install-steps__guide">
+            <div class="install-step">
+              <span class="install-step__num">1</span>
+              <span>Open <strong>Terminal</strong> — press <kbd>⌘</kbd> + <kbd>Space</kbd>, type <strong>Terminal</strong>, hit Enter</span>
+            </div>
+            <div class="install-step">
+              <span class="install-step__num">2</span>
+              <span>Paste with <kbd>⌘</kbd> + <kbd>V</kbd> and press <strong>Enter</strong></span>
+            </div>
+            <div class="install-step">
+              <span class="install-step__num">3</span>
+              <span>Done! The app installs and opens automatically.</span>
+            </div>
+          </div>
+        </div>
         <div class="download-hero-card__or">
           <span>or download manually</span>
         </div>
@@ -196,7 +247,6 @@ function buildDownloadsLayout(detectedOS) {
           <span class="btn__icon">↓</span>
           ${primaryInfo.btnLabel}
         </a>
-        <p class="download-hero-card__hint">One-Click Install uses Homebrew — double-click the file, it handles everything.</p>
       </div>`
     : `
       <a class="btn btn--primary btn--lg download-hero-card__btn" data-download="${primaryPlatform}" href="${RELEASES_URL}" target="_blank" rel="noopener noreferrer">
@@ -276,6 +326,9 @@ function buildDownloadsLayout(detectedOS) {
 
   // Init copy buttons
   initCopyButtons();
+
+  // Init macOS guided install button
+  initMacInstallButton();
 }
 
 // ---------- Fetch and Render ----------

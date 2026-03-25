@@ -1016,6 +1016,93 @@ code {
   text-align: center;
 }
 
+/* --- Guided Install Steps --- */
+.install-steps {
+  width: 100%;
+  max-width: 480px;
+  margin-top: 16px;
+  opacity: 0;
+  transform: translateY(-8px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.install-steps.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.install-steps__success {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #22c55e;
+  margin-bottom: 16px;
+}
+
+.install-steps__check {
+  width: 20px;
+  height: 20px;
+  color: #22c55e;
+}
+
+.install-steps__guide {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: left;
+}
+
+.install-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 0.9375rem;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.install-step__num {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-top: 1px;
+}
+
+.install-step kbd {
+  display: inline-block;
+  padding: 2px 6px;
+  font-size: 0.75rem;
+  font-family: inherit;
+  font-weight: 600;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  box-shadow: 0 1px 0 var(--color-border);
+}
+
+/* Button success state */
+.btn--success {
+  background: #22c55e !important;
+  border-color: #22c55e !important;
+  cursor: default;
+}
+
+.btn--success:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
 /* --- Shared meta tag styles --- */
 .download-card__format,
 .download-card__size {
