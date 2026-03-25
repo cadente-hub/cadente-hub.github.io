@@ -4,6 +4,10 @@
  * Layout: Big hero card for detected platform, compact grid for others
  */
 
+// Import shared modules so Vite bundles them for this page
+import './main.js';
+import './animations.js';
+
 const GITHUB_REPO = 'catarina-claude/catarina-claude.github.io';
 const API_URL = `https://api.github.com/repos/${GITHUB_REPO}/releases/latest`;
 const RELEASES_URL = `https://github.com/${GITHUB_REPO}/releases`;
