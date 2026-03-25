@@ -281,11 +281,9 @@ code {
 }
 
 .navbar__logo-icon {
-  font-size: 1.25rem;
-  background: linear-gradient(135deg, var(--color-accent-start), var(--color-accent-end));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
 }
 
 .navbar__links {
@@ -1225,6 +1223,196 @@ code {
 
 .btn--outline:hover::before {
   opacity: 1;
+}
+
+/* ---------- Gatekeeper Modal ---------- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0);
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
+  transition: background 0.3s ease, backdrop-filter 0.3s ease;
+  overflow-y: auto;
+}
+
+.modal-overlay.visible {
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.modal {
+  position: relative;
+  width: 100%;
+  max-width: 540px;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: 32px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  transform: translateY(20px) scale(0.97);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.modal-overlay.visible .modal {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.modal__close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: var(--color-surface);
+  color: var(--color-text-tertiary);
+  font-size: 1.25rem;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.modal__close:hover {
+  background: var(--color-bg-card-hover);
+  color: var(--color-text-primary);
+}
+
+.modal__header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.modal__header-icon {
+  width: 40px;
+  height: 40px;
+  color: #f59e0b;
+  margin-bottom: 12px;
+}
+
+.modal__title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.modal__subtitle {
+  font-size: 0.9375rem;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.modal__steps {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.modal__step {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 14px 16px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.modal__step--highlight {
+  border-color: var(--color-accent-start);
+  background: var(--color-accent-subtle);
+}
+
+.modal__step-num {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: #fff;
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.modal__step-content h3 {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.modal__step-content p {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.modal__step-content code {
+  font-size: 0.8125rem;
+  background: var(--color-bg-card);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.modal__step-content kbd {
+  display: inline-block;
+  padding: 2px 6px;
+  font-size: 0.75rem;
+  font-family: inherit;
+  font-weight: 600;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  box-shadow: 0 1px 0 var(--color-border);
+}
+
+.modal__step-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: var(--color-bg-card);
+  border-radius: var(--radius-sm);
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.modal__footer {
+  text-align: center;
+}
+
+.modal__footer-tip {
+  font-size: 0.8125rem;
+  color: var(--color-text-tertiary);
+  margin-bottom: 16px;
+  font-style: italic;
+}
+
+.modal__download-btn {
+  width: 100%;
+  padding: 14px 28px;
+  font-size: 1rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .btn--outline:hover {

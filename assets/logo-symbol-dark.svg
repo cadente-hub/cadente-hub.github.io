@@ -1,0 +1,48 @@
+<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="c-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#d4a87a"/>
+      <stop offset="50%" stop-color="#c4956a"/>
+      <stop offset="100%" stop-color="#b08050"/>
+    </linearGradient>
+    <linearGradient id="c-spark" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f0dcc8"/>
+      <stop offset="100%" stop-color="#dbb896"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Dark rounded background (app icon style) -->
+  <rect width="512" height="512" rx="112" fill="#0c0c0e"/>
+
+  <!-- Subtle radial glow behind the mark -->
+  <radialGradient id="c-glow" cx="50%" cy="50%" r="50%">
+    <stop offset="0%" stop-color="#c4956a" stop-opacity="0.08"/>
+    <stop offset="100%" stop-color="#c4956a" stop-opacity="0"/>
+  </radialGradient>
+  <circle cx="256" cy="256" r="200" fill="url(#c-glow)"/>
+
+  <!-- C arc -->
+  <path
+    d="M 379 153 A 160 160 0 1 0 379 359"
+    fill="none"
+    stroke="url(#c-grad)"
+    stroke-width="56"
+    stroke-linecap="round"
+  />
+
+  <!-- Inner subtle arc for glass depth -->
+  <path
+    d="M 356 188 A 118 118 0 1 0 356 324"
+    fill="none"
+    stroke="url(#c-grad)"
+    stroke-width="4"
+    stroke-linecap="round"
+    opacity="0.25"
+  />
+
+  <!-- Sparkle accent -->
+  <path
+    d="M 424 240 L 429 252 L 442 256 L 429 260 L 424 272 L 419 260 L 406 256 L 419 252 Z"
+    fill="url(#c-spark)"
+  />
+</svg>

@@ -201,6 +201,109 @@ function initMacInstallButton() {
   });
 }
 
+// ---------- macOS Download Buttons (open modal) ----------
+function initMacDownloadButtons() {
+  document.querySelectorAll('[data-mac-download]').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const platformKey = btn.dataset.macDownload;
+      // Find the actual download URL from data-download links or fallback
+      const downloadLink = document.querySelector(`[data-download="${platformKey}"]`);
+      const url = downloadLink ? downloadLink.href : RELEASES_URL;
+      openGatekeeperModal(url);
+    });
+  });
+}
+
+// ---------- Gatekeeper Modal ----------
+function buildGatekeeperModal() {
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.id = 'gatekeeper-modal';
+  modal.hidden = true;
+  modal.innerHTML = `
+    <div class="modal">
+      <button class="modal__close" aria-label="Close">&times;</button>
+      <div class="modal__header">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="modal__header-icon"><path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+        <h2 class="modal__title">First time opening on macOS</h2>
+        <p class="modal__subtitle">macOS blocks apps from unidentified developers. You only need to do this once.</p>
+      </div>
+      <div class="modal__steps">
+        <div class="modal__step">
+          <span class="modal__step-num">1</span>
+          <div class="modal__step-content">
+            <h3>Install the app</h3>
+            <p>Open the <code>.dmg</code> file and drag <strong>Catarina Claude</strong> to your <strong>Applications</strong> folder.</p>
+          </div>
+        </div>
+        <div class="modal__step">
+          <span class="modal__step-num">2</span>
+          <div class="modal__step-content">
+            <h3>Open Applications folder</h3>
+            <p>Open <strong>Finder</strong> → <strong>Applications</strong> and find <strong>Catarina Claude</strong>.</p>
+          </div>
+        </div>
+        <div class="modal__step modal__step--highlight">
+          <span class="modal__step-num">3</span>
+          <div class="modal__step-content">
+            <h3>Right-click → Open</h3>
+            <p><strong>Right-click</strong> (or <kbd>Control</kbd> + click) on the app and select <strong>"Open"</strong> from the menu.</p>
+            <div class="modal__step-note">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4m0-4h.01"/></svg>
+              <span>Do NOT double-click — that will show the error. You must <strong>right-click → Open</strong>.</span>
+            </div>
+          </div>
+        </div>
+        <div class="modal__step">
+          <span class="modal__step-num">4</span>
+          <div class="modal__step-content">
+            <h3>Click "Open" on the dialog</h3>
+            <p>A dialog will ask "Are you sure you want to open it?" — click <strong>"Open"</strong>. This only happens once.</p>
+          </div>
+        </div>
+      </div>
+      <div class="modal__footer">
+        <p class="modal__footer-tip">After the first open, the app will launch normally like any other app.</p>
+        <a class="btn btn--primary modal__download-btn" id="modal-download-link" href="#" target="_blank" rel="noopener noreferrer">
+          <span class="btn__icon">↓</span>
+          Download .dmg
+        </a>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+
+  // Close handlers
+  modal.querySelector('.modal__close').addEventListener('click', () => closeGatekeeperModal());
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeGatekeeperModal();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeGatekeeperModal();
+  });
+}
+
+function openGatekeeperModal(downloadUrl) {
+  const modal = document.getElementById('gatekeeper-modal');
+  if (!modal) return;
+  const link = document.getElementById('modal-download-link');
+  if (link) link.href = downloadUrl;
+  modal.hidden = false;
+  requestAnimationFrame(() => modal.classList.add('visible'));
+  document.body.style.overflow = 'hidden';
+}
+
+function closeGatekeeperModal() {
+  const modal = document.getElementById('gatekeeper-modal');
+  if (!modal) return;
+  modal.classList.remove('visible');
+  setTimeout(() => {
+    modal.hidden = true;
+    document.body.style.overflow = '';
+  }, 300);
+}
+
 // ---------- Dynamic Layout Builder ----------
 function buildDownloadsLayout(detectedOS) {
   const container = document.getElementById('downloads-dynamic');
@@ -250,10 +353,10 @@ function buildDownloadsLayout(detectedOS) {
         <div class="download-hero-card__or">
           <span>or download manually</span>
         </div>
-        <a class="btn btn--outline btn--lg download-hero-card__btn download-hero-card__btn--secondary" data-download="${primaryPlatform}" href="${RELEASES_URL}" target="_blank" rel="noopener noreferrer">
+        <button class="btn btn--outline btn--lg download-hero-card__btn download-hero-card__btn--secondary" data-mac-download="${primaryPlatform}">
           <span class="btn__icon">↓</span>
           ${primaryInfo.btnLabel}
-        </a>
+        </button>
       </div>`
     : `
       <a class="btn btn--primary btn--lg download-hero-card__btn" data-download="${primaryPlatform}" href="${RELEASES_URL}" target="_blank" rel="noopener noreferrer">
@@ -288,6 +391,10 @@ function buildDownloadsLayout(detectedOS) {
     .map(
       (platformKey) => {
         const info = PLATFORM_INFO[platformKey];
+        const isMacAlt = platformKey.startsWith('macos-');
+        const downloadBtn = isMacAlt
+          ? `<button class="btn btn--sm btn--outline download-alt-card__btn" data-mac-download="${platformKey}"><span class="btn__icon">↓</span>Download</button>`
+          : `<a class="btn btn--sm btn--outline download-alt-card__btn" data-download="${platformKey}" href="${RELEASES_URL}" target="_blank" rel="noopener noreferrer"><span class="btn__icon">↓</span>Download</a>`;
         return `
       <div class="download-alt-card animate-on-scroll" data-platform="${platformKey}">
         <div class="download-alt-card__top">
@@ -303,10 +410,7 @@ function buildDownloadsLayout(detectedOS) {
               <span class="download-card__format">${info.format}</span>
               <span class="download-card__size" data-size="${platformKey}">--</span>
             </div>
-            <a class="btn btn--sm btn--outline download-alt-card__btn" data-download="${platformKey}" href="${RELEASES_URL}" target="_blank" rel="noopener noreferrer">
-              <span class="btn__icon">↓</span>
-              Download
-            </a>
+            ${downloadBtn}
           </div>
         </div>
         ${buildCLISnippet(platformKey)}
@@ -336,6 +440,10 @@ function buildDownloadsLayout(detectedOS) {
 
   // Init macOS guided install button
   initMacInstallButton();
+
+  // Init Gatekeeper modal
+  buildGatekeeperModal();
+  initMacDownloadButtons();
 }
 
 // ---------- Fetch and Render ----------
