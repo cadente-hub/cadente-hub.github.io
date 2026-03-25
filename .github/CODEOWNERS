@@ -1,0 +1,2 @@
+# Protect workflow files - only repo owner can modify
+.github/ @jeancatarina

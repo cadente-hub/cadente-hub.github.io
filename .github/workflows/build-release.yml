@@ -1,0 +1,528 @@
+name: Build Release (Secure Public Builder)
+
+# SECURITY MODEL:
+# This workflow builds binaries from the private repo using public CI minutes.
+# It ONLY runs on repository_dispatch (not on PRs, pushes, or forks).
+# Secrets are gated behind the "build-gate" environment (manual approval required).
+# The dispatch payload includes an HMAC signature to prevent unauthorized triggers.
+
+on:
+  repository_dispatch:
+    types: [build-release]
+
+# Minimal permissions - only what's needed
+permissions:
+  contents: read
+  actions: read
+
+# Prevent concurrent builds
+concurrency:
+  group: build-release-${{ github.event.client_payload.version }}
+  cancel-in-progress: false
+
+env:
+  CARGO_INCREMENTAL: 0
+
+jobs:
+  # ─────────────────────────────────────────────────────────────
+  # Step 1: Validate the dispatch came from the private repo
+  # ─────────────────────────────────────────────────────────────
+  validate:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.check.outputs.version }}
+      tag: ${{ steps.check.outputs.tag }}
+      sha: ${{ steps.check.outputs.sha }}
+    steps:
+      - name: Validate dispatch payload
+        id: check
+        env:
+          DISPATCH_SECRET: ${{ secrets.DISPATCH_SECRET }}
+        run: |
+          # Require all payload fields
+          VERSION="${{ github.event.client_payload.version }}"
+          SHA="${{ github.event.client_payload.sha }}"
+          SIGNATURE="${{ github.event.client_payload.signature }}"
+          TIMESTAMP="${{ github.event.client_payload.timestamp }}"
+
+          if [ -z "$VERSION" ] || [ -z "$SHA" ] || [ -z "$SIGNATURE" ] || [ -z "$TIMESTAMP" ]; then
+            echo "::error::Missing required payload fields. Rejecting dispatch."
+            exit 1
+          fi
+
+          # Validate HMAC signature (proves the sender knows DISPATCH_SECRET)
+          EXPECTED_SIG=$(echo -n "${VERSION}:${SHA}:${TIMESTAMP}" | openssl dgst -sha256 -hmac "$DISPATCH_SECRET" | awk '{print $2}')
+
+          if [ "$SIGNATURE" != "$EXPECTED_SIG" ]; then
+            echo "::error::Invalid signature. This dispatch did not come from an authorized source."
+            exit 1
+          fi
+
+          # Validate timestamp is within 5 minutes (prevents replay attacks)
+          NOW=$(date +%s)
+          DIFF=$((NOW - TIMESTAMP))
+          if [ "$DIFF" -gt 300 ] || [ "$DIFF" -lt -60 ]; then
+            echo "::error::Timestamp out of range (${DIFF}s). Possible replay attack."
+            exit 1
+          fi
+
+          # Validate version format
+          if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::Invalid version format: $VERSION"
+            exit 1
+          fi
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=v$VERSION" >> $GITHUB_OUTPUT
+          echo "sha=$SHA" >> $GITHUB_OUTPUT
+          echo "✅ Dispatch validated: v${VERSION} @ ${SHA:0:8}"
+
+  # ─────────────────────────────────────────────────────────────
+  # Step 2: Build on each platform (gated by build-gate environment)
+  # ─────────────────────────────────────────────────────────────
+  build-macos:
+    needs: validate
+    runs-on: macos-latest
+    environment: build-gate
+    steps:
+      - name: Clone private repo at specific SHA
+        env:
+          PRIVATE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
+        run: |
+          # Clone with depth=1 at exact SHA - minimal exposure
+          git clone --depth=1 \
+            "https://x-access-token:${PRIVATE_TOKEN}@github.com/jeancatarina/catarina-claude.git" \
+            source 2>&1 | grep -v "${PRIVATE_TOKEN}" || true
+
+          cd source
+          git fetch --depth=1 origin "${{ needs.validate.outputs.sha }}" 2>/dev/null || true
+          git checkout "${{ needs.validate.outputs.sha }}" 2>/dev/null || true
+
+          # Verify we got the right commit
+          ACTUAL_SHA=$(git rev-parse HEAD)
+          echo "Checked out: ${ACTUAL_SHA:0:8}"
+
+          # Immediately revoke token from environment
+          unset PRIVATE_TOKEN
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Rust stable with both targets
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+
+      - name: Cache Cargo registry and target
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            source/src-tauri/target
+          key: macos-universal-cargo-${{ hashFiles('source/src-tauri/Cargo.lock') }}
+          restore-keys: |
+            macos-universal-cargo-
+
+      - name: Install frontend dependencies
+        working-directory: source
+        run: npm ci
+
+      - name: Build ARM64 (Apple Silicon)
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          projectPath: source
+          args: --target aarch64-apple-darwin
+          includeUpdaterJson: true
+
+      - name: Build x86_64 (Intel)
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          projectPath: source
+          args: --target x86_64-apple-darwin
+          includeUpdaterJson: true
+
+      - name: Collect artifacts
+        shell: bash
+        run: |
+          VERSION="${{ needs.validate.outputs.version }}"
+          mkdir -p artifacts
+
+          BUNDLE_ARM="source/src-tauri/target/aarch64-apple-darwin/release/bundle"
+          find "$BUNDLE_ARM/dmg" -name "*.dmg" -exec cp {} "artifacts/catarina-claude-${VERSION}-macos-arm64.dmg" \; 2>/dev/null || true
+          find "$BUNDLE_ARM/macos" -name "*.app.tar.gz" -exec cp {} "artifacts/catarina-claude-${VERSION}-macos-arm64.app.tar.gz" \; 2>/dev/null || true
+          find "$BUNDLE_ARM/macos" -name "*.app.tar.gz.sig" -exec cp {} "artifacts/catarina-claude-${VERSION}-macos-arm64.app.tar.gz.sig" \; 2>/dev/null || true
+
+          BUNDLE_X64="source/src-tauri/target/x86_64-apple-darwin/release/bundle"
+          find "$BUNDLE_X64/dmg" -name "*.dmg" -exec cp {} "artifacts/catarina-claude-${VERSION}-macos-x64.dmg" \; 2>/dev/null || true
+          find "$BUNDLE_X64/macos" -name "*.app.tar.gz" -exec cp {} "artifacts/catarina-claude-${VERSION}-macos-x64.app.tar.gz" \; 2>/dev/null || true
+          find "$BUNDLE_X64/macos" -name "*.app.tar.gz.sig" -exec cp {} "artifacts/catarina-claude-${VERSION}-macos-x64.app.tar.gz.sig" \; 2>/dev/null || true
+
+          ls -la artifacts/
+
+      - name: Delete source code before upload
+        if: always()
+        run: rm -rf source
+
+      - name: Upload macOS artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifacts-macos
+          path: artifacts/*
+          if-no-files-found: error
+
+  build-linux:
+    needs: validate
+    runs-on: ubuntu-22.04
+    environment: build-gate
+    steps:
+      - name: Clone private repo at specific SHA
+        env:
+          PRIVATE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
+        run: |
+          git clone --depth=1 \
+            "https://x-access-token:${PRIVATE_TOKEN}@github.com/jeancatarina/catarina-claude.git" \
+            source 2>&1 | grep -v "${PRIVATE_TOKEN}" || true
+
+          cd source
+          git fetch --depth=1 origin "${{ needs.validate.outputs.sha }}" 2>/dev/null || true
+          git checkout "${{ needs.validate.outputs.sha }}" 2>/dev/null || true
+          unset PRIVATE_TOKEN
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Cargo registry and target
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            source/src-tauri/target
+          key: linux-cargo-${{ hashFiles('source/src-tauri/Cargo.lock') }}
+          restore-keys: |
+            linux-cargo-
+
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: Install frontend dependencies
+        working-directory: source
+        run: npm ci
+
+      - name: Build Tauri app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          projectPath: source
+          includeUpdaterJson: true
+
+      - name: Collect artifacts
+        shell: bash
+        run: |
+          VERSION="${{ needs.validate.outputs.version }}"
+          mkdir -p artifacts
+          BUNDLE_DIR="source/src-tauri/target/release/bundle"
+
+          find "$BUNDLE_DIR/appimage" -name "*.AppImage" -exec cp {} "artifacts/catarina-claude-${VERSION}-linux-x64.AppImage" \; 2>/dev/null || true
+          find "$BUNDLE_DIR/deb" -name "*.deb" -exec cp {} "artifacts/catarina-claude-${VERSION}-linux-x64.deb" \; 2>/dev/null || true
+          find "$BUNDLE_DIR/appimage" -name "*.AppImage.tar.gz" -exec cp {} "artifacts/catarina-claude-${VERSION}-linux-x64.AppImage.tar.gz" \; 2>/dev/null || true
+          find "$BUNDLE_DIR/appimage" -name "*.AppImage.tar.gz.sig" -exec cp {} "artifacts/catarina-claude-${VERSION}-linux-x64.AppImage.tar.gz.sig" \; 2>/dev/null || true
+
+          ls -la artifacts/
+
+      - name: Delete source code before upload
+        if: always()
+        run: rm -rf source
+
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifacts-linux
+          path: artifacts/*
+          if-no-files-found: error
+
+  build-windows:
+    needs: validate
+    runs-on: windows-latest
+    environment: build-gate
+    steps:
+      - name: Clone private repo at specific SHA
+        shell: bash
+        env:
+          PRIVATE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
+        run: |
+          git clone --depth=1 \
+            "https://x-access-token:${PRIVATE_TOKEN}@github.com/jeancatarina/catarina-claude.git" \
+            source 2>&1 | grep -v "${PRIVATE_TOKEN}" || true
+
+          cd source
+          git fetch --depth=1 origin "${{ needs.validate.outputs.sha }}" 2>/dev/null || true
+          git checkout "${{ needs.validate.outputs.sha }}" 2>/dev/null || true
+          unset PRIVATE_TOKEN
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Cargo registry and target
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            source/src-tauri/target
+          key: windows-cargo-${{ hashFiles('source/src-tauri/Cargo.lock') }}
+          restore-keys: |
+            windows-cargo-
+
+      - name: Install frontend dependencies
+        working-directory: source
+        run: npm ci
+
+      - name: Build Tauri app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          projectPath: source
+          includeUpdaterJson: true
+
+      - name: Collect artifacts
+        shell: bash
+        run: |
+          VERSION="${{ needs.validate.outputs.version }}"
+          mkdir -p artifacts
+          BUNDLE_DIR="source/src-tauri/target/release/bundle"
+
+          find "$BUNDLE_DIR/msi" -name "*.msi" -exec cp {} "artifacts/catarina-claude-${VERSION}-windows-x64.msi" \; 2>/dev/null || true
+          find "$BUNDLE_DIR/nsis" -name "*.exe" -exec cp {} "artifacts/catarina-claude-${VERSION}-windows-x64.exe" \; 2>/dev/null || true
+          find "$BUNDLE_DIR/msi" -name "*.msi.zip" -exec cp {} "artifacts/catarina-claude-${VERSION}-windows-x64.msi.zip" \; 2>/dev/null || true
+          find "$BUNDLE_DIR/msi" -name "*.msi.zip.sig" -exec cp {} "artifacts/catarina-claude-${VERSION}-windows-x64.msi.zip.sig" \; 2>/dev/null || true
+          find "$BUNDLE_DIR/nsis" -name "*.nsis.zip" -exec cp {} "artifacts/catarina-claude-${VERSION}-windows-x64.nsis.zip" \; 2>/dev/null || true
+          find "$BUNDLE_DIR/nsis" -name "*.nsis.zip.sig" -exec cp {} "artifacts/catarina-claude-${VERSION}-windows-x64.nsis.zip.sig" \; 2>/dev/null || true
+
+          ls -la artifacts/
+
+      - name: Delete source code before upload
+        if: always()
+        shell: bash
+        run: rm -rf source
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifacts-windows
+          path: artifacts/*
+          if-no-files-found: error
+
+  # ─────────────────────────────────────────────────────────────
+  # Step 3: Create release with all artifacts
+  # ─────────────────────────────────────────────────────────────
+  release:
+    needs: [validate, build-macos, build-linux, build-windows]
+    runs-on: ubuntu-latest
+    environment: build-gate
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: all-artifacts
+          merge-multiple: true
+
+      - name: List all artifacts
+        run: ls -la all-artifacts/
+
+      - name: Generate update.json
+        shell: bash
+        run: |
+          VERSION="${{ needs.validate.outputs.version }}"
+          TAG="${{ needs.validate.outputs.tag }}"
+          PUB_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          BASE_URL="https://github.com/catarina-claude/catarina-claude.github.io/releases/download/${TAG}"
+
+          read_sig() {
+            local file="all-artifacts/$1"
+            if [ -f "$file" ]; then cat "$file"; else echo ""; fi
+          }
+
+          DARWIN_AARCH64_SIG=$(read_sig "catarina-claude-${VERSION}-macos-arm64.app.tar.gz.sig")
+          DARWIN_X86_64_SIG=$(read_sig "catarina-claude-${VERSION}-macos-x64.app.tar.gz.sig")
+          LINUX_X86_64_SIG=$(read_sig "catarina-claude-${VERSION}-linux-x64.AppImage.tar.gz.sig")
+          WINDOWS_X86_64_SIG=$(read_sig "catarina-claude-${VERSION}-windows-x64.msi.zip.sig")
+
+          if [ -z "$WINDOWS_X86_64_SIG" ]; then
+            WINDOWS_X86_64_SIG=$(read_sig "catarina-claude-${VERSION}-windows-x64.nsis.zip.sig")
+          fi
+
+          WIN_UPDATER_FILE="catarina-claude-${VERSION}-windows-x64.msi.zip"
+          if [ ! -f "all-artifacts/$WIN_UPDATER_FILE" ]; then
+            WIN_UPDATER_FILE="catarina-claude-${VERSION}-windows-x64.nsis.zip"
+          fi
+
+          cat > update.json << ENDJSON
+          {
+            "version": "${VERSION}",
+            "notes": "Catarina Claude v${VERSION}",
+            "pub_date": "${PUB_DATE}",
+            "platforms": {
+              "darwin-aarch64": {
+                "signature": "${DARWIN_AARCH64_SIG}",
+                "url": "${BASE_URL}/catarina-claude-${VERSION}-macos-arm64.app.tar.gz"
+              },
+              "darwin-x86_64": {
+                "signature": "${DARWIN_X86_64_SIG}",
+                "url": "${BASE_URL}/catarina-claude-${VERSION}-macos-x64.app.tar.gz"
+              },
+              "linux-x86_64": {
+                "signature": "${LINUX_X86_64_SIG}",
+                "url": "${BASE_URL}/catarina-claude-${VERSION}-linux-x64.AppImage.tar.gz"
+              },
+              "windows-x86_64": {
+                "signature": "${WINDOWS_X86_64_SIG}",
+                "url": "${BASE_URL}/${WIN_UPDATER_FILE}"
+              }
+            }
+          }
+          ENDJSON
+
+          echo "Generated update.json:"
+          cat update.json
+
+      - name: Create release on catarina-claude.github.io
+        env:
+          GH_TOKEN: ${{ secrets.CATARINA_RELEASE_TOKEN }}
+        run: |
+          VERSION="${{ needs.validate.outputs.version }}"
+          TAG="${{ needs.validate.outputs.tag }}"
+          SHA="${{ needs.validate.outputs.sha }}"
+
+          # Delete existing release if re-running
+          gh release delete "$TAG" --repo catarina-claude/catarina-claude.github.io --yes 2>/dev/null || true
+
+          gh release create "$TAG" \
+            --repo catarina-claude/catarina-claude.github.io \
+            --title "Catarina Claude v${VERSION}" \
+            --notes "## Catarina Claude v${VERSION}
+
+          Built from commit: ${SHA:0:8}
+
+          ### Downloads
+          - **macOS Apple Silicon**: \`catarina-claude-${VERSION}-macos-arm64.dmg\`
+          - **macOS Intel**: \`catarina-claude-${VERSION}-macos-x64.dmg\`
+          - **Linux**: \`catarina-claude-${VERSION}-linux-x64.AppImage\` or \`.deb\`
+          - **Windows**: \`catarina-claude-${VERSION}-windows-x64.exe\` or \`.msi\`
+
+          ---
+          *Built via Secure Public Builder*" \
+            --latest \
+            all-artifacts/*
+
+      - name: Update update.json in site repo
+        env:
+          GH_TOKEN: ${{ secrets.CATARINA_RELEASE_TOKEN }}
+        run: |
+          git clone --depth=1 https://x-access-token:${GH_TOKEN}@github.com/catarina-claude/catarina-claude.github.io.git site-repo
+          cd site-repo
+          cp ../update.json ./update.json
+          if [ -d "dist" ]; then cp ../update.json ./dist/update.json; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add update.json
+          git commit -m "chore: update update.json for v${{ needs.validate.outputs.version }}" || echo "No changes"
+          git push
+
+      - name: Update Homebrew cask
+        env:
+          GH_TOKEN: ${{ secrets.CATARINA_RELEASE_TOKEN }}
+        run: |
+          VERSION="${{ needs.validate.outputs.version }}"
+
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::warning::CATARINA_RELEASE_TOKEN not set, skipping Homebrew update"
+            exit 0
+          fi
+
+          git clone --depth=1 https://x-access-token:${GH_TOKEN}@github.com/catarina-claude/homebrew-apps.git homebrew-repo
+          cd homebrew-repo
+
+          ARM64_DMG="../all-artifacts/catarina-claude-${VERSION}-macos-arm64.dmg"
+          X64_DMG="../all-artifacts/catarina-claude-${VERSION}-macos-x64.dmg"
+
+          ARM64_SHA=""
+          X64_SHA=""
+          if [ -f "$ARM64_DMG" ]; then ARM64_SHA=$(shasum -a 256 "$ARM64_DMG" | awk '{print $1}'); fi
+          if [ -f "$X64_DMG" ]; then X64_SHA=$(shasum -a 256 "$X64_DMG" | awk '{print $1}'); fi
+
+          {
+            echo 'cask "catarina-claude" do'
+            echo "  version \"${VERSION}\""
+            echo ''
+            echo '  if Hardware::CPU.arm?'
+            echo "    url \"https://github.com/catarina-claude/catarina-claude.github.io/releases/download/v#{version}/catarina-claude-#{version}-macos-arm64.dmg\""
+            echo "    sha256 \"${ARM64_SHA:-:no_check}\""
+            echo '  else'
+            echo "    url \"https://github.com/catarina-claude/catarina-claude.github.io/releases/download/v#{version}/catarina-claude-#{version}-macos-x64.dmg\""
+            echo "    sha256 \"${X64_SHA:-:no_check}\""
+            echo '  end'
+            echo ''
+            echo '  name "Catarina Claude"'
+            echo '  desc "AI-powered desktop assistant — chat, terminal, Git, API testing, and more"'
+            echo '  homepage "https://catarina-claude.github.io"'
+            echo ''
+            echo '  livecheck do'
+            echo '    url "https://github.com/catarina-claude/catarina-claude.github.io/releases/latest"'
+            echo '    strategy :github_latest'
+            echo '  end'
+            echo ''
+            echo '  auto_updates true'
+            echo '  depends_on macos: ">= :catalina"'
+            echo ''
+            echo '  app "Catarina Claude.app"'
+            echo ''
+            echo '  zap trash: ['
+            echo '    "~/Library/Application Support/com.catarina-claude.app",'
+            echo '    "~/Library/Caches/com.catarina-claude.app",'
+            echo '    "~/Library/Preferences/com.catarina-claude.app.plist",'
+            echo '    "~/Library/Saved Application State/com.catarina-claude.app.savedState",'
+            echo '  ]'
+            echo 'end'
+          } > Casks/catarina-claude.rb
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Casks/catarina-claude.rb
+          git diff --cached --quiet && echo "No cask changes" && exit 0
+          git commit -m "chore: bump catarina-claude to v${VERSION}"
+          git push
