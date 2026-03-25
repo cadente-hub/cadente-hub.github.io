@@ -870,6 +870,10 @@ code {
   -webkit-backdrop-filter: blur(12px);
   overflow: hidden;
   transition: transform var(--transition-base), box-shadow var(--transition-base);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .download-hero-card::before {
@@ -899,7 +903,7 @@ code {
   border: 1px solid var(--color-accent-border);
   padding: 6px 14px;
   border-radius: var(--radius-full);
-  margin-bottom: 24px;
+  margin: 0 auto 24px;
 }
 
 .download-hero-card__badge-dot {
@@ -917,8 +921,9 @@ code {
 
 .download-hero-card__content {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 24px;
+  gap: 16px;
   margin-bottom: 28px;
 }
 
@@ -930,7 +935,7 @@ code {
 }
 
 .download-hero-card__icon {
-  font-size: 3rem;
+  font-size: 3.5rem;
   flex-shrink: 0;
   line-height: 1;
   color: var(--color-text-primary);
@@ -952,13 +957,15 @@ code {
 .download-hero-card__meta {
   display: flex;
   gap: 10px;
+  justify-content: center;
 }
 
 .download-hero-card__options {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   gap: 0;
+  width: 100%;
 }
 
 .download-hero-card__btn {
@@ -1006,6 +1013,7 @@ code {
   color: var(--color-text-tertiary);
   max-width: 400px;
   line-height: 1.5;
+  text-align: center;
 }
 
 /* --- Shared meta tag styles --- */
@@ -1040,14 +1048,22 @@ code {
 
 .download-alt-card {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
+  flex-direction: column;
+  gap: 0;
   background: var(--color-bg-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: 16px 20px;
   transition: border-color var(--transition-fast), transform var(--transition-fast);
+  overflow: hidden;
+}
+
+.download-alt-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
 }
 
 .download-alt-card:hover {
@@ -1134,6 +1150,8 @@ code {
   border-radius: var(--radius-md);
   overflow: hidden;
   background: var(--color-surface);
+  width: 100%;
+  text-align: left;
 }
 
 .cli-snippet__header {
@@ -1216,19 +1234,6 @@ code {
 
 .download-alt-card .cli-snippet__code {
   font-size: 0.75rem;
-}
-
-/* Alt card needs column layout now to fit CLI below */
-.download-alt-card {
-  flex-direction: column;
-}
-
-.download-alt-card__top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  width: 100%;
 }
 
 .downloads__fallback {
@@ -1587,7 +1592,7 @@ code {
     max-width: 100%;
   }
 
-  .download-alt-card {
+  .download-alt-card__top {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
@@ -1688,19 +1693,9 @@ code {
     grid-template-columns: 1fr;
   }
 
-  .download-hero-card__content {
-    flex-direction: column;
-    text-align: center;
-    gap: 16px;
-  }
-
   .download-hero-card__btn {
     max-width: 100%;
     width: 100%;
-  }
-
-  .download-hero-card__meta {
-    justify-content: center;
   }
 
   .preview__content {
