@@ -1,23 +1,23 @@
 {
-  "version": "0.1.3",
-  "notes": "Catarina Claude v0.1.3",
-  "pub_date": "2026-03-25T17:36:36Z",
+  "version": "0.1.4",
+  "notes": "Catarina Claude v0.1.4",
+  "pub_date": "2026-03-25T19:08:30Z",
   "platforms": {
     "darwin-aarch64": {
-      "signature": "",
-      "url": "https://github.com/catarina-claude/catarina-claude.github.io/releases/download/v0.1.3/catarina-claude-0.1.3-macos-arm64.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSU1N2Z0ZkZVNmMTNvTjJyaEU5anV1cGtGSGtNNktHUU5LaXQxbGVZZy9IV3hEcVdDQVdFd2J2cTMrZVJaVlNUTkhrRGlGdFJOZXZybGk0d3NnNXBPQWFCbWtHL01qcmdjPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc0NDY0MzkyCWZpbGU6Q2F0YXJpbmEgQ2xhdWRlLmFwcC50YXIuZ3oKVCtZZnFnQmppMENjazhETFF4WHVmMWxKeFVickYxeGU3Uk9vbnVvZmVDNU9xbUloaHBOYTVIQzduRzlvK081Wkd0b2J6QVFaT0Y1Nk01dG1qWDdxRHc9PQo=",
+      "url": "https://github.com/catarina-claude/catarina-claude.github.io/releases/download/v0.1.4/catarina-claude-0.1.4-macos-arm64.app.tar.gz"
     },
     "darwin-x86_64": {
-      "signature": "",
-      "url": "https://github.com/catarina-claude/catarina-claude.github.io/releases/download/v0.1.3/catarina-claude-0.1.3-macos-x64.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSU1N2Z0ZkZVNmMXpWZlFFc0hLRERvRWVmZnVSTlNJN3FNRlhPdk9wTkt4K0pLb0MxVnJrdzFrMGd5eHNZbnI3V3kxUzVRRWdVa05xcm5ORlNYRjkzdFgzWFFNS052MEFBPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc0NDY0NTk4CWZpbGU6Q2F0YXJpbmEgQ2xhdWRlLmFwcC50YXIuZ3oKc2xPVHpMZkNENDdsaVkxK1NKak1MVVN6R0FDUWFqOU4zOHZjRmxVMThSTHNidE42V25FdUJSSUtBOHk3ZVBDY3d0UVZVcElHeDRaMkpuRnJ5c2ZsRHc9PQo=",
+      "url": "https://github.com/catarina-claude/catarina-claude.github.io/releases/download/v0.1.4/catarina-claude-0.1.4-macos-x64.app.tar.gz"
     },
     "linux-x86_64": {
-      "signature": "",
-      "url": "https://github.com/catarina-claude/catarina-claude.github.io/releases/download/v0.1.3/catarina-claude-0.1.3-linux-x64.AppImage.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSU1N2Z0ZkZVNmMTlIR1hNdFZPOTJGNWVzaDFJcm5vU1hhSGZaZldNWmFvdkZwNHd3eE11RVRQaURFSzlCV3gwdUxBTmI1bEpHRVJYNFdKcVJqbXNEejFHMkcvZWQ2WWdzPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc0NDY0NjEzCWZpbGU6Q2F0YXJpbmEgQ2xhdWRlXzAuMS40X2FtZDY0LkFwcEltYWdlLnRhci5negpoS2cwc0s3SzlQYlpCeW1UWmY5NVAwVGZKZndZQlhXMlFnT3NBQ0htT3p3Vm1WbmQ4TEQ0ZmhrWWVJcFBHZ2MzSTFFWFlpdU5namZaSXprcnBSRk5CUT09Cg==",
+      "url": "https://github.com/catarina-claude/catarina-claude.github.io/releases/download/v0.1.4/catarina-claude-0.1.4-linux-x64.AppImage.tar.gz"
     },
     "windows-x86_64": {
-      "signature": "",
-      "url": "https://github.com/catarina-claude/catarina-claude.github.io/releases/download/v0.1.3/catarina-claude-0.1.3-windows-x64.nsis.zip"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSU1N2Z0ZkZVNmMTdJUTdLbkZGUWk4V2o5a2pSQjRKM1NFeWRVWVhpNnBQc1FxaHltQ3BPakdrK0I3b2RpempnejNLNkhsMjJmanE1MkZEMTlnWXAzcWQ5cklYQVIrRXdFPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc0NDY0ODc4CWZpbGU6Q2F0YXJpbmEgQ2xhdWRlXzAuMS40X3g2NC1zZXR1cC5uc2lzLnppcAo5dVZGZFdhNXJBRnJhYjhHd2RCbDVRdlZ2TnppZVM2MExTeDcxRlQ4cS94VnFvdWhpU1FTNUZRR1FQTW5TNHZHNDJucXlTNU8rbUNPMVMrSEg0WE1CZz09Cg==",
+      "url": "https://github.com/catarina-claude/catarina-claude.github.io/releases/download/v0.1.4/catarina-claude-0.1.4-windows-x64.nsis.zip"
     }
   }
 }
