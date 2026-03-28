@@ -477,13 +477,19 @@
             <a href="./downloads.html" class="btn btn--primary btn--full">Download Free</a>
           </div>
           <div class="card card--pricing card--pricing-pro animate-on-scroll">
-            <div class="card__pricing-badge">14-day free trial</div>
+            <div class="card__pricing-badge" id="pro-trial-badge">7-day free trial</div>
             <div class="card__pricing-header">
               <h3 class="card__pricing-name">Pro</h3>
-              <div class="card__pricing-price">
-                <span class="card__pricing-amount" id="pro-price-amount">$4.90</span>
-                <span class="card__pricing-period">/ month</span>
+              <!-- Billing toggle -->
+              <div class="pricing__toggle" id="pricing-toggle">
+                <button class="pricing__toggle-btn pricing__toggle-btn--active" data-cycle="yearly" onclick="switchBilling('yearly')">Annual</button>
+                <button class="pricing__toggle-btn" data-cycle="monthly" onclick="switchBilling('monthly')">Monthly</button>
               </div>
+              <div class="card__pricing-price">
+                <span class="card__pricing-amount" id="pro-price-amount">$3.43</span>
+                <span class="card__pricing-period" id="pro-price-period">/ mo</span>
+              </div>
+              <p class="card__pricing-note" id="pro-price-yearly">Billed as $41.16/year &mdash; save 30%</p>
               <p class="card__pricing-desc">Unlimited everything. No caps on simultaneous items, plus cloud sync and version history.</p>
             </div>
             <ul class="card__pricing-features">
@@ -493,8 +499,10 @@
               <li><span class="check">&#10003;</span> 30-day version history</li>
               <li><span class="check">&#10003;</span> Priority support</li>
             </ul>
-            <a href="./downloads.html" class="btn btn--ghost btn--full">Start Free Trial</a>
-            <p class="card__pricing-note" id="pro-price-yearly"></p>
+            <a href="./downloads.html" class="btn btn--ghost btn--full" id="pro-cta">
+              &#8595; Download &amp; Start Free Trial
+            </a>
+            <p class="card__pricing-trial-note">Download the app &bull; Sign up with Google or GitHub &bull; Pro unlocks instantly</p>
           </div>
         </div>
       </div>
@@ -559,31 +567,74 @@
   <script type="module" src="./js/main.js"></script>
   <script type="module" src="./js/animations.js"></script>
   <script>
-    // Fetch localized Paddle prices and update the pricing section
+    // Pricing state
+    var priceData = null;
+    var currentCycle = "yearly";
+
+    function switchBilling(cycle) {
+      currentCycle = cycle;
+      // Update toggle buttons
+      document.querySelectorAll(".pricing__toggle-btn").forEach(function(btn) {
+        btn.classList.toggle("pricing__toggle-btn--active", btn.dataset.cycle === cycle);
+      });
+      renderPrice();
+    }
+
+    function renderPrice() {
+      if (!priceData) return;
+      var amountEl = document.getElementById("pro-price-amount");
+      var yearlyNote = document.getElementById("pro-price-yearly");
+      if (currentCycle === "yearly") {
+        amountEl.textContent = priceData.yearlyPerMonth ? priceData.yearlyPerMonth.amount : priceData.monthly.amount;
+        yearlyNote.textContent = "Billed as " + priceData.yearly.amount + "/year" + (priceData.discount > 0 ? " — save " + priceData.discount + "%" : "");
+        yearlyNote.style.display = "";
+      } else {
+        amountEl.textContent = priceData.monthly.amount;
+        yearlyNote.style.display = "none";
+      }
+    }
+
+    // Timezone → country mapping (instant, no network)
+    var TZ_MAP = {
+      "America/Sao_Paulo":"BR","America/Fortaleza":"BR","America/Recife":"BR",
+      "America/Bahia":"BR","America/Belem":"BR","America/Manaus":"BR",
+      "America/Cuiaba":"BR","America/Campo_Grande":"BR",
+      "Europe/London":"GB","Europe/Paris":"FR","Europe/Berlin":"DE",
+      "Europe/Madrid":"ES","Europe/Rome":"IT","Europe/Lisbon":"PT",
+      "Asia/Tokyo":"JP","Asia/Seoul":"KR","Asia/Shanghai":"CN",
+      "Asia/Kolkata":"IN","Australia/Sydney":"AU",
+      "America/Mexico_City":"MX","America/Argentina/Buenos_Aires":"AR",
+      "America/Bogota":"CO","America/Santiago":"CL","America/Lima":"PE",
+      "America/Toronto":"CA","America/Vancouver":"CA"
+    };
+
+    // Fetch localized Paddle prices
     (async function loadPrices() {
       try {
-        // Detect country by IP geolocation (accurate), fallback to browser locale
-        let country = "US";
-        try {
-          const geo = await fetch("https://ipapi.co/country/", { signal: AbortSignal.timeout(3000) });
-          if (geo.ok) { const cc = (await geo.text()).trim(); if (/^[A-Z]{2}$/.test(cc)) country = cc; }
-        } catch {
-          const lang = navigator.language || "";
-          const fromLocale = lang.includes("-") ? lang.split("-").pop().toUpperCase() : "US";
-          if (/^[A-Z]{2}$/.test(fromLocale)) country = fromLocale;
+        var country = "US";
+        // 1. Timezone (instant, works even with en-US locale in Brazil)
+        try { var tz = Intl.DateTimeFormat().resolvedOptions().timeZone; if (tz && TZ_MAP[tz]) country = TZ_MAP[tz]; } catch {}
+        // 2. IP geolocation fallback
+        if (country === "US") {
+          try {
+            var geo = await fetch("https://ipapi.co/country/", { signal: AbortSignal.timeout(3000) });
+            if (geo.ok) { var cc = (await geo.text()).trim(); if (/^[A-Z]{2}$/.test(cc)) country = cc; }
+          } catch {
+            var lang = navigator.language || "";
+            var fromLocale = lang.includes("-") ? lang.split("-").pop().toUpperCase() : "US";
+            if (/^[A-Z]{2}$/.test(fromLocale)) country = fromLocale;
+          }
         }
-        const res = await fetch("https://awglxdeqzkursbmotjpm.supabase.co/functions/v1/get-prices?country=" + country);
+        var res = await fetch("https://awglxdeqzkursbmotjpm.supabase.co/functions/v1/get-prices?country=" + country);
         if (!res.ok) return;
-        const data = await res.json();
-        const amountEl = document.getElementById("pro-price-amount");
-        const yearlyEl = document.getElementById("pro-price-yearly");
-        if (amountEl && data.monthly?.amount) {
-          amountEl.textContent = data.monthly.amount;
+        priceData = await res.json();
+        renderPrice();
+        // Update trial badge dynamically
+        var badge = document.getElementById("pro-trial-badge");
+        if (badge && priceData.trialDays) {
+          badge.textContent = priceData.trialDays + "-day free trial";
         }
-        if (yearlyEl && data.yearly?.amount) {
-          yearlyEl.textContent = "or " + data.yearly.amount + "/year" + (data.discount > 0 ? " (save " + data.discount + "%)" : "");
-        }
-      } catch { /* keep USD defaults */ }
+      } catch { /* keep defaults */ }
     })();
   </script>
 </body>
