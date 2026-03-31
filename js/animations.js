@@ -1,5 +1,5 @@
 /**
- * Catarina Claude — Wow-Factor Animations (60 FPS)
+ * Cadente — Wow-Factor Animations (60 FPS)
  * GPU-accelerated: only touches transform/opacity
  */
 

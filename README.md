@@ -1,21 +1,21 @@
 # Catarina AI
 
-[![Latest Release](https://img.shields.io/github/v/release/catarina-claude/catarina-claude.github.io?style=flat-square&color=6366f1)](https://github.com/catarina-claude/catarina-claude.github.io/releases/latest)
-[![GitHub Pages](https://img.shields.io/github/actions/workflow/status/catarina-claude/catarina-claude.github.io/deploy-site.yml?label=website&style=flat-square)](https://catarina-claude.github.io)
+[![Latest Release](https://img.shields.io/github/v/release/cadente-hub/cadente-hub.github.io?style=flat-square&color=6366f1)](https://github.com/cadente-hub/cadente-hub.github.io/releases/latest)
+[![GitHub Pages](https://img.shields.io/github/actions/workflow/status/cadente-hub/cadente-hub.github.io/deploy-site.yml?label=website&style=flat-square)](https://cadente-hub.github.io)
 [![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
 
 Your AI-Powered Desktop Assistant — bringing the power of Claude directly to your desktop.
 
-🌐 **Website**: [catarina-claude.github.io](https://catarina-claude.github.io)
+🌐 **Website**: [cadente-hub.github.io](https://cadente-hub.github.io)
 
 ## Downloads
 
 | Platform | Architecture | Download |
 |----------|-------------|----------|
-| macOS | Apple Silicon (ARM64) | [`.dmg`](https://github.com/catarina-claude/catarina-claude.github.io/releases/latest) |
-| macOS | Intel (x86_64) | [`.dmg`](https://github.com/catarina-claude/catarina-claude.github.io/releases/latest) |
-| Linux | x86_64 | [`.AppImage`](https://github.com/catarina-claude/catarina-claude.github.io/releases/latest) / [`.deb`](https://github.com/catarina-claude/catarina-claude.github.io/releases/latest) |
-| Windows | x86_64 | [`.exe`](https://github.com/catarina-claude/catarina-claude.github.io/releases/latest) / [`.msi`](https://github.com/catarina-claude/catarina-claude.github.io/releases/latest) |
+| macOS | Apple Silicon (ARM64) | [`.dmg`](https://github.com/cadente-hub/cadente-hub.github.io/releases/latest) |
+| macOS | Intel (x86_64) | [`.dmg`](https://github.com/cadente-hub/cadente-hub.github.io/releases/latest) |
+| Linux | x86_64 | [`.AppImage`](https://github.com/cadente-hub/cadente-hub.github.io/releases/latest) / [`.deb`](https://github.com/cadente-hub/cadente-hub.github.io/releases/latest) |
+| Windows | x86_64 | [`.exe`](https://github.com/cadente-hub/cadente-hub.github.io/releases/latest) / [`.msi`](https://github.com/cadente-hub/cadente-hub.github.io/releases/latest) |
 
 ## Installation
 

@@ -495,7 +495,7 @@ jobs:
           VERSION="${{ needs.validate.outputs.version }}"
           TAG="${{ needs.validate.outputs.tag }}"
           PUB_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-          BASE_URL="https://github.com/catarina-claude/catarina-claude.github.io/releases/download/${TAG}"
+          BASE_URL="https://github.com/cadente-hub/cadente-hub.github.io/releases/download/${TAG}"
 
           # Read signature from .sig file — FAIL if missing
           read_sig() {
@@ -566,7 +566,7 @@ jobs:
           echo "✅ update.json generated with all signatures:"
           python3 -c "import json; d=json.load(open('update.json')); [print(f'  {k}: sig={v[\"signature\"][:20]}...') for k,v in d['platforms'].items()]"
 
-      - name: Create release on catarina-claude.github.io
+      - name: Create release on cadente-hub.github.io
         env:
           GH_TOKEN: ${{ secrets.CATARINA_RELEASE_TOKEN }}
         run: |
@@ -576,10 +576,10 @@ jobs:
           SHA="${{ needs.validate.outputs.sha }}"
 
           # Delete existing release if re-running
-          gh release delete "$TAG" --repo catarina-claude/catarina-claude.github.io --yes 2>/dev/null || true
+          gh release delete "$TAG" --repo cadente-hub/cadente-hub.github.io --yes 2>/dev/null || true
 
           gh release create "$TAG" \
-            --repo catarina-claude/catarina-claude.github.io \
+            --repo cadente-hub/cadente-hub.github.io \
             --title "Catarina Claude v${VERSION}" \
             --notes "## Catarina Claude v${VERSION}
 
@@ -601,7 +601,7 @@ jobs:
           GH_TOKEN: ${{ secrets.CATARINA_RELEASE_TOKEN }}
         run: |
           echo "::add-mask::${GH_TOKEN}"
-          git clone --depth=1 https://x-access-token:${GH_TOKEN}@github.com/catarina-claude/catarina-claude.github.io.git site-repo
+          git clone --depth=1 https://x-access-token:${GH_TOKEN}@github.com/cadente-hub/cadente-hub.github.io.git site-repo
           cd site-repo
           cp ../update.json ./update.json
           if [ -d "dist" ]; then cp ../update.json ./dist/update.json; fi
@@ -639,19 +639,19 @@ jobs:
             echo "  version \"${VERSION}\""
             echo ''
             echo '  if Hardware::CPU.arm?'
-            echo "    url \"https://github.com/catarina-claude/catarina-claude.github.io/releases/download/v#{version}/catarina-claude-#{version}-macos-arm64.dmg\""
+            echo "    url \"https://github.com/cadente-hub/cadente-hub.github.io/releases/download/v#{version}/catarina-claude-#{version}-macos-arm64.dmg\""
             echo "    sha256 \"${ARM64_SHA:-:no_check}\""
             echo '  else'
-            echo "    url \"https://github.com/catarina-claude/catarina-claude.github.io/releases/download/v#{version}/catarina-claude-#{version}-macos-x64.dmg\""
+            echo "    url \"https://github.com/cadente-hub/cadente-hub.github.io/releases/download/v#{version}/catarina-claude-#{version}-macos-x64.dmg\""
             echo "    sha256 \"${X64_SHA:-:no_check}\""
             echo '  end'
             echo ''
             echo '  name "Catarina Claude"'
             echo '  desc "AI-powered desktop assistant — chat, terminal, Git, API testing, and more"'
-            echo '  homepage "https://catarina-claude.github.io"'
+            echo '  homepage "https://cadente-hub.github.io"'
             echo ''
             echo '  livecheck do'
-            echo '    url "https://github.com/catarina-claude/catarina-claude.github.io/releases/latest"'
+            echo '    url "https://github.com/cadente-hub/cadente-hub.github.io/releases/latest"'
             echo '    strategy :github_latest'
             echo '  end'
             echo ''

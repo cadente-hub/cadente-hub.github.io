@@ -37,7 +37,7 @@
     />
   </g>
 
-  <!-- Wordmark: "Catarina Claude" — for light backgrounds (dark text) -->
+  <!-- Wordmark: "Cadente" — for light backgrounds (dark text) -->
   <text
     x="88"
     y="47"
@@ -47,7 +47,7 @@
     letter-spacing="0.5"
     fill="#1c1c20"
   >
-    <tspan>Catarina</tspan>
-    <tspan dx="6" font-weight="300" fill="#6b6b78">Claude</tspan>
+    <tspan>Cadente</tspan>
+    <tspan dx="6" font-weight="300" fill="#6b6b78">Hub</tspan>
   </text>
 </svg>

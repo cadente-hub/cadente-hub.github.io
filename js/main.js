@@ -1,5 +1,5 @@
 /**
- * Catarina Claude - Main JavaScript
+ * Cadente - Main JavaScript
  * Handles: theme toggle, navigation, scroll animations, navbar behavior
  */
 

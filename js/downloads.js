@@ -1,5 +1,5 @@
 /**
- * Catarina Claude - Downloads Page Logic
+ * Cadente - Downloads Page Logic
  * Handles: GitHub Releases API fetch, OS detection, dynamic download links
  * Layout: Big hero card for detected platform, compact grid for others
  */
@@ -8,7 +8,7 @@
 import './main.js';
 import './animations.js';
 
-const GITHUB_REPO = 'catarina-claude/catarina-claude.github.io';
+const GITHUB_REPO = 'cadente-hub/cadente-hub.github.io';
 const API_URL = `https://api.github.com/repos/${GITHUB_REPO}/releases/latest`;
 const RELEASES_URL = `https://github.com/${GITHUB_REPO}/releases`;
 
@@ -36,8 +36,8 @@ const BREW_CASK = 'brew tap catarina-claude/apps && brew install --cask catarina
 const CLI_COMMANDS = {
   'macos-arm64': `${BREW_INSTALL} && ${BREW_CASK}`,
   'macos-x64': `${BREW_INSTALL} && ${BREW_CASK}`,
-  'linux-appimage': 'curl -fsSL https://github.com/catarina-claude/catarina-claude.github.io/releases/latest/download/catarina-claude-linux-x64.AppImage -o catarina-claude.AppImage && chmod +x catarina-claude.AppImage',
-  'linux-deb': 'curl -fsSL https://github.com/catarina-claude/catarina-claude.github.io/releases/latest/download/catarina-claude-linux-x64.deb -o catarina-claude.deb && sudo dpkg -i catarina-claude.deb',
+  'linux-appimage': 'curl -fsSL https://github.com/cadente-hub/cadente-hub.github.io/releases/latest/download/catarina-claude-linux-x64.AppImage -o catarina-claude.AppImage && chmod +x catarina-claude.AppImage',
+  'linux-deb': 'curl -fsSL https://github.com/cadente-hub/cadente-hub.github.io/releases/latest/download/catarina-claude-linux-x64.deb -o catarina-claude.deb && sudo dpkg -i catarina-claude.deb',
   'windows-exe': 'winget install catarina-claude',
   'windows-msi': 'winget install catarina-claude --installer-type msi',
 };
@@ -238,14 +238,14 @@ function buildGatekeeperModal() {
           <span class="modal__step-num">1</span>
           <div class="modal__step-content">
             <h3>Install the app</h3>
-            <p>Open the <code>.dmg</code> file and drag <strong>Catarina Claude</strong> to your <strong>Applications</strong> folder.</p>
+            <p>Open the <code>.dmg</code> file and drag <strong>Cadente</strong> to your <strong>Applications</strong> folder.</p>
           </div>
         </div>
         <div class="modal__step">
           <span class="modal__step-num">2</span>
           <div class="modal__step-content">
             <h3>Open Applications folder</h3>
-            <p>Open <strong>Finder</strong> → <strong>Applications</strong> and find <strong>Catarina Claude</strong>.</p>
+            <p>Open <strong>Finder</strong> → <strong>Applications</strong> and find <strong>Cadente</strong>.</p>
           </div>
         </div>
         <div class="modal__step modal__step--highlight">
