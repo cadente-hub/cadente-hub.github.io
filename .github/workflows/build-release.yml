@@ -9,6 +9,11 @@ name: Build Release (Secure Public Builder)
 on:
   repository_dispatch:
     types: [build-release]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to build (e.g. 0.2.24) — must match an existing tag in the private repo'
+        required: true
 
 # Minimal permissions - only what's needed
 permissions:
@@ -17,7 +22,7 @@ permissions:
 
 # Prevent concurrent builds
 concurrency:
-  group: build-release-${{ github.event.client_payload.version }}
+  group: build-release-${{ github.event.client_payload.version || github.event.inputs.version }}
   cancel-in-progress: false
 
 env:
@@ -34,51 +39,76 @@ jobs:
       tag: ${{ steps.check.outputs.tag }}
       sha: ${{ steps.check.outputs.sha }}
     steps:
-      - name: Validate dispatch payload
+      - name: Validate and resolve version
         id: check
         env:
           DISPATCH_SECRET: ${{ secrets.DISPATCH_SECRET }}
+          PRIVATE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
         run: |
           set -euo pipefail
-          echo "::add-mask::${DISPATCH_SECRET}"
 
-          # Require all payload fields
-          VERSION="${{ github.event.client_payload.version }}"
-          SHA="${{ github.event.client_payload.sha }}"
-          SIGNATURE="${{ github.event.client_payload.signature }}"
-          TIMESTAMP="${{ github.event.client_payload.timestamp }}"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            # ── Manual trigger ──────────────────────────────────────────
+            # GitHub auth already guarantees only repo admins can reach here.
+            # No HMAC needed — resolve SHA from the private repo tag instead.
+            VERSION="${{ github.event.inputs.version }}"
+            VERSION="${VERSION#v}"  # strip leading v if provided
 
-          if [ -z "$VERSION" ] || [ -z "$SHA" ] || [ -z "$SIGNATURE" ] || [ -z "$TIMESTAMP" ]; then
-            echo "::error::Missing required payload fields. Rejecting dispatch."
-            exit 1
-          fi
+            if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+              echo "::error::Invalid version format: $VERSION"
+              exit 1
+            fi
 
-          # Validate HMAC signature (proves the sender knows DISPATCH_SECRET)
-          EXPECTED_SIG=$(echo -n "${VERSION}:${SHA}:${TIMESTAMP}" | openssl dgst -sha256 -hmac "$DISPATCH_SECRET" | awk '{print $2}')
+            echo "::add-mask::${PRIVATE_TOKEN}"
+            SHA=$(curl -sf \
+              -H "Authorization: Bearer ${PRIVATE_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/jeancatarina/catarina-claude/commits/v${VERSION}" \
+              | jq -r '.sha // empty')
 
-          if [ "$SIGNATURE" != "$EXPECTED_SIG" ]; then
-            echo "::error::Invalid signature. This dispatch did not come from an authorized source."
-            exit 1
-          fi
+            if [ -z "$SHA" ]; then
+              echo "::error::Tag v${VERSION} not found in private repo. Push the tag first."
+              exit 1
+            fi
+            echo "✅ Manual trigger: v${VERSION} @ ${SHA:0:8}"
+          else
+            # ── Automated repository_dispatch ───────────────────────────
+            # Validate HMAC signature to prove the call came from the private repo.
+            echo "::add-mask::${DISPATCH_SECRET}"
 
-          # Validate timestamp is within 5 minutes (prevents replay attacks)
-          NOW=$(date +%s)
-          DIFF=$((NOW - TIMESTAMP))
-          if [ "$DIFF" -gt 300 ] || [ "$DIFF" -lt -60 ]; then
-            echo "::error::Timestamp out of range (${DIFF}s). Possible replay attack."
-            exit 1
-          fi
+            VERSION="${{ github.event.client_payload.version }}"
+            SHA="${{ github.event.client_payload.sha }}"
+            SIGNATURE="${{ github.event.client_payload.signature }}"
+            TIMESTAMP="${{ github.event.client_payload.timestamp }}"
 
-          # Validate version format
-          if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
-            echo "::error::Invalid version format: $VERSION"
-            exit 1
+            if [ -z "$VERSION" ] || [ -z "$SHA" ] || [ -z "$SIGNATURE" ] || [ -z "$TIMESTAMP" ]; then
+              echo "::error::Missing required payload fields. Rejecting dispatch."
+              exit 1
+            fi
+
+            EXPECTED_SIG=$(echo -n "${VERSION}:${SHA}:${TIMESTAMP}" | openssl dgst -sha256 -hmac "$DISPATCH_SECRET" | awk '{print $2}')
+            if [ "$SIGNATURE" != "$EXPECTED_SIG" ]; then
+              echo "::error::Invalid signature. This dispatch did not come from an authorized source."
+              exit 1
+            fi
+
+            NOW=$(date +%s)
+            DIFF=$((NOW - TIMESTAMP))
+            if [ "$DIFF" -gt 300 ] || [ "$DIFF" -lt -60 ]; then
+              echo "::error::Timestamp out of range (${DIFF}s). Possible replay attack."
+              exit 1
+            fi
+
+            if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+              echo "::error::Invalid version format: $VERSION"
+              exit 1
+            fi
+            echo "✅ Dispatch validated: v${VERSION} @ ${SHA:0:8}"
           fi
 
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "tag=v$VERSION" >> $GITHUB_OUTPUT
           echo "sha=$SHA" >> $GITHUB_OUTPUT
-          echo "✅ Dispatch validated: v${VERSION} @ ${SHA:0:8}"
 
   # ─────────────────────────────────────────────────────────────
   # Step 2: Build on each platform (gated by build-gate environment)
