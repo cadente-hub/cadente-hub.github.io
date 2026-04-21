@@ -1,0 +1,96 @@
+{
+  "version": 2,
+  "updated_at": "2026-04-21T00:00:00Z",
+  "providers": [
+    {
+      "id": "anthropic",
+      "name": "Anthropic",
+      "models": [
+        {
+          "id": "claude-opus-4-7",
+          "name": "Claude Opus 4.7",
+          "short_name": "Opus 4.7",
+          "context_window": 1000000,
+          "input_price_per_mtok": 15.0,
+          "output_price_per_mtok": 75.0,
+          "tier": "most-intelligent",
+          "released_at": "2026-04-10",
+          "status": "current",
+          "effort_levels": ["low", "medium", "high"],
+          "intelligence_score": 100,
+          "speed_score": 28
+        },
+        {
+          "id": "claude-opus-4-6",
+          "name": "Claude Opus 4.6",
+          "short_name": "Opus 4.6",
+          "context_window": 200000,
+          "input_price_per_mtok": 15.0,
+          "output_price_per_mtok": 75.0,
+          "tier": "most-intelligent",
+          "released_at": "2026-03-15",
+          "status": "current",
+          "effort_levels": ["low", "medium", "high"],
+          "intelligence_score": 92,
+          "speed_score": 22
+        },
+        {
+          "id": "claude-sonnet-4-6",
+          "name": "Claude Sonnet 4.6",
+          "short_name": "Sonnet 4.6",
+          "context_window": 200000,
+          "input_price_per_mtok": 3.0,
+          "output_price_per_mtok": 15.0,
+          "tier": "balanced",
+          "released_at": "2026-02-20",
+          "status": "current",
+          "effort_levels": ["low", "medium", "high"],
+          "intelligence_score": 72,
+          "speed_score": 72
+        },
+        {
+          "id": "claude-haiku-4-5-20251001",
+          "name": "Claude Haiku 4.5",
+          "short_name": "Haiku 4.5",
+          "context_window": 200000,
+          "input_price_per_mtok": 0.8,
+          "output_price_per_mtok": 4.0,
+          "tier": "fast",
+          "released_at": "2025-10-01",
+          "status": "current",
+          "effort_levels": ["low", "medium"],
+          "intelligence_score": 38,
+          "speed_score": 100
+        },
+        {
+          "id": "claude-opus-4-5",
+          "name": "Claude Opus 4.5",
+          "short_name": "Opus 4.5",
+          "context_window": 200000,
+          "input_price_per_mtok": 15.0,
+          "output_price_per_mtok": 75.0,
+          "tier": "most-intelligent",
+          "released_at": "2025-10-15",
+          "status": "legacy",
+          "effort_levels": ["low", "medium", "high"],
+          "intelligence_score": 85,
+          "speed_score": 20
+        },
+        {
+          "id": "claude-sonnet-4-5",
+          "name": "Claude Sonnet 4.5",
+          "short_name": "Sonnet 4.5",
+          "context_window": 200000,
+          "input_price_per_mtok": 3.0,
+          "output_price_per_mtok": 15.0,
+          "tier": "balanced",
+          "released_at": "2025-09-01",
+          "status": "legacy",
+          "effort_levels": ["low", "medium", "high"],
+          "intelligence_score": 65,
+          "speed_score": 68
+        }
+      ]
+    }
+  ]
+}
