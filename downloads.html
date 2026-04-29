@@ -111,7 +111,8 @@
             <ol class="install-card__steps">
               <li>Download the <code>.dmg</code> for your chip.</li>
               <li>Open and drag <strong>Cadente</strong> to Applications.</li>
-              <li>Right-click the app → <strong>Open</strong> to bypass Gatekeeper.</li>
+              <li>Open <strong>Terminal</strong> and run <code>xattr -cr /Applications/Cadente.app</code> to clear the macOS quarantine flag (required on Apple Silicon).</li>
+              <li>Double-click <strong>Cadente</strong> to launch.</li>
             </ol>
           </div>
           <div class="install-card animate-on-scroll">

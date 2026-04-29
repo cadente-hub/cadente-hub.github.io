@@ -656,21 +656,23 @@ jobs:
           ARM64_DMG="../all-artifacts/cadente-${VERSION}-macos-arm64.dmg"
           X64_DMG="../all-artifacts/cadente-${VERSION}-macos-x64.dmg"
 
-          ARM64_SHA=""
-          X64_SHA=""
-          if [ -f "$ARM64_DMG" ]; then ARM64_SHA=$(shasum -a 256 "$ARM64_DMG" | awk '{print $1}'); fi
-          if [ -f "$X64_DMG" ]; then X64_SHA=$(shasum -a 256 "$X64_DMG" | awk '{print $1}'); fi
+          if [ ! -f "$ARM64_DMG" ] || [ ! -f "$X64_DMG" ]; then
+            echo "::error::Missing DMG artifacts — cannot generate cask without SHA256s"
+            exit 1
+          fi
+          ARM64_SHA=$(shasum -a 256 "$ARM64_DMG" | awk '{print $1}')
+          X64_SHA=$(shasum -a 256 "$X64_DMG" | awk '{print $1}')
 
           {
             echo 'cask "cadente" do'
             echo "  version \"${VERSION}\""
             echo ''
             echo '  if Hardware::CPU.arm?'
-            echo "    url \"https://github.com/cadente-hub/cadente-hub.github.io/releases/download/v#{version}/cadente-#{version}-macos-arm64.dmg\""
-            echo "    sha256 \"${ARM64_SHA:-:no_check}\""
+            echo '    url "https://github.com/cadente-hub/cadente-hub.github.io/releases/download/v#{version}/cadente-#{version}-macos-arm64.dmg"'
+            echo "    sha256 \"${ARM64_SHA}\""
             echo '  else'
-            echo "    url \"https://github.com/cadente-hub/cadente-hub.github.io/releases/download/v#{version}/cadente-#{version}-macos-x64.dmg\""
-            echo "    sha256 \"${X64_SHA:-:no_check}\""
+            echo '    url "https://github.com/cadente-hub/cadente-hub.github.io/releases/download/v#{version}/cadente-#{version}-macos-x64.dmg"'
+            echo "    sha256 \"${X64_SHA}\""
             echo '  end'
             echo ''
             echo '  name "Cadente"'
@@ -686,6 +688,17 @@ jobs:
             echo '  depends_on macos: ">= :catalina"'
             echo ''
             echo '  app "Cadente.app"'
+            echo ''
+            echo '  # Strip macOS quarantine so the app opens without "is damaged" Gatekeeper error.'
+            echo '  # Required for unsigned apps — works on both Intel and Apple Silicon (incl. M4).'
+            echo '  postflight do'
+            echo '    system_command "/usr/bin/xattr",'
+            echo '                   args: ["-cr", "#{appdir}/Cadente.app"],'
+            echo '                   sudo: true'
+            echo '    system_command "/usr/bin/open",'
+            echo '                   args: ["#{appdir}/Cadente.app"],'
+            echo '                   sudo: false'
+            echo '  end'
             echo ''
             echo '  zap trash: ['
             echo '    "~/Library/Application Support/com.cadente.app",'

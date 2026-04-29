@@ -231,7 +231,7 @@ function buildGatekeeperModal() {
       <div class="modal__header">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="modal__header-icon"><path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
         <h2 class="modal__title">First time opening on macOS</h2>
-        <p class="modal__subtitle">macOS blocks apps from unidentified developers. You only need to do this once.</p>
+        <p class="modal__subtitle">macOS blocks apps from unidentified developers with an "is damaged" error. You only need to do this once.</p>
       </div>
       <div class="modal__steps">
         <div class="modal__step">
@@ -241,34 +241,39 @@ function buildGatekeeperModal() {
             <p>Open the <code>.dmg</code> file and drag <strong>Cadente</strong> to your <strong>Applications</strong> folder.</p>
           </div>
         </div>
-        <div class="modal__step">
+        <div class="modal__step modal__step--highlight">
           <span class="modal__step-num">2</span>
           <div class="modal__step-content">
-            <h3>Open Applications folder</h3>
-            <p>Open <strong>Finder</strong> → <strong>Applications</strong> and find <strong>Cadente</strong>.</p>
-          </div>
-        </div>
-        <div class="modal__step modal__step--highlight">
-          <span class="modal__step-num">3</span>
-          <div class="modal__step-content">
-            <h3>Right-click → Open</h3>
-            <p><strong>Right-click</strong> (or <kbd>Control</kbd> + click) on the app and select <strong>"Open"</strong> from the menu.</p>
+            <h3>Run this command in Terminal</h3>
+            <p>Open <strong>Terminal</strong> (press <kbd>⌘</kbd> + <kbd>Space</kbd>, type <strong>Terminal</strong>, hit Enter), then paste and run:</p>
+            <div class="cli-snippet" style="margin-top:12px">
+              <div class="cli-snippet__header">
+                <span class="cli-snippet__label">Terminal</span>
+                <button class="cli-snippet__copy" id="modal-xattr-copy" aria-label="Copy command" title="Copy to clipboard">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="cli-snippet__copy-icon"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="cli-snippet__check-icon"><polyline points="20 6 9 17 4 12"/></svg>
+                </button>
+              </div>
+              <div class="cli-snippet__body">
+                <code class="cli-snippet__code" id="modal-xattr-cmd">$ xattr -cr /Applications/Cadente.app</code>
+              </div>
+            </div>
             <div class="modal__step-note">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4m0-4h.01"/></svg>
-              <span>Do NOT double-click — that will show the error. You must <strong>right-click → Open</strong>.</span>
+              <span>This removes the macOS quarantine flag. Required on Apple Silicon (M1–M4) — right-click → Open no longer works for unsigned apps on recent macOS versions.</span>
             </div>
           </div>
         </div>
         <div class="modal__step">
-          <span class="modal__step-num">4</span>
+          <span class="modal__step-num">3</span>
           <div class="modal__step-content">
-            <h3>Click "Open" on the dialog</h3>
-            <p>A dialog will ask "Are you sure you want to open it?" — click <strong>"Open"</strong>. This only happens once.</p>
+            <h3>Open Cadente normally</h3>
+            <p>Double-click <strong>Cadente</strong> in Applications — it will launch like any other app from now on.</p>
           </div>
         </div>
       </div>
       <div class="modal__footer">
-        <p class="modal__footer-tip">After the first open, the app will launch normally like any other app.</p>
+        <p class="modal__footer-tip">Tip: <code>brew install --cask cadente</code> handles this automatically — see the recommended terminal install.</p>
         <a class="btn btn--primary modal__download-btn" id="modal-download-link" href="#" target="_blank" rel="noopener noreferrer">
           <span class="btn__icon">↓</span>
           Download .dmg
@@ -296,6 +301,26 @@ function openGatekeeperModal(downloadUrl) {
   modal.hidden = false;
   requestAnimationFrame(() => modal.classList.add('visible'));
   document.body.style.overflow = 'hidden';
+
+  const copyBtn = document.getElementById('modal-xattr-copy');
+  if (copyBtn && !copyBtn.dataset.bound) {
+    copyBtn.dataset.bound = 'true';
+    copyBtn.addEventListener('click', async () => {
+      const cmd = 'xattr -cr /Applications/Cadente.app';
+      try {
+        await navigator.clipboard.writeText(cmd);
+      } catch {
+        const textarea = document.createElement('textarea');
+        textarea.value = cmd;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
+      copyBtn.classList.add('copied');
+      setTimeout(() => copyBtn.classList.remove('copied'), 2000);
+    });
+  }
 }
 
 function closeGatekeeperModal() {
