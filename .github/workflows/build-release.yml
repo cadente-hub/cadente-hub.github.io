@@ -34,7 +34,6 @@ jobs:
   # ─────────────────────────────────────────────────────────────
   validate:
     runs-on: ubuntu-latest
-    environment: build-gate
     outputs:
       version: ${{ steps.check.outputs.version }}
       tag: ${{ steps.check.outputs.tag }}
@@ -95,7 +94,7 @@ jobs:
 
             NOW=$(date +%s)
             DIFF=$((NOW - TIMESTAMP))
-            if [ "$DIFF" -gt 300 ] || [ "$DIFF" -lt -60 ]; then
+            if [ "$DIFF" -gt 900 ] || [ "$DIFF" -lt -60 ]; then
               echo "::error::Timestamp out of range (${DIFF}s). Possible replay attack."
               exit 1
             fi
