@@ -1,0 +1,377 @@
+name: CI -> Unstable Channel
+
+on:
+  repository_dispatch:
+    types: [build-unstable]
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: "Private repo commit SHA to build (defaults to main HEAD)"
+        required: false
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: unstable-${{ github.event.client_payload.sha || inputs.sha || github.run_id }}
+  cancel-in-progress: false
+
+env:
+  PRIVATE_REPO: jeancatarina/catarina-claude
+
+jobs:
+  resolve:
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.meta.outputs.sha }}
+      version: ${{ steps.meta.outputs.version }}
+      unstable_tag: ${{ steps.meta.outputs.unstable_tag }}
+      release_name: ${{ steps.meta.outputs.release_name }}
+    steps:
+      - name: Resolve private SHA and version
+        id: meta
+        env:
+          PRIVATE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
+          INPUT_SHA: ${{ github.event.client_payload.sha || inputs.sha }}
+          DISPATCH_SECRET: ${{ secrets.DISPATCH_SECRET }}
+        run: |
+          set -euo pipefail
+          echo "::add-mask::${PRIVATE_TOKEN}"
+
+          if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
+            SHA="${{ github.event.client_payload.sha }}"
+            SIGNATURE="${{ github.event.client_payload.signature }}"
+            TIMESTAMP="${{ github.event.client_payload.timestamp }}"
+
+            if [ -z "$SHA" ] || [ -z "$SIGNATURE" ] || [ -z "$TIMESTAMP" ]; then
+              echo "::error::Missing signed dispatch fields."
+              exit 1
+            fi
+
+            EXPECTED_SIG=$(echo -n "${SHA}:${TIMESTAMP}" | openssl dgst -sha256 -hmac "$DISPATCH_SECRET" | awk '{print $2}')
+            if [ "$SIGNATURE" != "$EXPECTED_SIG" ]; then
+              echo "::error::Invalid dispatch signature."
+              exit 1
+            fi
+
+            NOW=$(date +%s)
+            DIFF=$((NOW - TIMESTAMP))
+            if [ "$DIFF" -gt 900 ] || [ "$DIFF" -lt -60 ]; then
+              echo "::error::Dispatch timestamp out of range (${DIFF}s)."
+              exit 1
+            fi
+          elif [ -n "${INPUT_SHA}" ]; then
+            SHA="${INPUT_SHA}"
+          else
+            SHA=$(curl -sf \
+              -H "Authorization: Bearer ${PRIVATE_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/${PRIVATE_REPO}/commits/main" \
+              | python3 -c 'import json,sys; print(json.load(sys.stdin)["sha"])')
+          fi
+
+          git clone --depth=1 "https://x-access-token:${PRIVATE_TOKEN}@github.com/${PRIVATE_REPO}.git" source >/dev/null 2>&1
+          cd source
+          git fetch --depth=1 origin "$SHA" >/dev/null 2>&1
+          git checkout "$SHA" >/dev/null 2>&1
+
+          ACTUAL_SHA=$(git rev-parse HEAD)
+          if [ "$ACTUAL_SHA" != "$SHA" ]; then
+            echo "::error::SHA mismatch. Expected ${SHA:0:8}, got ${ACTUAL_SHA:0:8}."
+            exit 1
+          fi
+
+          VERSION=$(python3 -c 'import json; print(json.load(open("src-tauri/tauri.conf.json"))["version"])')
+          if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::Invalid app version in private repo: $VERSION"
+            exit 1
+          fi
+
+          UNSTABLE_TAG="v${VERSION}-beta.${{ github.run_number }}"
+
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "unstable_tag=$UNSTABLE_TAG" >> "$GITHUB_OUTPUT"
+          echo "release_name=Cadente ${UNSTABLE_TAG}" >> "$GITHUB_OUTPUT"
+
+      - name: Delete source checkout
+        if: always()
+        run: rm -rf source
+
+  build-macos:
+    needs: resolve
+    runs-on: macos-latest
+    steps:
+      - name: Clone private repo at exact SHA
+        env:
+          PRIVATE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
+        run: |
+          set -euo pipefail
+          echo "::add-mask::${PRIVATE_TOKEN}"
+          git clone --depth=1 "https://x-access-token:${PRIVATE_TOKEN}@github.com/${PRIVATE_REPO}.git" source >/dev/null 2>&1
+          cd source
+          git fetch --depth=1 origin "${{ needs.resolve.outputs.sha }}" >/dev/null 2>&1
+          git checkout "${{ needs.resolve.outputs.sha }}" >/dev/null 2>&1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+
+      - uses: mozilla-actions/sccache-action@v0.0.7
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            source/src-tauri/target
+          key: unstable-macos-cargo-${{ hashFiles('source/src-tauri/Cargo.lock') }}
+          restore-keys: |
+            unstable-macos-cargo-
+
+      - name: Install frontend dependencies
+        working-directory: source
+        run: npm ci 2>&1 | tail -5
+
+      - name: Build ARM64
+        working-directory: source
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
+          RUSTC_WRAPPER: sccache
+        run: npx tauri build --target aarch64-apple-darwin > /tmp/build-arm64.log 2>&1 || { tail -5 /tmp/build-arm64.log; exit 1; }
+
+      - name: Build x86_64
+        working-directory: source
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
+          RUSTC_WRAPPER: sccache
+        run: npx tauri build --target x86_64-apple-darwin > /tmp/build-x64.log 2>&1 || { tail -5 /tmp/build-x64.log; exit 1; }
+
+      - name: Collect artifacts
+        shell: bash
+        run: |
+          VERSION="${{ needs.resolve.outputs.version }}"
+          mkdir -p artifacts
+          BUNDLE_ARM="source/src-tauri/target/aarch64-apple-darwin/release/bundle"
+          BUNDLE_X64="source/src-tauri/target/x86_64-apple-darwin/release/bundle"
+
+          find "$BUNDLE_ARM/dmg" -name "*.dmg" -exec cp {} "artifacts/cadente-${VERSION}-macos-arm64.dmg" \;
+          find "$BUNDLE_ARM/macos" -name "*.app.tar.gz" -exec cp {} "artifacts/cadente-${VERSION}-macos-arm64.app.tar.gz" \;
+          find "$BUNDLE_ARM/macos" -name "*.app.tar.gz.sig" -exec cp {} "artifacts/cadente-${VERSION}-macos-arm64.app.tar.gz.sig" \;
+          find "$BUNDLE_X64/dmg" -name "*.dmg" -exec cp {} "artifacts/cadente-${VERSION}-macos-x64.dmg" \;
+          find "$BUNDLE_X64/macos" -name "*.app.tar.gz" -exec cp {} "artifacts/cadente-${VERSION}-macos-x64.app.tar.gz" \;
+          find "$BUNDLE_X64/macos" -name "*.app.tar.gz.sig" -exec cp {} "artifacts/cadente-${VERSION}-macos-x64.app.tar.gz.sig" \;
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: unstable-artifacts-macos
+          path: artifacts/*
+          if-no-files-found: error
+
+      - name: Cleanup source
+        if: always()
+        run: rm -rf source /tmp/build-arm64.log /tmp/build-x64.log
+
+  build-linux:
+    needs: resolve
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Clone private repo at exact SHA
+        env:
+          PRIVATE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
+        run: |
+          set -euo pipefail
+          echo "::add-mask::${PRIVATE_TOKEN}"
+          git clone --depth=1 "https://x-access-token:${PRIVATE_TOKEN}@github.com/${PRIVATE_REPO}.git" source >/dev/null 2>&1
+          cd source
+          git fetch --depth=1 origin "${{ needs.resolve.outputs.sha }}" >/dev/null 2>&1
+          git checkout "${{ needs.resolve.outputs.sha }}" >/dev/null 2>&1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: mozilla-actions/sccache-action@v0.0.7
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            source/src-tauri/target
+          key: unstable-linux-cargo-${{ hashFiles('source/src-tauri/Cargo.lock') }}
+          restore-keys: |
+            unstable-linux-cargo-
+
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf lld rpm
+
+      - name: Install frontend dependencies
+        working-directory: source
+        run: npm ci 2>&1 | tail -5
+
+      - name: Build Linux app
+        working-directory: source
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
+          RUSTC_WRAPPER: sccache
+        run: npx tauri build > /tmp/build-linux.log 2>&1 || { tail -5 /tmp/build-linux.log; exit 1; }
+
+      - name: Collect artifacts
+        shell: bash
+        run: |
+          VERSION="${{ needs.resolve.outputs.version }}"
+          mkdir -p artifacts
+          BUNDLE_DIR="source/src-tauri/target/release/bundle"
+
+          find "$BUNDLE_DIR/appimage" -name "*.AppImage" -exec cp {} "artifacts/cadente-${VERSION}-linux-x64.AppImage" \;
+          find "$BUNDLE_DIR/deb" -name "*.deb" -exec cp {} "artifacts/cadente-${VERSION}-linux-x64.deb" \;
+          find "$BUNDLE_DIR/rpm" -name "*.rpm" -exec cp {} "artifacts/cadente-${VERSION}-linux-x64.rpm" \;
+          find "$BUNDLE_DIR/appimage" -name "*.AppImage.tar.gz" -exec cp {} "artifacts/cadente-${VERSION}-linux-x64.AppImage.tar.gz" \;
+          find "$BUNDLE_DIR/appimage" -name "*.AppImage.tar.gz.sig" -exec cp {} "artifacts/cadente-${VERSION}-linux-x64.AppImage.tar.gz.sig" \;
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: unstable-artifacts-linux
+          path: artifacts/*
+          if-no-files-found: error
+
+      - name: Cleanup source
+        if: always()
+        run: rm -rf source /tmp/build-linux.log
+
+  build-windows:
+    needs: resolve
+    runs-on: windows-latest
+    steps:
+      - name: Clone private repo at exact SHA
+        shell: bash
+        env:
+          PRIVATE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
+        run: |
+          set -euo pipefail
+          echo "::add-mask::${PRIVATE_TOKEN}"
+          git clone --depth=1 "https://x-access-token:${PRIVATE_TOKEN}@github.com/${PRIVATE_REPO}.git" source >/dev/null 2>&1
+          cd source
+          git fetch --depth=1 origin "${{ needs.resolve.outputs.sha }}" >/dev/null 2>&1
+          git checkout "${{ needs.resolve.outputs.sha }}" >/dev/null 2>&1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: mozilla-actions/sccache-action@v0.0.7
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            source/src-tauri/target
+          key: unstable-windows-cargo-${{ hashFiles('source/src-tauri/Cargo.lock') }}
+          restore-keys: |
+            unstable-windows-cargo-
+
+      - name: Install frontend dependencies
+        working-directory: source
+        shell: bash
+        run: npm ci 2>&1 | tail -5
+
+      - name: Build Windows app
+        working-directory: source
+        shell: bash
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
+          RUSTC_WRAPPER: sccache
+        run: npx tauri build > /tmp/build-windows.log 2>&1 || { tail -5 /tmp/build-windows.log; exit 1; }
+
+      - name: Collect artifacts
+        shell: bash
+        run: |
+          VERSION="${{ needs.resolve.outputs.version }}"
+          mkdir -p artifacts
+          BUNDLE_DIR="source/src-tauri/target/release/bundle"
+
+          find "$BUNDLE_DIR/msi" -name "*.msi" -exec cp {} "artifacts/cadente-${VERSION}-windows-x64.msi" \;
+          find "$BUNDLE_DIR/nsis" -name "*.exe" -exec cp {} "artifacts/cadente-${VERSION}-windows-x64.exe" \;
+          find "$BUNDLE_DIR/msi" -name "*.msi.zip" -exec cp {} "artifacts/cadente-${VERSION}-windows-x64.msi.zip" \;
+          find "$BUNDLE_DIR/msi" -name "*.msi.zip.sig" -exec cp {} "artifacts/cadente-${VERSION}-windows-x64.msi.zip.sig" \;
+          find "$BUNDLE_DIR/nsis" -name "*.nsis.zip" -exec cp {} "artifacts/cadente-${VERSION}-windows-x64.nsis.zip" \;
+          find "$BUNDLE_DIR/nsis" -name "*.nsis.zip.sig" -exec cp {} "artifacts/cadente-${VERSION}-windows-x64.nsis.zip.sig" \;
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: unstable-artifacts-windows
+          path: artifacts/*
+          if-no-files-found: error
+
+      - name: Cleanup source
+        if: always()
+        shell: bash
+        run: rm -rf source /tmp/build-windows.log
+
+  publish:
+    needs: [resolve, build-macos, build-linux, build-windows]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: all-artifacts
+          merge-multiple: true
+
+      - name: Generate SHA256SUMS
+        run: |
+          cd all-artifacts
+          sha256sum * > SHA256SUMS.txt 2>/dev/null || shasum -a 256 * > SHA256SUMS.txt
+
+      - name: Delete previous floating unstable release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete unstable --repo "${{ github.repository }}" --yes 2>/dev/null || true
+          git push origin :refs/tags/unstable 2>/dev/null || true
+
+      - name: Create versioned unstable release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.resolve.outputs.unstable_tag }}
+          name: ${{ needs.resolve.outputs.release_name }}
+          prerelease: true
+          make_latest: false
+          body: |
+            Automated unstable release from `${{ needs.resolve.outputs.sha }}`.
+
+            - Base version: `${{ needs.resolve.outputs.version }}`
+            - Channel: `unstable`
+            - Build number: `${{ github.run_number }}`
+          files: all-artifacts/*
+          fail_on_unmatched_files: true
+
+      - name: Create floating unstable release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: unstable
+          name: Latest Unstable Build
+          prerelease: true
+          make_latest: false
+          body: |
+            Tracks the latest unstable release.
+
+            Current: `${{ needs.resolve.outputs.unstable_tag }}`
+          files: all-artifacts/*
+          fail_on_unmatched_files: true

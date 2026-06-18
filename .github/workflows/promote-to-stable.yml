@@ -1,0 +1,146 @@
+name: Promote to Stable
+
+on:
+  workflow_dispatch:
+    inputs:
+      unstable_version:
+        description: "Unstable version to promote (e.g. 0.2.87-beta.12)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: promote-to-stable
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate version format
+        run: |
+          VERSION="${{ inputs.unstable_version }}"
+          if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+-beta\.[0-9]+$'; then
+            echo "::error::Expected X.Y.Z-beta.N, got: $VERSION"
+            exit 1
+          fi
+
+      - name: Derive tags
+        id: versions
+        run: |
+          UNSTABLE="${{ inputs.unstable_version }}"
+          STABLE="${UNSTABLE%-beta.*}"
+          echo "unstable_tag=v${UNSTABLE}" >> "$GITHUB_OUTPUT"
+          echo "stable_tag=v${STABLE}" >> "$GITHUB_OUTPUT"
+          echo "stable_version=${STABLE}" >> "$GITHUB_OUTPUT"
+
+      - name: Verify unstable release exists
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "${{ steps.versions.outputs.unstable_tag }}" \
+            --repo "${{ github.repository }}" \
+            --json tagName,assets >/tmp/release.json
+
+          python3 - <<'PY'
+          import json
+          data = json.load(open('/tmp/release.json'))
+          assets = data.get('assets', [])
+          if not assets:
+              raise SystemExit("::error::Unstable release has no assets to promote.")
+          print(f"Found {len(assets)} assets")
+          PY
+
+      - name: Ensure stable release does not already exist
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "${{ steps.versions.outputs.stable_tag }}" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            echo "::error::Stable release ${{ steps.versions.outputs.stable_tag }} already exists."
+            exit 1
+          fi
+
+      - name: Download unstable assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p artifacts
+          gh release download "${{ steps.versions.outputs.unstable_tag }}" \
+            --repo "${{ github.repository }}" \
+            --dir artifacts
+          ls -la artifacts
+
+      - name: Generate stable update.json from promoted assets
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.versions.outputs.stable_version }}"
+          TAG="${{ steps.versions.outputs.stable_tag }}"
+          PUB_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          BASE_URL="https://github.com/${{ github.repository }}/releases/download/${TAG}"
+
+          read_sig() {
+            local file="artifacts/$1"
+            if [ -f "$file" ]; then
+              cat "$file"
+            fi
+          }
+
+          DARWIN_AARCH64_SIG=$(read_sig "cadente-${VERSION}-macos-arm64.app.tar.gz.sig")
+          DARWIN_X86_64_SIG=$(read_sig "cadente-${VERSION}-macos-x64.app.tar.gz.sig")
+          LINUX_X86_64_SIG=$(read_sig "cadente-${VERSION}-linux-x64.AppImage.tar.gz.sig")
+          WINDOWS_SIG=$(read_sig "cadente-${VERSION}-windows-x64.nsis.zip.sig")
+          WIN_UPDATER_FILE="cadente-${VERSION}-windows-x64.nsis.zip"
+          if [ -z "$WINDOWS_SIG" ]; then
+            WINDOWS_SIG=$(read_sig "cadente-${VERSION}-windows-x64.msi.zip.sig")
+            WIN_UPDATER_FILE="cadente-${VERSION}-windows-x64.msi.zip"
+          fi
+
+          cat > update.json <<EOF
+          {
+            "version": "${VERSION}",
+            "notes": "Cadente v${VERSION}",
+            "pub_date": "${PUB_DATE}",
+            "platforms": {
+              "darwin-aarch64": {
+                "signature": "${DARWIN_AARCH64_SIG}",
+                "url": "${BASE_URL}/cadente-${VERSION}-macos-arm64.app.tar.gz"
+              },
+              "darwin-x86_64": {
+                "signature": "${DARWIN_X86_64_SIG}",
+                "url": "${BASE_URL}/cadente-${VERSION}-macos-x64.app.tar.gz"
+              },
+              "linux-x86_64": {
+                "signature": "${LINUX_X86_64_SIG}",
+                "url": "${BASE_URL}/cadente-${VERSION}-linux-x64.AppImage.tar.gz"
+              },
+              "windows-x86_64": {
+                "signature": "${WINDOWS_SIG}",
+                "url": "${BASE_URL}/${WIN_UPDATER_FILE}"
+              }
+            }
+          }
+          EOF
+
+          python3 -c "import json; json.load(open('update.json'))"
+
+      - name: Create stable release without rebuild
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ steps.versions.outputs.stable_tag }}" artifacts/* \
+            --repo "${{ github.repository }}" \
+            --title "Cadente v${{ steps.versions.outputs.stable_version }}" \
+            --notes "Promoted from unstable release \`${{ steps.versions.outputs.unstable_tag }}\` without rebuild." \
+            --latest
+
+      - name: Update stable update.json in site repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add update.json
+          git commit -m "chore: update stable update.json for v${{ steps.versions.outputs.stable_version }}" || echo "No changes"
+          git push
