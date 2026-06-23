@@ -375,3 +375,69 @@ jobs:
             Current: `${{ needs.resolve.outputs.unstable_tag }}`
           files: all-artifacts/*
           fail_on_unmatched_files: true
+
+      - name: Generate and publish update-beta.json
+        env:
+          GH_TOKEN: ${{ secrets.CATARINA_RELEASE_TOKEN }}
+        run: |
+          set -euo pipefail
+          export VERSION="${{ needs.resolve.outputs.version }}"
+          export TAG="${{ needs.resolve.outputs.unstable_tag }}"
+          export BASE_URL="https://github.com/${{ github.repository }}/releases/download/${TAG}"
+          export PUB_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          export RUN_NUM="${{ github.run_number }}"
+
+          python3 - <<'PYEOF'
+import json, os, sys
+
+version   = os.environ["VERSION"]
+base_url  = os.environ["BASE_URL"]
+pub_date  = os.environ["PUB_DATE"]
+tag       = os.environ["TAG"]
+run_num   = os.environ["RUN_NUM"]
+
+def read_sig(path):
+    try:
+        return open(path).read().strip() or None
+    except FileNotFoundError:
+        return None
+
+arm_sig   = read_sig(f"all-artifacts/cadente-{version}-macos-arm64.app.tar.gz.sig")
+x64_sig   = read_sig(f"all-artifacts/cadente-{version}-macos-x64.app.tar.gz.sig")
+linux_sig = read_sig(f"all-artifacts/cadente-{version}-linux-x64.AppImage.tar.gz.sig")
+win_nsis  = read_sig(f"all-artifacts/cadente-{version}-windows-x64.nsis.zip.sig")
+win_msi   = read_sig(f"all-artifacts/cadente-{version}-windows-x64.msi.zip.sig")
+win_sig   = win_nsis or win_msi
+win_ext   = "nsis.zip" if win_nsis else "msi.zip"
+
+missing = [k for k, v in {"macos-arm64": arm_sig, "macos-x64": x64_sig, "linux": linux_sig, "windows": win_sig}.items() if not v]
+if missing:
+    print(f"::error::Missing signatures for: {missing}", file=sys.stderr)
+    sys.exit(1)
+
+data = {
+    "version": tag.lstrip("v"),
+    "notes": f"Cadente beta build #{run_num}",
+    "pub_date": pub_date,
+    "platforms": {
+        "darwin-aarch64": {"signature": arm_sig,   "url": f"{base_url}/cadente-{version}-macos-arm64.app.tar.gz"},
+        "darwin-x86_64":  {"signature": x64_sig,   "url": f"{base_url}/cadente-{version}-macos-x64.app.tar.gz"},
+        "linux-x86_64":   {"signature": linux_sig, "url": f"{base_url}/cadente-{version}-linux-x64.AppImage.tar.gz"},
+        "windows-x86_64": {"signature": win_sig,   "url": f"{base_url}/cadente-{version}-windows-x64.{win_ext}"},
+    },
+}
+json.dump(data, open("update-beta.json", "w"), indent=2)
+print(f"Generated update-beta.json for {tag}")
+PYEOF
+
+          echo "::add-mask::${GH_TOKEN}"
+          git clone --depth=1 \
+            "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" \
+            site-repo >/dev/null 2>&1
+          cp update-beta.json site-repo/update-beta.json
+          cd site-repo
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add update-beta.json
+          git commit -m "chore: update-beta.json for ${TAG}" || echo "No changes to commit"
+          git push
