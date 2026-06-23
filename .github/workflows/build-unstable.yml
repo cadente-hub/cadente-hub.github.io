@@ -1,0 +1,563 @@
+name: Build Unstable (Beta Channel)
+
+# Triggered by catarina-claude on every push to main.
+# Builds from the exact SHA dispatched, generates update-beta.json,
+# and publishes artifacts under a rolling "beta-latest" pre-release.
+
+on:
+  repository_dispatch:
+    types: [build-unstable]
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: 'Commit SHA to build from the private repo (defaults to HEAD of main)'
+        required: false
+
+permissions:
+  contents: write
+  actions: read
+
+# Cancel in-progress beta builds when a new push arrives — always want latest.
+concurrency:
+  group: build-unstable
+  cancel-in-progress: true
+
+env:
+  CARGO_INCREMENTAL: 0
+
+jobs:
+  # ─────────────────────────────────────────────────────────────
+  # Step 1: Validate signature + resolve SHA + compute version
+  # ─────────────────────────────────────────────────────────────
+  validate:
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.check.outputs.sha }}
+      version: ${{ steps.check.outputs.version }}
+    steps:
+      - name: Validate and resolve
+        id: check
+        env:
+          DISPATCH_SECRET: ${{ secrets.DISPATCH_SECRET }}
+          PRIVATE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            # Manual trigger — resolve SHA from main HEAD or input
+            INPUT_SHA="${{ inputs.sha }}"
+            echo "::add-mask::${PRIVATE_TOKEN}"
+            if [ -n "$INPUT_SHA" ]; then
+              SHA="$INPUT_SHA"
+            else
+              SHA=$(curl -sf \
+                -H "Authorization: Bearer ${PRIVATE_TOKEN}" \
+                -H "Accept: application/vnd.github+json" \
+                "https://api.github.com/repos/jeancatarina/catarina-claude/commits/main" \
+                | jq -r '.sha')
+            fi
+            echo "Manual trigger: ${SHA:0:8}"
+          else
+            # Automated dispatch — validate HMAC signature
+            SHA="${{ github.event.client_payload.sha }}"
+            TIMESTAMP="${{ github.event.client_payload.timestamp }}"
+            SIGNATURE="${{ github.event.client_payload.signature }}"
+
+            if [ -z "$SHA" ] || [ -z "$TIMESTAMP" ] || [ -z "$SIGNATURE" ]; then
+              echo "::error::Missing required payload fields."
+              exit 1
+            fi
+
+            echo "::add-mask::${DISPATCH_SECRET}"
+            EXPECTED_SIG=$(echo -n "${SHA}:${TIMESTAMP}" | openssl dgst -sha256 -hmac "$DISPATCH_SECRET" | awk '{print $2}')
+            if [ "$SIGNATURE" != "$EXPECTED_SIG" ]; then
+              echo "::error::Invalid signature. Dispatch not authorized."
+              exit 1
+            fi
+
+            NOW=$(date +%s)
+            DIFF=$((NOW - TIMESTAMP))
+            if [ "$DIFF" -gt 900 ] || [ "$DIFF" -lt -60 ]; then
+              echo "::error::Timestamp out of range (${DIFF}s). Possible replay attack."
+              exit 1
+            fi
+            echo "✅ Dispatch validated: ${SHA:0:8}"
+          fi
+
+          # Read base version from package.json in private repo
+          echo "::add-mask::${PRIVATE_TOKEN}"
+          PKG_VERSION=$(curl -sf \
+            -H "Authorization: Bearer ${PRIVATE_TOKEN}" \
+            -H "Accept: application/vnd.github.raw+json" \
+            "https://api.github.com/repos/jeancatarina/catarina-claude/contents/package.json?ref=${SHA}" \
+            | jq -r '.version')
+
+          if [ -z "$PKG_VERSION" ]; then
+            echo "::error::Could not read version from package.json at ${SHA:0:8}"
+            exit 1
+          fi
+
+          # Beta version: {base}-beta.{unix_timestamp}  e.g. 0.2.87-beta.1750000000
+          BETA_VERSION="${PKG_VERSION}-beta.$(date +%s)"
+
+          echo "sha=${SHA}" >> $GITHUB_OUTPUT
+          echo "version=${BETA_VERSION}" >> $GITHUB_OUTPUT
+          echo "✅ Beta version: ${BETA_VERSION} @ ${SHA:0:8}"
+
+  # ─────────────────────────────────────────────────────────────
+  # Step 2: Build on each platform
+  # ─────────────────────────────────────────────────────────────
+  build-macos:
+    needs: validate
+    runs-on: macos-latest
+    steps:
+      - name: Clone private repo at specific SHA
+        env:
+          PRIVATE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
+        run: |
+          set -euo pipefail
+          echo "::add-mask::${PRIVATE_TOKEN}"
+          echo "::add-mask::$(pwd)/source"
+
+          git clone --depth=1 \
+            "https://x-access-token:${PRIVATE_TOKEN}@github.com/jeancatarina/catarina-claude.git" \
+            source 2>&1 | head -1 || true
+
+          cd source
+          EXPECTED_SHA="${{ needs.validate.outputs.sha }}"
+          git fetch --depth=1 origin "$EXPECTED_SHA" 2>/dev/null
+          git checkout "$EXPECTED_SHA" 2>/dev/null
+
+          ACTUAL_SHA=$(git rev-parse HEAD)
+          if [ "$ACTUAL_SHA" != "$EXPECTED_SHA" ]; then
+            echo "::error::SHA mismatch! Expected ${EXPECTED_SHA:0:8}, got ${ACTUAL_SHA:0:8}."
+            exit 1
+          fi
+          echo "✅ Checked out: ${ACTUAL_SHA:0:8}"
+
+          git remote set-url origin "https://REDACTED@github.com/redacted/redacted.git"
+          git config --unset-all http.https://github.com/.extraheader 2>/dev/null || true
+          unset PRIVATE_TOKEN
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+
+      - uses: mozilla-actions/sccache-action@v0.0.7
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            source/src-tauri/target
+          key: macos-universal-cargo-${{ hashFiles('source/src-tauri/Cargo.lock') }}
+          restore-keys: macos-universal-cargo-
+
+      - name: Install frontend dependencies
+        working-directory: source
+        run: npm ci 2>&1 | tail -5
+
+      - name: Build ARM64
+        working-directory: source
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
+          RUSTC_WRAPPER: sccache
+        run: |
+          echo "🔨 Building aarch64-apple-darwin (beta)..."
+          if npx tauri build --target aarch64-apple-darwin > /tmp/build-arm64.log 2>&1; then
+            echo "✅ ARM64 build succeeded"
+          else
+            EXIT_CODE=$?
+            tail -5 /tmp/build-arm64.log | sed 's|source/||g; s|src-tauri/src/[^ ]*|[REDACTED_PATH]|g'
+            rm -f /tmp/build-arm64.log
+            exit $EXIT_CODE
+          fi
+          rm -f /tmp/build-arm64.log
+
+      - name: Build x86_64
+        working-directory: source
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
+          RUSTC_WRAPPER: sccache
+        run: |
+          echo "🔨 Building x86_64-apple-darwin (beta)..."
+          if npx tauri build --target x86_64-apple-darwin > /tmp/build-x64.log 2>&1; then
+            echo "✅ x86_64 build succeeded"
+          else
+            EXIT_CODE=$?
+            tail -5 /tmp/build-x64.log | sed 's|source/||g; s|src-tauri/src/[^ ]*|[REDACTED_PATH]|g'
+            rm -f /tmp/build-x64.log
+            exit $EXIT_CODE
+          fi
+          rm -f /tmp/build-x64.log
+
+      - name: Collect artifacts
+        run: |
+          VERSION="${{ needs.validate.outputs.version }}"
+          mkdir -p artifacts
+          BUNDLE_ARM="source/src-tauri/target/aarch64-apple-darwin/release/bundle"
+          BUNDLE_X64="source/src-tauri/target/x86_64-apple-darwin/release/bundle"
+
+          find "$BUNDLE_ARM/dmg"   -name "*.dmg"           -exec cp {} "artifacts/cadente-beta-macos-arm64.dmg" \;            2>/dev/null || true
+          find "$BUNDLE_ARM/macos" -name "*.app.tar.gz"    -exec cp {} "artifacts/cadente-beta-macos-arm64.app.tar.gz" \;     2>/dev/null || true
+          find "$BUNDLE_ARM/macos" -name "*.app.tar.gz.sig"-exec cp {} "artifacts/cadente-beta-macos-arm64.app.tar.gz.sig" \; 2>/dev/null || true
+          find "$BUNDLE_X64/dmg"   -name "*.dmg"           -exec cp {} "artifacts/cadente-beta-macos-x64.dmg" \;             2>/dev/null || true
+          find "$BUNDLE_X64/macos" -name "*.app.tar.gz"    -exec cp {} "artifacts/cadente-beta-macos-x64.app.tar.gz" \;      2>/dev/null || true
+          find "$BUNDLE_X64/macos" -name "*.app.tar.gz.sig"-exec cp {} "artifacts/cadente-beta-macos-x64.app.tar.gz.sig" \;  2>/dev/null || true
+
+          echo "📦 macOS artifacts:"
+          ls -la artifacts/
+
+      - name: Delete source before upload
+        if: always()
+        run: rm -rf source /tmp/build-*.log
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: artifacts-macos
+          path: artifacts/*
+          if-no-files-found: error
+
+  build-linux:
+    needs: validate
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Clone private repo at specific SHA
+        env:
+          PRIVATE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
+        run: |
+          set -euo pipefail
+          echo "::add-mask::${PRIVATE_TOKEN}"
+          echo "::add-mask::$(pwd)/source"
+
+          git clone --depth=1 \
+            "https://x-access-token:${PRIVATE_TOKEN}@github.com/jeancatarina/catarina-claude.git" \
+            source 2>&1 | head -1 || true
+
+          cd source
+          EXPECTED_SHA="${{ needs.validate.outputs.sha }}"
+          git fetch --depth=1 origin "$EXPECTED_SHA" 2>/dev/null
+          git checkout "$EXPECTED_SHA" 2>/dev/null
+
+          ACTUAL_SHA=$(git rev-parse HEAD)
+          if [ "$ACTUAL_SHA" != "$EXPECTED_SHA" ]; then
+            echo "::error::SHA mismatch!"
+            exit 1
+          fi
+          echo "✅ Checked out: ${ACTUAL_SHA:0:8}"
+
+          git remote set-url origin "https://REDACTED@github.com/redacted/redacted.git"
+          git config --unset-all http.https://github.com/.extraheader 2>/dev/null || true
+          unset PRIVATE_TOKEN
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: mozilla-actions/sccache-action@v0.0.7
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            source/src-tauri/target
+          key: linux-cargo-${{ hashFiles('source/src-tauri/Cargo.lock') }}
+          restore-keys: linux-cargo-
+
+      - name: Cache apt packages
+        uses: actions/cache@v4
+        with:
+          path: ~/apt-cache
+          key: linux-apt-webkit2gtk-v1
+
+      - name: Install Linux dependencies
+        run: |
+          if [ -d ~/apt-cache ] && [ "$(ls -A ~/apt-cache 2>/dev/null)" ]; then
+            sudo cp ~/apt-cache/*.deb /var/cache/apt/archives/ 2>/dev/null || true
+          fi
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf lld rpm
+          mkdir -p ~/apt-cache
+          cp /var/cache/apt/archives/*.deb ~/apt-cache/ 2>/dev/null || true
+
+      - name: Install frontend dependencies
+        working-directory: source
+        run: npm ci 2>&1 | tail -5
+
+      - name: Build
+        working-directory: source
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
+          RUSTC_WRAPPER: sccache
+        run: |
+          echo "🔨 Building linux x86_64 (beta)..."
+          if npx tauri build > /tmp/build-linux.log 2>&1; then
+            echo "✅ Linux build succeeded"
+          else
+            EXIT_CODE=$?
+            tail -5 /tmp/build-linux.log | sed 's|source/||g; s|src-tauri/src/[^ ]*|[REDACTED_PATH]|g'
+            rm -f /tmp/build-linux.log
+            exit $EXIT_CODE
+          fi
+          rm -f /tmp/build-linux.log
+
+      - name: Collect artifacts
+        run: |
+          mkdir -p artifacts
+          BUNDLE_DIR="source/src-tauri/target/release/bundle"
+
+          find "$BUNDLE_DIR/appimage" -name "*.AppImage"          -exec cp {} "artifacts/cadente-beta-linux-x64.AppImage" \;          2>/dev/null || true
+          find "$BUNDLE_DIR/deb"      -name "*.deb"               -exec cp {} "artifacts/cadente-beta-linux-x64.deb" \;               2>/dev/null || true
+          find "$BUNDLE_DIR/appimage" -name "*.AppImage.tar.gz"   -exec cp {} "artifacts/cadente-beta-linux-x64.AppImage.tar.gz" \;   2>/dev/null || true
+          find "$BUNDLE_DIR/appimage" -name "*.AppImage.tar.gz.sig"-exec cp {} "artifacts/cadente-beta-linux-x64.AppImage.tar.gz.sig" \; 2>/dev/null || true
+
+          echo "📦 Linux artifacts:"
+          ls -la artifacts/
+
+      - name: Delete source before upload
+        if: always()
+        run: rm -rf source /tmp/build-linux.log
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: artifacts-linux
+          path: artifacts/*
+          if-no-files-found: error
+
+  build-windows:
+    needs: validate
+    runs-on: windows-latest
+    steps:
+      - name: Clone private repo at specific SHA
+        shell: bash
+        env:
+          PRIVATE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
+        run: |
+          set -euo pipefail
+          echo "::add-mask::${PRIVATE_TOKEN}"
+          echo "::add-mask::$(pwd)/source"
+
+          git clone --depth=1 \
+            "https://x-access-token:${PRIVATE_TOKEN}@github.com/jeancatarina/catarina-claude.git" \
+            source 2>&1 | head -1 || true
+
+          cd source
+          EXPECTED_SHA="${{ needs.validate.outputs.sha }}"
+          git fetch --depth=1 origin "$EXPECTED_SHA" 2>/dev/null
+          git checkout "$EXPECTED_SHA" 2>/dev/null
+
+          ACTUAL_SHA=$(git rev-parse HEAD)
+          if [ "$ACTUAL_SHA" != "$EXPECTED_SHA" ]; then
+            echo "::error::SHA mismatch!"
+            exit 1
+          fi
+          echo "✅ Checked out: ${ACTUAL_SHA:0:8}"
+
+          git remote set-url origin "https://REDACTED@github.com/redacted/redacted.git"
+          git config --unset-all http.https://github.com/.extraheader 2>/dev/null || true
+          unset PRIVATE_TOKEN
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: mozilla-actions/sccache-action@v0.0.7
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            source/src-tauri/target
+          key: windows-cargo-${{ hashFiles('source/src-tauri/Cargo.lock') }}
+          restore-keys: windows-cargo-
+
+      - name: Install frontend dependencies
+        working-directory: source
+        shell: bash
+        run: npm ci 2>&1 | tail -5
+
+      - name: Build
+        working-directory: source
+        shell: bash
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
+          RUSTC_WRAPPER: sccache
+        run: |
+          echo "🔨 Building windows x86_64 (beta)..."
+          if npx tauri build > /tmp/build-windows.log 2>&1; then
+            echo "✅ Windows build succeeded"
+          else
+            EXIT_CODE=$?
+            tail -5 /tmp/build-windows.log | sed 's|source/||g; s|src-tauri/src/[^ ]*|[REDACTED_PATH]|g'
+            rm -f /tmp/build-windows.log
+            exit $EXIT_CODE
+          fi
+          rm -f /tmp/build-windows.log
+
+      - name: Collect artifacts
+        shell: bash
+        run: |
+          mkdir -p artifacts
+          BUNDLE_DIR="source/src-tauri/target/release/bundle"
+
+          find "$BUNDLE_DIR/msi"  -name "*.msi"          -exec cp {} "artifacts/cadente-beta-windows-x64.msi" \;          2>/dev/null || true
+          find "$BUNDLE_DIR/nsis" -name "*.exe"          -exec cp {} "artifacts/cadente-beta-windows-x64.exe" \;          2>/dev/null || true
+          find "$BUNDLE_DIR/nsis" -name "*.nsis.zip"    -exec cp {} "artifacts/cadente-beta-windows-x64.nsis.zip" \;     2>/dev/null || true
+          find "$BUNDLE_DIR/nsis" -name "*.nsis.zip.sig"-exec cp {} "artifacts/cadente-beta-windows-x64.nsis.zip.sig" \; 2>/dev/null || true
+          find "$BUNDLE_DIR/msi"  -name "*.msi.zip"     -exec cp {} "artifacts/cadente-beta-windows-x64.msi.zip" \;      2>/dev/null || true
+          find "$BUNDLE_DIR/msi"  -name "*.msi.zip.sig" -exec cp {} "artifacts/cadente-beta-windows-x64.msi.zip.sig" \;  2>/dev/null || true
+
+          echo "📦 Windows artifacts:"
+          ls -la artifacts/
+
+      - name: Delete source before upload
+        if: always()
+        shell: bash
+        run: rm -rf source /tmp/build-windows.log
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: artifacts-windows
+          path: artifacts/*
+          if-no-files-found: error
+
+  # ─────────────────────────────────────────────────────────────
+  # Step 3: Publish rolling beta-latest pre-release + update-beta.json
+  # ─────────────────────────────────────────────────────────────
+  release:
+    needs: [validate, build-macos, build-linux, build-windows]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: all-artifacts
+          merge-multiple: true
+
+      - name: List artifacts
+        run: ls -la all-artifacts/
+
+      - name: Generate update-beta.json
+        run: |
+          set -euo pipefail
+          VERSION="${{ needs.validate.outputs.version }}"
+          SHA="${{ needs.validate.outputs.sha }}"
+          PUB_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          BASE_URL="https://github.com/cadente-hub/cadente-hub.github.io/releases/download/beta-latest"
+
+          read_sig() {
+            local file="all-artifacts/$1"
+            [ -f "$file" ] && cat "$file" || echo ""
+          }
+
+          DARWIN_AARCH64_SIG=$(read_sig "cadente-beta-macos-arm64.app.tar.gz.sig")
+          DARWIN_X86_64_SIG=$(read_sig "cadente-beta-macos-x64.app.tar.gz.sig")
+          LINUX_X86_64_SIG=$(read_sig "cadente-beta-linux-x64.AppImage.tar.gz.sig")
+          WINDOWS_SIG=$(read_sig "cadente-beta-windows-x64.nsis.zip.sig")
+          WIN_FILE="cadente-beta-windows-x64.nsis.zip"
+          if [ -z "$WINDOWS_SIG" ]; then
+            WINDOWS_SIG=$(read_sig "cadente-beta-windows-x64.msi.zip.sig")
+            WIN_FILE="cadente-beta-windows-x64.msi.zip"
+          fi
+
+          MISSING=0
+          for PAIR in "darwin-aarch64:$DARWIN_AARCH64_SIG" "darwin-x86_64:$DARWIN_X86_64_SIG" "linux-x86_64:$LINUX_X86_64_SIG" "windows-x86_64:$WINDOWS_SIG"; do
+            PLATFORM="${PAIR%%:*}"; SIG="${PAIR#*:}"
+            [ -z "$SIG" ] && echo "::error::Empty signature for ${PLATFORM}" && MISSING=$((MISSING+1))
+          done
+          [ "$MISSING" -gt 0 ] && echo "::error::${MISSING} missing signature(s). Aborting." && exit 1
+
+          cat > update-beta.json <<EOF
+          {
+            "version": "${VERSION}",
+            "notes": "Cadente beta build — ${SHA:0:8}",
+            "pub_date": "${PUB_DATE}",
+            "platforms": {
+              "darwin-aarch64": {
+                "signature": "${DARWIN_AARCH64_SIG}",
+                "url": "${BASE_URL}/cadente-beta-macos-arm64.app.tar.gz"
+              },
+              "darwin-x86_64": {
+                "signature": "${DARWIN_X86_64_SIG}",
+                "url": "${BASE_URL}/cadente-beta-macos-x64.app.tar.gz"
+              },
+              "linux-x86_64": {
+                "signature": "${LINUX_X86_64_SIG}",
+                "url": "${BASE_URL}/cadente-beta-linux-x64.AppImage.tar.gz"
+              },
+              "windows-x86_64": {
+                "signature": "${WINDOWS_SIG}",
+                "url": "${BASE_URL}/${WIN_FILE}"
+              }
+            }
+          }
+          EOF
+
+          python3 -c "import json; json.load(open('update-beta.json'))" || { echo "::error::Invalid JSON"; exit 1; }
+          echo "✅ update-beta.json for v${VERSION}:"
+          python3 -c "import json; d=json.load(open('update-beta.json')); [print(f'  {k}: sig={v[\"signature\"][:20]}...') for k,v in d['platforms'].items()]"
+          cp update-beta.json all-artifacts/update-beta.json
+
+      - name: Publish rolling beta-latest pre-release
+        env:
+          GH_TOKEN: ${{ secrets.CATARINA_RELEASE_TOKEN }}
+        run: |
+          echo "::add-mask::${GH_TOKEN}"
+          VERSION="${{ needs.validate.outputs.version }}"
+          SHA="${{ needs.validate.outputs.sha }}"
+
+          # Delete and recreate to replace all assets
+          gh release delete "beta-latest" --repo cadente-hub/cadente-hub.github.io --yes 2>/dev/null || true
+          git tag -d "beta-latest" 2>/dev/null || true
+          git push origin ":refs/tags/beta-latest" 2>/dev/null || true
+
+          gh release create "beta-latest" \
+            --repo cadente-hub/cadente-hub.github.io \
+            --title "Cadente Beta (latest)" \
+            --notes "## Cadente Beta — v${VERSION}
+
+          Built from commit: ${SHA:0:8}
+
+          > This is a pre-release build. Features may be incomplete or unstable.
+
+          ### Downloads
+          - **macOS Apple Silicon**: \`cadente-beta-macos-arm64.dmg\`
+          - **macOS Intel**: \`cadente-beta-macos-x64.dmg\`
+          - **Linux**: \`cadente-beta-linux-x64.AppImage\` or \`.deb\`
+          - **Windows**: \`cadente-beta-windows-x64.exe\` or \`.msi\`" \
+            --prerelease \
+            all-artifacts/*
+
+      - name: Commit update-beta.json to site repo
+        env:
+          GH_TOKEN: ${{ secrets.CATARINA_RELEASE_TOKEN }}
+        run: |
+          echo "::add-mask::${GH_TOKEN}"
+          git clone --depth=1 https://x-access-token:${GH_TOKEN}@github.com/cadente-hub/cadente-hub.github.io.git site-repo
+          cd site-repo
+          cp ../update-beta.json ./update-beta.json
+          if [ -d "dist" ]; then cp ../update-beta.json ./dist/update-beta.json; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add update-beta.json
+          git commit -m "chore: update update-beta.json for ${{ needs.validate.outputs.version }}" || echo "No changes"
+          git push
