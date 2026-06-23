@@ -32,9 +32,10 @@ jobs:
       - name: Build site
         run: npm run build
 
-      - name: Copy update.json to dist
+      - name: Copy update manifests to dist
         run: |
           cp update.json dist/update.json 2>/dev/null || true
+          cp update-beta.json dist/update-beta.json 2>/dev/null || true
           cp CNAME dist/CNAME 2>/dev/null || true
 
       - name: Setup Pages
