@@ -381,54 +381,47 @@ jobs:
           GH_TOKEN: ${{ secrets.CATARINA_RELEASE_TOKEN }}
         run: |
           set -euo pipefail
-          export VERSION="${{ needs.resolve.outputs.version }}"
-          export TAG="${{ needs.resolve.outputs.unstable_tag }}"
-          export BASE_URL="https://github.com/${{ github.repository }}/releases/download/${TAG}"
-          export PUB_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-          export RUN_NUM="${{ github.run_number }}"
+          VERSION="${{ needs.resolve.outputs.version }}"
+          TAG="${{ needs.resolve.outputs.unstable_tag }}"
+          BASE_URL="https://github.com/${{ github.repository }}/releases/download/${TAG}"
+          PUB_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          RUN_NUM="${{ github.run_number }}"
 
-          python3 - <<'PYEOF'
-import json, os, sys
+          ARM_SIG=$(cat "all-artifacts/cadente-${VERSION}-macos-arm64.app.tar.gz.sig" 2>/dev/null || true)
+          X64_SIG=$(cat "all-artifacts/cadente-${VERSION}-macos-x64.app.tar.gz.sig" 2>/dev/null || true)
+          LINUX_SIG=$(cat "all-artifacts/cadente-${VERSION}-linux-x64.AppImage.tar.gz.sig" 2>/dev/null || true)
+          WIN_SIG=$(cat "all-artifacts/cadente-${VERSION}-windows-x64.nsis.zip.sig" 2>/dev/null || \
+                    cat "all-artifacts/cadente-${VERSION}-windows-x64.msi.zip.sig" 2>/dev/null || true)
+          WIN_FILE="nsis.zip"
+          [ -f "all-artifacts/cadente-${VERSION}-windows-x64.nsis.zip.sig" ] || WIN_FILE="msi.zip"
 
-version   = os.environ["VERSION"]
-base_url  = os.environ["BASE_URL"]
-pub_date  = os.environ["PUB_DATE"]
-tag       = os.environ["TAG"]
-run_num   = os.environ["RUN_NUM"]
+          MISSING=""
+          [ -z "$ARM_SIG" ]   && MISSING="${MISSING} darwin-aarch64"
+          [ -z "$X64_SIG" ]   && MISSING="${MISSING} darwin-x86_64"
+          [ -z "$LINUX_SIG" ] && MISSING="${MISSING} linux-x86_64"
+          [ -z "$WIN_SIG" ]   && MISSING="${MISSING} windows-x86_64"
+          if [ -n "$MISSING" ]; then
+            echo "::error::Missing signatures for:${MISSING}"
+            ls -la all-artifacts/ || true
+            exit 1
+          fi
 
-def read_sig(path):
-    try:
-        return open(path).read().strip() or None
-    except FileNotFoundError:
-        return None
+          jq -n \
+            --arg version "${TAG#v}" \
+            --arg notes "Cadente beta build #${RUN_NUM}" \
+            --arg pub_date "$PUB_DATE" \
+            --arg arm_sig "$ARM_SIG" \
+            --arg x64_sig "$X64_SIG" \
+            --arg linux_sig "$LINUX_SIG" \
+            --arg win_sig "$WIN_SIG" \
+            --arg arm_url "${BASE_URL}/cadente-${VERSION}-macos-arm64.app.tar.gz" \
+            --arg x64_url "${BASE_URL}/cadente-${VERSION}-macos-x64.app.tar.gz" \
+            --arg linux_url "${BASE_URL}/cadente-${VERSION}-linux-x64.AppImage.tar.gz" \
+            --arg win_url "${BASE_URL}/cadente-${VERSION}-windows-x64.${WIN_FILE}" \
+            '{version:$version,notes:$notes,pub_date:$pub_date,platforms:{"darwin-aarch64":{signature:$arm_sig,url:$arm_url},"darwin-x86_64":{signature:$x64_sig,url:$x64_url},"linux-x86_64":{signature:$linux_sig,url:$linux_url},"windows-x86_64":{signature:$win_sig,url:$win_url}}}' \
+            > update-beta.json
 
-arm_sig   = read_sig(f"all-artifacts/cadente-{version}-macos-arm64.app.tar.gz.sig")
-x64_sig   = read_sig(f"all-artifacts/cadente-{version}-macos-x64.app.tar.gz.sig")
-linux_sig = read_sig(f"all-artifacts/cadente-{version}-linux-x64.AppImage.tar.gz.sig")
-win_nsis  = read_sig(f"all-artifacts/cadente-{version}-windows-x64.nsis.zip.sig")
-win_msi   = read_sig(f"all-artifacts/cadente-{version}-windows-x64.msi.zip.sig")
-win_sig   = win_nsis or win_msi
-win_ext   = "nsis.zip" if win_nsis else "msi.zip"
-
-missing = [k for k, v in {"macos-arm64": arm_sig, "macos-x64": x64_sig, "linux": linux_sig, "windows": win_sig}.items() if not v]
-if missing:
-    print(f"::error::Missing signatures for: {missing}", file=sys.stderr)
-    sys.exit(1)
-
-data = {
-    "version": tag.lstrip("v"),
-    "notes": f"Cadente beta build #{run_num}",
-    "pub_date": pub_date,
-    "platforms": {
-        "darwin-aarch64": {"signature": arm_sig,   "url": f"{base_url}/cadente-{version}-macos-arm64.app.tar.gz"},
-        "darwin-x86_64":  {"signature": x64_sig,   "url": f"{base_url}/cadente-{version}-macos-x64.app.tar.gz"},
-        "linux-x86_64":   {"signature": linux_sig, "url": f"{base_url}/cadente-{version}-linux-x64.AppImage.tar.gz"},
-        "windows-x86_64": {"signature": win_sig,   "url": f"{base_url}/cadente-{version}-windows-x64.{win_ext}"},
-    },
-}
-json.dump(data, open("update-beta.json", "w"), indent=2)
-print(f"Generated update-beta.json for {tag}")
-PYEOF
+          echo "Generated update-beta.json for ${TAG}"
 
           echo "::add-mask::${GH_TOKEN}"
           git clone --depth=1 \
