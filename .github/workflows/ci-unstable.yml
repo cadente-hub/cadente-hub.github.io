@@ -134,6 +134,22 @@ jobs:
           restore-keys: |
             unstable-macos-cargo-
 
+      - name: Patch beta version in source
+        working-directory: source
+        env:
+          BETA_TAG: ${{ needs.resolve.outputs.unstable_tag }}
+        run: |
+          export BETA_VERSION="${BETA_TAG#v}"
+          python3 -c "
+import json, os
+v = os.environ['BETA_VERSION']
+for path in ['src-tauri/tauri.conf.json', 'package.json']:
+    with open(path) as f: data = json.load(f)
+    data['version'] = v
+    with open(path, 'w') as f: json.dump(data, f, indent=2)
+print('Patched version to:', v)
+"
+
       - name: Install frontend dependencies
         working-directory: source
         run: npm ci 2>&1 | tail -5
@@ -217,6 +233,22 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf lld rpm
 
+      - name: Patch beta version in source
+        working-directory: source
+        env:
+          BETA_TAG: ${{ needs.resolve.outputs.unstable_tag }}
+        run: |
+          export BETA_VERSION="${BETA_TAG#v}"
+          python3 -c "
+import json, os
+v = os.environ['BETA_VERSION']
+for path in ['src-tauri/tauri.conf.json', 'package.json']:
+    with open(path) as f: data = json.load(f)
+    data['version'] = v
+    with open(path, 'w') as f: json.dump(data, f, indent=2)
+print('Patched version to:', v)
+"
+
       - name: Install frontend dependencies
         working-directory: source
         run: npm ci 2>&1 | tail -5
@@ -285,6 +317,23 @@ jobs:
           key: unstable-windows-cargo-${{ hashFiles('source/src-tauri/Cargo.lock') }}
           restore-keys: |
             unstable-windows-cargo-
+
+      - name: Patch beta version in source
+        working-directory: source
+        shell: bash
+        env:
+          BETA_TAG: ${{ needs.resolve.outputs.unstable_tag }}
+        run: |
+          export BETA_VERSION="${BETA_TAG#v}"
+          python3 -c "
+import json, os
+v = os.environ['BETA_VERSION']
+for path in ['src-tauri/tauri.conf.json', 'package.json']:
+    with open(path) as f: data = json.load(f)
+    data['version'] = v
+    with open(path, 'w') as f: json.dump(data, f, indent=2)
+print('Patched version to:', v)
+"
 
       - name: Install frontend dependencies
         working-directory: source
