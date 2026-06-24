@@ -138,9 +138,12 @@ jobs:
             --latest
 
       - name: Update stable update.json in site repo
+        env:
+          RELEASE_TOKEN: ${{ secrets.CATARINA_RELEASE_TOKEN }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin "https://x-access-token:${RELEASE_TOKEN}@github.com/${{ github.repository }}.git"
           git add update.json
           git commit -m "chore: update stable update.json for v${{ steps.versions.outputs.stable_version }}" || echo "No changes"
           git push
