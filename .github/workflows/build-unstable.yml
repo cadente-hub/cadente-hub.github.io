@@ -207,10 +207,10 @@ jobs:
 
           find "$BUNDLE_ARM/dmg"   -name "*.dmg"           -exec cp {} "artifacts/cadente-beta-macos-arm64.dmg" \;            2>/dev/null || true
           find "$BUNDLE_ARM/macos" -name "*.app.tar.gz"    -exec cp {} "artifacts/cadente-beta-macos-arm64.app.tar.gz" \;     2>/dev/null || true
-          find "$BUNDLE_ARM/macos" -name "*.app.tar.gz.sig"-exec cp {} "artifacts/cadente-beta-macos-arm64.app.tar.gz.sig" \; 2>/dev/null || true
+          find "$BUNDLE_ARM/macos" -name "*.app.tar.gz.sig" -exec cp {} "artifacts/cadente-beta-macos-arm64.app.tar.gz.sig" \; 2>/dev/null || true
           find "$BUNDLE_X64/dmg"   -name "*.dmg"           -exec cp {} "artifacts/cadente-beta-macos-x64.dmg" \;             2>/dev/null || true
           find "$BUNDLE_X64/macos" -name "*.app.tar.gz"    -exec cp {} "artifacts/cadente-beta-macos-x64.app.tar.gz" \;      2>/dev/null || true
-          find "$BUNDLE_X64/macos" -name "*.app.tar.gz.sig"-exec cp {} "artifacts/cadente-beta-macos-x64.app.tar.gz.sig" \;  2>/dev/null || true
+          find "$BUNDLE_X64/macos" -name "*.app.tar.gz.sig" -exec cp {} "artifacts/cadente-beta-macos-x64.app.tar.gz.sig" \;  2>/dev/null || true
 
           echo "📦 macOS artifacts:"
           ls -la artifacts/
@@ -320,7 +320,7 @@ jobs:
           find "$BUNDLE_DIR/appimage" -name "*.AppImage"          -exec cp {} "artifacts/cadente-beta-linux-x64.AppImage" \;          2>/dev/null || true
           find "$BUNDLE_DIR/deb"      -name "*.deb"               -exec cp {} "artifacts/cadente-beta-linux-x64.deb" \;               2>/dev/null || true
           find "$BUNDLE_DIR/appimage" -name "*.AppImage.tar.gz"   -exec cp {} "artifacts/cadente-beta-linux-x64.AppImage.tar.gz" \;   2>/dev/null || true
-          find "$BUNDLE_DIR/appimage" -name "*.AppImage.tar.gz.sig"-exec cp {} "artifacts/cadente-beta-linux-x64.AppImage.tar.gz.sig" \; 2>/dev/null || true
+          find "$BUNDLE_DIR/appimage" -name "*.AppImage.tar.gz.sig" -exec cp {} "artifacts/cadente-beta-linux-x64.AppImage.tar.gz.sig" \; 2>/dev/null || true
 
           echo "📦 Linux artifacts:"
           ls -la artifacts/
@@ -418,7 +418,7 @@ jobs:
           find "$BUNDLE_DIR/msi"  -name "*.msi"          -exec cp {} "artifacts/cadente-beta-windows-x64.msi" \;          2>/dev/null || true
           find "$BUNDLE_DIR/nsis" -name "*.exe"          -exec cp {} "artifacts/cadente-beta-windows-x64.exe" \;          2>/dev/null || true
           find "$BUNDLE_DIR/nsis" -name "*.nsis.zip"    -exec cp {} "artifacts/cadente-beta-windows-x64.nsis.zip" \;     2>/dev/null || true
-          find "$BUNDLE_DIR/nsis" -name "*.nsis.zip.sig"-exec cp {} "artifacts/cadente-beta-windows-x64.nsis.zip.sig" \; 2>/dev/null || true
+          find "$BUNDLE_DIR/nsis" -name "*.nsis.zip.sig" -exec cp {} "artifacts/cadente-beta-windows-x64.nsis.zip.sig" \; 2>/dev/null || true
           find "$BUNDLE_DIR/msi"  -name "*.msi.zip"     -exec cp {} "artifacts/cadente-beta-windows-x64.msi.zip" \;      2>/dev/null || true
           find "$BUNDLE_DIR/msi"  -name "*.msi.zip.sig" -exec cp {} "artifacts/cadente-beta-windows-x64.msi.zip.sig" \;  2>/dev/null || true
 
