@@ -97,8 +97,8 @@ jobs:
             exit 1
           fi
 
-          # Beta version: {base}-beta.{YYMMDD}  e.g. 0.2.87-beta.260625
-          BETA_VERSION="${PKG_VERSION}-beta.$(date +%y%m%d)"
+          # Beta version: {base}-beta.{run_number}  e.g. 0.2.87-beta.47
+          BETA_VERSION="${PKG_VERSION}-beta.${{ github.run_number }}"
 
           echo "sha=${SHA}" >> $GITHUB_OUTPUT
           echo "version=${BETA_VERSION}" >> $GITHUB_OUTPUT
