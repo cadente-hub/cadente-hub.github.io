@@ -140,7 +140,15 @@ jobs:
           BETA_TAG: ${{ needs.resolve.outputs.unstable_tag }}
         run: |
           export BETA_VERSION="${BETA_TAG#v}"
-          python3 -c "import json,os; v=os.environ['BETA_VERSION']; [open(p,'w').write(json.dumps(dict(**json.load(open(p)),version=v),indent=2)) for p in ['src-tauri/tauri.conf.json','package.json']]; print('Patched to:',v)"
+          python3 - <<'PYEOF'
+          import json, os
+          v = os.environ['BETA_VERSION']
+          for p in ['src-tauri/tauri.conf.json', 'package.json']:
+              d = json.load(open(p))
+              d['version'] = v
+              open(p, 'w').write(json.dumps(d, indent=2))
+          print('Patched to:', v)
+          PYEOF
 
       - name: Install frontend dependencies
         working-directory: source
@@ -231,7 +239,15 @@ jobs:
           BETA_TAG: ${{ needs.resolve.outputs.unstable_tag }}
         run: |
           export BETA_VERSION="${BETA_TAG#v}"
-          python3 -c "import json,os; v=os.environ['BETA_VERSION']; [open(p,'w').write(json.dumps(dict(**json.load(open(p)),version=v),indent=2)) for p in ['src-tauri/tauri.conf.json','package.json']]; print('Patched to:',v)"
+          python3 - <<'PYEOF'
+          import json, os
+          v = os.environ['BETA_VERSION']
+          for p in ['src-tauri/tauri.conf.json', 'package.json']:
+              d = json.load(open(p))
+              d['version'] = v
+              open(p, 'w').write(json.dumps(d, indent=2))
+          print('Patched to:', v)
+          PYEOF
 
       - name: Install frontend dependencies
         working-directory: source
@@ -309,7 +325,15 @@ jobs:
           BETA_TAG: ${{ needs.resolve.outputs.unstable_tag }}
         run: |
           export BETA_VERSION="${BETA_TAG#v}"
-          python3 -c "import json,os; v=os.environ['BETA_VERSION']; [open(p,'w').write(json.dumps(dict(**json.load(open(p)),version=v),indent=2)) for p in ['src-tauri/tauri.conf.json','package.json']]; print('Patched to:',v)"
+          python3 - <<'PYEOF'
+          import json, os
+          v = os.environ['BETA_VERSION']
+          for p in ['src-tauri/tauri.conf.json', 'package.json']:
+              d = json.load(open(p))
+              d['version'] = v
+              open(p, 'w').write(json.dumps(d, indent=2))
+          print('Patched to:', v)
+          PYEOF
 
       - name: Install frontend dependencies
         working-directory: source
