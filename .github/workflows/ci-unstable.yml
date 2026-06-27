@@ -30,16 +30,22 @@ jobs:
       unstable_tag: ${{ steps.meta.outputs.unstable_tag }}
       release_name: ${{ steps.meta.outputs.release_name }}
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 100
+
       - name: Resolve private SHA and version
         id: meta
         env:
           PRIVATE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
           INPUT_SHA: ${{ github.event.client_payload.sha || inputs.sha }}
           INPUT_BUILD_VERSION: ${{ github.event.client_payload.build_version || github.event.client_payload.version }}
           DISPATCH_SECRET: ${{ secrets.DISPATCH_SECRET }}
         run: |
           set -euo pipefail
           echo "::add-mask::${PRIVATE_TOKEN}"
+          PUBLIC_REPO_DIR="$GITHUB_WORKSPACE"
 
           if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
             SHA="${{ github.event.client_payload.sha }}"
@@ -90,16 +96,56 @@ jobs:
             exit 1
           fi
 
-          if [ -n "${INPUT_BUILD_VERSION:-}" ]; then
-            BUILD_VERSION="${INPUT_BUILD_VERSION#v}"
+          REQUESTED_BUILD_VERSION="${INPUT_BUILD_VERSION#v}"
+          BETA_CANDIDATES=$(mktemp)
+          {
+            gh release list --repo "${{ github.repository }}" --limit 100 --json tagName --jq '.[].tagName' 2>/dev/null || true
+            if [ -f "$PUBLIC_REPO_DIR/update-beta.json" ]; then
+              python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("version", ""))' "$PUBLIC_REPO_DIR/update-beta.json" || true
+            fi
+            for rev in $(git -C "$PUBLIC_REPO_DIR" log --format=%H -- update-beta.json | head -100); do
+              git -C "$PUBLIC_REPO_DIR" show "${rev}:update-beta.json" 2>/dev/null \
+                | python3 -c 'import json,sys; print(json.load(sys.stdin).get("version", ""))' 2>/dev/null || true
+            done
+          } > "$BETA_CANDIDATES"
+          MAX_BETA_NUMBER=$(python3 - "$VERSION" "$BETA_CANDIDATES" <<'PYEOF'
+          import re
+          import sys
+
+          base = sys.argv[1]
+          candidates_file = sys.argv[2]
+          pattern = re.compile(rf"^v?{re.escape(base)}-beta\.(\d+)$")
+          highest = 0
+          with open(candidates_file) as fh:
+              for line in fh:
+                  match = pattern.match(line.strip())
+                  if match:
+                      number = int(match.group(1))
+                      if number <= 65535:
+                          highest = max(highest, number)
+          print(highest)
+          PYEOF
+          )
+          rm -f "$BETA_CANDIDATES"
+          NEXT_BETA_NUMBER=$((MAX_BETA_NUMBER + 1))
+
+          if [ -n "${REQUESTED_BUILD_VERSION:-}" ]; then
+            if ! echo "$REQUESTED_BUILD_VERSION" | grep -qE "^${VERSION}-beta\.[0-9]+$"; then
+              echo "::error::Invalid beta build version: $REQUESTED_BUILD_VERSION (expected ${VERSION}-beta.N)"
+              exit 1
+            fi
+            REQUESTED_BETA_NUMBER="${REQUESTED_BUILD_VERSION##*.}"
+            if [ "$REQUESTED_BETA_NUMBER" -eq "$NEXT_BETA_NUMBER" ]; then
+              BUILD_VERSION="$REQUESTED_BUILD_VERSION"
+            else
+              BUILD_VERSION="${VERSION}-beta.${NEXT_BETA_NUMBER}"
+            fi
           else
-            BUILD_VERSION="${VERSION}-beta.${{ github.run_number }}"
+            BUILD_VERSION="${VERSION}-beta.${NEXT_BETA_NUMBER}"
           fi
 
-          if ! echo "$BUILD_VERSION" | grep -qE "^${VERSION}-beta\.[0-9]+$"; then
-            echo "::error::Invalid beta build version: $BUILD_VERSION (expected ${VERSION}-beta.N)"
-            exit 1
-          fi
+          echo "Highest known beta for ${VERSION}: ${MAX_BETA_NUMBER}"
+          echo "Resolved beta build version: ${BUILD_VERSION}"
 
           UNSTABLE_TAG="v${BUILD_VERSION}"
 
