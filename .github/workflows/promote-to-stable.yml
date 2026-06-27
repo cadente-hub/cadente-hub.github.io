@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: promote-to-stable
@@ -64,86 +65,13 @@ jobs:
             exit 1
           fi
 
-      - name: Download unstable assets
+      - name: Trigger stable rebuild from private tag
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          mkdir -p artifacts
-          gh release download "${{ steps.versions.outputs.unstable_tag }}" \
+          gh workflow run build-release.yml \
             --repo "${{ github.repository }}" \
-            --dir artifacts
-          ls -la artifacts
+            -f version="${{ steps.versions.outputs.stable_version }}"
 
-      - name: Generate stable update.json from promoted assets
-        run: |
-          set -euo pipefail
-          VERSION="${{ steps.versions.outputs.stable_version }}"
-          TAG="${{ steps.versions.outputs.stable_tag }}"
-          PUB_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-          BASE_URL="https://github.com/${{ github.repository }}/releases/download/${TAG}"
-
-          read_sig() {
-            local file="artifacts/$1"
-            if [ -f "$file" ]; then
-              cat "$file"
-            fi
-          }
-
-          DARWIN_AARCH64_SIG=$(read_sig "cadente-${VERSION}-macos-arm64.app.tar.gz.sig")
-          DARWIN_X86_64_SIG=$(read_sig "cadente-${VERSION}-macos-x64.app.tar.gz.sig")
-          LINUX_X86_64_SIG=$(read_sig "cadente-${VERSION}-linux-x64.AppImage.tar.gz.sig")
-          WINDOWS_SIG=$(read_sig "cadente-${VERSION}-windows-x64.nsis.zip.sig")
-          WIN_UPDATER_FILE="cadente-${VERSION}-windows-x64.nsis.zip"
-          if [ -z "$WINDOWS_SIG" ]; then
-            WINDOWS_SIG=$(read_sig "cadente-${VERSION}-windows-x64.msi.zip.sig")
-            WIN_UPDATER_FILE="cadente-${VERSION}-windows-x64.msi.zip"
-          fi
-
-          cat > update.json <<EOF
-          {
-            "version": "${VERSION}",
-            "notes": "Cadente v${VERSION}",
-            "pub_date": "${PUB_DATE}",
-            "platforms": {
-              "darwin-aarch64": {
-                "signature": "${DARWIN_AARCH64_SIG}",
-                "url": "${BASE_URL}/cadente-${VERSION}-macos-arm64.app.tar.gz"
-              },
-              "darwin-x86_64": {
-                "signature": "${DARWIN_X86_64_SIG}",
-                "url": "${BASE_URL}/cadente-${VERSION}-macos-x64.app.tar.gz"
-              },
-              "linux-x86_64": {
-                "signature": "${LINUX_X86_64_SIG}",
-                "url": "${BASE_URL}/cadente-${VERSION}-linux-x64.AppImage.tar.gz"
-              },
-              "windows-x86_64": {
-                "signature": "${WINDOWS_SIG}",
-                "url": "${BASE_URL}/${WIN_UPDATER_FILE}"
-              }
-            }
-          }
-          EOF
-
-          python3 -c "import json; json.load(open('update.json'))"
-
-      - name: Create stable release without rebuild
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release create "${{ steps.versions.outputs.stable_tag }}" artifacts/* \
-            --repo "${{ github.repository }}" \
-            --title "Cadente v${{ steps.versions.outputs.stable_version }}" \
-            --notes "Promoted from unstable release \`${{ steps.versions.outputs.unstable_tag }}\` without rebuild." \
-            --latest
-
-      - name: Update stable update.json in site repo
-        env:
-          RELEASE_TOKEN: ${{ secrets.CATARINA_RELEASE_TOKEN }}
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git remote set-url origin "https://x-access-token:${RELEASE_TOKEN}@github.com/${{ github.repository }}.git"
-          git add update.json
-          git commit -m "chore: update stable update.json for v${{ steps.versions.outputs.stable_version }}" || echo "No changes"
-          git push
+          echo "Stable rebuild requested for ${{ steps.versions.outputs.stable_tag }}."
+          echo "build-release.yml will verify the private tag and publish update.json."
