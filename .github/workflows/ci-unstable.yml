@@ -337,16 +337,22 @@ jobs:
         working-directory: source
         shell: bash
         env:
+          APP_VERSION: ${{ needs.resolve.outputs.version }}
           BETA_VERSION: ${{ needs.resolve.outputs.build_version }}
         run: |
           python3 - <<'PYEOF'
           import json, os
-          v = os.environ['BETA_VERSION']
+          # WiX/MSI rejects semver prerelease identifiers like "beta.16".
+          # Keep the Windows package version stable-compatible and embed the
+          # exact beta identity through CADENTE_BUILD_VERSION at compile time.
+          v = os.environ['APP_VERSION']
+          beta = os.environ['BETA_VERSION']
           for p in ['src-tauri/tauri.conf.json', 'package.json']:
               d = json.load(open(p))
               d['version'] = v
               open(p, 'w').write(json.dumps(d, indent=2))
-          print('Patched to:', v)
+          print('Patched Windows package version to:', v)
+          print('Embedded beta build version:', beta)
           PYEOF
 
       - name: Install frontend dependencies
