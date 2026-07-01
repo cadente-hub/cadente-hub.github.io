@@ -161,7 +161,7 @@ jobs:
 
   build-macos:
     needs: resolve
-    runs-on: macos-latest
+    runs-on: macos-15
     steps:
       - name: Clone private repo at exact SHA
         env:
@@ -273,6 +273,30 @@ jobs:
       - name: Cleanup source
         if: always()
         run: rm -rf source /tmp/build-arm64.log /tmp/build-x64.log
+
+  smoke-macos-intel:
+    needs: [resolve, build-macos]
+    runs-on: macos-15-intel
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: unstable-artifacts-macos
+          path: artifacts
+
+      - name: Smoke test Intel macOS app boot
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${{ needs.resolve.outputs.version }}"
+          ARCHIVE="artifacts/cadente-${VERSION}-macos-x64.app.tar.gz"
+          rm -rf /tmp/cadente-boot-smoke
+          mkdir -p /tmp/cadente-boot-smoke
+          tar -xzf "$ARCHIVE" -C /tmp/cadente-boot-smoke
+          python3 scripts/packaged-boot-smoke.py \
+            --macos-app /tmp/cadente-boot-smoke/Cadente.app \
+            --timeout-secs 30
 
   build-linux:
     needs: resolve
@@ -460,7 +484,7 @@ jobs:
         run: rm -rf source /tmp/build-windows.log
 
   publish:
-    needs: [resolve, build-macos, build-linux, build-windows]
+    needs: [resolve, build-macos, smoke-macos-intel, build-linux, build-windows]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

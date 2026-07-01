@@ -115,7 +115,7 @@ jobs:
   # ─────────────────────────────────────────────────────────────
   build-macos:
     needs: validate
-    runs-on: macos-latest
+    runs-on: macos-15
     steps:
       - name: Clone private repo at specific SHA
         env:
@@ -270,6 +270,30 @@ jobs:
           name: artifacts-macos
           path: artifacts/*
           if-no-files-found: error
+
+  smoke-macos-intel:
+    needs: [validate, build-macos]
+    runs-on: macos-15-intel
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: artifacts-macos
+          path: artifacts
+
+      - name: Smoke test Intel macOS app boot
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${{ needs.validate.outputs.version }}"
+          ARCHIVE="artifacts/cadente-${VERSION}-macos-x64.app.tar.gz"
+          rm -rf /tmp/cadente-boot-smoke
+          mkdir -p /tmp/cadente-boot-smoke
+          tar -xzf "$ARCHIVE" -C /tmp/cadente-boot-smoke
+          python3 scripts/packaged-boot-smoke.py \
+            --macos-app /tmp/cadente-boot-smoke/Cadente.app \
+            --timeout-secs 30
 
   build-linux:
     needs: validate
@@ -508,7 +532,7 @@ jobs:
   # Step 3: Create release with all artifacts
   # ─────────────────────────────────────────────────────────────
   release:
-    needs: [validate, build-macos, build-linux, build-windows]
+    needs: [validate, build-macos, smoke-macos-intel, build-linux, build-windows]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -751,7 +775,7 @@ jobs:
   # when any platform fails. Runs only on failure.
   # ─────────────────────────────────────────────────────────────
   debug-on-failure:
-    needs: [validate, build-macos, build-linux, build-windows]
+    needs: [validate, build-macos, smoke-macos-intel, build-linux, build-windows]
     if: failure()
     runs-on: ubuntu-latest
     strategy:
