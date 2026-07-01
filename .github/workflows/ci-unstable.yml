@@ -445,6 +445,8 @@ jobs:
     needs: [resolve, build-macos, build-linux, build-windows]
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+
       - uses: actions/download-artifact@v4
         with:
           path: all-artifacts
@@ -455,46 +457,7 @@ jobs:
           cd all-artifacts
           sha256sum * > SHA256SUMS.txt 2>/dev/null || shasum -a 256 * > SHA256SUMS.txt
 
-      - name: Delete previous floating unstable release
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release delete unstable --repo "${{ github.repository }}" --yes 2>/dev/null || true
-          git push origin :refs/tags/unstable 2>/dev/null || true
-
-      - name: Create versioned unstable release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ needs.resolve.outputs.unstable_tag }}
-          name: ${{ needs.resolve.outputs.release_name }}
-          prerelease: true
-          make_latest: false
-          body: |
-            Automated unstable release from `${{ needs.resolve.outputs.sha }}`.
-
-            - Base version: `${{ needs.resolve.outputs.version }}`
-            - Channel: `unstable`
-            - Build number: `${{ github.run_number }}`
-          files: all-artifacts/*
-          fail_on_unmatched_files: true
-
-      - name: Create floating unstable release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: unstable
-          name: Latest Unstable Build
-          prerelease: true
-          make_latest: false
-          body: |
-            Tracks the latest unstable release.
-
-            Current: `${{ needs.resolve.outputs.unstable_tag }}`
-          files: all-artifacts/*
-          fail_on_unmatched_files: true
-
-      - name: Generate and publish update-beta.json
-        env:
-          GH_TOKEN: ${{ secrets.CATARINA_RELEASE_TOKEN }}
+      - name: Generate update-beta.json
         run: |
           set -euo pipefail
           VERSION="${{ needs.resolve.outputs.version }}"
@@ -539,6 +502,56 @@ jobs:
 
           echo "Generated update-beta.json for ${TAG}"
 
+      - name: Validate generated unstable release
+        run: |
+          python3 scripts/release-asset-guard.py \
+            --manifest update-beta.json \
+            --macos-arm64-archive "all-artifacts/cadente-${{ needs.resolve.outputs.version }}-macos-arm64.app.tar.gz" \
+            --macos-x64-archive "all-artifacts/cadente-${{ needs.resolve.outputs.version }}-macos-x64.app.tar.gz"
+
+      - name: Delete previous floating unstable release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete unstable --repo "${{ github.repository }}" --yes 2>/dev/null || true
+          git push origin :refs/tags/unstable 2>/dev/null || true
+
+      - name: Create versioned unstable release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.resolve.outputs.unstable_tag }}
+          name: ${{ needs.resolve.outputs.release_name }}
+          prerelease: true
+          make_latest: false
+          body: |
+            Automated unstable release from `${{ needs.resolve.outputs.sha }}`.
+
+            - Base version: `${{ needs.resolve.outputs.version }}`
+            - Channel: `unstable`
+            - Build number: `${{ github.run_number }}`
+          files: all-artifacts/*
+          fail_on_unmatched_files: true
+
+      - name: Create floating unstable release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: unstable
+          name: Latest Unstable Build
+          prerelease: true
+          make_latest: false
+          body: |
+            Tracks the latest unstable release.
+
+            Current: `${{ needs.resolve.outputs.unstable_tag }}`
+          files: all-artifacts/*
+          fail_on_unmatched_files: true
+
+      - name: Publish update-beta.json
+        env:
+          GH_TOKEN: ${{ secrets.CATARINA_RELEASE_TOKEN }}
+        run: |
+          set -euo pipefail
+          TAG="${{ needs.resolve.outputs.unstable_tag }}"
           echo "::add-mask::${GH_TOKEN}"
           git clone --depth=1 \
             "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" \

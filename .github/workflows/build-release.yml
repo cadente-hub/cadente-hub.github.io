@@ -593,6 +593,13 @@ jobs:
           echo "✅ update.json generated with all signatures:"
           python3 -c "import json; d=json.load(open('update.json')); [print(f'  {k}: sig={v[\"signature\"][:20]}...') for k,v in d['platforms'].items()]"
 
+      - name: Validate generated stable release
+        run: |
+          python3 scripts/release-asset-guard.py \
+            --manifest update.json \
+            --macos-arm64-archive "all-artifacts/cadente-${{ needs.validate.outputs.version }}-macos-arm64.app.tar.gz" \
+            --macos-x64-archive "all-artifacts/cadente-${{ needs.validate.outputs.version }}-macos-x64.app.tar.gz"
+
       - name: Create release on cadente-hub.github.io
         env:
           GH_TOKEN: ${{ secrets.CATARINA_RELEASE_TOKEN }}
