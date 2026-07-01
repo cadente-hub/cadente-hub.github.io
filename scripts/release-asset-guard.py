@@ -14,15 +14,16 @@ import shutil
 import subprocess
 import tarfile
 import tempfile
-import urllib.request
 import urllib.error
+import urllib.parse
+import urllib.request
 
 
 EXPECTED_PLATFORM_URL_BITS = {
-    "darwin-aarch64": "macos-arm64.app.tar.gz",
-    "darwin-x86_64": "macos-x64.app.tar.gz",
-    "linux-x86_64": "linux-x64.AppImage.tar.gz",
-    "windows-x86_64": "windows-x64.nsis.zip",
+    "darwin-aarch64": ("macos-arm64.app.tar.gz",),
+    "darwin-x86_64": ("macos-x64.app.tar.gz",),
+    "linux-x86_64": ("linux-x64.AppImage.tar.gz",),
+    "windows-x86_64": ("windows-x64.nsis.zip", "windows-x64.msi.zip"),
 }
 
 EXPECTED_MACHO_ARCH = {
@@ -53,7 +54,49 @@ def load_manifest(path: str | None, url: str | None) -> dict:
     raise SystemExit("pass --manifest or --manifest-url")
 
 
-def validate_manifest(manifest: dict) -> list[str]:
+def artifact_name_from_url(url: str) -> str:
+    parsed = urllib.parse.urlparse(url)
+    return pathlib.PurePosixPath(urllib.parse.unquote(parsed.path)).name
+
+
+def validate_artifacts_dir(
+    platform: str,
+    entry: dict,
+    artifacts_dir: pathlib.Path,
+) -> list[str]:
+    errors: list[str] = []
+    url = entry.get("url", "")
+    signature = entry.get("signature", "")
+    artifact_name = artifact_name_from_url(url)
+    if not artifact_name:
+        return [f"{platform} URL does not contain an artifact filename: {url}"]
+
+    artifact_path = artifacts_dir / artifact_name
+    signature_path = artifacts_dir / f"{artifact_name}.sig"
+    if not artifact_path.exists():
+        errors.append(
+            f"{platform} manifest artifact is missing from {artifacts_dir}: "
+            f"{artifact_name}"
+        )
+    if not signature_path.exists():
+        errors.append(
+            f"{platform} signature file is missing from {artifacts_dir}: "
+            f"{artifact_name}.sig"
+        )
+    else:
+        signature_file_value = signature_path.read_text(encoding="utf-8").strip()
+        if signature_file_value != str(signature).strip():
+            errors.append(
+                f"{platform} manifest signature does not match {signature_path.name}"
+            )
+
+    return errors
+
+
+def validate_manifest(
+    manifest: dict,
+    artifacts_dir: pathlib.Path | None = None,
+) -> list[str]:
     errors: list[str] = []
     version = manifest.get("version")
     if not isinstance(version, str) or not version:
@@ -63,9 +106,10 @@ def validate_manifest(manifest: dict) -> list[str]:
 
     platforms = manifest.get("platforms")
     if not isinstance(platforms, dict):
-        return ["manifest must contain a platforms object"]
+        errors.append("manifest must contain a platforms object")
+        return errors
 
-    for platform, expected_url_bit in EXPECTED_PLATFORM_URL_BITS.items():
+    for platform, expected_url_bits in EXPECTED_PLATFORM_URL_BITS.items():
         entry = platforms.get(platform)
         if not isinstance(entry, dict):
             errors.append(f"missing platform entry: {platform}")
@@ -76,10 +120,13 @@ def validate_manifest(manifest: dict) -> list[str]:
             errors.append(
                 f"{platform} URL must point at release v{version}; got {url}"
             )
-        if expected_url_bit not in url:
-            errors.append(f"{platform} URL must contain {expected_url_bit}; got {url}")
+        if not any(expected_url_bit in url for expected_url_bit in expected_url_bits):
+            allowed = " or ".join(expected_url_bits)
+            errors.append(f"{platform} URL must contain {allowed}; got {url}")
         if not signature:
             errors.append(f"{platform} is missing updater signature")
+        if artifacts_dir:
+            errors.extend(validate_artifacts_dir(platform, entry, artifacts_dir))
 
     return errors
 
@@ -126,12 +173,14 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--manifest")
     parser.add_argument("--manifest-url")
+    parser.add_argument("--artifacts-dir")
     parser.add_argument("--macos-arm64-archive")
     parser.add_argument("--macos-x64-archive")
     args = parser.parse_args()
 
     manifest = load_manifest(args.manifest, args.manifest_url)
-    errors = validate_manifest(manifest)
+    artifacts_dir = pathlib.Path(args.artifacts_dir) if args.artifacts_dir else None
+    errors = validate_manifest(manifest, artifacts_dir)
 
     if args.macos_arm64_archive:
         errors.extend(

@@ -597,6 +597,7 @@ jobs:
         run: |
           python3 scripts/release-asset-guard.py \
             --manifest update.json \
+            --artifacts-dir all-artifacts \
             --macos-arm64-archive "all-artifacts/cadente-${{ needs.validate.outputs.version }}-macos-arm64.app.tar.gz" \
             --macos-x64-archive "all-artifacts/cadente-${{ needs.validate.outputs.version }}-macos-x64.app.tar.gz"
 
