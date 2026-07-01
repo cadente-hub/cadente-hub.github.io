@@ -242,6 +242,24 @@ jobs:
           echo "📦 Artifacts collected:"
           ls -la artifacts/
 
+      - name: Smoke test native macOS app boot
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${{ needs.validate.outputs.version }}"
+          ARCH="$(uname -m)"
+          if [ "$ARCH" = "arm64" ]; then
+            ARCHIVE="artifacts/cadente-${VERSION}-macos-arm64.app.tar.gz"
+          else
+            ARCHIVE="artifacts/cadente-${VERSION}-macos-x64.app.tar.gz"
+          fi
+          rm -rf /tmp/cadente-boot-smoke
+          mkdir -p /tmp/cadente-boot-smoke
+          tar -xzf "$ARCHIVE" -C /tmp/cadente-boot-smoke
+          python3 source/scripts/packaged-boot-smoke.py \
+            --macos-app /tmp/cadente-boot-smoke/Cadente.app \
+            --timeout-secs 30
+
       - name: Delete source code before upload
         if: always()
         run: rm -rf source /tmp/build-*.log
