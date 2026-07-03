@@ -1,23 +1,23 @@
 {
-  "version": "0.2.91-beta.70",
-  "notes": "Cadente beta build #54",
-  "pub_date": "2026-07-02T21:37:28Z",
+  "version": "0.2.91-beta.71",
+  "notes": "Cadente beta build #55",
+  "pub_date": "2026-07-03T02:42:38Z",
   "platforms": {
     "darwin-aarch64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSU1N2Z0ZkZVNmMXdkanFPcy9yRkMxbG5uQ2w1bGI0dERSU1JtbDM0UkpLREZ0bVZDNUJEYUVuMHlvOXNSZHo4M3FLNHlPMmJBVHQ5NVJSN1FYaFNlS0FaWkYxTHFyZkFjPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzgzMDI3NzMzCWZpbGU6Q2FkZW50ZS5hcHAudGFyLmd6CitIRVB4cGhnVGdLMFZ5amlaVk1uaC9CZHV1KzZmTzZIZVVTdUNjTms0Z1NCaUNLUm10S1cra1JGV1dhUVNMdEZtVTJaUnpRTmlLZWswY0tVK2lxMUJ3PT0K",
-      "url": "https://github.com/cadente-hub/cadente-hub.github.io/releases/download/v0.2.91-beta.70/cadente-0.2.91-macos-arm64.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSU1N2Z0ZkZVNmMTRHTEFOSVB3a3JFTThTVFR6b2x0WjAyNzVPbXBiUHFtbytuNGtqS2lsZmxJNmVRaVNEU2c2cGN4UmxBczBSNDd1d2F4cEs0NnlYVkE1VFFIbmZYaGdFPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzgzMDQ2MTMzCWZpbGU6Q2FkZW50ZS5hcHAudGFyLmd6Ck5aWmR1MzZPQjlaWHZia2lwQjlCVFBlVkRMMXFyQUFJUHkvclRsMGt2M2FDWGlvSGxPcldaVEFERUk3QmZwZmJtK0ZnMTlZL215SmpacU14ZU81eURBPT0K",
+      "url": "https://github.com/cadente-hub/cadente-hub.github.io/releases/download/v0.2.91-beta.71/cadente-0.2.91-macos-arm64.app.tar.gz"
     },
     "darwin-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSU1N2Z0ZkZVNmMXhacnRGUDlDSmo5NFB6U2JZTUtiK1RYZU1hUjBDWkZCVHI2Q2MrRFB5SDVjeEdqNTJ4ZHAzQWRVUVVJL0VQSkdVeUIyb0huWmpuT1JKWlduTlhZbVFNPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzgzMDI4MDA5CWZpbGU6Q2FkZW50ZS5hcHAudGFyLmd6CmphUzVGU0ZZVVo0ZHdWR0lCUi9Ed3dmNlZaQ0Vld3o1WkZsNGlIQm9kbWZBVDhUR2YyM21ETXNBNjBJZ1Z5cjZQcWROTWxCeWFqL1dOaUxlSENYT0RBPT0K",
-      "url": "https://github.com/cadente-hub/cadente-hub.github.io/releases/download/v0.2.91-beta.70/cadente-0.2.91-macos-x64.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSU1N2Z0ZkZVNmMXdaQ1lNSmVFWHQvYkhOVTc5WGpOWWpYUktZeCtPTkJROFI4OWdzVEwrd25oaGxVeWVodHBkQzJ2NmlHVlRLNHVBNzBOTHVlSXVSZTZoUFZpMG9vTHdrPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzgzMDQ2NDk0CWZpbGU6Q2FkZW50ZS5hcHAudGFyLmd6CmpyMG84VklVZURKVTFGZVR2QW5xVUMxb1kwdm5VdDZTbFlHbU9Qb3FuMVBEN1pLNEtZaTF1WmFwdi9qVUx4Nk43Q1RwbXZEVDhLU0pMV2xVclNHU0JRPT0K",
+      "url": "https://github.com/cadente-hub/cadente-hub.github.io/releases/download/v0.2.91-beta.71/cadente-0.2.91-macos-x64.app.tar.gz"
     },
     "linux-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSU1N2Z0ZkZVNmMTVRbHBIQ0o5cGcvdHJ1RTVlTkRWV25JTlduSWUvdkQyRTB4YWRmNWwybkppM1g1QUFDVEdUS3BoSThEdUZEZUNqRGc2WlVaWmplNXQvRVpKMEoyUVF3PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzgzMDI3OTk3CWZpbGU6Q2FkZW50ZV8wLjIuOTEtYmV0YS43MF9hbWQ2NC5BcHBJbWFnZS50YXIuZ3oKclVUMkE4OTl6VEVxTEdwTVJRa2k1ZUNtbjVTTHMvSWJ6ZmFQQk9jMjIyOUltVVFSV2xxODRtUUxmVG9iejFrak5wVHRjbktFMUhCSDlOd0RPVXhTQUE9PQo=",
-      "url": "https://github.com/cadente-hub/cadente-hub.github.io/releases/download/v0.2.91-beta.70/cadente-0.2.91-linux-x64.AppImage.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSU1N2Z0ZkZVNmMXc0NHR6WHBYWjBuTHljQWJ3RmVGRDJwdEcrYmIrdDdPRmpISWZnMEdCZUZhQ0x3UmlQanBNMzhaalF1TDBmdDlCK0Y3VUQ5aG4yajNJT0NNRlpQeGd3PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzgzMDQ2MzE3CWZpbGU6Q2FkZW50ZV8wLjIuOTEtYmV0YS43MV9hbWQ2NC5BcHBJbWFnZS50YXIuZ3oKdEVnZWlJd1FEUHB6QU9KWnBGSGNVVy90WUZ5K0FMOWdlWDNWKzVoM1J6RFVRR0dFQTlyU0RTWWtsNis0MXpTclBYVGFEbGRGMWtRV3NHcjlXRUprQXc9PQo=",
+      "url": "https://github.com/cadente-hub/cadente-hub.github.io/releases/download/v0.2.91-beta.71/cadente-0.2.91-linux-x64.AppImage.tar.gz"
     },
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSU1N2Z0ZkZVNmMS9vdnB3ZTdOdVMvMXVrMWVoMHlZR1ZoUjZzemVkRlRYamV5NjFXM3hXZUFuTkJLclVQMnl4azVlVnNUVyt2N1VYeGhLZzFkQjJXOGtWWlNOYjRVTVFzPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzgzMDI4MjE5CWZpbGU6Q2FkZW50ZV8wLjIuOTFfeDY0LXNldHVwLm5zaXMuemlwCjhpWU5jM2xCRjlsR0NGNXpnd2NyL2pzVmVGQjJSdDlGcWNNS2l3YVFUaTY3ajVOaXQzZGJTWWVUS0RXc0tYcE9hdWlrYnhYNHhLczE3a1M4MWdtMUNnPT0K",
-      "url": "https://github.com/cadente-hub/cadente-hub.github.io/releases/download/v0.2.91-beta.70/cadente-0.2.91-windows-x64.nsis.zip"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSU1N2Z0ZkZVNmMXh1NW9LbTBKYVF2ZWNaamxmOGFiK2w0SitUZms3OFlvSDBEYU54M01hQ0g1dmNYTzZ6RUF0RnUzd2NMTGpSdTFTQktjT3NrVzFORS9wQTFjWlJkWHdzPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzgzMDQ2NTM4CWZpbGU6Q2FkZW50ZV8wLjIuOTFfeDY0LXNldHVwLm5zaXMuemlwCndZTHlrTGRDWC9zOWZqS2pxUFdVL09ReG8zZzFwWDJzVDFweG1iTXBhbDc2RDljb1BoNE9UZFNJQzRzYnh4ZkZzQ0l5bGxoR3lNc2JSeDJPemFYM0NBPT0K",
+      "url": "https://github.com/cadente-hub/cadente-hub.github.io/releases/download/v0.2.91-beta.71/cadente-0.2.91-windows-x64.nsis.zip"
     }
   }
 }
