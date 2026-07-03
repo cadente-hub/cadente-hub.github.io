@@ -12,16 +12,16 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 20
           cache: npm
@@ -36,13 +36,16 @@ jobs:
         run: |
           cp update.json dist/update.json 2>/dev/null || true
           cp update-beta.json dist/update-beta.json 2>/dev/null || true
-          cp CNAME dist/CNAME 2>/dev/null || true
+          DOMAIN="$(awk 'NF && $1 !~ /^#/ { print $1; exit }' CNAME 2>/dev/null || true)"
+          if [ -n "$DOMAIN" ]; then
+            printf '%s\n' "$DOMAIN" > dist/CNAME
+          fi
 
       - name: Setup Pages
-        uses: actions/configure-pages@v4
+        uses: actions/configure-pages@v6
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: dist
 
@@ -55,4 +58,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
