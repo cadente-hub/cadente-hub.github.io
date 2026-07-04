@@ -220,7 +220,7 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
           CADENTE_BUILD_VERSION: ${{ needs.resolve.outputs.build_version }}
           RUSTC_WRAPPER: sccache
-          PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_LOG_TOKEN || secrets.CATARINA_PRIVATE_READ_TOKEN }}
+          PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_WRITE_TOKEN || secrets.CATARINA_PRIVATE_LOG_TOKEN }}
         run: |
           persist_private_build_log() {
             local log_file="$1" label="$2" repo_dir safe_workflow safe_job dest_dir dest_rel
@@ -268,7 +268,7 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
           CADENTE_BUILD_VERSION: ${{ needs.resolve.outputs.build_version }}
           RUSTC_WRAPPER: sccache
-          PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_LOG_TOKEN || secrets.CATARINA_PRIVATE_READ_TOKEN }}
+          PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_WRITE_TOKEN || secrets.CATARINA_PRIVATE_LOG_TOKEN }}
         run: |
           persist_private_build_log() {
             local log_file="$1" label="$2" repo_dir safe_workflow safe_job dest_dir dest_rel
@@ -440,7 +440,7 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
           CADENTE_BUILD_VERSION: ${{ needs.resolve.outputs.build_version }}
           RUSTC_WRAPPER: sccache
-          PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_LOG_TOKEN || secrets.CATARINA_PRIVATE_READ_TOKEN }}
+          PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_WRITE_TOKEN || secrets.CATARINA_PRIVATE_LOG_TOKEN }}
         run: |
           persist_private_build_log() {
             local log_file="$1" label="$2" repo_dir safe_workflow safe_job dest_dir dest_rel
@@ -573,7 +573,7 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
           CADENTE_BUILD_VERSION: ${{ needs.resolve.outputs.build_version }}
           RUSTC_WRAPPER: sccache
-          PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_LOG_TOKEN || secrets.CATARINA_PRIVATE_READ_TOKEN }}
+          PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_WRITE_TOKEN || secrets.CATARINA_PRIVATE_LOG_TOKEN }}
         run: |
           persist_private_build_log() {
             local log_file="$1" label="$2" repo_dir safe_workflow safe_job dest_dir dest_rel
