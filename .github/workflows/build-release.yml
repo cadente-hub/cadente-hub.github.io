@@ -188,16 +188,43 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
           RUSTC_WRAPPER: sccache
+          PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_LOG_TOKEN || secrets.CATARINA_PRIVATE_READ_TOKEN }}
         run: |
-          # Build with suppressed output to prevent code leaks in public logs
-          echo "🔨 Building aarch64-apple-darwin..."
+          persist_private_build_log() {
+            local log_file="$1" label="$2" repo_dir safe_workflow safe_job dest_dir dest_rel
+            safe_workflow="$(printf '%s' "${GITHUB_WORKFLOW:-workflow}" | tr -cs 'A-Za-z0-9._-' '-')"
+            safe_job="$(printf '%s' "${GITHUB_JOB:-job}" | tr -cs 'A-Za-z0-9._-' '-')"
+            dest_rel=".cadente-build-logs/public-actions/${safe_workflow}/${GITHUB_RUN_ID:-local}-${GITHUB_RUN_ATTEMPT:-0}/${safe_job}-${label}.log"
+            if [ -z "${PRIVATE_LOG_TOKEN:-}" ]; then
+              echo "::error::Build failed; private log token is not configured."
+              return
+            fi
+            echo "::add-mask::${PRIVATE_LOG_TOKEN}"
+            repo_dir="$(mktemp -d)"
+            if git clone --depth=1 "https://x-access-token:${PRIVATE_LOG_TOKEN}@github.com/${PRIVATE_REPO}.git" "$repo_dir" >/dev/null 2>&1; then
+              dest_dir="$repo_dir/$(dirname "$dest_rel")"
+              mkdir -p "$dest_dir"
+              cp "$log_file" "$repo_dir/$dest_rel"
+              git -C "$repo_dir" config user.name "github-actions[bot]"
+              git -C "$repo_dir" config user.email "github-actions[bot]@users.noreply.github.com"
+              git -C "$repo_dir" add "$dest_rel"
+              git -C "$repo_dir" commit -m "ci: store private build log for ${GITHUB_RUN_ID:-local} ${safe_job}" >/dev/null 2>&1 || true
+              if git -C "$repo_dir" push >/dev/null 2>&1; then
+                echo "::error::Build failed. Full log committed privately at ${dest_rel}."
+              else
+                echo "::error::Build failed. Could not push private build log."
+              fi
+            else
+              echo "::error::Build failed. Could not clone private log repository."
+            fi
+            rm -rf "$repo_dir"
+          }
+          echo "Building aarch64-apple-darwin..."
           if npx tauri build --target aarch64-apple-darwin > /tmp/build-arm64.log 2>&1; then
-            echo "✅ ARM64 build succeeded ($(wc -l < /tmp/build-arm64.log) log lines suppressed)"
+            echo "ARM64 build succeeded ($(wc -l < /tmp/build-arm64.log) log lines suppressed)"
           else
             EXIT_CODE=$?
-            echo "::error::ARM64 build failed with exit code $EXIT_CODE"
-            echo "--- Last 5 lines (sanitized) ---"
-            tail -5 /tmp/build-arm64.log | sed 's|source/||g; s|src-tauri/src/[^ ]*|[REDACTED_PATH]|g'
+            persist_private_build_log /tmp/build-arm64.log macos-arm64
             rm -f /tmp/build-arm64.log
             exit $EXIT_CODE
           fi
@@ -209,15 +236,43 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
           RUSTC_WRAPPER: sccache
+          PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_LOG_TOKEN || secrets.CATARINA_PRIVATE_READ_TOKEN }}
         run: |
-          echo "🔨 Building x86_64-apple-darwin..."
+          persist_private_build_log() {
+            local log_file="$1" label="$2" repo_dir safe_workflow safe_job dest_dir dest_rel
+            safe_workflow="$(printf '%s' "${GITHUB_WORKFLOW:-workflow}" | tr -cs 'A-Za-z0-9._-' '-')"
+            safe_job="$(printf '%s' "${GITHUB_JOB:-job}" | tr -cs 'A-Za-z0-9._-' '-')"
+            dest_rel=".cadente-build-logs/public-actions/${safe_workflow}/${GITHUB_RUN_ID:-local}-${GITHUB_RUN_ATTEMPT:-0}/${safe_job}-${label}.log"
+            if [ -z "${PRIVATE_LOG_TOKEN:-}" ]; then
+              echo "::error::Build failed; private log token is not configured."
+              return
+            fi
+            echo "::add-mask::${PRIVATE_LOG_TOKEN}"
+            repo_dir="$(mktemp -d)"
+            if git clone --depth=1 "https://x-access-token:${PRIVATE_LOG_TOKEN}@github.com/${PRIVATE_REPO}.git" "$repo_dir" >/dev/null 2>&1; then
+              dest_dir="$repo_dir/$(dirname "$dest_rel")"
+              mkdir -p "$dest_dir"
+              cp "$log_file" "$repo_dir/$dest_rel"
+              git -C "$repo_dir" config user.name "github-actions[bot]"
+              git -C "$repo_dir" config user.email "github-actions[bot]@users.noreply.github.com"
+              git -C "$repo_dir" add "$dest_rel"
+              git -C "$repo_dir" commit -m "ci: store private build log for ${GITHUB_RUN_ID:-local} ${safe_job}" >/dev/null 2>&1 || true
+              if git -C "$repo_dir" push >/dev/null 2>&1; then
+                echo "::error::Build failed. Full log committed privately at ${dest_rel}."
+              else
+                echo "::error::Build failed. Could not push private build log."
+              fi
+            else
+              echo "::error::Build failed. Could not clone private log repository."
+            fi
+            rm -rf "$repo_dir"
+          }
+          echo "Building x86_64-apple-darwin..."
           if npx tauri build --target x86_64-apple-darwin > /tmp/build-x64.log 2>&1; then
-            echo "✅ x86_64 build succeeded ($(wc -l < /tmp/build-x64.log) log lines suppressed)"
+            echo "x86_64 build succeeded ($(wc -l < /tmp/build-x64.log) log lines suppressed)"
           else
             EXIT_CODE=$?
-            echo "::error::x86_64 build failed with exit code $EXIT_CODE"
-            echo "--- Last 5 lines (sanitized) ---"
-            tail -5 /tmp/build-x64.log | sed 's|source/||g; s|src-tauri/src/[^ ]*|[REDACTED_PATH]|g'
+            persist_private_build_log /tmp/build-x64.log macos-x64
             rm -f /tmp/build-x64.log
             exit $EXIT_CODE
           fi
@@ -377,15 +432,43 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
           RUSTC_WRAPPER: sccache
+          PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_LOG_TOKEN || secrets.CATARINA_PRIVATE_READ_TOKEN }}
         run: |
-          echo "🔨 Building linux x86_64..."
+          persist_private_build_log() {
+            local log_file="$1" label="$2" repo_dir safe_workflow safe_job dest_dir dest_rel
+            safe_workflow="$(printf '%s' "${GITHUB_WORKFLOW:-workflow}" | tr -cs 'A-Za-z0-9._-' '-')"
+            safe_job="$(printf '%s' "${GITHUB_JOB:-job}" | tr -cs 'A-Za-z0-9._-' '-')"
+            dest_rel=".cadente-build-logs/public-actions/${safe_workflow}/${GITHUB_RUN_ID:-local}-${GITHUB_RUN_ATTEMPT:-0}/${safe_job}-${label}.log"
+            if [ -z "${PRIVATE_LOG_TOKEN:-}" ]; then
+              echo "::error::Build failed; private log token is not configured."
+              return
+            fi
+            echo "::add-mask::${PRIVATE_LOG_TOKEN}"
+            repo_dir="$(mktemp -d)"
+            if git clone --depth=1 "https://x-access-token:${PRIVATE_LOG_TOKEN}@github.com/${PRIVATE_REPO}.git" "$repo_dir" >/dev/null 2>&1; then
+              dest_dir="$repo_dir/$(dirname "$dest_rel")"
+              mkdir -p "$dest_dir"
+              cp "$log_file" "$repo_dir/$dest_rel"
+              git -C "$repo_dir" config user.name "github-actions[bot]"
+              git -C "$repo_dir" config user.email "github-actions[bot]@users.noreply.github.com"
+              git -C "$repo_dir" add "$dest_rel"
+              git -C "$repo_dir" commit -m "ci: store private build log for ${GITHUB_RUN_ID:-local} ${safe_job}" >/dev/null 2>&1 || true
+              if git -C "$repo_dir" push >/dev/null 2>&1; then
+                echo "::error::Build failed. Full log committed privately at ${dest_rel}."
+              else
+                echo "::error::Build failed. Could not push private build log."
+              fi
+            else
+              echo "::error::Build failed. Could not clone private log repository."
+            fi
+            rm -rf "$repo_dir"
+          }
+          echo "Building linux x86_64..."
           if npx tauri build > /tmp/build-linux.log 2>&1; then
-            echo "✅ Linux build succeeded ($(wc -l < /tmp/build-linux.log) log lines suppressed)"
+            echo "Linux build succeeded ($(wc -l < /tmp/build-linux.log) log lines suppressed)"
           else
             EXIT_CODE=$?
-            echo "::error::Linux build failed with exit code $EXIT_CODE"
-            echo "--- Last 5 lines (sanitized) ---"
-            tail -5 /tmp/build-linux.log | sed 's|source/||g; s|src-tauri/src/[^ ]*|[REDACTED_PATH]|g'
+            persist_private_build_log /tmp/build-linux.log linux-x64
             rm -f /tmp/build-linux.log
             exit $EXIT_CODE
           fi
@@ -485,15 +568,43 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
           RUSTC_WRAPPER: sccache
+          PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_LOG_TOKEN || secrets.CATARINA_PRIVATE_READ_TOKEN }}
         run: |
-          echo "🔨 Building windows x86_64..."
+          persist_private_build_log() {
+            local log_file="$1" label="$2" repo_dir safe_workflow safe_job dest_dir dest_rel
+            safe_workflow="$(printf '%s' "${GITHUB_WORKFLOW:-workflow}" | tr -cs 'A-Za-z0-9._-' '-')"
+            safe_job="$(printf '%s' "${GITHUB_JOB:-job}" | tr -cs 'A-Za-z0-9._-' '-')"
+            dest_rel=".cadente-build-logs/public-actions/${safe_workflow}/${GITHUB_RUN_ID:-local}-${GITHUB_RUN_ATTEMPT:-0}/${safe_job}-${label}.log"
+            if [ -z "${PRIVATE_LOG_TOKEN:-}" ]; then
+              echo "::error::Build failed; private log token is not configured."
+              return
+            fi
+            echo "::add-mask::${PRIVATE_LOG_TOKEN}"
+            repo_dir="$(mktemp -d)"
+            if git clone --depth=1 "https://x-access-token:${PRIVATE_LOG_TOKEN}@github.com/${PRIVATE_REPO}.git" "$repo_dir" >/dev/null 2>&1; then
+              dest_dir="$repo_dir/$(dirname "$dest_rel")"
+              mkdir -p "$dest_dir"
+              cp "$log_file" "$repo_dir/$dest_rel"
+              git -C "$repo_dir" config user.name "github-actions[bot]"
+              git -C "$repo_dir" config user.email "github-actions[bot]@users.noreply.github.com"
+              git -C "$repo_dir" add "$dest_rel"
+              git -C "$repo_dir" commit -m "ci: store private build log for ${GITHUB_RUN_ID:-local} ${safe_job}" >/dev/null 2>&1 || true
+              if git -C "$repo_dir" push >/dev/null 2>&1; then
+                echo "::error::Build failed. Full log committed privately at ${dest_rel}."
+              else
+                echo "::error::Build failed. Could not push private build log."
+              fi
+            else
+              echo "::error::Build failed. Could not clone private log repository."
+            fi
+            rm -rf "$repo_dir"
+          }
+          echo "Building windows x86_64..."
           if npx tauri build > /tmp/build-windows.log 2>&1; then
-            echo "✅ Windows build succeeded ($(wc -l < /tmp/build-windows.log) log lines suppressed)"
+            echo "Windows build succeeded ($(wc -l < /tmp/build-windows.log) log lines suppressed)"
           else
             EXIT_CODE=$?
-            echo "::error::Windows build failed with exit code $EXIT_CODE"
-            echo "--- Last 5 lines (sanitized) ---"
-            tail -5 /tmp/build-windows.log | sed 's|source/||g; s|src-tauri/src/[^ ]*|[REDACTED_PATH]|g'
+            persist_private_build_log /tmp/build-windows.log windows-x64
             rm -f /tmp/build-windows.log
             exit $EXIT_CODE
           fi
