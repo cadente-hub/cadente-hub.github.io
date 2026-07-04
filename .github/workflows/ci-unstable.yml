@@ -239,7 +239,7 @@ jobs:
               cp "$log_file" "$repo_dir/$dest_rel"
               git -C "$repo_dir" config user.name "github-actions[bot]"
               git -C "$repo_dir" config user.email "github-actions[bot]@users.noreply.github.com"
-              git -C "$repo_dir" add "$dest_rel"
+              git -C "$repo_dir" add -f "$dest_rel"
               git -C "$repo_dir" commit -m "ci: store private build log for ${GITHUB_RUN_ID:-local} ${safe_job}" >/dev/null 2>&1 || true
               if git -C "$repo_dir" push >/dev/null 2>&1; then
                 echo "::error::Build failed. Full log committed privately at ${dest_rel}."
@@ -287,7 +287,7 @@ jobs:
               cp "$log_file" "$repo_dir/$dest_rel"
               git -C "$repo_dir" config user.name "github-actions[bot]"
               git -C "$repo_dir" config user.email "github-actions[bot]@users.noreply.github.com"
-              git -C "$repo_dir" add "$dest_rel"
+              git -C "$repo_dir" add -f "$dest_rel"
               git -C "$repo_dir" commit -m "ci: store private build log for ${GITHUB_RUN_ID:-local} ${safe_job}" >/dev/null 2>&1 || true
               if git -C "$repo_dir" push >/dev/null 2>&1; then
                 echo "::error::Build failed. Full log committed privately at ${dest_rel}."
@@ -459,7 +459,7 @@ jobs:
               cp "$log_file" "$repo_dir/$dest_rel"
               git -C "$repo_dir" config user.name "github-actions[bot]"
               git -C "$repo_dir" config user.email "github-actions[bot]@users.noreply.github.com"
-              git -C "$repo_dir" add "$dest_rel"
+              git -C "$repo_dir" add -f "$dest_rel"
               git -C "$repo_dir" commit -m "ci: store private build log for ${GITHUB_RUN_ID:-local} ${safe_job}" >/dev/null 2>&1 || true
               if git -C "$repo_dir" push >/dev/null 2>&1; then
                 echo "::error::Build failed. Full log committed privately at ${dest_rel}."
@@ -592,7 +592,7 @@ jobs:
               cp "$log_file" "$repo_dir/$dest_rel"
               git -C "$repo_dir" config user.name "github-actions[bot]"
               git -C "$repo_dir" config user.email "github-actions[bot]@users.noreply.github.com"
-              git -C "$repo_dir" add "$dest_rel"
+              git -C "$repo_dir" add -f "$dest_rel"
               git -C "$repo_dir" commit -m "ci: store private build log for ${GITHUB_RUN_ID:-local} ${safe_job}" >/dev/null 2>&1 || true
               if git -C "$repo_dir" push >/dev/null 2>&1; then
                 echo "::error::Build failed. Full log committed privately at ${dest_rel}."
