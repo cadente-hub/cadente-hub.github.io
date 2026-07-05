@@ -29,6 +29,7 @@ jobs:
       build_version: ${{ steps.meta.outputs.build_version }}
       unstable_tag: ${{ steps.meta.outputs.unstable_tag }}
       release_name: ${{ steps.meta.outputs.release_name }}
+      release_notes: ${{ steps.meta.outputs.release_notes }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -43,6 +44,8 @@ jobs:
           INPUT_BUILD_VERSION: ${{ github.event.client_payload.build_version || github.event.client_payload.version }}
           DISPATCH_SECRET: ${{ secrets.DISPATCH_SECRET }}
           PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_WRITE_TOKEN }}
+          PAYLOAD_RELEASE_NOTES: ${{ github.event.client_payload.release_notes }}
+          PAYLOAD_RELEASE_NOTES_SHA: ${{ github.event.client_payload.release_notes_sha }}
         run: |
           set -euo pipefail
           source "$GITHUB_WORKSPACE/.github/scripts/persist-private-log.sh"
@@ -50,18 +53,35 @@ jobs:
           echo "::add-mask::${PRIVATE_TOKEN}"
           echo "::add-mask::${PRIVATE_LOG_TOKEN}"
           PUBLIC_REPO_DIR="$GITHUB_WORKSPACE"
+          RELEASE_NOTES=""
+          RELEASE_NOTES_SHA=""
 
           if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
             SHA="${{ github.event.client_payload.sha }}"
             SIGNATURE="${{ github.event.client_payload.signature }}"
             TIMESTAMP="${{ github.event.client_payload.timestamp }}"
+            RELEASE_NOTES="$PAYLOAD_RELEASE_NOTES"
+            RELEASE_NOTES_SHA="$PAYLOAD_RELEASE_NOTES_SHA"
 
             if [ -z "$SHA" ] || [ -z "$SIGNATURE" ] || [ -z "$TIMESTAMP" ]; then
               echo "::error::Missing signed dispatch fields."
               exit 1
             fi
 
-            EXPECTED_SIG=$(echo -n "${SHA}:${TIMESTAMP}" | openssl dgst -sha256 -hmac "$DISPATCH_SECRET" | awk '{print $2}')
+            if [ -n "$RELEASE_NOTES" ]; then
+              if [ -z "$RELEASE_NOTES_SHA" ]; then
+                echo "::error::Missing release_notes_sha for signed release notes."
+                exit 1
+              fi
+              ACTUAL_RELEASE_NOTES_SHA=$(printf '%s\n' "$RELEASE_NOTES" | shasum -a 256 | awk '{print $1}')
+              if [ "$ACTUAL_RELEASE_NOTES_SHA" != "$RELEASE_NOTES_SHA" ]; then
+                echo "::error::release_notes_sha mismatch."
+                exit 1
+              fi
+              EXPECTED_SIG=$(echo -n "${SHA}:${TIMESTAMP}:${RELEASE_NOTES_SHA}" | openssl dgst -sha256 -hmac "$DISPATCH_SECRET" | awk '{print $2}')
+            else
+              EXPECTED_SIG=$(echo -n "${SHA}:${TIMESTAMP}" | openssl dgst -sha256 -hmac "$DISPATCH_SECRET" | awk '{print $2}')
+            fi
             if [ "$SIGNATURE" != "$EXPECTED_SIG" ]; then
               echo "::error::Invalid dispatch signature."
               exit 1
@@ -152,12 +172,31 @@ jobs:
           echo "Resolved beta build version: ${BUILD_VERSION}"
 
           UNSTABLE_TAG="v${BUILD_VERSION}"
+          if [ -z "$RELEASE_NOTES" ]; then
+            if [ -f scripts/generate-release-notes.py ]; then
+              RELEASE_NOTES="$(python3 scripts/generate-release-notes.py \
+                --version "$BUILD_VERSION" \
+                --sha "$SHA" \
+                --channel unstable)"
+            else
+              RELEASE_NOTES="## Cadente ${UNSTABLE_TAG}
+
+          Built from commit: ${SHA:0:8}
+
+          Release notes were not included in the dispatch payload."
+            fi
+          fi
 
           echo "sha=$SHA" >> "$GITHUB_OUTPUT"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "build_version=$BUILD_VERSION" >> "$GITHUB_OUTPUT"
           echo "unstable_tag=$UNSTABLE_TAG" >> "$GITHUB_OUTPUT"
           echo "release_name=Cadente ${UNSTABLE_TAG}" >> "$GITHUB_OUTPUT"
+          {
+            echo "release_notes<<CADENTE_RELEASE_NOTES"
+            printf '%s\n' "$RELEASE_NOTES"
+            echo "CADENTE_RELEASE_NOTES"
+          } >> "$GITHUB_OUTPUT"
           }
 
           if resolve_main > /tmp/resolve.log 2>&1; then
@@ -565,6 +604,8 @@ jobs:
           sha256sum * > SHA256SUMS.txt 2>/dev/null || shasum -a 256 * > SHA256SUMS.txt
 
       - name: Generate update-beta.json
+        env:
+          RELEASE_NOTES: ${{ needs.resolve.outputs.release_notes }}
         run: |
           set -euo pipefail
           VERSION="${{ needs.resolve.outputs.version }}"
@@ -594,7 +635,7 @@ jobs:
 
           jq -n \
             --arg version "${TAG#v}" \
-            --arg notes "Cadente beta build #${RUN_NUM}" \
+            --arg notes "$RELEASE_NOTES" \
             --arg pub_date "$PUB_DATE" \
             --arg arm_sig "$ARM_SIG" \
             --arg x64_sig "$X64_SIG" \
@@ -608,6 +649,26 @@ jobs:
             > update-beta.json
 
           echo "Generated update-beta.json for ${TAG}"
+
+      - name: Write release notes
+        env:
+          RELEASE_NOTES: ${{ needs.resolve.outputs.release_notes }}
+        run: |
+          {
+            printf '%s\n' "$RELEASE_NOTES"
+            echo ""
+            echo "### Build"
+            echo "- Base version: \`${{ needs.resolve.outputs.version }}\`"
+            echo "- Channel: \`unstable\`"
+            echo "- Build number: \`${{ github.run_number }}\`"
+          } > release-notes.md
+          {
+            echo "Tracks the latest unstable release."
+            echo ""
+            echo "Current: \`${{ needs.resolve.outputs.unstable_tag }}\`"
+            echo ""
+            cat release-notes.md
+          } > floating-release-notes.md
 
       - name: Validate generated unstable release
         run: |
@@ -631,12 +692,7 @@ jobs:
           name: ${{ needs.resolve.outputs.release_name }}
           prerelease: true
           make_latest: false
-          body: |
-            Automated unstable release from `${{ needs.resolve.outputs.sha }}`.
-
-            - Base version: `${{ needs.resolve.outputs.version }}`
-            - Channel: `unstable`
-            - Build number: `${{ github.run_number }}`
+          body_path: release-notes.md
           files: all-artifacts/*
           fail_on_unmatched_files: true
 
@@ -647,10 +703,7 @@ jobs:
           name: Latest Unstable Build
           prerelease: true
           make_latest: false
-          body: |
-            Tracks the latest unstable release.
-
-            Current: `${{ needs.resolve.outputs.unstable_tag }}`
+          body_path: floating-release-notes.md
           files: all-artifacts/*
           fail_on_unmatched_files: true
 

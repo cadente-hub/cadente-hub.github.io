@@ -38,14 +38,19 @@ jobs:
       version: ${{ steps.check.outputs.version }}
       tag: ${{ steps.check.outputs.tag }}
       sha: ${{ steps.check.outputs.sha }}
+      release_notes: ${{ steps.check.outputs.release_notes }}
     steps:
       - name: Validate and resolve version
         id: check
         env:
           DISPATCH_SECRET: ${{ secrets.DISPATCH_SECRET }}
           PRIVATE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
+          PAYLOAD_RELEASE_NOTES: ${{ github.event.client_payload.release_notes }}
+          PAYLOAD_RELEASE_NOTES_SHA: ${{ github.event.client_payload.release_notes_sha }}
         run: |
           set -euo pipefail
+          RELEASE_NOTES=""
+          RELEASE_NOTES_SHA=""
 
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             # ── Manual trigger ──────────────────────────────────────────
@@ -70,6 +75,11 @@ jobs:
               echo "::error::Tag v${VERSION} not found in private repo. Push the tag first."
               exit 1
             fi
+            RELEASE_NOTES="## Cadente v${VERSION}
+
+          Built from commit: ${SHA:0:8}
+
+          Release notes were generated from a manual public builder run."
             echo "✅ Manual trigger: v${VERSION} @ ${SHA:0:8}"
           else
             # ── Automated repository_dispatch ───────────────────────────
@@ -80,13 +90,33 @@ jobs:
             SHA="${{ github.event.client_payload.sha }}"
             SIGNATURE="${{ github.event.client_payload.signature }}"
             TIMESTAMP="${{ github.event.client_payload.timestamp }}"
+            RELEASE_NOTES="$PAYLOAD_RELEASE_NOTES"
+            RELEASE_NOTES_SHA="$PAYLOAD_RELEASE_NOTES_SHA"
 
             if [ -z "$VERSION" ] || [ -z "$SHA" ] || [ -z "$SIGNATURE" ] || [ -z "$TIMESTAMP" ]; then
               echo "::error::Missing required payload fields. Rejecting dispatch."
               exit 1
             fi
 
-            EXPECTED_SIG=$(echo -n "${VERSION}:${SHA}:${TIMESTAMP}" | openssl dgst -sha256 -hmac "$DISPATCH_SECRET" | awk '{print $2}')
+            if [ -n "$RELEASE_NOTES" ]; then
+              if [ -z "$RELEASE_NOTES_SHA" ]; then
+                echo "::error::Missing release_notes_sha for signed release notes."
+                exit 1
+              fi
+              ACTUAL_RELEASE_NOTES_SHA=$(printf '%s\n' "$RELEASE_NOTES" | shasum -a 256 | awk '{print $1}')
+              if [ "$ACTUAL_RELEASE_NOTES_SHA" != "$RELEASE_NOTES_SHA" ]; then
+                echo "::error::release_notes_sha mismatch."
+                exit 1
+              fi
+              EXPECTED_SIG=$(echo -n "${VERSION}:${SHA}:${TIMESTAMP}:${RELEASE_NOTES_SHA}" | openssl dgst -sha256 -hmac "$DISPATCH_SECRET" | awk '{print $2}')
+            else
+              EXPECTED_SIG=$(echo -n "${VERSION}:${SHA}:${TIMESTAMP}" | openssl dgst -sha256 -hmac "$DISPATCH_SECRET" | awk '{print $2}')
+              RELEASE_NOTES="## Cadente v${VERSION}
+
+          Built from commit: ${SHA:0:8}
+
+          Release notes were not included in the dispatch payload."
+            fi
             if [ "$SIGNATURE" != "$EXPECTED_SIG" ]; then
               echo "::error::Invalid signature. This dispatch did not come from an authorized source."
               exit 1
@@ -109,6 +139,11 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "tag=v$VERSION" >> $GITHUB_OUTPUT
           echo "sha=$SHA" >> $GITHUB_OUTPUT
+          {
+            echo "release_notes<<CADENTE_RELEASE_NOTES"
+            printf '%s\n' "$RELEASE_NOTES"
+            echo "CADENTE_RELEASE_NOTES"
+          } >> "$GITHUB_OUTPUT"
 
   # ─────────────────────────────────────────────────────────────
   # Step 2: Build on each platform
@@ -670,6 +705,8 @@ jobs:
 
       - name: Generate update.json
         shell: bash
+        env:
+          RELEASE_NOTES: ${{ needs.validate.outputs.release_notes }}
         run: |
           set -euo pipefail
           VERSION="${{ needs.validate.outputs.version }}"
@@ -743,6 +780,17 @@ jobs:
 
           # Validate JSON is parseable
           python3 -c "import json; json.load(open('update.json'))" || { echo "::error::Generated invalid JSON"; exit 1; }
+          python3 - <<'PYEOF'
+          import json
+          import os
+
+          with open("update.json") as fh:
+              data = json.load(fh)
+          data["notes"] = os.environ["RELEASE_NOTES"]
+          with open("update.json", "w") as fh:
+              json.dump(data, fh, indent=2)
+              fh.write("\n")
+          PYEOF
           echo "✅ update.json generated with all signatures:"
           python3 -c "import json; d=json.load(open('update.json')); [print(f'  {k}: sig={v[\"signature\"][:20]}...') for k,v in d['platforms'].items()]"
 
@@ -757,6 +805,7 @@ jobs:
       - name: Create release on cadente-hub.github.io
         env:
           GH_TOKEN: ${{ secrets.CATARINA_RELEASE_TOKEN }}
+          RELEASE_NOTES: ${{ needs.validate.outputs.release_notes }}
         run: |
           echo "::add-mask::${GH_TOKEN}"
           VERSION="${{ needs.validate.outputs.version }}"
@@ -766,21 +815,23 @@ jobs:
           # Delete existing release if re-running
           gh release delete "$TAG" --repo cadente-hub/cadente-hub.github.io --yes 2>/dev/null || true
 
+          {
+            printf '%s\n' "$RELEASE_NOTES"
+            echo ""
+            echo "### Downloads"
+            echo "- **macOS Apple Silicon**: \`cadente-${VERSION}-macos-arm64.dmg\`"
+            echo "- **macOS Intel**: \`cadente-${VERSION}-macos-x64.dmg\`"
+            echo "- **Linux**: \`cadente-${VERSION}-linux-x64.AppImage\` or \`.deb\`"
+            echo "- **Windows**: \`cadente-${VERSION}-windows-x64.exe\` or \`.msi\`"
+            echo ""
+            echo "---"
+            echo "*Built via Secure Public Builder*"
+          } > release-notes.md
+
           gh release create "$TAG" \
             --repo cadente-hub/cadente-hub.github.io \
             --title "Cadente v${VERSION}" \
-            --notes "## Cadente v${VERSION}
-
-          Built from commit: ${SHA:0:8}
-
-          ### Downloads
-          - **macOS Apple Silicon**: \`cadente-${VERSION}-macos-arm64.dmg\`
-          - **macOS Intel**: \`cadente-${VERSION}-macos-x64.dmg\`
-          - **Linux**: \`cadente-${VERSION}-linux-x64.AppImage\` or \`.deb\`
-          - **Windows**: \`cadente-${VERSION}-windows-x64.exe\` or \`.msi\`
-
-          ---
-          *Built via Secure Public Builder*" \
+            --notes-file release-notes.md \
             --latest \
             all-artifacts/*
 
