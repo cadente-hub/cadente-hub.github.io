@@ -11,7 +11,12 @@ persist_private_build_log() {
   dest_rel=".cadente-build-logs/public-actions/${safe_workflow}/${GITHUB_RUN_ID:-local}-${GITHUB_RUN_ATTEMPT:-0}/${safe_job}-${label}.log"
 
   if [ -z "${PRIVATE_LOG_TOKEN:-}" ]; then
-    echo "::error::Public CI failed before the private log could be stored: CATARINA_PRIVATE_WRITE_TOKEN is not configured."
+    echo "::error::Public CI failed and no private log token is configured. Set CATARINA_PRIVATE_WRITE_TOKEN or CATARINA_PRIVATE_LOG_TOKEN on the public repo."
+    if [ -f "$log_file" ]; then
+      echo "::group::Last 80 build log lines"
+      tail -80 "$log_file" || true
+      echo "::endgroup::"
+    fi
     return 0
   fi
 

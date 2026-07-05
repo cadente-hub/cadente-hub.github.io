@@ -43,7 +43,7 @@ jobs:
           INPUT_SHA: ${{ github.event.client_payload.sha || inputs.sha }}
           INPUT_BUILD_VERSION: ${{ github.event.client_payload.build_version || github.event.client_payload.version }}
           DISPATCH_SECRET: ${{ secrets.DISPATCH_SECRET }}
-          PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_WRITE_TOKEN }}
+          PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_WRITE_TOKEN || secrets.CATARINA_PRIVATE_LOG_TOKEN }}
           PAYLOAD_RELEASE_NOTES: ${{ github.event.client_payload.release_notes }}
           PAYLOAD_RELEASE_NOTES_SHA: ${{ github.event.client_payload.release_notes_sha }}
         run: |
@@ -274,7 +274,7 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
           CADENTE_BUILD_VERSION: ${{ needs.resolve.outputs.build_version }}
           RUSTC_WRAPPER: sccache
-          PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_WRITE_TOKEN }}
+          PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_WRITE_TOKEN || secrets.CATARINA_PRIVATE_LOG_TOKEN }}
         run: |
           source "$GITHUB_WORKSPACE/.github/scripts/persist-private-log.sh"
           if npx tauri build --target aarch64-apple-darwin > /tmp/build-arm64.log 2>&1; then
@@ -294,7 +294,7 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
           CADENTE_BUILD_VERSION: ${{ needs.resolve.outputs.build_version }}
           RUSTC_WRAPPER: sccache
-          PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_WRITE_TOKEN }}
+          PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_WRITE_TOKEN || secrets.CATARINA_PRIVATE_LOG_TOKEN }}
         run: |
           source "$GITHUB_WORKSPACE/.github/scripts/persist-private-log.sh"
           if npx tauri build --target x86_64-apple-darwin > /tmp/build-x64.log 2>&1; then
@@ -440,7 +440,7 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
           CADENTE_BUILD_VERSION: ${{ needs.resolve.outputs.build_version }}
           RUSTC_WRAPPER: sccache
-          PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_WRITE_TOKEN }}
+          PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_WRITE_TOKEN || secrets.CATARINA_PRIVATE_LOG_TOKEN }}
         run: |
           source "$GITHUB_WORKSPACE/.github/scripts/persist-private-log.sh"
           if npx tauri build > /tmp/build-linux.log 2>&1; then
@@ -547,7 +547,7 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
           CADENTE_BUILD_VERSION: ${{ needs.resolve.outputs.build_version }}
           RUSTC_WRAPPER: sccache
-          PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_WRITE_TOKEN }}
+          PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_WRITE_TOKEN || secrets.CATARINA_PRIVATE_LOG_TOKEN }}
         run: |
           source "$GITHUB_WORKSPACE/.github/scripts/persist-private-log.sh"
           if npx tauri build > /tmp/build-windows.log 2>&1; then
