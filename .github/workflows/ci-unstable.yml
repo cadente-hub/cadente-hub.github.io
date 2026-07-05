@@ -103,7 +103,7 @@ jobs:
               | python3 -c 'import json,sys; print(json.load(sys.stdin)["sha"])')
           fi
 
-          git clone --depth=1 "https://x-access-token:${PRIVATE_TOKEN}@github.com/${PRIVATE_REPO}.git" source >/dev/null 2>&1
+          git clone --filter=blob:none "https://x-access-token:${PRIVATE_TOKEN}@github.com/${PRIVATE_REPO}.git" source >/dev/null 2>&1
           cd source
           git fetch --depth=1 origin "$SHA" >/dev/null 2>&1
           git checkout "$SHA" >/dev/null 2>&1
@@ -172,19 +172,17 @@ jobs:
           echo "Resolved beta build version: ${BUILD_VERSION}"
 
           UNSTABLE_TAG="v${BUILD_VERSION}"
-          if [ -z "$RELEASE_NOTES" ]; then
-            if [ -f scripts/generate-release-notes.py ]; then
-              RELEASE_NOTES="$(python3 scripts/generate-release-notes.py \
-                --version "$BUILD_VERSION" \
-                --sha "$SHA" \
-                --channel unstable)"
-            else
+          if [ -f scripts/generate-release-notes.py ]; then
+            RELEASE_NOTES="$(python3 scripts/generate-release-notes.py \
+              --version "$BUILD_VERSION" \
+              --sha "$SHA" \
+              --channel unstable)"
+          elif [ -z "$RELEASE_NOTES" ]; then
               RELEASE_NOTES="## Cadente ${UNSTABLE_TAG}
 
           Built from commit: ${SHA:0:8}
 
           Release notes were not included in the dispatch payload."
-            fi
           fi
 
           echo "sha=$SHA" >> "$GITHUB_OUTPUT"
