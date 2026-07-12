@@ -40,20 +40,33 @@ jobs:
           echo "stable_version=${STABLE}" >> "$GITHUB_OUTPUT"
 
       - name: Verify unstable release exists
+        id: unstable
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release view "${{ steps.versions.outputs.unstable_tag }}" \
             --repo "${{ github.repository }}" \
-            --json tagName,assets >/tmp/release.json
+            --json tagName,assets,body >/tmp/release.json
 
           python3 - <<'PY'
+          import os
+          import re
           import json
+
           data = json.load(open('/tmp/release.json'))
           assets = data.get('assets', [])
           if not assets:
               raise SystemExit("::error::Unstable release has no assets to promote.")
-          print(f"Found {len(assets)} assets")
+
+          body = data.get('body') or ''
+          match = re.search(r'\b[0-9a-f]{40}\b', body, re.IGNORECASE)
+          if not match:
+              raise SystemExit("::error::Could not find source commit SHA in unstable release notes.")
+
+          sha = match.group(0)
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write(f"sha={sha}\n")
+          print(f"Found {len(assets)} assets from {sha[:8]}")
           PY
 
       - name: Ensure stable release does not already exist
@@ -65,13 +78,36 @@ jobs:
             exit 1
           fi
 
-      - name: Trigger stable rebuild from private tag
+      - name: Trigger stable rebuild from unstable SHA
         env:
           GH_TOKEN: ${{ github.token }}
+          DISPATCH_SECRET: ${{ secrets.DISPATCH_SECRET }}
         run: |
-          gh workflow run build-release.yml \
-            --repo "${{ github.repository }}" \
-            -f version="${{ steps.versions.outputs.stable_version }}"
+          set -euo pipefail
+
+          VERSION="${{ steps.versions.outputs.stable_version }}"
+          SHA="${{ steps.unstable.outputs.sha }}"
+          TIMESTAMP="$(date +%s)"
+
+          if [ -z "$DISPATCH_SECRET" ]; then
+            echo "::error::DISPATCH_SECRET is not configured."
+            exit 1
+          fi
+
+          SIGNATURE="$(echo -n "${VERSION}:${SHA}:${TIMESTAMP}" | openssl dgst -sha256 -hmac "$DISPATCH_SECRET" | awk '{print $2}')"
+
+          jq -n \
+            --arg event_type "build-release" \
+            --arg version "$VERSION" \
+            --arg sha "$SHA" \
+            --arg signature "$SIGNATURE" \
+            --arg timestamp "$TIMESTAMP" \
+            '{event_type:$event_type, client_payload:{version:$version, sha:$sha, signature:$signature, timestamp:$timestamp}}' \
+            >/tmp/build-release-dispatch.json
+
+          gh api "repos/${{ github.repository }}/dispatches" \
+            --method POST \
+            --input /tmp/build-release-dispatch.json
 
           echo "Stable rebuild requested for ${{ steps.versions.outputs.stable_tag }}."
-          echo "build-release.yml will verify the private tag and publish update.json."
+          echo "build-release.yml will verify the signed dispatch and publish update.json."
