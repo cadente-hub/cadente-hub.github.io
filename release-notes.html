@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Release Notes - Cadente</title>
+  <meta name="description" content="Release notes for Cadente stable and beta updates." />
+  <meta property="og:title" content="Cadente Release Notes" />
+  <meta property="og:description" content="See what changed in the latest Cadente stable and beta releases." />
+  <meta property="og:image" content="https://cadente-hub.github.io/assets/og-image.png" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://cadente-hub.github.io/release-notes.html" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Cadente Release Notes" />
+  <meta name="twitter:description" content="See what changed in the latest Cadente stable and beta releases." />
+  <meta name="twitter:image" content="https://cadente-hub.github.io/assets/og-image.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./css/style.css" />
+  <link rel="icon" type="image/png" sizes="32x32" href="./assets/favicon-32.png" />
+  <link rel="icon" type="image/x-icon" href="./assets/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="./assets/apple-touch-icon.png" />
+</head>
+<body>
+  <header class="navbar" id="navbar">
+    <nav class="navbar__inner container">
+      <a href="./" class="navbar__logo">
+        <svg class="navbar__logo-icon" width="24" height="24" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="c-grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#d4a87a"/><stop offset="50%" stop-color="#c4956a"/><stop offset="100%" stop-color="#b08050"/></linearGradient><linearGradient id="c-spark" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#f0dcc8"/><stop offset="100%" stop-color="#dbb896"/></linearGradient></defs><path d="M 379 153 A 160 160 0 1 0 379 359" fill="none" stroke="url(#c-grad)" stroke-width="56" stroke-linecap="round"/><path d="M 356 188 A 118 118 0 1 0 356 324" fill="none" stroke="url(#c-grad)" stroke-width="4" stroke-linecap="round" opacity="0.25"/><path d="M 424 240 L 429 252 L 442 256 L 429 260 L 424 272 L 419 260 L 406 256 L 419 252 Z" fill="url(#c-spark)"/></svg>
+        Cadente
+      </a>
+      <ul class="navbar__links">
+        <li><a href="./#features">Features</a></li>
+        <li><a href="./downloads.html">Downloads</a></li>
+        <li><a href="./release-notes.html" class="active">Release Notes</a></li>
+      </ul>
+      <div class="navbar__actions">
+        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+          <span class="theme-toggle__icon theme-toggle__icon--sun">&#9788;</span>
+          <span class="theme-toggle__icon theme-toggle__icon--moon">&#9790;</span>
+        </button>
+        <a href="./downloads.html" class="btn btn--sm btn--primary navbar__cta">Download</a>
+      </div>
+      <button class="navbar__hamburger" id="hamburger" aria-label="Toggle menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </nav>
+  </header>
+
+  <div class="mobile-menu" id="mobile-menu">
+    <ul class="mobile-menu__links">
+      <li><a href="./#features">Features</a></li>
+      <li><a href="./downloads.html">Downloads</a></li>
+      <li><a href="./release-notes.html">Release Notes</a></li>
+    </ul>
+  </div>
+
+  <main>
+    <section class="release-notes-hero">
+      <div class="hero__glow"></div>
+      <div class="container">
+        <div class="section-header animate-on-scroll">
+          <p class="section-label">Release Notes</p>
+          <h1 class="section-title">Every Cadente <span class="gradient-text">update</span></h1>
+          <p class="section-subtitle">Stable and beta changes, pulled from the same public update feeds Cadente uses.</p>
+        </div>
+        <div class="release-notes-summary" id="release-notes-summary" aria-live="polite">
+          <div class="release-notes-summary__item">
+            <span class="release-notes-summary__label">Stable</span>
+            <span class="release-notes-summary__value" id="stable-version">Loading...</span>
+          </div>
+          <div class="release-notes-summary__item">
+            <span class="release-notes-summary__label">Beta</span>
+            <span class="release-notes-summary__value" id="beta-version">Loading...</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="release-notes-page">
+      <div class="container release-notes-layout">
+        <aside class="release-notes-sidebar animate-on-scroll" aria-label="Release channels">
+          <div class="release-notes-sidebar__title">Channels</div>
+          <a href="#stable" class="release-notes-sidebar__link">Stable</a>
+          <a href="#beta" class="release-notes-sidebar__link">Beta</a>
+          <a href="https://github.com/cadente-hub/cadente-hub.github.io/releases" target="_blank" rel="noopener noreferrer" class="release-notes-sidebar__external">All GitHub releases</a>
+        </aside>
+
+        <div class="release-notes-content">
+          <section class="release-channel animate-on-scroll" id="stable">
+            <div class="release-channel__header">
+              <div>
+                <p class="section-label">Stable</p>
+                <h2 class="release-channel__title">Tested releases</h2>
+              </div>
+              <a href="./downloads.html" class="btn btn--ghost btn--sm">Download stable</a>
+            </div>
+            <div class="release-list" id="stable-release-list">
+              <div class="release-loading">Loading stable release notes...</div>
+            </div>
+          </section>
+
+          <section class="release-channel animate-on-scroll" id="beta">
+            <div class="release-channel__header">
+              <div>
+                <p class="section-label">Beta</p>
+                <h2 class="release-channel__title">Early access builds</h2>
+              </div>
+              <a href="https://github.com/cadente-hub/cadente-hub.github.io/releases" target="_blank" rel="noopener noreferrer" class="btn btn--ghost btn--sm">View releases</a>
+            </div>
+            <div class="release-list" id="beta-release-list">
+              <div class="release-loading">Loading beta release notes...</div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer__inner">
+      <div class="footer__brand">
+        <a href="./" class="footer__logo">
+          <svg class="navbar__logo-icon" width="24" height="24" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="c-grad-footer" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#d4a87a"/><stop offset="50%" stop-color="#c4956a"/><stop offset="100%" stop-color="#b08050"/></linearGradient><linearGradient id="c-spark-footer" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#f0dcc8"/><stop offset="100%" stop-color="#dbb896"/></linearGradient></defs><path d="M 379 153 A 160 160 0 1 0 379 359" fill="none" stroke="url(#c-grad-footer)" stroke-width="56" stroke-linecap="round"/><path d="M 356 188 A 118 118 0 1 0 356 324" fill="none" stroke="url(#c-grad-footer)" stroke-width="4" stroke-linecap="round" opacity="0.25"/><path d="M 424 240 L 429 252 L 442 256 L 429 260 L 424 272 L 419 260 L 406 256 L 419 252 Z" fill="url(#c-spark-footer)"/></svg>
+          Cadente
+        </a>
+        <p class="footer__tagline">make a wish</p>
+      </div>
+      <div class="footer__links">
+        <div class="footer__col">
+          <h4 class="footer__col-title">Product</h4>
+          <a href="./#features">Features</a>
+          <a href="./downloads.html">Downloads</a>
+          <a href="./release-notes.html">Release Notes</a>
+        </div>
+        <div class="footer__col">
+          <h4 class="footer__col-title">Resources</h4>
+          <a href="https://github.com/cadente-hub/cadente-hub.github.io" target="_blank" rel="noopener noreferrer">GitHub</a>
+          <a href="https://github.com/cadente-hub/cadente-hub.github.io/issues" target="_blank" rel="noopener noreferrer">Issues</a>
+          <a href="https://github.com/cadente-hub/cadente-hub.github.io/releases" target="_blank" rel="noopener noreferrer">Releases</a>
+        </div>
+        <div class="footer__col">
+          <h4 class="footer__col-title">Legal</h4>
+          <a href="./terms-and-conditions.html">Terms &amp; Conditions</a>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <p class="footer__copy">&copy; 2026 Cadente. All rights reserved.</p>
+        <p class="footer__tech">Built with Rust. Privacy first.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script type="module" src="./js/release-notes.js"></script>
+</body>
+</html>
