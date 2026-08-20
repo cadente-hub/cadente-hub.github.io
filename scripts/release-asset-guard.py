@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import json
 import pathlib
+import plistlib
 import shutil
 import subprocess
 import tarfile
@@ -139,20 +140,25 @@ def validate_macos_archive(platform: str, archive_path: pathlib.Path) -> list[st
 
     with tempfile.TemporaryDirectory() as tmpdir:
         with tarfile.open(archive_path, "r:gz") as archive:
-            members = [
-                item
-                for item in archive.getmembers()
-                if item.isfile()
-                and pathlib.PurePosixPath(item.name).parts[-3:-1]
-                == ("Contents", "MacOS")
-            ]
-            if len(members) != 1:
-                found = ", ".join(item.name for item in members) or "none"
-                return [
-                    f"{archive_path} must contain exactly one macOS app executable; "
-                    f"found: {found}"
-                ]
-            member = members[0]
+            plist_member = next(
+                (item for item in archive.getmembers() if item.name.endswith(".app/Contents/Info.plist")),
+                None,
+            )
+            member = next(
+                (
+                    item
+                    for item in archive.getmembers()
+                    if item.name.endswith(".app/Contents/MacOS/cadente")
+                ),
+                None,
+            )
+            if plist_member is None or member is None:
+                return [f"{archive_path} must contain Cadente.app with the cadente executable"]
+            plist_file = archive.extractfile(plist_member)
+            if plist_file is None:
+                return [f"{archive_path} could not read Cadente.app/Contents/Info.plist"]
+            if plistlib.load(plist_file).get("CFBundleExecutable") != "cadente":
+                return [f"{archive_path} must declare CFBundleExecutable=cadente"]
             archive.extract(member, tmpdir)
             binary_path = pathlib.Path(tmpdir) / member.name
 

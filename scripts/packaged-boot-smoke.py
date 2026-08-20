@@ -6,24 +6,22 @@ from __future__ import annotations
 import argparse
 import os
 import pathlib
+import plistlib
 import subprocess
 import tempfile
 import time
 
 
 def macos_binary(app_path: pathlib.Path) -> pathlib.Path:
-    executable_dir = app_path / "Contents" / "MacOS"
-    candidates = sorted(
-        path
-        for path in executable_dir.iterdir()
-        if path.is_file() and os.access(path, os.X_OK)
-    ) if executable_dir.is_dir() else []
-    if len(candidates) == 1:
-        return candidates[0]
-    if not candidates:
-        raise SystemExit(f"missing macOS app executable in: {executable_dir}")
-    names = ", ".join(candidate.name for candidate in candidates)
-    raise SystemExit(f"ambiguous macOS app executables in {executable_dir}: {names}")
+    info_path = app_path / "Contents" / "Info.plist"
+    with info_path.open("rb") as file:
+        executable = plistlib.load(file).get("CFBundleExecutable")
+    if executable != "cadente":
+        raise SystemExit(f"Cadente app must declare CFBundleExecutable=cadente; got {executable!r}")
+    binary = app_path / "Contents" / "MacOS" / executable
+    if not binary.is_file() or not os.access(binary, os.X_OK):
+        raise SystemExit(f"missing macOS app binary: {binary}")
+    return binary
 
 
 def run_smoke(command: list[str], timeout_secs: int) -> int:
