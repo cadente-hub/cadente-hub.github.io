@@ -16,6 +16,9 @@ concurrency:
   group: promote-to-stable
   cancel-in-progress: false
 
+env:
+  PRIVATE_REPO: jeancatarina/catarina-claude
+
 jobs:
   promote:
     runs-on: ubuntu-latest
@@ -43,6 +46,7 @@ jobs:
         id: unstable
         env:
           GH_TOKEN: ${{ github.token }}
+          PRIVATE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
         run: |
           gh release view "${{ steps.versions.outputs.unstable_tag }}" \
             --repo "${{ github.repository }}" \
@@ -52,21 +56,35 @@ jobs:
           import os
           import re
           import json
+          import urllib.request
 
           data = json.load(open('/tmp/release.json'))
           assets = data.get('assets', [])
           if not assets:
               raise SystemExit("::error::Unstable release has no assets to promote.")
 
+          # Release notes embed a short, customer-facing commit abbreviation.
+          # Resolve it to the full SHA the private repo needs to check out.
           body = data.get('body') or ''
-          match = re.search(r'\b[0-9a-f]{40}\b', body, re.IGNORECASE)
+          match = re.search(r'\bCommit:\s*`([0-9a-f]{7,40})`', body, re.IGNORECASE)
           if not match:
               raise SystemExit("::error::Could not find source commit SHA in unstable release notes.")
 
-          sha = match.group(0)
+          short_sha = match.group(1)
+          private_repo = os.environ['PRIVATE_REPO']
+          request = urllib.request.Request(
+              f"https://api.github.com/repos/{private_repo}/commits/{short_sha}",
+              headers={
+                  "Authorization": f"Bearer {os.environ['PRIVATE_TOKEN']}",
+                  "Accept": "application/vnd.github+json",
+              },
+          )
+          with urllib.request.urlopen(request) as response:
+              sha = json.load(response)["sha"]
+
           with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
               output.write(f"sha={sha}\n")
-          print(f"Found {len(assets)} assets from {sha[:8]}")
+          print(f"Found {len(assets)} assets from {sha[:8]} (resolved from {short_sha})")
           PY
 
       - name: Ensure stable release does not already exist
