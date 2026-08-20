@@ -47,6 +47,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           PRIVATE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
+          STABLE_VERSION: ${{ steps.versions.outputs.stable_version }}
         run: |
           gh release view "${{ steps.versions.outputs.unstable_tag }}" \
             --repo "${{ github.repository }}" \
@@ -82,8 +83,18 @@ jobs:
           with urllib.request.urlopen(request) as response:
               sha = json.load(response)["sha"]
 
+          # Carry the beta's own changelog into the stable release instead of
+          # leaving it blank: swap the beta-specific header/channel lines for
+          # their stable equivalents and pass the rest through unchanged.
+          notes = body.strip()
+          notes = re.sub(r'^## Cadente v\S+', f"## Cadente v{os.environ['STABLE_VERSION']}", notes, count=1)
+          notes = re.sub(r'^- Channel: `unstable`$', '- Channel: `stable`', notes, count=1, flags=re.MULTILINE)
+
           with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
               output.write(f"sha={sha}\n")
+              output.write("notes<<CADENTE_PROMOTE_NOTES\n")
+              output.write(notes + "\n")
+              output.write("CADENTE_PROMOTE_NOTES\n")
           print(f"Found {len(assets)} assets from {sha[:8]} (resolved from {short_sha})")
           PY
 
@@ -100,6 +111,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           DISPATCH_SECRET: ${{ secrets.DISPATCH_SECRET }}
+          RELEASE_NOTES: ${{ steps.unstable.outputs.notes }}
         run: |
           set -euo pipefail
 
@@ -112,7 +124,16 @@ jobs:
             exit 1
           fi
 
-          SIGNATURE="$(echo -n "${VERSION}:${SHA}:${TIMESTAMP}" | openssl dgst -sha256 -hmac "$DISPATCH_SECRET" | awk '{print $2}')"
+          # build-release.yml signs release notes into the HMAC (4-part form)
+          # when present, and falls back to the 3-part form otherwise — mirror
+          # that here so the dispatch verifies on the receiving end.
+          if [ -n "$RELEASE_NOTES" ]; then
+            RELEASE_NOTES_SHA="$(printf '%s\n' "$RELEASE_NOTES" | shasum -a 256 | awk '{print $1}')"
+            SIGNATURE="$(echo -n "${VERSION}:${SHA}:${TIMESTAMP}:${RELEASE_NOTES_SHA}" | openssl dgst -sha256 -hmac "$DISPATCH_SECRET" | awk '{print $2}')"
+          else
+            RELEASE_NOTES_SHA=""
+            SIGNATURE="$(echo -n "${VERSION}:${SHA}:${TIMESTAMP}" | openssl dgst -sha256 -hmac "$DISPATCH_SECRET" | awk '{print $2}')"
+          fi
 
           jq -n \
             --arg event_type "build-release" \
@@ -120,7 +141,9 @@ jobs:
             --arg sha "$SHA" \
             --arg signature "$SIGNATURE" \
             --arg timestamp "$TIMESTAMP" \
-            '{event_type:$event_type, client_payload:{version:$version, sha:$sha, signature:$signature, timestamp:$timestamp}}' \
+            --arg release_notes "$RELEASE_NOTES" \
+            --arg release_notes_sha "$RELEASE_NOTES_SHA" \
+            '{event_type:$event_type, client_payload:({version:$version, sha:$sha, signature:$signature, timestamp:$timestamp} + (if $release_notes != "" then {release_notes:$release_notes, release_notes_sha:$release_notes_sha} else {} end))}' \
             >/tmp/build-release-dispatch.json
 
           gh api "repos/${{ github.repository }}/dispatches" \
