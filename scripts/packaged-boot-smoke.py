@@ -12,10 +12,18 @@ import time
 
 
 def macos_binary(app_path: pathlib.Path) -> pathlib.Path:
-    binary = app_path / "Contents" / "MacOS" / "cadente"
-    if not binary.exists():
-        raise SystemExit(f"missing macOS app binary: {binary}")
-    return binary
+    executable_dir = app_path / "Contents" / "MacOS"
+    candidates = sorted(
+        path
+        for path in executable_dir.iterdir()
+        if path.is_file() and os.access(path, os.X_OK)
+    ) if executable_dir.is_dir() else []
+    if len(candidates) == 1:
+        return candidates[0]
+    if not candidates:
+        raise SystemExit(f"missing macOS app executable in: {executable_dir}")
+    names = ", ".join(candidate.name for candidate in candidates)
+    raise SystemExit(f"ambiguous macOS app executables in {executable_dir}: {names}")
 
 
 def run_smoke(command: list[str], timeout_secs: int) -> int:
