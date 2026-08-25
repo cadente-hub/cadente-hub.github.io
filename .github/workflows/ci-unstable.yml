@@ -300,8 +300,12 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: source/src-tauri
-          key: ${{ matrix.target }}
-          shared-key: cadente
+          # shared-key overrides `key` entirely rather than combining with it
+          # (verified empirically: both matrix legs produced the identical
+          # cache key when both were set, and one leg's save silently lost
+          # the race -- "another job may be creating this cache"). The
+          # per-target discriminator has to live inside shared-key itself.
+          shared-key: cadente-${{ matrix.target }}
           cache-on-failure: true
 
       - name: Patch beta version in source
