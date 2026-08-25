@@ -197,32 +197,23 @@ jobs:
         with:
           targets: aarch64-apple-darwin,x86_64-apple-darwin
 
-      - name: Setup sccache
-        uses: mozilla-actions/sccache-action@v0.0.7
-
-      - name: Cache Cargo registry and target
-        uses: actions/cache@v4
+      - uses: Swatinem/rust-cache@v2
         with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            source/src-tauri/target
-          key: macos-universal-cargo-${{ hashFiles('source/src-tauri/Cargo.lock') }}
-          restore-keys: |
-            macos-universal-cargo-
+          workspaces: source/src-tauri
+          shared-key: cadente
+          cache-on-failure: true
 
       - name: Install frontend dependencies
         working-directory: source
-        env:
-          RUSTC_WRAPPER: sccache
-        run: npm ci 2>&1 | tail -5
+        run: |
+          set -euo pipefail
+          npm ci 2>&1 | tail -5
 
       - name: Build ARM64 (Apple Silicon)
         working-directory: source
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
-          RUSTC_WRAPPER: sccache
           PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_WRITE_TOKEN || secrets.CATARINA_PRIVATE_LOG_TOKEN || secrets.CATARINA_PRIVATE_READ_TOKEN }}
         run: |
           persist_private_build_log() {
@@ -270,7 +261,6 @@ jobs:
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
-          RUSTC_WRAPPER: sccache
           PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_WRITE_TOKEN || secrets.CATARINA_PRIVATE_LOG_TOKEN || secrets.CATARINA_PRIVATE_READ_TOKEN }}
         run: |
           persist_private_build_log() {
@@ -350,9 +340,13 @@ jobs:
             --macos-app /tmp/cadente-boot-smoke/Cadente.app \
             --timeout-secs 30
 
-      - name: Delete source code before upload
+      - name: Scrub credentials and non-cacheable outputs
         if: always()
-        run: rm -rf source /tmp/build-*.log
+        run: |
+          rm -rf source/.git
+          rm -rf source/dist
+          rm -rf source/src-tauri/target/*/release/bundle source/src-tauri/target/release/bundle
+          rm -f /tmp/build-*.log
 
       - name: Upload macOS artifacts
         uses: actions/upload-artifact@v4
@@ -425,19 +419,11 @@ jobs:
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Setup sccache
-        uses: mozilla-actions/sccache-action@v0.0.7
-
-      - name: Cache Cargo registry and target
-        uses: actions/cache@v4
+      - uses: Swatinem/rust-cache@v2
         with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            source/src-tauri/target
-          key: linux-cargo-${{ hashFiles('source/src-tauri/Cargo.lock') }}
-          restore-keys: |
-            linux-cargo-
+          workspaces: source/src-tauri
+          shared-key: cadente
+          cache-on-failure: true
 
       - name: Cache apt packages
         id: apt-cache
@@ -459,14 +445,15 @@ jobs:
 
       - name: Install frontend dependencies
         working-directory: source
-        run: npm ci 2>&1 | tail -5
+        run: |
+          set -euo pipefail
+          npm ci 2>&1 | tail -5
 
       - name: Build Tauri app
         working-directory: source
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
-          RUSTC_WRAPPER: sccache
           PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_WRITE_TOKEN || secrets.CATARINA_PRIVATE_LOG_TOKEN || secrets.CATARINA_PRIVATE_READ_TOKEN }}
         run: |
           persist_private_build_log() {
@@ -525,9 +512,13 @@ jobs:
           echo "📦 Artifacts collected:"
           ls -la artifacts/
 
-      - name: Delete source code before upload
+      - name: Scrub credentials and non-cacheable outputs
         if: always()
-        run: rm -rf source /tmp/build-linux.log
+        run: |
+          rm -rf source/.git
+          rm -rf source/dist
+          rm -rf source/src-tauri/target/release/bundle
+          rm -f /tmp/build-linux.log
 
       - name: Upload Linux artifacts
         uses: actions/upload-artifact@v4
@@ -577,24 +568,18 @@ jobs:
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Setup sccache
-        uses: mozilla-actions/sccache-action@v0.0.7
-
-      - name: Cache Cargo registry and target
-        uses: actions/cache@v4
+      - uses: Swatinem/rust-cache@v2
         with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            source/src-tauri/target
-          key: windows-cargo-${{ hashFiles('source/src-tauri/Cargo.lock') }}
-          restore-keys: |
-            windows-cargo-
+          workspaces: source/src-tauri
+          shared-key: cadente
+          cache-on-failure: true
 
       - name: Install frontend dependencies
         working-directory: source
         shell: bash
-        run: npm ci 2>&1 | tail -5
+        run: |
+          set -euo pipefail
+          npm ci 2>&1 | tail -5
 
       - name: Build Tauri app
         working-directory: source
@@ -602,7 +587,6 @@ jobs:
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
-          RUSTC_WRAPPER: sccache
           PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_WRITE_TOKEN || secrets.CATARINA_PRIVATE_LOG_TOKEN || secrets.CATARINA_PRIVATE_READ_TOKEN }}
         run: |
           persist_private_build_log() {
@@ -662,10 +646,14 @@ jobs:
           echo "📦 Artifacts collected:"
           ls -la artifacts/
 
-      - name: Delete source code before upload
+      - name: Scrub credentials and non-cacheable outputs
         if: always()
         shell: bash
-        run: rm -rf source /tmp/build-windows.log
+        run: |
+          rm -rf source/.git
+          rm -rf source/dist
+          rm -rf source/src-tauri/target/release/bundle
+          rm -f /tmp/build-windows.log
 
       - name: Upload Windows artifacts
         uses: actions/upload-artifact@v4
