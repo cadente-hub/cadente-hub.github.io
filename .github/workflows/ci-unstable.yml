@@ -14,8 +14,8 @@ permissions:
   actions: read
 
 concurrency:
-  group: unstable-${{ github.event.client_payload.sha || inputs.sha || github.run_id }}
-  cancel-in-progress: false
+  group: unstable-channel
+  cancel-in-progress: true
 
 env:
   PRIVATE_REPO: jeancatarina/catarina-claude
