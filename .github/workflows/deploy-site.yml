@@ -36,6 +36,8 @@ jobs:
         run: |
           cp update.json dist/update.json 2>/dev/null || true
           cp update-beta.json dist/update-beta.json 2>/dev/null || true
+          cp install.sh dist/install.sh 2>/dev/null || true
+          cp install.ps1 dist/install.ps1 2>/dev/null || true
           DOMAIN="$(awk 'NF && $1 !~ /^#/ { print $1; exit }' CNAME 2>/dev/null || true)"
           if [ -n "$DOMAIN" ]; then
             printf '%s\n' "$DOMAIN" > dist/CNAME

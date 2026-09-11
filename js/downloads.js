@@ -30,21 +30,14 @@ const SVG_ICONS = {
   windows: `<svg viewBox="0 0 24 24" fill="currentColor" class="platform-icon"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/></svg>`,
 };
 
-// CLI install commands per platform.
-// Linux/Windows commands are templated and rewritten with the actual asset URL
-// once GitHub Releases data is fetched (see updateDynamicCLICommands).
-const BREW_INSTALL = 'command -v brew >/dev/null || /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"';
-const BREW_CASK = 'brew tap cadente-hub/apps && brew install --cask cadente';
-// Templates use <URL> placeholder; resolved with real asset URLs after fetch.
+// CLI install commands per platform (1-line frictionless installs)
 const CLI_COMMAND_TEMPLATES = {
-  'macos-arm64': `${BREW_INSTALL} && ${BREW_CASK}`,
-  'macos-x64': `${BREW_INSTALL} && ${BREW_CASK}`,
-  // AppImage prefixes `apt install libfuse2` because Ubuntu 22.04+ ships without FUSE 2.
-  'linux-appimage': 'sudo apt install -y libfuse2 && curl -fsSL <URL> -o cadente.AppImage && chmod +x cadente.AppImage && ./cadente.AppImage',
+  'macos-arm64': 'curl -fsSL https://cadente-hub.github.io/install.sh | bash',
+  'macos-x64': 'curl -fsSL https://cadente-hub.github.io/install.sh | bash',
+  'linux-appimage': 'curl -fsSL https://cadente-hub.github.io/install.sh | bash',
   'linux-deb': 'curl -fsSL <URL> -o cadente.deb && sudo apt install -y ./cadente.deb',
   'linux-rpm': 'curl -fsSL <URL> -o cadente.rpm && sudo dnf install -y ./cadente.rpm',
-  // Windows: PowerShell one-liner downloads installer to TEMP and runs it.
-  'windows-exe': 'powershell -Command "iwr <URL> -OutFile $env:TEMP\\cadente-setup.exe; & $env:TEMP\\cadente-setup.exe"',
+  'windows-exe': 'powershell -Command "irm https://cadente-hub.github.io/install.ps1 | iex"',
   'windows-msi': 'powershell -Command "iwr <URL> -OutFile $env:TEMP\\cadente.msi; Start-Process msiexec.exe -ArgumentList \'/i\',\\\"$env:TEMP\\cadente.msi\\\" -Wait"',
 };
 // Mutable runtime copy — <URL> placeholders get replaced once GitHub Releases data arrives.
@@ -171,8 +164,13 @@ function buildCLISnippet(platformKey) {
 function initCopyButtons() {
   document.querySelectorAll('.cli-snippet__copy').forEach((btn) => {
     btn.addEventListener('click', async () => {
-      const platformKey = btn.dataset.copy;
-      const cmd = CLI_COMMANDS[platformKey];
+      let cmd = '';
+      if (btn.hasAttribute('data-gatekeeper-copy') || btn.id === 'gatekeeper-callout-copy') {
+        cmd = 'xattr -cr /Applications/Cadente.app && codesign --force --deep --sign - /Applications/Cadente.app';
+      } else {
+        const platformKey = btn.dataset.copy;
+        cmd = CLI_COMMANDS[platformKey];
+      }
       if (!cmd) return;
 
       try {
@@ -383,7 +381,7 @@ function buildDownloadsLayout(detectedOS) {
           <div class="install-steps__guide">
             <div class="install-step">
               <span class="install-step__num">1</span>
-              <span>Open <strong>Terminal</strong> — press <kbd>⌘</kbd> + <kbd>Space</kbd>, type <strong>Terminal</strong>, hit Enter</span>
+              <span>Open <strong>Terminal</strong> (<kbd>⌘</kbd> + <kbd>Space</kbd>, type <strong>Terminal</strong>, hit Enter)</span>
             </div>
             <div class="install-step">
               <span class="install-step__num">2</span>
@@ -391,11 +389,7 @@ function buildDownloadsLayout(detectedOS) {
             </div>
             <div class="install-step">
               <span class="install-step__num">3</span>
-              <span>If it asks for a password, type your <strong>Mac password</strong> and press Enter <span class="install-step__note">(the characters won't appear — that's normal)</span></span>
-            </div>
-            <div class="install-step">
-              <span class="install-step__num">4</span>
-              <span>Done! It installs everything automatically and opens the app.</span>
+              <span>Done! Installs Cadente, removes Gatekeeper quarantine (no "damaged / move to trash" warning), and launches the app automatically.</span>
             </div>
           </div>
         </div>
