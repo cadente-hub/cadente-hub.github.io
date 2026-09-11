@@ -394,6 +394,14 @@ jobs:
             if [ -n "${TAURI_SIGNING_PRIVATE_KEY:-}" ]; then
               npx tauri signer sign --password "" "$TAR_GZ"
             fi
+
+            # Repack .dmg with the Fat Bundle so the distributed installer contains the Launcher
+            DMG_DIR="src-tauri/target/${{ matrix.target }}/release/bundle/dmg"
+            if [ -d "$DMG_DIR" ]; then
+              rm -f "$DMG_DIR"/*.dmg
+              hdiutil create -volname "Cadente" -srcfolder "$BUNDLE_APP" -ov -format UDZO "$DMG_DIR/Cadente_${{ needs.resolve.outputs.version }}_${ARCH_LABEL}.dmg"
+              echo "DMG repacked with Fat Bundle successfully."
+            fi
             echo "Fat Bundle Cadente.app created and re-signed successfully."
           fi
 
