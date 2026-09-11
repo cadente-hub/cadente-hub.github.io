@@ -30,12 +30,12 @@ case "$OS" in
       FALLBACK_NAME="cadente-latest-macos-x64.app.tar.gz"
     fi
 
-    MANIFEST_URL="https://cadente-hub.github.io/update.json"
+    MANIFEST_URL="https://cadente-hub.github.io/update-beta.json"
     printf "Fetching latest release information...\n"
 
     DOWNLOAD_URL=""
     if command -v curl >/dev/null 2>&1; then
-      MANIFEST_JSON="$(curl -fsSL "$MANIFEST_URL" 2>/dev/null || true)"
+      MANIFEST_JSON="$(curl -fsSL "$MANIFEST_URL" 2>/dev/null || curl -fsSL "https://cadente-hub.github.io/update.json" 2>/dev/null || true)"
       if [ -n "$MANIFEST_JSON" ]; then
         DOWNLOAD_URL="$(printf '%s' "$MANIFEST_JSON" | grep -A 4 "\"$TARGET_KEY\"" | grep '"url"' | head -n 1 | cut -d '"' -f 4 || true)"
       fi
@@ -59,12 +59,16 @@ case "$OS" in
     curl -fL --progress-bar "$DOWNLOAD_URL" -o "$TMP_DIR/cadente.tar.gz"
 
     printf "Installing to %s...\n" "$TARGET_APP"
+    pkill -f "Cadente.app/Contents/MacOS" 2>/dev/null || true
+    sleep 0.5
     rm -rf "$TARGET_APP"
     tar -xzf "$TMP_DIR/cadente.tar.gz" -C "$INSTALL_DIR"
 
-    printf "Clearing Gatekeeper quarantine & applying local code signature...\n"
+    printf "Clearing Gatekeeper quarantine & registering application...\n"
+    xattr -dr com.apple.quarantine "$TARGET_APP" 2>/dev/null || true
     xattr -cr "$TARGET_APP" 2>/dev/null || true
     codesign --force --deep --sign - "$TARGET_APP" 2>/dev/null || true
+    /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f "$TARGET_APP" 2>/dev/null || true
 
     printf "\n%s\n" "${GREEN}✓ Cadente installed successfully in $TARGET_APP${RESET}"
     printf "%s\n" "${GREEN}✓ Gatekeeper quarantine cleared (no 'move to trash' warning).${RESET}"
@@ -75,12 +79,12 @@ case "$OS" in
 
   Linux)
     printf "Detected: %sLinux (%s)%s\n" "${BOLD}" "$ARCH" "${RESET}"
-    MANIFEST_URL="https://cadente-hub.github.io/update.json"
+    MANIFEST_URL="https://cadente-hub.github.io/update-beta.json"
     printf "Fetching latest release information...\n"
 
     DOWNLOAD_URL=""
     if command -v curl >/dev/null 2>&1; then
-      MANIFEST_JSON="$(curl -fsSL "$MANIFEST_URL" 2>/dev/null || true)"
+      MANIFEST_JSON="$(curl -fsSL "$MANIFEST_URL" 2>/dev/null || curl -fsSL "https://cadente-hub.github.io/update.json" 2>/dev/null || true)"
       if [ -n "$MANIFEST_JSON" ]; then
         DOWNLOAD_URL="$(printf '%s' "$MANIFEST_JSON" | grep -A 4 '"linux-x86_64"' | grep '"url"' | head -n 1 | cut -d '"' -f 4 || true)"
       fi

@@ -360,6 +360,41 @@ jobs:
           fi
           rm -f "/tmp/build-${ARCH_LABEL}.log"
 
+      - name: Build and integrate Cadente Launcher (Fat Bundle)
+        working-directory: source
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          echo "Building Cadente Launcher for ${{ matrix.target }}..."
+          cargo build --release --target "${{ matrix.target }}" --manifest-path crates/cadente-launcher/Cargo.toml
+
+          BUNDLE_APP="src-tauri/target/${{ matrix.target }}/release/bundle/macos/Cadente.app"
+          LAUNCHER_BIN="crates/cadente-launcher/target/${{ matrix.target }}/release/cadente"
+
+          if [ -d "$BUNDLE_APP" ] && [ -f "$LAUNCHER_BIN" ]; then
+            echo "Integrating Launcher into Cadente.app..."
+            mv "$BUNDLE_APP/Contents/MacOS/cadente" "$BUNDLE_APP/Contents/MacOS/cadente-core"
+            cp "$LAUNCHER_BIN" "$BUNDLE_APP/Contents/MacOS/cadente"
+            chmod +x "$BUNDLE_APP/Contents/MacOS/cadente" "$BUNDLE_APP/Contents/MacOS/cadente-core"
+
+            mkdir -p "$BUNDLE_APP/Contents/SharedSupport/baseline_version"
+            echo "{\"version\": \"${{ needs.resolve.outputs.version }}\", \"channel\": \"beta\"}" > "$BUNDLE_APP/Contents/SharedSupport/baseline_version/metadata.json"
+
+            codesign --force --deep --sign - "$BUNDLE_APP"
+
+            # Repack .app.tar.gz
+            TAR_GZ="src-tauri/target/${{ matrix.target }}/release/bundle/macos/Cadente.app.tar.gz"
+            rm -f "$TAR_GZ" "$TAR_GZ.sig"
+            tar -czf "$TAR_GZ" -C "src-tauri/target/${{ matrix.target }}/release/bundle/macos" Cadente.app
+
+            # Re-sign .app.tar.gz
+            if [ -n "${TAURI_SIGNING_PRIVATE_KEY:-}" ]; then
+              npx tauri signer sign "$TAR_GZ"
+            fi
+            echo "Fat Bundle Cadente.app created and re-signed successfully."
+          fi
+
       - name: Collect artifacts
         shell: bash
         run: |
@@ -807,9 +842,10 @@ jobs:
             "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" \
             site-repo >/dev/null 2>&1
           cp update-beta.json site-repo/update-beta.json
+          cp update-beta.json site-repo/update.json
           cd site-repo
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add update-beta.json
-          git commit -m "chore: update-beta.json for ${TAG}" || echo "No changes to commit"
+          git add update-beta.json update.json
+          git commit -m "chore: update manifests for ${TAG}" || echo "No changes to commit"
           git push
