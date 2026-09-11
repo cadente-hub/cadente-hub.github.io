@@ -364,6 +364,8 @@ jobs:
         working-directory: source
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
+          CI: "true"
         run: |
           set -euo pipefail
           echo "Building Cadente Launcher for ${{ matrix.target }}..."
@@ -390,7 +392,7 @@ jobs:
 
             # Re-sign .app.tar.gz
             if [ -n "${TAURI_SIGNING_PRIVATE_KEY:-}" ]; then
-              npx tauri signer sign "$TAR_GZ"
+              npx tauri signer sign --password "" "$TAR_GZ"
             fi
             echo "Fat Bundle Cadente.app created and re-signed successfully."
           fi
