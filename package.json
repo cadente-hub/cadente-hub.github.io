@@ -5,9 +5,12 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:blog": "node scripts/blog/test.mjs"
   },
   "devDependencies": {
+    "gray-matter": "^4.0.3",
+    "markdown-it": "^14.3.2",
     "vite": "^5.1.4"
   }
 }
