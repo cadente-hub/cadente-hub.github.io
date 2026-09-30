@@ -24,14 +24,15 @@ def macos_binary(app_path: pathlib.Path) -> pathlib.Path:
     return binary
 
 
-def run_smoke(command: list[str], timeout_secs: int) -> int:
+def run_smoke(command: list[str], timeout_secs: int, component: str = "core") -> int:
     env = os.environ.copy()
     env["CADENTE_BOOT_SMOKE"] = "1"
     env["RUST_BACKTRACE"] = "full"
     env["NO_AT_BRIDGE"] = "1"
 
     with tempfile.TemporaryDirectory(prefix="cadente-boot-smoke-") as tmpdir:
-        env["HOME"] = tmpdir
+        env["CADENTE_HOME"] = str(pathlib.Path(tmpdir) / "launcher")
+        env["CADENTE_DATA_DIR"] = str(pathlib.Path(tmpdir) / "app")
         proc = subprocess.Popen(
             command,
             stdout=subprocess.PIPE,
@@ -57,7 +58,12 @@ def run_smoke(command: list[str], timeout_secs: int) -> int:
         print("::error::packaged app emitted a Rust panic during boot")
         return 1
 
-    print("packaged boot smoke passed")
+    marker = f"cadente {component} boot smoke passed"
+    if marker not in output:
+        print(f"::error::packaged {component} did not confirm its initialization")
+        return 1
+
+    print(f"packaged {component} boot smoke passed")
     return 0
 
 
@@ -68,12 +74,26 @@ def main() -> int:
     args = parser.parse_args()
 
     if args.macos_app:
-        command = [str(macos_binary(pathlib.Path(args.macos_app)))]
+        app_path = pathlib.Path(args.macos_app)
+        binary = macos_binary(app_path)
+        core = app_path / "Contents" / "MacOS" / "cadente-core"
+        if core.exists():
+            if not core.is_file() or not os.access(core, os.X_OK):
+                raise SystemExit(f"missing executable packaged core: {core}")
+            commands = [("launcher", [str(binary)]), ("core", [str(core)])]
+        else:
+            # A plain Tauri bundle has no launcher. A fat bundle missing its
+            # core fails below because launcher output cannot satisfy this role.
+            commands = [("core", [str(binary)])]
     else:
         raise SystemExit("pass --macos-app")
 
     start = time.monotonic()
-    code = run_smoke(command, args.timeout_secs)
+    code = 0
+    for component, command in commands:
+        code = run_smoke(command, args.timeout_secs, component)
+        if code != 0:
+            break
     elapsed = time.monotonic() - start
     print(f"packaged boot smoke elapsed: {elapsed:.1f}s")
     return code
