@@ -158,7 +158,7 @@
 
         <div class="inside__grid">
           <article class="inside__panel reveal">
-            <div class="surface">
+            <div class="surface" data-cursor="what the model receives">
               <div class="surface__head"><b>Model surface</b><span>turn 14 &middot; 23.5k of 200k &middot; sha256 9f2c&hellip;</span></div>
               <div class="surface__bar" role="img" aria-label="23.5 thousand of 200 thousand tokens used">
                 <i style="--w:13.6%;--c:#a99bff"></i><i style="--w:8.9%;--c:#86b4ff"></i><i style="--w:48.5%;--c:#6fd3a8"></i><i style="--w:28.9%;--c:#f0b47e"></i>
@@ -181,7 +181,7 @@
           </article>
 
           <article class="inside__panel reveal">
-            <div class="journal">
+            <div class="journal" data-cursor="every step, recorded">
               <div class="surface__head"><b>Trajectory</b><span>branch: main</span></div>
               <ol class="journal__list">
                 <li style="--i:0"><span class="journal__n">11</span>Read <code>src/theme.ts</code></li>
@@ -209,7 +209,7 @@
           <p class="sh__lede">Other tools ship one agent loop and ask you to live with it. In Cadente the agent is a graph of plugins around a tiny Rust microkernel &mdash; models, context, compaction and tools are contracts that any plugin can provide, including one you write.</p>
         </header>
 
-        <div class="pl-stage reveal" id="plugin-stage" aria-label="Animated diagram of Cadente's plugin graph">
+        <div class="pl-stage reveal" id="plugin-stage" data-cursor="live plugin graph" aria-label="Animated diagram of Cadente's plugin graph">
           <svg class="pl-wires" aria-hidden="true"></svg>
           <div class="pl-world" aria-hidden="true"></div>
           <p class="pl-toast" role="status">Collision &middot; <code>cadente.compaction@1</code> already has a provider</p>
@@ -316,7 +316,7 @@
         <div class="flow reveal">
           <p class="flow__steps"><span>Wish</span><span>Plan</span><span>Worktree</span><span>Tests</span><span>Pull request</span></p>
         </div>
-        <div class="demo reveal reveal--rise" id="wish-demo">
+        <div class="demo reveal reveal--rise" id="wish-demo" data-cursor="live demo · plays on its own">
           <div class="demo__glow" aria-hidden="true"></div>
           <div class="demo__window">
             <div class="demo__titlebar">
@@ -646,6 +646,7 @@
 
   <script type="module" src="./js/main.js"></script>
   <script type="module" src="./js/sky.js"></script>
+  <script type="module" src="./js/cursor.js"></script>
   <script type="module" src="./js/animations.js"></script>
   <script type="module" src="./js/plugins-demo.js"></script>
   <script>

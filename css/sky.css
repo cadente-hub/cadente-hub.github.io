@@ -64,3 +64,115 @@ body::after {
 .footer {
   background: color-mix(in srgb, var(--color-bg) 82%, transparent);
 }
+
+/* ============================================
+   Guiding-star cursor (fine pointers only, set by js/cursor.js)
+   ============================================ */
+html.has-cursor,
+html.has-cursor * { cursor: none !important; }
+
+html.has-cursor :is(input, textarea, select, [contenteditable="true"]) { cursor: text !important; }
+html.has-cursor :is(.pl-code pre, code) { cursor: text !important; }
+
+.cur {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  pointer-events: none;
+  transition: opacity 200ms ease;
+}
+
+.cur.is-hidden, .cur.is-native { opacity: 0; }
+
+.cur__ring,
+.cur__star,
+.cur__label,
+.cur__trail,
+.cur__spark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  will-change: transform;
+}
+
+.cur__ring {
+  border: 1px solid color-mix(in srgb, var(--color-star) 55%, transparent);
+  background: transparent;
+  transition: border-color 220ms ease, background 220ms ease, box-shadow 220ms ease;
+}
+
+.cur.is-link .cur__ring {
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+}
+
+.cur.is-wrap .cur__ring {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 18px -4px var(--color-glow), inset 0 0 12px -6px var(--color-glow);
+}
+
+.cur.is-down .cur__ring { border-width: 2px; }
+
+.cur__star {
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  overflow: visible;
+}
+
+.cur__star path {
+  fill: var(--color-star);
+  filter: drop-shadow(0 0 4px var(--color-accent));
+  transform-origin: 12px 12px;
+  animation: cur-spin 6s linear infinite;
+  transition: fill 200ms ease, transform 200ms ease;
+}
+
+.cur.is-link .cur__star path,
+.cur.is-wrap .cur__star path { fill: var(--color-accent); }
+
+.cur.is-wrap .cur__star { opacity: 0.85; }
+.cur.is-down .cur__star path { animation-duration: 0.8s; }
+
+@keyframes cur-spin { to { transform: rotate(360deg); } }
+
+.cur__trail {
+  width: calc(2px + var(--k) * 4px);
+  height: calc(2px + var(--k) * 4px);
+  margin: calc(-1px - var(--k) * 2px) 0 0 calc(-1px - var(--k) * 2px);
+  border-radius: 50%;
+  background: var(--color-accent);
+  box-shadow: 0 0 8px var(--color-accent);
+  opacity: 0;
+}
+
+.cur__label {
+  padding: 4px 10px;
+  border: 1px solid var(--color-border-hover);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-bg) 85%, transparent);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  color: var(--color-text-primary);
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
+.cur.has-label .cur__label { opacity: 1; }
+
+.cur__spark {
+  width: 4px;
+  height: 4px;
+  margin: -2px 0 0 -2px;
+  border-radius: 50%;
+  background: var(--color-star);
+  box-shadow: 0 0 6px var(--color-accent);
+  animation: cur-spark 600ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes cur-spark {
+  from { transform: translate(0, 0) scale(1); opacity: 1; }
+  to { transform: translate(var(--dx), var(--dy)) scale(0.2); opacity: 0; }
+}
