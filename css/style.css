@@ -3081,85 +3081,129 @@ code {
 }
 
 /* ============================================
-   BRAND LAYER — "make a wish"
-   Night-sky ink, copper starlight, editorial serif.
-   Loaded last so it re-tunes every page sharing this sheet.
+   BRAND LAYER — "Midnight & Ember"
+   A real night sky (blue-black, lighter toward the horizon) and one
+   rare warm accent taken from the logo. Loaded last so every page
+   that shares this sheet inherits it.
    ============================================ */
 :root {
-  --color-bg: #0b0a09;
-  --color-bg-elevated: #12100e;
-  --color-bg-card: rgba(255, 240, 220, 0.035);
-  --color-bg-card-hover: rgba(255, 240, 220, 0.07);
-  --color-surface: #171411;
-  --color-border: rgba(255, 236, 214, 0.1);
-  --color-border-hover: rgba(255, 236, 214, 0.2);
-  --color-text-primary: #f3ece3;
-  --color-text-secondary: #b4aa9e;
-  --color-text-tertiary: #7d7369;
-  --color-accent-start: #e2b383;
-  --color-accent-end: #c98f5c;
-  --color-accent: #dba676;
-  --color-accent-hover: #f0c495;
-  --color-accent-subtle: rgba(219, 166, 118, 0.1);
-  --color-glow: rgba(219, 166, 118, 0.14);
-  --color-on-accent: #1a120a;
-  --color-star: #fff4e6;
+  /* Midnight scale */
+  --ink-1000: #04060c;
+  --ink-950: #070a12;
+  --ink-900: #0b1019;
+  --ink-850: #0f1522;
+  --ink-800: #141b2b;
+  --ink-700: #1c2538;
+
+  /* Neutrals (cool, slightly blue) */
+  --color-bg: var(--ink-950);
+  --color-bg-elevated: var(--ink-900);
+  --color-surface: var(--ink-850);
+  --color-bg-card: rgba(160, 180, 230, 0.035);
+  --color-bg-card-hover: rgba(160, 180, 230, 0.06);
+  --color-border: rgba(160, 180, 230, 0.1);
+  --color-border-hover: rgba(160, 180, 230, 0.2);
+  --color-text-primary: #eef1f7;
+  --color-text-secondary: #a1aabd;
+  --color-text-tertiary: #646e84;
+
+  /* Ember — the only warm colour, used sparingly */
+  --color-accent: #f0b47e;
+  --color-accent-start: #f3c08f;
+  --color-accent-end: #e2a067;
+  --color-accent-hover: #f8cda2;
+  --color-accent-strong: #c9864d;
+  --color-accent-subtle: rgba(240, 180, 126, 0.1);
+  --color-on-accent: #1c1206;
+  --color-glow: rgba(240, 180, 126, 0.16);
+  --color-star: #f7f3ea;
+
+  /* Semantic, tuned to one lightness so they sit together */
+  --color-success: #6fd3a8;
+  --color-danger: #ff8b7b;
+  --color-info: #86b4ff;
+  --color-merged: #ab9dff;
 
   --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-display: 'Instrument Serif', 'Iowan Old Style', Georgia, serif;
   --font-mono: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
 
+  /* One radius scale, one motion system */
   --radius-sm: 8px;
-  --radius-md: 10px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-1: 160ms;
+  --dur-2: 320ms;
+  --dur-3: 700ms;
+
+  --focus-ring: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-accent);
 }
 
 [data-theme="light"] {
-  --color-bg: #f6f1ea;
-  --color-bg-elevated: #fffcf7;
-  --color-bg-card: rgba(60, 40, 20, 0.035);
-  --color-bg-card-hover: rgba(60, 40, 20, 0.06);
-  --color-surface: #ede6dc;
-  --color-border: rgba(60, 40, 20, 0.12);
-  --color-border-hover: rgba(60, 40, 20, 0.22);
-  --color-text-primary: #1d1813;
-  --color-text-secondary: #5a5046;
-  --color-text-tertiary: #8b8075;
-  --color-accent: #a8683a;
-  --color-accent-start: #b97a48;
-  --color-accent-end: #9a5c30;
-  --color-accent-hover: #874c22;
-  --color-accent-subtle: rgba(168, 104, 58, 0.09);
-  --color-glow: rgba(185, 122, 72, 0.12);
-  --color-on-accent: #fffaf3;
-  --color-star: #8a5a32;
+  --color-bg: #f5f4f0;
+  --color-bg-elevated: #fbfaf7;
+  --color-surface: #eeece6;
+  --color-bg-card: rgba(14, 20, 36, 0.03);
+  --color-bg-card-hover: rgba(14, 20, 36, 0.05);
+  --color-border: rgba(14, 20, 36, 0.1);
+  --color-border-hover: rgba(14, 20, 36, 0.2);
+  --color-text-primary: #0e1424;
+  --color-text-secondary: #4a5368;
+  --color-text-tertiary: #7c8496;
+  --color-accent: #b8692f;
+  --color-accent-start: #c47838;
+  --color-accent-end: #a65a24;
+  --color-accent-hover: #9a521f;
+  --color-accent-strong: #8a481a;
+  --color-accent-subtle: rgba(184, 105, 47, 0.08);
+  --color-on-accent: #fffaf4;
+  --color-glow: rgba(184, 105, 47, 0.12);
+  --color-star: #2a3350;
+  --color-success: #1f9d6b;
+  --color-danger: #d4543f;
+  --color-info: #3f78d9;
+  --color-merged: #6f5ad6;
+  --focus-ring: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-accent);
 }
 
-body { letter-spacing: -0.005em; }
+body {
+  letter-spacing: -0.006em;
+  font-feature-settings: "ss01", "cv11";
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3 { text-wrap: balance; }
+p { text-wrap: pretty; }
 
 code, kbd, pre { font-family: var(--font-mono); }
 
+:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: 6px;
+}
+
+/* Accent text: italic serif in ember, used only where it earns it */
 .gradient-text {
   font-family: var(--font-display);
   font-style: italic;
   font-weight: 400;
-  letter-spacing: -0.01em;
-  background: linear-gradient(100deg, var(--color-accent-start), var(--color-accent-end));
-  -webkit-background-clip: text;
-  background-clip: text;
+  background: none;
+  -webkit-text-fill-color: currentColor;
+  color: var(--color-accent);
   animation: none;
-  padding-right: 0.06em;
+  padding-right: 0.04em;
 }
 
 .section-label {
   font-family: var(--font-mono);
-  font-size: 0.75rem;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-}
-
-.section-label::before {
-  content: "✦ ";
-  color: var(--color-accent);
+  font-size: 0.72rem;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  color: var(--color-text-tertiary);
 }
 
 .section-title,
@@ -3167,39 +3211,110 @@ code, kbd, pre { font-family: var(--font-mono); }
 .cta__title {
   font-family: var(--font-display);
   font-weight: 400;
-  letter-spacing: -0.015em;
-  line-height: 1.02;
+  letter-spacing: -0.012em;
+  line-height: 1.04;
 }
 
-.section-title { font-size: clamp(2.4rem, 6vw, 4rem); }
+.section-title { font-size: clamp(2.4rem, 5.4vw, 3.75rem); }
 
+/* Navbar */
 .navbar {
-  background: color-mix(in srgb, var(--color-bg) 72%, transparent);
+  background: color-mix(in srgb, var(--color-bg) 70%, transparent);
+  border-bottom-color: transparent;
+  transition: border-color var(--dur-2) var(--ease-out), background var(--dur-2) var(--ease-out);
+  animation: none;
 }
+
+.navbar--scrolled { border-bottom-color: var(--color-border); }
 
 .navbar__logo { font-family: var(--font-display); font-size: 1.45rem; font-weight: 400; letter-spacing: 0; }
 
-.btn { font-family: var(--font-sans); letter-spacing: -0.01em; }
+.navbar__links a {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  transition: color var(--dur-1) var(--ease-out);
+}
+
+.navbar__links a:hover,
+.navbar__links a.active { color: var(--color-text-primary); background: none; }
+
+/* Theme toggle: real icons instead of glyphs */
+.theme-toggle {
+  color: var(--color-text-secondary);
+  background: transparent;
+  border-color: var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.theme-toggle:hover { color: var(--color-text-primary); border-color: var(--color-border-hover); }
+
+.theme-toggle__icon { font-size: 0; line-height: 0; }
+
+.theme-toggle__icon::before {
+  content: "";
+  display: block;
+  width: 16px;
+  height: 16px;
+  background: currentColor;
+  -webkit-mask: var(--icon) center / contain no-repeat;
+  mask: var(--icon) center / contain no-repeat;
+}
+
+.theme-toggle__icon--moon { --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z'/%3E%3C/svg%3E"); }
+.theme-toggle__icon--sun { --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='4'/%3E%3Cpath d='M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4'/%3E%3C/svg%3E"); }
+
+/* Buttons: two sizes, one shape, no gimmicks */
+.btn {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  border-radius: 999px;
+  transition: background var(--dur-1) var(--ease-out), border-color var(--dur-1) var(--ease-out), color var(--dur-1) var(--ease-out), transform var(--dur-1) var(--ease-out);
+}
+
+.btn:hover, .btn:active { transform: none; }
+.btn:active { transform: translateY(1px); }
+
+.btn--sm { height: 34px; padding: 0 16px; font-size: 0.84rem; }
+.btn--lg { height: 50px; padding: 0 26px; font-size: 0.97rem; border-radius: 999px; }
 
 .btn--primary,
 .btn--primary:hover {
   background: var(--color-accent);
   color: var(--color-on-accent);
-  box-shadow: 0 0 0 1px rgba(255, 220, 180, 0.25) inset, 0 10px 30px -12px var(--color-accent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
+.btn--primary:hover { background: var(--color-accent-hover); }
 .btn--primary::after { display: none; }
 
-.btn--primary:hover {
-  background: var(--color-accent-hover);
-  transform: translateY(-1px);
+.btn--ghost {
+  background: transparent;
+  border: 1px solid var(--color-border-hover);
+  color: var(--color-text-primary);
 }
 
-.btn--ghost:hover { transform: translateY(-1px); }
+.btn--ghost:hover { background: var(--color-bg-card-hover); border-color: var(--color-text-tertiary); }
 
+.btn svg { width: 16px; height: 16px; flex: none; }
+
+/* Cards: calmer defaults everywhere */
+.card {
+  background: var(--color-bg-elevated);
+  border-radius: var(--radius-lg);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.card:hover { transform: none; box-shadow: none; border-color: var(--color-border-hover); }
+
+/* Footer */
+.footer { border-top: 1px solid var(--color-border); }
 .footer__logo { font-family: var(--font-display); font-size: 1.6rem; font-weight: 400; }
-.footer__tagline { font-family: var(--font-display); font-style: italic; font-size: 1.15rem; color: var(--color-accent); }
-.footer__col-title { font-family: var(--font-mono); font-weight: 500; letter-spacing: 0.12em; }
+.footer__tagline { font-family: var(--font-display); font-style: italic; font-size: 1.1rem; color: var(--color-text-secondary); }
+.footer__col-title { font-family: var(--font-mono); font-weight: 400; font-size: 0.72rem; letter-spacing: 0.12em; }
+.footer__col a { transition: color var(--dur-1) var(--ease-out); }
 
-.theme-toggle { color: var(--color-text-primary); }
-.theme-toggle__icon { line-height: 1; }
+::selection { background: var(--color-accent); color: var(--color-on-accent); }
+
+.tabular { font-variant-numeric: tabular-nums; }

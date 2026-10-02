@@ -28,7 +28,6 @@
 </head>
 <body class="home">
   <canvas id="sky" class="sky" aria-hidden="true"></canvas>
-  <div class="scroll-comet" aria-hidden="true"><span></span></div>
   <!-- Navigation -->
   <header class="navbar" id="navbar">
     <nav class="navbar__inner container">
@@ -74,7 +73,7 @@
     <section class="hero hero--sky" id="top">
       <div class="hero__aurora" aria-hidden="true"></div>
       <div class="container hero__inner">
-        <p class="hero__eyebrow reveal" data-scramble>native AI desktop · macOS · Windows · Linux</p>
+        <p class="hero__eyebrow reveal"><span class="hero__eyebrow-dot"></span>A native AI desktop for macOS, Windows and Linux</p>
         <h1 class="hero__title hero__title--wish" data-split>
           <span class="hero__line">Make a <em class="wish-word">wish.</em></span>
           <span class="hero__line hero__line--sub">Watch it land in your code.</span>
@@ -83,16 +82,15 @@
           Describe what you want in plain words. Cadente plans it with Claude, builds it in an isolated Git worktree, runs it in a real terminal and opens the pull request &mdash; one native Rust app that idles at ~80&nbsp;MB.
         </p>
         <div class="hero__actions reveal">
-          <a href="./downloads.html" class="btn btn--primary btn--lg magnetic">
-            <span class="btn__icon">&#8595;</span>
+          <a href="./downloads.html" class="btn btn--primary btn--lg">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19h14"/></svg>
             Download free
           </a>
-          <a href="https://github.com/cadente-hub/cadente-hub.github.io" target="_blank" rel="noopener noreferrer" class="btn btn--ghost btn--lg magnetic">
-            <span class="btn__icon">&#9733;</span>
+          <a href="https://github.com/cadente-hub/cadente-hub.github.io" target="_blank" rel="noopener noreferrer" class="btn btn--ghost btn--lg">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.58 2 12.23c0 4.52 2.87 8.35 6.84 9.7.5.1.68-.22.68-.49l-.01-1.7c-2.78.62-3.37-1.37-3.37-1.37-.46-1.18-1.11-1.5-1.11-1.5-.91-.64.07-.62.07-.62 1 .07 1.53 1.06 1.53 1.06.9 1.57 2.35 1.12 2.92.85.09-.66.35-1.12.63-1.37-2.22-.26-4.56-1.14-4.56-5.07 0-1.12.39-2.04 1.03-2.76-.1-.26-.45-1.3.1-2.71 0 0 .84-.28 2.75 1.05A9.4 9.4 0 0 1 12 6.96c.85 0 1.71.12 2.51.34 1.91-1.33 2.75-1.05 2.75-1.05.55 1.41.2 2.45.1 2.71.64.72 1.03 1.64 1.03 2.76 0 3.94-2.34 4.8-4.57 5.06.36.32.68.94.68 1.9l-.01 2.82c0 .27.18.6.69.49A10.24 10.24 0 0 0 22 12.23C22 6.58 17.52 2 12 2z"/></svg>
             View on GitHub
           </a>
         </div>
-        <p class="hero__hint reveal" aria-hidden="true"><span class="hero__hint-key">click</span> anywhere in the sky to make a wish</p>
       </div>
 
       <!-- Animated product demo -->
@@ -123,7 +121,7 @@
                   <p class="demo__wish"><span class="demo__type" data-type="Add a dark mode toggle that remembers the user’s choice.">Add a dark mode toggle that remembers the user’s choice.</span></p>
                 </div>
                 <div class="demo__msg demo__msg--ai" data-step="2">
-                  <span class="demo__avatar demo__avatar--ai">&#10022;</span>
+                  <span class="demo__avatar demo__avatar--ai" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3l1.6 6.4L20 11l-6.4 1.6L12 19l-1.6-6.4L4 11l6.4-1.6z" fill="currentColor"/></svg></span>
                   <div class="demo__plan">
                     <p class="demo__plan-head">Plan <span class="demo__pill">awaiting approval</span></p>
                     <ol>
@@ -131,15 +129,15 @@
                       <li data-step="4">Persist choice in <code>localStorage</code></li>
                       <li data-step="5">Respect <code>prefers-color-scheme</code> on first load</li>
                     </ol>
-                    <span class="demo__approve" data-step="6">&#10003; Approved</span>
+                    <span class="demo__approve" data-step="6">Approved</span>
                   </div>
                 </div>
                 <div class="demo__split">
                   <div class="demo__term" data-step="7">
                     <p class="demo__term-head">terminal &middot; zsh</p>
                     <p><span class="t-dim">$</span> npm test</p>
-                    <p class="t-ok">&#10003; ThemeToggle persists choice</p>
-                    <p class="t-ok">&#10003; respects system preference</p>
+                    <p class="t-ok">pass  ThemeToggle persists choice</p>
+                    <p class="t-ok">pass  respects system preference</p>
                     <p><span class="t-acc">42 passed</span> <span class="t-dim">in 1.8s</span></p>
                   </div>
                   <div class="demo__pr" data-step="8">
@@ -170,10 +168,10 @@
     <!-- Constellation: wish to merged -->
     <section class="constellation" id="how">
       <div class="container">
-        <div class="section-header reveal">
-          <p class="section-label" data-scramble>From wish to merged</p>
-          <h2 class="section-title">Every wish follows<br /><span class="gradient-text">the same bright path.</span></h2>
-        </div>
+        <header class="sh reveal">
+          <p class="sh__index"><span>01</span>How it works</p>
+          <h2 class="sh__title">Every wish follows<br /><span class="sh__muted">the same path to merged.</span></h2>
+        </header>
         <ol class="constellation__path" id="constellation">
           <svg class="constellation__lines" viewBox="0 0 1000 220" preserveAspectRatio="none" aria-hidden="true">
             <path d="M 100 150 L 300 60 L 500 130 L 700 40 L 900 110" />
@@ -190,22 +188,24 @@
     <!-- Bento features -->
     <section class="bento-section" id="features">
       <div class="container">
-        <div class="section-header reveal">
-          <p class="section-label" data-scramble>One app, every tool</p>
-          <h2 class="section-title">Your whole desk,<br /><span class="gradient-text">in one window.</span></h2>
-          <p class="section-subtitle">Stop juggling ten apps. Cadente puts the development workflow under one roof, with AI woven through every layer &mdash; and everything runs locally.</p>
-        </div>
+        <header class="sh sh--split reveal">
+          <div>
+            <p class="sh__index"><span>02</span>Features</p>
+            <h2 class="sh__title">Your whole desk,<br /><span class="sh__muted">in one window.</span></h2>
+          </div>
+          <p class="sh__lede">Stop juggling ten apps. Cadente puts the development workflow under one roof, with AI woven through every layer &mdash; and everything runs locally.</p>
+        </header>
 
         <div class="bento">
           <!-- AI -->
-          <article class="tile tile--ai tile--wide reveal spot">
+          <article class="tile tile--ai tile--wide reveal">
             <header class="tile__head">
               <span class="tile__tag">AI</span>
               <h3 class="tile__title">AI that understands the whole project</h3>
               <p class="tile__desc">Not a chatbot wrapper. Claude gets your files, structure and dependencies, so answers are grounded in your actual code.</p>
             </header>
             <div class="mini mini--chat">
-              <div class="mini__models"><span class="is-on">Opus</span><span>Sonnet</span><span>Haiku</span><span class="mini__think">&#10022; extended thinking</span></div>
+              <div class="mini__models"><span class="is-on">Opus</span><span>Sonnet</span><span>Haiku</span><span class="mini__think">Extended thinking</span></div>
               <div class="mini__stream">
                 <p class="mini__q">Why does checkout double-charge on retry?</p>
                 <p class="mini__a"><span class="mini__caret">Reading <code>payments/retry.rs</code>, <code>webhooks.ts</code>&hellip; The idempotency key is regenerated per attempt. Reuse the order&nbsp;ID instead.</span></p>
@@ -215,7 +215,7 @@
           </article>
 
           <!-- Git -->
-          <article class="tile tile--git reveal spot">
+          <article class="tile tile--git reveal">
             <header class="tile__head">
               <span class="tile__tag tile__tag--git">Git</span>
               <h3 class="tile__title">Git without leaving your flow</h3>
@@ -231,7 +231,7 @@
           </article>
 
           <!-- Terminal -->
-          <article class="tile tile--term reveal spot">
+          <article class="tile tile--term reveal">
             <header class="tile__head">
               <span class="tile__tag tile__tag--term">Terminal</span>
               <h3 class="tile__title">Full terminals, not toy shells</h3>
@@ -240,13 +240,13 @@
             <div class="mini mini--term">
               <p><span class="t-dim">~/acme</span> <span class="t-acc">cargo build</span></p>
               <p class="t-bad">error[E0382]: borrow of moved value</p>
-              <p class="mini__ask">&#10022; Ask AI about this error</p>
+              <p class="mini__ask">Ask AI about this error</p>
               <p><span class="t-dim">~/acme</span> <span class="mini__cursor"></span></p>
             </div>
           </article>
 
           <!-- API -->
-          <article class="tile tile--api reveal spot">
+          <article class="tile tile--api reveal">
             <header class="tile__head">
               <span class="tile__tag tile__tag--api">API</span>
               <h3 class="tile__title">Test APIs without Postman</h3>
@@ -261,7 +261,7 @@
           </article>
 
           <!-- Diagrams -->
-          <article class="tile tile--draw reveal spot">
+          <article class="tile tile--draw reveal">
             <header class="tile__head">
               <span class="tile__tag">Diagrams</span>
               <h3 class="tile__title">Sketch the architecture</h3>
@@ -280,7 +280,7 @@
           </article>
 
           <!-- Focus -->
-          <article class="tile tile--focus tile--wide reveal spot">
+          <article class="tile tile--focus tile--wide reveal">
             <header class="tile__head">
               <span class="tile__tag tile__tag--focus">Focus</span>
               <h3 class="tile__title">Stay focused, ship faster</h3>
@@ -300,7 +300,7 @@
             </div>
           </article>
           <!-- PR radar -->
-          <article class="tile tile--prs reveal spot">
+          <article class="tile tile--prs reveal">
             <header class="tile__head">
               <span class="tile__tag tile__tag--git">Pull requests</span>
               <h3 class="tile__title">Every PR, at a glance</h3>
@@ -321,13 +321,13 @@
     <section class="weight" id="weight">
       <div class="container weight__inner">
         <div class="weight__text reveal">
-          <p class="section-label" data-scramble>Built with Rust</p>
-          <h2 class="section-title">Eight apps idling.<br /><span class="gradient-text">Or one star.</span></h2>
+          <p class="sh__index"><span>03</span>Built with Rust</p>
+          <h2 class="sh__title">Eight apps idling.<br /><span class="sh__muted">Or just one.</span></h2>
           <p class="weight__desc">Postman, a Git client, a terminal, notes, a timer, a calendar, a whiteboard, a Claude window &mdash; together they sit on over 2&nbsp;GB doing nothing. Cadente replaces all of them and idles at ~80&nbsp;MB. Under full load it stays below 500&nbsp;MB.</p>
           <div class="weight__stats">
-            <div><span class="weight__num" data-count="80" data-count-prefix="~" data-count-suffix=" MB">~80 MB</span><span class="weight__lbl">idle</span></div>
-            <div><span class="weight__num" data-count="0">0</span><span class="weight__lbl">telemetry</span></div>
-            <div><span class="weight__num">4.5&times;</span><span class="weight__lbl">less RAM</span></div>
+            <div><span class="weight__num tabular" data-count="80" data-count-prefix="~" data-count-suffix=" MB">~80 MB</span><span class="weight__lbl">idle</span></div>
+            <div><span class="weight__num tabular">0</span><span class="weight__lbl">telemetry</span></div>
+            <div><span class="weight__num tabular">4.5&times;</span><span class="weight__lbl">less RAM</span></div>
           </div>
           <ul class="weight__facts">
             <li>Your code, chats and data never leave your machine</li>
@@ -355,13 +355,15 @@
     <!-- Pricing -->
     <section class="pricing" id="pricing">
       <div class="container">
-        <div class="section-header reveal">
-          <p class="section-label" data-scramble>Pricing</p>
-          <h2 class="section-title">All this power.<br /><span class="gradient-text">Free to start.</span></h2>
-          <p class="section-subtitle">Every feature included. Limits only on simultaneous active items &mdash; archive to free slots anytime.</p>
-        </div>
+        <header class="sh sh--split reveal">
+          <div>
+            <p class="sh__index"><span>04</span>Pricing</p>
+            <h2 class="sh__title">All of it.<br /><span class="sh__muted">Free to start.</span></h2>
+          </div>
+          <p class="sh__lede">Every feature is in the free plan. Limits apply only to how many items are active at once &mdash; archive one to free a slot.</p>
+        </header>
         <div class="pricing__grid">
-          <div class="card card--pricing reveal spot">
+          <div class="card card--pricing reveal">
             <div class="card__pricing-header">
               <h3 class="card__pricing-name">Free</h3>
               <div class="card__pricing-price">
@@ -381,9 +383,9 @@
               <li><span class="check">&#10003;</span> 3 request collections, 5 templates, 5 diagrams</li>
               <li><span class="check">&#10003;</span> Cross-platform &amp; 100% local &mdash; zero telemetry</li>
             </ul>
-            <a href="./downloads.html" class="btn btn--ghost btn--full">Download Free</a>
+            <a href="./downloads.html" class="btn btn--ghost btn--full">Download free</a>
           </div>
-          <div class="card card--pricing card--pricing-pro reveal spot">
+          <div class="card card--pricing card--pricing-pro reveal">
             <div class="card__pricing-badge" id="pro-trial-badge">7-day free trial</div>
             <div class="card__pricing-header">
               <h3 class="card__pricing-name">Pro</h3>
@@ -405,8 +407,9 @@
               <li><span class="check">&#10003;</span> 30-day version history</li>
               <li><span class="check">&#10003;</span> Priority support</li>
             </ul>
-            <a href="./downloads.html" class="btn btn--primary btn--full magnetic" id="pro-cta">
-              &#8595; Download &amp; Start Free Trial
+            <a href="./downloads.html" class="btn btn--primary btn--full" id="pro-cta">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19h14"/></svg>
+              Download &amp; start free trial
             </a>
             <p class="card__pricing-trial-note">Download the app &bull; Sign up with Google or GitHub &bull; Pro unlocks instantly</p>
           </div>
@@ -421,12 +424,12 @@
         <h2 class="cta__title finale__title">Your IDE is for writing code.<br /><span class="gradient-text">Cadente is for everything else.</span></h2>
         <p class="finale__sub">AI conversations, Git workflows, terminals, API testing and focus tools &mdash; one native app that starts in under a second.</p>
         <div class="hero__actions">
-          <a href="./downloads.html" class="btn btn--primary btn--lg magnetic">
-            <span class="btn__icon">&#8595;</span>
+          <a href="./downloads.html" class="btn btn--primary btn--lg">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19h14"/></svg>
             Download for free
           </a>
-          <a href="https://github.com/cadente-hub/cadente-hub.github.io" target="_blank" rel="noopener noreferrer" class="btn btn--ghost btn--lg magnetic">
-            <span class="btn__icon">&#9733;</span>
+          <a href="https://github.com/cadente-hub/cadente-hub.github.io" target="_blank" rel="noopener noreferrer" class="btn btn--ghost btn--lg">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.58 2 12.23c0 4.52 2.87 8.35 6.84 9.7.5.1.68-.22.68-.49l-.01-1.7c-2.78.62-3.37-1.37-3.37-1.37-.46-1.18-1.11-1.5-1.11-1.5-.91-.64.07-.62.07-.62 1 .07 1.53 1.06 1.53 1.06.9 1.57 2.35 1.12 2.92.85.09-.66.35-1.12.63-1.37-2.22-.26-4.56-1.14-4.56-5.07 0-1.12.39-2.04 1.03-2.76-.1-.26-.45-1.3.1-2.71 0 0 .84-.28 2.75 1.05A9.4 9.4 0 0 1 12 6.96c.85 0 1.71.12 2.51.34 1.91-1.33 2.75-1.05 2.75-1.05.55 1.41.2 2.45.1 2.71.64.72 1.03 1.64 1.03 2.76 0 3.94-2.34 4.8-4.57 5.06.36.32.68.94.68 1.9l-.01 2.82c0 .27.18.6.69.49A10.24 10.24 0 0 0 22 12.23C22 6.58 17.52 2 12 2z"/></svg>
             Star on GitHub
           </a>
         </div>
