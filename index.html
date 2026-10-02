@@ -690,33 +690,59 @@
       "America/Toronto":"CA","America/Vancouver":"CA"
     };
 
-    // Fetch localized Paddle prices
-    (async function loadPrices() {
+    var PRICES_URL = "https://awglxdeqzkursbmotjpm.supabase.co/functions/v1/get-prices";
+
+    // Country from the visitor's own settings only: no third-party IP lookup.
+    function guessCountry() {
       try {
-        var country = "US";
-        // 1. Timezone (instant, works even with en-US locale in Brazil)
-        try { var tz = Intl.DateTimeFormat().resolvedOptions().timeZone; if (tz && TZ_MAP[tz]) country = TZ_MAP[tz]; } catch {}
-        // 2. IP geolocation fallback
-        if (country === "US") {
-          try {
-            var geo = await fetch("https://ipapi.co/country/", { signal: AbortSignal.timeout(3000) });
-            if (geo.ok) { var cc = (await geo.text()).trim(); if (/^[A-Z]{2}$/.test(cc)) country = cc; }
-          } catch {
-            var lang = navigator.language || "";
-            var fromLocale = lang.includes("-") ? lang.split("-").pop().toUpperCase() : "US";
-            if (/^[A-Z]{2}$/.test(fromLocale)) country = fromLocale;
-          }
-        }
-        var res = await fetch("https://awglxdeqzkursbmotjpm.supabase.co/functions/v1/get-prices?country=" + country);
-        if (!res.ok) return;
-        priceData = await res.json();
+        var tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        if (tz && TZ_MAP[tz]) return TZ_MAP[tz];
+      } catch (e) {}
+      var langs = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || ""];
+      for (var i = 0; i < langs.length; i++) {
+        var parts = String(langs[i]).split("-");
+        var region = parts.length > 1 ? parts[parts.length - 1].toUpperCase() : "";
+        if (/^[A-Z]{2}$/.test(region)) return region;
+      }
+      return "US";
+    }
+
+    function isPriceData(d) {
+      return d && d.monthly && typeof d.monthly.amount === "string" && d.yearly && typeof d.yearly.amount === "string";
+    }
+
+    // If prices cannot be loaded, say so plainly instead of leaving a skeleton forever.
+    function showPriceUnavailable() {
+      var amountEl = document.getElementById("pro-price-amount");
+      var period = document.getElementById("pro-price-period");
+      var note = document.getElementById("pro-price-yearly");
+      if (amountEl) amountEl.textContent = "Pro";
+      if (period) period.textContent = "";
+      if (note) { note.textContent = "Price shown in your local currency at checkout."; note.style.display = ""; }
+    }
+
+    (async function loadPrices() {
+      var controller = typeof AbortController === "function" ? new AbortController() : null;
+      var timer = controller ? setTimeout(function () { controller.abort(); }, 6000) : null;
+      try {
+        var res = await fetch(PRICES_URL + "?country=" + encodeURIComponent(guessCountry()), {
+          signal: controller ? controller.signal : undefined,
+          credentials: "omit",
+          referrerPolicy: "no-referrer",
+        });
+        if (!res.ok) throw new Error("get-prices " + res.status);
+        var data = await res.json();
+        if (!isPriceData(data)) throw new Error("get-prices: unexpected payload");
+        priceData = data;
         renderPrice();
-        // Update trial badge dynamically
         var badge = document.getElementById("pro-trial-badge");
-        if (badge && priceData.trialDays) {
-          badge.textContent = priceData.trialDays + "-day free trial";
-        }
-      } catch { /* keep defaults */ }
+        var days = parseInt(data.trialDays, 10);
+        if (badge && days > 0 && days < 100) badge.textContent = days + "-day free trial";
+      } catch (e) {
+        showPriceUnavailable();
+      } finally {
+        if (timer) clearTimeout(timer);
+      }
     })();
   </script>
 </body>

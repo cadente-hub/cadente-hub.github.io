@@ -47,16 +47,22 @@ jobs:
           PRIVATE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
           PAYLOAD_RELEASE_NOTES: ${{ github.event.client_payload.release_notes }}
           PAYLOAD_RELEASE_NOTES_SHA: ${{ github.event.client_payload.release_notes_sha }}
+          PAYLOAD_VERSION: ${{ github.event.client_payload.version }}
+          PAYLOAD_SHA: ${{ github.event.client_payload.sha }}
+          PAYLOAD_SIGNATURE: ${{ github.event.client_payload.signature }}
+          PAYLOAD_TIMESTAMP: ${{ github.event.client_payload.timestamp }}
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
           set -euo pipefail
-          RELEASE_NOTES=""
+          RELEASE_NOTES=""""
           RELEASE_NOTES_SHA=""
 
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
             # ── Manual trigger ──────────────────────────────────────────
             # GitHub auth already guarantees only repo admins can reach here.
             # No HMAC needed — resolve SHA from the private repo tag instead.
-            VERSION="${{ github.event.inputs.version }}"
+            VERSION="$INPUT_VERSION"
             VERSION="${VERSION#v}"  # strip leading v if provided
 
             if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
@@ -86,15 +92,34 @@ jobs:
             # Validate HMAC signature to prove the call came from the private repo.
             echo "::add-mask::${DISPATCH_SECRET}"
 
-            VERSION="${{ github.event.client_payload.version }}"
-            SHA="${{ github.event.client_payload.sha }}"
-            SIGNATURE="${{ github.event.client_payload.signature }}"
-            TIMESTAMP="${{ github.event.client_payload.timestamp }}"
+            VERSION="$PAYLOAD_VERSION"
+            SHA="$PAYLOAD_SHA"
+            SIGNATURE="$PAYLOAD_SIGNATURE"
+            TIMESTAMP="$PAYLOAD_TIMESTAMP"
             RELEASE_NOTES="$PAYLOAD_RELEASE_NOTES"
             RELEASE_NOTES_SHA="$PAYLOAD_RELEASE_NOTES_SHA"
 
             if [ -z "$VERSION" ] || [ -z "$SHA" ] || [ -z "$SIGNATURE" ] || [ -z "$TIMESTAMP" ]; then
               echo "::error::Missing required payload fields. Rejecting dispatch."
+              exit 1
+            fi
+
+            # Payload fields are untrusted until the HMAC below passes: they arrive
+            # through env, never through expression interpolation, and must be well-formed.
+            if ! printf '%s' "$SHA" | grep -qE '^[0-9a-f]{40}$'; then
+              echo "::error::Invalid dispatch sha."
+              exit 1
+            fi
+            if ! printf '%s' "$TIMESTAMP" | grep -qE '^[0-9]{1,12}$'; then
+              echo "::error::Invalid dispatch timestamp."
+              exit 1
+            fi
+            if ! printf '%s' "$SIGNATURE" | grep -qE '^[0-9a-f]{64}$'; then
+              echo "::error::Invalid dispatch signature format."
+              exit 1
+            fi
+            if ! printf '%s' "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$'; then
+              echo "::error::Invalid dispatch version."
               exit 1
             fi
 
