@@ -3079,3 +3079,127 @@ code {
     transform: none;
   }
 }
+
+/* ============================================
+   BRAND LAYER — "make a wish"
+   Night-sky ink, copper starlight, editorial serif.
+   Loaded last so it re-tunes every page sharing this sheet.
+   ============================================ */
+:root {
+  --color-bg: #0b0a09;
+  --color-bg-elevated: #12100e;
+  --color-bg-card: rgba(255, 240, 220, 0.035);
+  --color-bg-card-hover: rgba(255, 240, 220, 0.07);
+  --color-surface: #171411;
+  --color-border: rgba(255, 236, 214, 0.1);
+  --color-border-hover: rgba(255, 236, 214, 0.2);
+  --color-text-primary: #f3ece3;
+  --color-text-secondary: #b4aa9e;
+  --color-text-tertiary: #7d7369;
+  --color-accent-start: #e2b383;
+  --color-accent-end: #c98f5c;
+  --color-accent: #dba676;
+  --color-accent-hover: #f0c495;
+  --color-accent-subtle: rgba(219, 166, 118, 0.1);
+  --color-glow: rgba(219, 166, 118, 0.14);
+  --color-on-accent: #1a120a;
+  --color-star: #fff4e6;
+
+  --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-display: 'Instrument Serif', 'Iowan Old Style', Georgia, serif;
+  --font-mono: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+
+  --radius-sm: 8px;
+  --radius-md: 10px;
+}
+
+[data-theme="light"] {
+  --color-bg: #f6f1ea;
+  --color-bg-elevated: #fffcf7;
+  --color-bg-card: rgba(60, 40, 20, 0.035);
+  --color-bg-card-hover: rgba(60, 40, 20, 0.06);
+  --color-surface: #ede6dc;
+  --color-border: rgba(60, 40, 20, 0.12);
+  --color-border-hover: rgba(60, 40, 20, 0.22);
+  --color-text-primary: #1d1813;
+  --color-text-secondary: #5a5046;
+  --color-text-tertiary: #8b8075;
+  --color-accent: #a8683a;
+  --color-accent-start: #b97a48;
+  --color-accent-end: #9a5c30;
+  --color-accent-hover: #874c22;
+  --color-accent-subtle: rgba(168, 104, 58, 0.09);
+  --color-glow: rgba(185, 122, 72, 0.12);
+  --color-on-accent: #fffaf3;
+  --color-star: #8a5a32;
+}
+
+body { letter-spacing: -0.005em; }
+
+code, kbd, pre { font-family: var(--font-mono); }
+
+.gradient-text {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  background: linear-gradient(100deg, var(--color-accent-start), var(--color-accent-end));
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: none;
+  padding-right: 0.06em;
+}
+
+.section-label {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+}
+
+.section-label::before {
+  content: "✦ ";
+  color: var(--color-accent);
+}
+
+.section-title,
+.hero__title,
+.cta__title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -0.015em;
+  line-height: 1.02;
+}
+
+.section-title { font-size: clamp(2.4rem, 6vw, 4rem); }
+
+.navbar {
+  background: color-mix(in srgb, var(--color-bg) 72%, transparent);
+}
+
+.navbar__logo { font-family: var(--font-display); font-size: 1.45rem; font-weight: 400; letter-spacing: 0; }
+
+.btn { font-family: var(--font-sans); letter-spacing: -0.01em; }
+
+.btn--primary,
+.btn--primary:hover {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  box-shadow: 0 0 0 1px rgba(255, 220, 180, 0.25) inset, 0 10px 30px -12px var(--color-accent);
+}
+
+.btn--primary::after { display: none; }
+
+.btn--primary:hover {
+  background: var(--color-accent-hover);
+  transform: translateY(-1px);
+}
+
+.btn--ghost:hover { transform: translateY(-1px); }
+
+.footer__logo { font-family: var(--font-display); font-size: 1.6rem; font-weight: 400; }
+.footer__tagline { font-family: var(--font-display); font-style: italic; font-size: 1.15rem; color: var(--color-accent); }
+.footer__col-title { font-family: var(--font-mono); font-weight: 500; letter-spacing: 0.12em; }
+
+.theme-toggle { color: var(--color-text-primary); }
+.theme-toggle__icon { line-height: 1; }

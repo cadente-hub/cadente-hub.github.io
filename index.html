@@ -16,14 +16,19 @@
   <meta name="twitter:image" content="https://cadente-hub.github.io/assets/og-image.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="./css/style.css" />
+  <link rel="stylesheet" href="./css/sky.css" />
+  <link rel="stylesheet" href="./css/home.css" />
+  <script>if (!matchMedia("(prefers-reduced-motion: reduce)").matches) document.documentElement.classList.add("js-motion");</script>
   <link rel="icon" type="image/png" sizes="32x32" href="./assets/favicon-32.png" />
   <link rel="icon" type="image/x-icon" href="./assets/favicon.ico" />
   <link rel="apple-touch-icon" sizes="180x180" href="./assets/apple-touch-icon.png" />
   <meta name="google-site-verification" content="HGFZHpKEZzOsP2slAus8nx0z4HrCyMUmFyTK2WrWpVA" />
 </head>
-<body>
+<body class="home">
+  <canvas id="sky" class="sky" aria-hidden="true"></canvas>
+  <div class="scroll-comet" aria-hidden="true"><span></span></div>
   <!-- Navigation -->
   <header class="navbar" id="navbar">
     <nav class="navbar__inner container">
@@ -32,6 +37,7 @@
         Cadente
       </a>
       <ul class="navbar__links">
+        <li><a href="#how">How it works</a></li>
         <li><a href="#features">Features</a></li>
         <li><a href="./downloads.html">Downloads</a></li>
         <li><a href="./release-notes.html">Release Notes</a></li>
@@ -64,400 +70,298 @@
   </div>
 
   <main>
-    <!-- Hero Section -->
-    <section class="hero">
-      <canvas class="hero__particles" id="hero-particles"></canvas>
-      <div class="hero__glow"></div>
+    <!-- Hero -->
+    <section class="hero hero--sky" id="top">
+      <div class="hero__aurora" aria-hidden="true"></div>
       <div class="container hero__inner">
-        <div class="hero__badge animate-on-scroll">
-          <span class="hero__badge-dot"></span>
-          Now available for macOS, Windows &amp; Linux
-        </div>
-        <h1 class="hero__title animate-on-scroll">
-          The AI Desktop App That<br />
-          <span class="gradient-text">Replaces Your Entire Toolchain</span>
+        <p class="hero__eyebrow reveal" data-scramble>native AI desktop · macOS · Windows · Linux</p>
+        <h1 class="hero__title hero__title--wish" data-split>
+          <span class="hero__line">Make a <em class="wish-word">wish.</em></span>
+          <span class="hero__line hero__line--sub">Watch it land in your code.</span>
         </h1>
-        <p class="hero__tagline animate-on-scroll">
-          Cadente unifies AI chat, code editing, Git management, terminals, API testing, focus tools, and more &mdash; in one blazing-fast native app. Built with Rust. Powered by Claude.
+        <p class="hero__tagline reveal">
+          Describe what you want in plain words. Cadente plans it with Claude, builds it in an isolated Git worktree, runs it in a real terminal and opens the pull request &mdash; one native Rust app that idles at ~80&nbsp;MB.
         </p>
-        <div class="stats-bar animate-on-scroll">
-          <div class="stats-bar__item">
-            <span class="stats-bar__value">~80 MB</span>
-            <span class="stats-bar__label">RAM Idle</span>
-          </div>
-          <div class="stats-bar__item">
-            <span class="stats-bar__value">3</span>
-            <span class="stats-bar__label">Platforms</span>
-          </div>
-          <div class="stats-bar__item">
-            <span class="stats-bar__value">100%</span>
-            <span class="stats-bar__label">Local &amp; Private</span>
-          </div>
-          <div class="stats-bar__item">
-            <span class="stats-bar__value">Rust</span>
-            <span class="stats-bar__label">Powered</span>
-          </div>
-        </div>
-        <div class="hero__actions animate-on-scroll">
-          <a href="./downloads.html" class="btn btn--primary btn--lg">
+        <div class="hero__actions reveal">
+          <a href="./downloads.html" class="btn btn--primary btn--lg magnetic">
             <span class="btn__icon">&#8595;</span>
-            Download Now
+            Download free
           </a>
-          <a href="https://github.com/cadente-hub/cadente-hub.github.io" target="_blank" rel="noopener noreferrer" class="btn btn--ghost btn--lg">
+          <a href="https://github.com/cadente-hub/cadente-hub.github.io" target="_blank" rel="noopener noreferrer" class="btn btn--ghost btn--lg magnetic">
             <span class="btn__icon">&#9733;</span>
             View on GitHub
           </a>
         </div>
+        <p class="hero__hint reveal" aria-hidden="true"><span class="hero__hint-key">click</span> anywhere in the sky to make a wish</p>
       </div>
-    </section>
 
-    <!-- Language Support Marquee -->
-    <section class="languages-section">
+      <!-- Animated product demo -->
       <div class="container">
-        <div class="section-header animate-on-scroll">
-          <p class="section-label">Global</p>
-          <h2 class="section-title">Multi-Language <span class="gradient-text">Support</span></h2>
-          <p class="section-subtitle">Cadente speaks your language. 15 languages supported out of the box.</p>
-        </div>
-      </div>
-      <div class="marquee">
-        <div class="marquee__track">
-          <div class="marquee__item"><span class="marquee__flag">&#127466;&#127480;</span><span class="marquee__lang">Spanish</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127463;&#127479;</span><span class="marquee__lang">Portuguese</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127467;&#127479;</span><span class="marquee__lang">French</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127465;&#127466;</span><span class="marquee__lang">German</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127470;&#127481;</span><span class="marquee__lang">Italian</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127475;&#127473;</span><span class="marquee__lang">Dutch</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127477;&#127473;</span><span class="marquee__lang">Polish</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127479;&#127482;</span><span class="marquee__lang">Russian</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127471;&#127477;</span><span class="marquee__lang">Japanese</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127472;&#127479;</span><span class="marquee__lang">Korean</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127464;&#127475;</span><span class="marquee__lang">Chinese</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127468;&#127463;</span><span class="marquee__lang">English</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127481;&#127479;</span><span class="marquee__lang">Turkish</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127480;&#127462;</span><span class="marquee__lang">Arabic</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127470;&#127475;</span><span class="marquee__lang">Hindi</span></div>
-          <!-- Duplicate for seamless loop -->
-          <div class="marquee__item"><span class="marquee__flag">&#127466;&#127480;</span><span class="marquee__lang">Spanish</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127463;&#127479;</span><span class="marquee__lang">Portuguese</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127467;&#127479;</span><span class="marquee__lang">French</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127465;&#127466;</span><span class="marquee__lang">German</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127470;&#127481;</span><span class="marquee__lang">Italian</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127475;&#127473;</span><span class="marquee__lang">Dutch</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127477;&#127473;</span><span class="marquee__lang">Polish</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127479;&#127482;</span><span class="marquee__lang">Russian</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127471;&#127477;</span><span class="marquee__lang">Japanese</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127472;&#127479;</span><span class="marquee__lang">Korean</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127464;&#127475;</span><span class="marquee__lang">Chinese</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127468;&#127463;</span><span class="marquee__lang">English</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127481;&#127479;</span><span class="marquee__lang">Turkish</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127480;&#127462;</span><span class="marquee__lang">Arabic</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127470;&#127475;</span><span class="marquee__lang">Hindi</span></div>
-        </div>
-      </div>
-      <div class="marquee marquee--reverse">
-        <div class="marquee__track">
-          <div class="marquee__item"><span class="marquee__flag">&#127468;&#127463;</span><span class="marquee__lang">English</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127471;&#127477;</span><span class="marquee__lang">Japanese</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127466;&#127480;</span><span class="marquee__lang">Spanish</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127479;&#127482;</span><span class="marquee__lang">Russian</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127463;&#127479;</span><span class="marquee__lang">Portuguese</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127472;&#127479;</span><span class="marquee__lang">Korean</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127467;&#127479;</span><span class="marquee__lang">French</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127464;&#127475;</span><span class="marquee__lang">Chinese</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127465;&#127466;</span><span class="marquee__lang">German</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127470;&#127481;</span><span class="marquee__lang">Italian</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127477;&#127473;</span><span class="marquee__lang">Polish</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127481;&#127479;</span><span class="marquee__lang">Turkish</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127475;&#127473;</span><span class="marquee__lang">Dutch</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127480;&#127462;</span><span class="marquee__lang">Arabic</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127470;&#127475;</span><span class="marquee__lang">Hindi</span></div>
-          <!-- Duplicate for seamless loop -->
-          <div class="marquee__item"><span class="marquee__flag">&#127468;&#127463;</span><span class="marquee__lang">English</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127471;&#127477;</span><span class="marquee__lang">Japanese</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127466;&#127480;</span><span class="marquee__lang">Spanish</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127479;&#127482;</span><span class="marquee__lang">Russian</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127463;&#127479;</span><span class="marquee__lang">Portuguese</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127472;&#127479;</span><span class="marquee__lang">Korean</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127467;&#127479;</span><span class="marquee__lang">French</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127464;&#127475;</span><span class="marquee__lang">Chinese</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127465;&#127466;</span><span class="marquee__lang">German</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127470;&#127481;</span><span class="marquee__lang">Italian</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127477;&#127473;</span><span class="marquee__lang">Polish</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127481;&#127479;</span><span class="marquee__lang">Turkish</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127475;&#127473;</span><span class="marquee__lang">Dutch</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127480;&#127462;</span><span class="marquee__lang">Arabic</span></div>
-          <div class="marquee__item"><span class="marquee__flag">&#127470;&#127475;</span><span class="marquee__lang">Hindi</span></div>
+        <div class="demo reveal reveal--rise" id="wish-demo">
+          <div class="demo__glow" aria-hidden="true"></div>
+          <div class="demo__window tilt">
+            <div class="demo__titlebar">
+              <span class="demo__dots"><i></i><i></i><i></i></span>
+              <span class="demo__path">acme/web <b>&#8250;</b> worktree <b>wish/dark-mode</b></span>
+              <span class="demo__model">Opus</span>
+            </div>
+            <div class="demo__body">
+              <aside class="demo__side">
+                <p class="demo__side-title">Workspaces</p>
+                <div class="demo__ws demo__ws--active"><span class="demo__ws-dot"></span>wish/dark-mode</div>
+                <div class="demo__ws"><span class="demo__ws-dot demo__ws-dot--ok"></span>fix/rate-limit</div>
+                <div class="demo__ws"><span class="demo__ws-dot demo__ws-dot--idle"></span>docs/onboarding</div>
+                <p class="demo__side-title">Focus</p>
+                <div class="demo__pomo">
+                  <svg viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="15.5" class="demo__pomo-track"/><circle cx="18" cy="18" r="15.5" class="demo__pomo-ring"/></svg>
+                  <span>18:42</span>
+                </div>
+              </aside>
+              <div class="demo__main">
+                <div class="demo__msg demo__msg--user" data-step="1">
+                  <span class="demo__avatar">you</span>
+                  <p class="demo__wish"><span class="demo__type" data-type="Add a dark mode toggle that remembers the user’s choice.">Add a dark mode toggle that remembers the user’s choice.</span></p>
+                </div>
+                <div class="demo__msg demo__msg--ai" data-step="2">
+                  <span class="demo__avatar demo__avatar--ai">&#10022;</span>
+                  <div class="demo__plan">
+                    <p class="demo__plan-head">Plan <span class="demo__pill">awaiting approval</span></p>
+                    <ol>
+                      <li data-step="3">Add <code>ThemeToggle</code> to the navbar</li>
+                      <li data-step="4">Persist choice in <code>localStorage</code></li>
+                      <li data-step="5">Respect <code>prefers-color-scheme</code> on first load</li>
+                    </ol>
+                    <span class="demo__approve" data-step="6">&#10003; Approved</span>
+                  </div>
+                </div>
+                <div class="demo__split">
+                  <div class="demo__term" data-step="7">
+                    <p class="demo__term-head">terminal &middot; zsh</p>
+                    <p><span class="t-dim">$</span> npm test</p>
+                    <p class="t-ok">&#10003; ThemeToggle persists choice</p>
+                    <p class="t-ok">&#10003; respects system preference</p>
+                    <p><span class="t-acc">42 passed</span> <span class="t-dim">in 1.8s</span></p>
+                  </div>
+                  <div class="demo__pr" data-step="8">
+                    <p class="demo__pr-num">#128</p>
+                    <p class="demo__pr-title">Add persistent dark mode</p>
+                    <p class="demo__pr-diff"><span class="t-ok">+84</span> <span class="t-bad">&minus;12</span> &middot; 4 files</p>
+                    <p class="demo__pr-ci"><span class="demo__ci-dot"></span>CI passing &middot; ready for review</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- Features Showcase -->
-    <section class="features-showcase" id="features">
+    <!-- Languages -->
+    <section class="tongues" aria-label="Supported languages">
+      <p class="tongues__label">Speaks fifteen languages</p>
+      <div class="tongues__marquee">
+        <div class="tongues__track">
+          <span>English</span><span>Español</span><span>Português</span><span>Français</span><span>Deutsch</span><span>Italiano</span><span>Nederlands</span><span>Polski</span><span>Русский</span><span>日本語</span><span>한국어</span><span>中文</span><span>Türkçe</span><span lang="ar">العربية</span><span lang="hi">हिन्दी</span>
+          <span aria-hidden="true">English</span><span aria-hidden="true">Español</span><span aria-hidden="true">Português</span><span aria-hidden="true">Français</span><span aria-hidden="true">Deutsch</span><span aria-hidden="true">Italiano</span><span aria-hidden="true">Nederlands</span><span aria-hidden="true">Polski</span><span aria-hidden="true">Русский</span><span aria-hidden="true">日本語</span><span aria-hidden="true">한국어</span><span aria-hidden="true">中文</span><span aria-hidden="true">Türkçe</span><span aria-hidden="true" lang="ar">العربية</span><span aria-hidden="true" lang="hi">हिन्दी</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Constellation: wish to merged -->
+    <section class="constellation" id="how">
       <div class="container">
-        <div class="section-header animate-on-scroll">
-          <p class="section-label">Features</p>
-          <h2 class="section-title">One app. Every tool.<br /><span class="gradient-text">Zero compromises.</span></h2>
-          <p class="section-subtitle">Stop juggling ten apps burning through your RAM. Cadente puts your entire development workflow under one roof &mdash; with AI woven into every layer. Everything runs locally on your machine.</p>
+        <div class="section-header reveal">
+          <p class="section-label" data-scramble>From wish to merged</p>
+          <h2 class="section-title">Every wish follows<br /><span class="gradient-text">the same bright path.</span></h2>
+        </div>
+        <ol class="constellation__path" id="constellation">
+          <svg class="constellation__lines" viewBox="0 0 1000 220" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M 100 150 L 300 60 L 500 130 L 700 40 L 900 110" />
+          </svg>
+          <li class="constellation__star" style="--i:0"><span class="constellation__dot"></span><span class="constellation__n">01</span><h3>Wish</h3><p>Say it in plain words. Prompt enhancement sharpens it before it is sent.</p></li>
+          <li class="constellation__star" style="--i:1"><span class="constellation__dot"></span><span class="constellation__n">02</span><h3>Plan</h3><p>Claude reads the whole workspace and proposes a plan you approve first.</p></li>
+          <li class="constellation__star" style="--i:2"><span class="constellation__dot"></span><span class="constellation__n">03</span><h3>Isolate</h3><p>Work happens in its own Git worktree. No stash, no branch collisions.</p></li>
+          <li class="constellation__star" style="--i:3"><span class="constellation__dot"></span><span class="constellation__n">04</span><h3>Run</h3><p>Real terminals run your tests. Errors go straight back to the AI.</p></li>
+          <li class="constellation__star" style="--i:4"><span class="constellation__dot"></span><span class="constellation__n">05</span><h3>Ship</h3><p>Open the PR, watch CI, and the workspace archives itself on merge.</p></li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- Bento features -->
+    <section class="bento-section" id="features">
+      <div class="container">
+        <div class="section-header reveal">
+          <p class="section-label" data-scramble>One app, every tool</p>
+          <h2 class="section-title">Your whole desk,<br /><span class="gradient-text">in one window.</span></h2>
+          <p class="section-subtitle">Stop juggling ten apps. Cadente puts the development workflow under one roof, with AI woven through every layer &mdash; and everything runs locally.</p>
         </div>
 
-        <!-- Feature 1: AI Chat -->
-        <div class="feature-row animate-on-scroll">
-          <div class="feature-row__text">
-            <span class="feature-tag feature-tag--ai">AI</span>
-            <h3 class="feature-row__title">AI That Understands Your Entire Project</h3>
-            <p class="feature-row__desc">Not another chatbot wrapper. Cadente gives Claude full context of your workspace &mdash; files, structure, dependencies &mdash; so every answer is grounded in your actual code.</p>
-            <ul class="feature-list">
-              <li>Workspace-scoped conversations with full project context</li>
-              <li>Real-time streaming &mdash; see Claude think and code live</li>
-              <li>Extended thinking mode for complex architectural problems</li>
-              <li>Plan approval workflow &mdash; review before AI executes changes</li>
-              <li>Prompt enhancement &mdash; AI improves your prompts before sending</li>
-              <li>Model selection (Opus, Sonnet, Haiku) per conversation</li>
-              <li>Persistent chat history saved per project</li>
-            </ul>
-          </div>
-          <div class="feature-row__visual">
-            <div class="feature-visual-card">
-              <div class="feature-icon">&#129302;</div>
-              <div class="feature-visual-card__lines">
-                <div class="feature-visual-card__line feature-visual-card__line--accent" style="width: 80%"></div>
-                <div class="feature-visual-card__line" style="width: 65%"></div>
-                <div class="feature-visual-card__line" style="width: 90%"></div>
-                <div class="feature-visual-card__line feature-visual-card__line--accent" style="width: 50%"></div>
-                <div class="feature-visual-card__line" style="width: 75%"></div>
+        <div class="bento">
+          <!-- AI -->
+          <article class="tile tile--ai tile--wide reveal spot">
+            <header class="tile__head">
+              <span class="tile__tag">AI</span>
+              <h3 class="tile__title">AI that understands the whole project</h3>
+              <p class="tile__desc">Not a chatbot wrapper. Claude gets your files, structure and dependencies, so answers are grounded in your actual code.</p>
+            </header>
+            <div class="mini mini--chat">
+              <div class="mini__models"><span class="is-on">Opus</span><span>Sonnet</span><span>Haiku</span><span class="mini__think">&#10022; extended thinking</span></div>
+              <div class="mini__stream">
+                <p class="mini__q">Why does checkout double-charge on retry?</p>
+                <p class="mini__a"><span class="mini__caret">Reading <code>payments/retry.rs</code>, <code>webhooks.ts</code>&hellip; The idempotency key is regenerated per attempt. Reuse the order&nbsp;ID instead.</span></p>
               </div>
             </div>
-          </div>
-        </div>
+            <ul class="tile__chips"><li>Live streaming</li><li>Plan approval</li><li>Prompt enhancement</li><li>History per project</li></ul>
+          </article>
 
-        <div class="section-divider"></div>
-
-        <!-- Feature 2: Git & PR -->
-        <div class="feature-row feature-row--reverse animate-on-scroll">
-          <div class="feature-row__text">
-            <span class="feature-tag feature-tag--git">Git</span>
-            <h3 class="feature-row__title">Git Without Leaving Your Flow</h3>
-            <p class="feature-row__desc">Branch management, diffs, and pull requests &mdash; all inside Cadente. Worktree-based isolation means you never stash again. Context switching is instant.</p>
-            <ul class="feature-list">
-              <li>Worktree-based workspace isolation &mdash; no branch conflicts, ever</li>
-              <li>Real-time uncommitted + committed change tracking</li>
-              <li>Syntax-highlighted diff viewer with inline annotations</li>
-              <li>Pull request discovery across all your repos</li>
-              <li>PR status, CI checks, and review decisions at a glance</li>
-              <li>Create pull requests directly from the workspace</li>
-              <li>Auto-archive workspace when PR merges</li>
-            </ul>
-          </div>
-          <div class="feature-row__visual">
-            <div class="feature-visual-card">
-              <div class="feature-icon">&#128256;</div>
-              <div class="feature-visual-card__lines">
-                <div class="feature-visual-card__line feature-visual-card__line--green" style="width: 70%"></div>
-                <div class="feature-visual-card__line feature-visual-card__line--red" style="width: 55%"></div>
-                <div class="feature-visual-card__line feature-visual-card__line--green" style="width: 85%"></div>
-                <div class="feature-visual-card__line" style="width: 60%"></div>
-                <div class="feature-visual-card__line feature-visual-card__line--green" style="width: 45%"></div>
-              </div>
+          <!-- Git -->
+          <article class="tile tile--git reveal spot">
+            <header class="tile__head">
+              <span class="tile__tag tile__tag--git">Git</span>
+              <h3 class="tile__title">Git without leaving your flow</h3>
+              <p class="tile__desc">Worktrees, diffs and pull requests across every repo.</p>
+            </header>
+            <div class="mini mini--diff">
+              <p class="d-meta">src/theme.ts</p>
+              <p class="d-del">- const theme = 'dark';</p>
+              <p class="d-add">+ const theme = stored ?? system();</p>
+              <p class="d-add">+ persist(theme);</p>
+              <div class="mini__checks"><span class="ok">build</span><span class="ok">test</span><span class="run">e2e</span></div>
             </div>
-          </div>
-        </div>
+          </article>
 
-        <div class="section-divider"></div>
-
-        <!-- Feature 3: Terminals -->
-        <div class="feature-row animate-on-scroll">
-          <div class="feature-row__text">
-            <span class="feature-tag feature-tag--terminal">Terminal</span>
-            <h3 class="feature-row__title">Full Terminals, Not Toy Shells</h3>
-            <p class="feature-row__desc">Real xterm.js terminals with full ANSI support. Run your build tools, test suites, and scripts without alt-tabbing. When something breaks, paste the error straight into AI.</p>
-            <ul class="feature-list">
-              <li>Real xterm.js terminals with full ANSI color support</li>
-              <li>Multiple terminal tabs with custom color coding</li>
-              <li>Automatic working directory tracking</li>
-              <li>AI-powered command suggestions when you get stuck</li>
-              <li>Paste errors directly into AI for instant diagnosis</li>
-            </ul>
-          </div>
-          <div class="feature-row__visual">
-            <div class="feature-visual-card feature-visual-card--dark">
-              <div class="feature-icon">&#128421;</div>
-              <div class="feature-visual-card__lines">
-                <div class="feature-visual-card__line feature-visual-card__line--green" style="width: 40%"></div>
-                <div class="feature-visual-card__line" style="width: 90%"></div>
-                <div class="feature-visual-card__line" style="width: 70%"></div>
-                <div class="feature-visual-card__line feature-visual-card__line--red" style="width: 60%"></div>
-                <div class="feature-visual-card__line feature-visual-card__line--accent" style="width: 80%"></div>
-              </div>
+          <!-- Terminal -->
+          <article class="tile tile--term reveal spot">
+            <header class="tile__head">
+              <span class="tile__tag tile__tag--term">Terminal</span>
+              <h3 class="tile__title">Full terminals, not toy shells</h3>
+              <p class="tile__desc">Real xterm.js, ANSI colour, tabs, and errors piped into AI.</p>
+            </header>
+            <div class="mini mini--term">
+              <p><span class="t-dim">~/acme</span> <span class="t-acc">cargo build</span></p>
+              <p class="t-bad">error[E0382]: borrow of moved value</p>
+              <p class="mini__ask">&#10022; Ask AI about this error</p>
+              <p><span class="t-dim">~/acme</span> <span class="mini__cursor"></span></p>
             </div>
-          </div>
-        </div>
+          </article>
 
-        <div class="section-divider"></div>
-
-        <!-- Feature 4: API Testing -->
-        <div class="feature-row feature-row--reverse animate-on-scroll">
-          <div class="feature-row__text">
-            <span class="feature-tag feature-tag--api">API</span>
-            <h3 class="feature-row__title">Test APIs Without Switching Apps</h3>
-            <p class="feature-row__desc">Ditch Postman. Cadente has a native HTTP request builder with collections, environments, and secret management baked in. SSRF protection keeps you safe by default.</p>
-            <ul class="feature-list">
-              <li>HTTP request builder with method, URL, headers, and body</li>
-              <li>Request collections organized in drag-and-drop folders</li>
-              <li>Environment variables (Dev / Staging / Prod) with interpolation</li>
-              <li>Secret variables that never leak to logs or exports</li>
-              <li>Auto-detect framework and create environments instantly</li>
-              <li>Response viewer with syntax highlighting</li>
-              <li>SSRF protection built in &mdash; safe by default</li>
-            </ul>
-          </div>
-          <div class="feature-row__visual">
-            <div class="feature-visual-card">
-              <div class="feature-icon">&#128225;</div>
-              <div class="feature-visual-card__lines">
-                <div class="feature-visual-card__line feature-visual-card__line--accent" style="width: 35%"></div>
-                <div class="feature-visual-card__line" style="width: 95%"></div>
-                <div class="feature-visual-card__line" style="width: 50%"></div>
-                <div class="feature-visual-card__line feature-visual-card__line--green" style="width: 70%"></div>
-                <div class="feature-visual-card__line" style="width: 85%"></div>
-              </div>
+          <!-- API -->
+          <article class="tile tile--api reveal spot">
+            <header class="tile__head">
+              <span class="tile__tag tile__tag--api">API</span>
+              <h3 class="tile__title">Test APIs without Postman</h3>
+              <p class="tile__desc">Collections, environments and secrets that never leak. SSRF protection on by default.</p>
+            </header>
+            <div class="mini mini--api">
+              <div class="mini__envs"><span>Dev</span><span class="is-on">Staging</span><span>Prod</span></div>
+              <p class="mini__req"><b>GET</b> {{base_url}}/users</p>
+              <p class="mini__hdr">Authorization: Bearer <span class="mini__secret">&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;</span></p>
+              <p class="mini__res"><span class="t-ok">200 OK</span> <span class="t-dim">&middot; 84 ms</span></p>
             </div>
-          </div>
-        </div>
+          </article>
 
-        <div class="section-divider"></div>
-
-        <!-- Feature 5: Productivity -->
-        <div class="feature-row animate-on-scroll">
-          <div class="feature-row__text">
-            <span class="feature-tag feature-tag--focus">Focus</span>
-            <h3 class="feature-row__title">Stay Focused, Ship Faster</h3>
-            <p class="feature-row__desc">Productivity tools that live where you work. No more browser tabs for timers, notes, and planning. Everything stays in context, in the same window as your code.</p>
-            <ul class="feature-list">
-              <li>Pomodoro timer with customizable work/break cycles</li>
-              <li>Day planner with categorized tasks and priorities</li>
-              <li>Quick notes tied to your active session</li>
-              <li>Full calendar with event creation and management</li>
-              <li>Excalidraw diagrams for architecture and whiteboarding</li>
-              <li>Link board for bookmarking developer resources</li>
-            </ul>
-          </div>
-          <div class="feature-row__visual">
-            <div class="feature-visual-card">
-              <div class="feature-icon">&#9201;</div>
-              <div class="feature-visual-card__lines">
-                <div class="feature-visual-card__line feature-visual-card__line--accent" style="width: 60%"></div>
-                <div class="feature-visual-card__line feature-visual-card__line--green" style="width: 80%"></div>
-                <div class="feature-visual-card__line" style="width: 45%"></div>
-                <div class="feature-visual-card__line" style="width: 70%"></div>
-                <div class="feature-visual-card__line feature-visual-card__line--accent" style="width: 55%"></div>
-              </div>
+          <!-- Diagrams -->
+          <article class="tile tile--draw reveal spot">
+            <header class="tile__head">
+              <span class="tile__tag">Diagrams</span>
+              <h3 class="tile__title">Sketch the architecture</h3>
+              <p class="tile__desc">Excalidraw boards live next to the code they describe.</p>
+            </header>
+            <div class="mini mini--draw">
+              <svg viewBox="0 0 260 120" aria-hidden="true">
+                <rect class="sk" x="8" y="40" width="70" height="38" rx="6"/>
+                <rect class="sk" x="182" y="12" width="70" height="38" rx="6"/>
+                <rect class="sk" x="182" y="72" width="70" height="38" rx="6"/>
+                <path class="sk sk--acc" d="M 80 56 C 120 50, 140 32, 178 31"/>
+                <path class="sk sk--acc" d="M 80 62 C 120 70, 140 90, 178 91"/>
+                <text x="43" y="64">app</text><text x="217" y="36">api</text><text x="217" y="96">db</text>
+              </svg>
             </div>
-          </div>
-        </div>
+          </article>
 
-        <div class="section-divider"></div>
-
-        <!-- Feature 6: Built Different -->
-        <div class="feature-row feature-row--reverse animate-on-scroll">
-          <div class="feature-row__text">
-            <span class="feature-tag feature-tag--rust">Rust</span>
-            <h3 class="feature-row__title">Built with Rust. Runs on Your Machine.</h3>
-            <p class="feature-row__desc">Right now, your machine is running Postman, a Git client, a terminal, a notes app, a timer, a calendar, Claude&hellip; each one silently eating your RAM. Together, they consume over 2 GB &mdash; just sitting there. Cadente replaces all of them. One app. ~80 MB idle. Under full load, still under 500 MB. That is not a typo.</p>
-            <ul class="feature-list">
-              <li>Written in Rust &mdash; native speed, minimal memory footprint</li>
-              <li>Everything runs locally &mdash; your code, conversations, and data never leave your machine</li>
-              <li>Zero telemetry, zero tracking &mdash; privacy first, no exceptions</li>
-              <li>Cross-platform: macOS (ARM + Intel), Windows, Linux</li>
-              <li>Auto-updates with cryptographically signed packages</li>
-              <li>MCP server ecosystem for extensible tooling</li>
-            </ul>
-          </div>
-          <div class="feature-row__visual">
-            <div class="ram-comparison">
-              <div class="ram-comparison__header">
-                <span class="ram-comparison__title">Where is your RAM going?</span>
-                <span class="ram-comparison__subtitle">Typical memory consumption &mdash; idle, just sitting there</span>
+          <!-- Focus -->
+          <article class="tile tile--focus tile--wide reveal spot">
+            <header class="tile__head">
+              <span class="tile__tag tile__tag--focus">Focus</span>
+              <h3 class="tile__title">Stay focused, ship faster</h3>
+              <p class="tile__desc">Pomodoro, day planner, calendar, notes, Excalidraw diagrams and a link board &mdash; in the same window as your code.</p>
+            </header>
+            <div class="mini mini--focus">
+              <div class="mini__timer">
+                <svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="52" class="mini__timer-track"/><circle cx="60" cy="60" r="52" class="mini__timer-ring"/></svg>
+                <span class="mini__timer-time">25:00</span>
               </div>
-              <div class="ram-comparison__bars">
-                <div class="ram-bar ram-bar--other" data-app="Postman" data-ram="450">
-                  <div class="ram-bar__label">Postman</div>
-                  <div class="ram-bar__track"><div class="ram-bar__fill" style="--bar-width: 90%"></div></div>
-                  <div class="ram-bar__value">~450 MB</div>
-                </div>
-                <div class="ram-bar ram-bar--other" data-app="Claude Desktop" data-ram="380">
-                  <div class="ram-bar__label">Claude Desktop</div>
-                  <div class="ram-bar__track"><div class="ram-bar__fill" style="--bar-width: 76%"></div></div>
-                  <div class="ram-bar__value">~380 MB</div>
-                </div>
-                <div class="ram-bar ram-bar--other" data-app="GitKraken" data-ram="350">
-                  <div class="ram-bar__label">GitKraken</div>
-                  <div class="ram-bar__track"><div class="ram-bar__fill" style="--bar-width: 70%"></div></div>
-                  <div class="ram-bar__value">~350 MB</div>
-                </div>
-                <div class="ram-bar ram-bar--other" data-app="Terminal (iTerm2)" data-ram="200">
-                  <div class="ram-bar__label">iTerm2</div>
-                  <div class="ram-bar__track"><div class="ram-bar__fill" style="--bar-width: 40%"></div></div>
-                  <div class="ram-bar__value">~200 MB</div>
-                </div>
-                <div class="ram-bar ram-bar--other" data-app="Notion (Notes)" data-ram="320">
-                  <div class="ram-bar__label">Notion</div>
-                  <div class="ram-bar__track"><div class="ram-bar__fill" style="--bar-width: 64%"></div></div>
-                  <div class="ram-bar__value">~320 MB</div>
-                </div>
-                <div class="ram-bar ram-bar--other" data-app="Pomodoro App" data-ram="120">
-                  <div class="ram-bar__label">Pomodoro App</div>
-                  <div class="ram-bar__track"><div class="ram-bar__fill" style="--bar-width: 24%"></div></div>
-                  <div class="ram-bar__value">~120 MB</div>
-                </div>
-                <div class="ram-bar ram-bar--other" data-app="Calendar App" data-ram="180">
-                  <div class="ram-bar__label">Calendar App</div>
-                  <div class="ram-bar__track"><div class="ram-bar__fill" style="--bar-width: 36%"></div></div>
-                  <div class="ram-bar__value">~180 MB</div>
-                </div>
-                <div class="ram-bar ram-bar--other" data-app="Excalidraw" data-ram="250">
-                  <div class="ram-bar__label">Excalidraw</div>
-                  <div class="ram-bar__track"><div class="ram-bar__fill" style="--bar-width: 50%"></div></div>
-                  <div class="ram-bar__value">~250 MB</div>
-                </div>
-              </div>
-              <div class="ram-comparison__total">
-                <span class="ram-comparison__total-label">Total: 8 apps doing nothing</span>
-                <span class="ram-comparison__total-value ram-comparison__total-value--bad">~2.25 GB wasted</span>
-              </div>
-              <div class="ram-comparison__divider">
-                <span>or just use</span>
-              </div>
-              <div class="ram-bar ram-bar--catarina">
-                <div class="ram-bar__label">Cadente</div>
-                <div class="ram-bar__track"><div class="ram-bar__fill ram-bar__fill--accent" style="--bar-width: 16%"></div></div>
-                <div class="ram-bar__value ram-bar__value--accent">~80 MB idle</div>
-              </div>
-              <div class="ram-bar ram-bar--catarina">
-                <div class="ram-bar__label" style="opacity: 0.6">Under full load</div>
-                <div class="ram-bar__track"><div class="ram-bar__fill ram-bar__fill--accent" style="--bar-width: 100%"></div></div>
-                <div class="ram-bar__value ram-bar__value--accent">~500 MB max</div>
-              </div>
-              <div class="ram-comparison__total">
-                <span class="ram-comparison__total-label">All 8 tools. One app. Even under full load.</span>
-                <span class="ram-comparison__total-value ram-comparison__total-value--good">4.5x less RAM</span>
-              </div>
+              <ul class="mini__tasks">
+                <li class="done">Review PR #128</li>
+                <li class="done">Sketch auth flow</li>
+                <li>Ship dark mode</li>
+                <li>Standup notes</li>
+              </ul>
             </div>
-          </div>
+          </article>
+          <!-- PR radar -->
+          <article class="tile tile--prs reveal spot">
+            <header class="tile__head">
+              <span class="tile__tag tile__tag--git">Pull requests</span>
+              <h3 class="tile__title">Every PR, at a glance</h3>
+              <p class="tile__desc">Status, CI and reviews across all your repos. Merged work archives itself.</p>
+            </header>
+            <ul class="mini mini--prs">
+              <li><span class="pr-dot pr-dot--ok"></span>#128 dark mode<em>approved</em></li>
+              <li><span class="pr-dot pr-dot--run"></span>#127 rate limit<em>CI running</em></li>
+              <li><span class="pr-dot pr-dot--rev"></span>#125 onboarding<em>changes requested</em></li>
+              <li><span class="pr-dot pr-dot--merged"></span>#121 search<em>merged &middot; archived</em></li>
+            </ul>
+          </article>
         </div>
       </div>
     </section>
 
-    <!-- Pricing Section -->
+    <!-- Weight / Rust -->
+    <section class="weight" id="weight">
+      <div class="container weight__inner">
+        <div class="weight__text reveal">
+          <p class="section-label" data-scramble>Built with Rust</p>
+          <h2 class="section-title">Eight apps idling.<br /><span class="gradient-text">Or one star.</span></h2>
+          <p class="weight__desc">Postman, a Git client, a terminal, notes, a timer, a calendar, a whiteboard, a Claude window &mdash; together they sit on over 2&nbsp;GB doing nothing. Cadente replaces all of them and idles at ~80&nbsp;MB. Under full load it stays below 500&nbsp;MB.</p>
+          <div class="weight__stats">
+            <div><span class="weight__num" data-count="80" data-count-prefix="~" data-count-suffix=" MB">~80 MB</span><span class="weight__lbl">idle</span></div>
+            <div><span class="weight__num" data-count="0">0</span><span class="weight__lbl">telemetry</span></div>
+            <div><span class="weight__num">4.5&times;</span><span class="weight__lbl">less RAM</span></div>
+          </div>
+          <ul class="weight__facts">
+            <li>Your code, chats and data never leave your machine</li>
+            <li>Cryptographically signed auto-updates</li>
+            <li>macOS (ARM + Intel), Windows, Linux</li>
+            <li>MCP servers for extensible tooling</li>
+          </ul>
+        </div>
+        <div class="ledger reveal reveal--rise" id="ledger">
+          <p class="ledger__head">Memory at idle</p>
+          <div class="ledger__row" style="--w:90%;--i:0"><span>Postman</span><i></i><b>450 MB</b></div>
+          <div class="ledger__row" style="--w:76%;--i:1"><span>Claude Desktop</span><i></i><b>380 MB</b></div>
+          <div class="ledger__row" style="--w:70%;--i:2"><span>GitKraken</span><i></i><b>350 MB</b></div>
+          <div class="ledger__row" style="--w:64%;--i:3"><span>Notion</span><i></i><b>320 MB</b></div>
+          <div class="ledger__row" style="--w:50%;--i:4"><span>Excalidraw</span><i></i><b>250 MB</b></div>
+          <div class="ledger__row" style="--w:40%;--i:5"><span>iTerm2</span><i></i><b>200 MB</b></div>
+          <div class="ledger__row" style="--w:36%;--i:6"><span>Calendar</span><i></i><b>180 MB</b></div>
+          <div class="ledger__row" style="--w:24%;--i:7"><span>Pomodoro</span><i></i><b>120 MB</b></div>
+          <p class="ledger__sum"><span>Eight apps, doing nothing</span><b class="t-bad">~2.25 GB</b></p>
+          <div class="ledger__row ledger__row--us" style="--w:16%;--i:9"><span>Cadente</span><i></i><b>~80 MB</b></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pricing -->
     <section class="pricing" id="pricing">
       <div class="container">
-        <div class="section-header animate-on-scroll">
-          <p class="section-label">Pricing</p>
+        <div class="section-header reveal">
+          <p class="section-label" data-scramble>Pricing</p>
           <h2 class="section-title">All this power.<br /><span class="gradient-text">Free to start.</span></h2>
-          <p class="section-subtitle">Every feature included. Limits only on simultaneous active items — archive to free slots anytime.</p>
+          <p class="section-subtitle">Every feature included. Limits only on simultaneous active items &mdash; archive to free slots anytime.</p>
         </div>
         <div class="pricing__grid">
-          <div class="card card--pricing animate-on-scroll">
+          <div class="card card--pricing reveal spot">
             <div class="card__pricing-header">
               <h3 class="card__pricing-name">Free</h3>
               <div class="card__pricing-price">
@@ -479,11 +383,10 @@
             </ul>
             <a href="./downloads.html" class="btn btn--ghost btn--full">Download Free</a>
           </div>
-          <div class="card card--pricing card--pricing-pro animate-on-scroll">
+          <div class="card card--pricing card--pricing-pro reveal spot">
             <div class="card__pricing-badge" id="pro-trial-badge">7-day free trial</div>
             <div class="card__pricing-header">
               <h3 class="card__pricing-name">Pro</h3>
-              <!-- Billing toggle -->
               <div class="pricing__toggle" id="pricing-toggle">
                 <button class="pricing__toggle-btn pricing__toggle-btn--active" data-cycle="yearly" onclick="switchBilling('yearly')">Annual</button>
                 <button class="pricing__toggle-btn" data-cycle="monthly" onclick="switchBilling('monthly')">Monthly</button>
@@ -502,7 +405,7 @@
               <li><span class="check">&#10003;</span> 30-day version history</li>
               <li><span class="check">&#10003;</span> Priority support</li>
             </ul>
-            <a href="./downloads.html" class="btn btn--primary btn--full" id="pro-cta">
+            <a href="./downloads.html" class="btn btn--primary btn--full magnetic" id="pro-cta">
               &#8595; Download &amp; Start Free Trial
             </a>
             <p class="card__pricing-trial-note">Download the app &bull; Sign up with Google or GitHub &bull; Pro unlocks instantly</p>
@@ -511,26 +414,26 @@
       </div>
     </section>
 
-    <!-- CTA Section -->
-    <section class="cta">
-      <div class="container">
-        <div class="cta__inner animate-on-scroll">
-          <h2 class="cta__title">Your IDE is for writing code.<br /><span class="gradient-text">Cadente is for everything else.</span></h2>
-          <p class="cta__subtitle">AI conversations, Git workflows, terminals, API testing, focus tools &mdash; unified in one native app that starts in under a second.</p>
-          <div class="hero__actions">
-            <a href="./downloads.html" class="btn btn--primary btn--lg">
-              <span class="btn__icon">&#8595;</span>
-              Download for Free
-            </a>
-            <a href="https://github.com/cadente-hub/cadente-hub.github.io" target="_blank" rel="noopener noreferrer" class="btn btn--ghost btn--lg">
-              <span class="btn__icon">&#9733;</span>
-              Star on GitHub
-            </a>
-          </div>
+    <!-- CTA -->
+    <section class="finale" id="finale">
+      <div class="container finale__inner reveal">
+        <svg class="finale__comet" viewBox="0 0 512 512" aria-hidden="true"><path d="M 379 153 A 160 160 0 1 0 379 359" fill="none" stroke="url(#c-grad)" stroke-width="40" stroke-linecap="round"/><path d="M 424 240 L 429 252 L 442 256 L 429 260 L 424 272 L 419 260 L 406 256 L 419 252 Z" fill="url(#c-spark)"/></svg>
+        <h2 class="cta__title finale__title">Your IDE is for writing code.<br /><span class="gradient-text">Cadente is for everything else.</span></h2>
+        <p class="finale__sub">AI conversations, Git workflows, terminals, API testing and focus tools &mdash; one native app that starts in under a second.</p>
+        <div class="hero__actions">
+          <a href="./downloads.html" class="btn btn--primary btn--lg magnetic">
+            <span class="btn__icon">&#8595;</span>
+            Download for free
+          </a>
+          <a href="https://github.com/cadente-hub/cadente-hub.github.io" target="_blank" rel="noopener noreferrer" class="btn btn--ghost btn--lg magnetic">
+            <span class="btn__icon">&#9733;</span>
+            Star on GitHub
+          </a>
         </div>
       </div>
     </section>
   </main>
+
 
   <!-- Footer -->
   <footer class="footer">
@@ -569,6 +472,7 @@
   </footer>
 
   <script type="module" src="./js/main.js"></script>
+  <script type="module" src="./js/sky.js"></script>
   <script type="module" src="./js/animations.js"></script>
   <script>
     // Pricing state

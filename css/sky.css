@@ -1,0 +1,101 @@
+/* ============================================
+   Cadente — Living Sky (shared by every page)
+   ============================================ */
+
+html { background: var(--color-bg); }
+body { background: transparent; }
+
+.sky {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -2;
+  pointer-events: none;
+}
+
+/* Vignette + horizon so text always sits on calm sky */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 80% at 50% 0%, transparent 40%, color-mix(in srgb, var(--color-bg) 70%, transparent) 100%),
+    linear-gradient(to bottom, transparent 70%, color-mix(in srgb, var(--color-bg) 55%, transparent));
+}
+
+/* Film grain for depth */
+body::after {
+  content: "";
+  position: fixed;
+  inset: -50%;
+  z-index: 200;
+  pointer-events: none;
+  opacity: 0.045;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+@keyframes grain {
+  0% { transform: translate(0, 0); }
+  20% { transform: translate(-3%, 2%); }
+  40% { transform: translate(2%, -3%); }
+  60% { transform: translate(-2%, -1%); }
+  80% { transform: translate(3%, 3%); }
+  100% { transform: translate(0, 0); }
+}
+
+/* Scroll progress drawn as a comet racing along the top edge */
+.scroll-comet {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  z-index: 150;
+  pointer-events: none;
+}
+
+.scroll-comet span {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(var(--p, 0) * 100%);
+  background: linear-gradient(90deg, transparent, var(--color-accent-end) 60%, var(--color-star));
+  box-shadow: 0 0 12px var(--color-accent);
+}
+
+.scroll-comet span::after {
+  content: "";
+  position: absolute;
+  right: -5px;
+  top: -4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-star);
+  box-shadow: 0 0 10px 3px var(--color-accent), 0 0 30px 6px var(--color-glow);
+  opacity: calc(var(--p, 0) * 40);
+}
+
+/* Shared pages: let the sky show through */
+.hero,
+.downloads-hero,
+.release-notes-hero,
+.footer {
+  background: transparent;
+}
+
+.footer {
+  background: linear-gradient(to bottom, transparent, color-mix(in srgb, var(--color-bg) 85%, transparent) 40%);
+}
+
+/* Selection in brand colour */
+::selection {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body::after { animation: none; }
+}
