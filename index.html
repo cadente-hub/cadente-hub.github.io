@@ -4,15 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Cadente — make a wish</title>
-  <meta name="description" content="Cadente — make a wish. The AI desktop app that replaces your entire toolchain." />
+  <meta name="description" content="Cadente — make a wish. A desktop AI workspace for developers: any model, your repositories, terminals, automations and pull requests in one app." />
   <meta property="og:title" content="Cadente" />
-  <meta property="og:description" content="make a wish — The AI desktop app that replaces your entire toolchain." />
+  <meta property="og:description" content="make a wish — a desktop AI workspace for developers. Use Claude, ChatGPT, Gemini or local models with your repos, terminals and pull requests." />
   <meta property="og:image" content="https://cadente-hub.github.io/assets/og-image.png" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://cadente-hub.github.io" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Cadente" />
-  <meta name="twitter:description" content="make a wish — The AI desktop app that replaces your entire toolchain." />
+  <meta name="twitter:description" content="make a wish — a desktop AI workspace for developers. Use Claude, ChatGPT, Gemini or local models with your repos, terminals and pull requests." />
   <meta name="twitter:image" content="https://cadente-hub.github.io/assets/og-image.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -38,6 +38,7 @@
       <ul class="navbar__links">
         <li><a href="#how">How it works</a></li>
         <li><a href="#features">Features</a></li>
+        <li><a href="#pricing">Pricing</a></li>
         <li><a href="./downloads.html">Downloads</a></li>
         <li><a href="./release-notes.html">Release Notes</a></li>
         <li><a href="./blog/">Blog</a></li>
@@ -60,7 +61,9 @@
   <!-- Mobile Menu -->
   <div class="mobile-menu" id="mobile-menu">
     <ul class="mobile-menu__links">
+      <li><a href="#how">How it works</a></li>
       <li><a href="#features">Features</a></li>
+      <li><a href="#pricing">Pricing</a></li>
       <li><a href="./downloads.html">Downloads</a></li>
       <li><a href="./release-notes.html">Release Notes</a></li>
       <li><a href="./blog/">Blog</a></li>
@@ -73,13 +76,13 @@
     <section class="hero hero--sky" id="top">
       <div class="hero__aurora" aria-hidden="true"></div>
       <div class="container hero__inner">
-        <p class="hero__eyebrow reveal"><span class="hero__eyebrow-dot"></span>A native AI desktop for macOS, Windows and Linux</p>
+        <p class="hero__eyebrow reveal"><span class="hero__eyebrow-dot"></span>An AI workspace for developers &middot; macOS, Windows, Linux</p>
         <h1 class="hero__title hero__title--wish" data-split>
           <span class="hero__line">Make a <em class="wish-word">wish.</em></span>
           <span class="hero__line hero__line--sub">Watch it land in your code.</span>
         </h1>
         <p class="hero__tagline reveal">
-          Describe what you want in plain words. Cadente plans it with Claude, builds it in an isolated Git worktree, runs it in a real terminal and opens the pull request &mdash; one native Rust app that idles at ~80&nbsp;MB.
+          Ask in plain words, with the model you already pay for &mdash; Claude, ChatGPT, Gemini or one running on your own machine. Cadente plans with you, works in an isolated Git worktree, runs your tests in a real terminal and opens the pull request. Every file it touches can be undone.
         </p>
         <div class="hero__actions reveal">
           <a href="./downloads.html" class="btn btn--primary btn--lg">
@@ -97,11 +100,12 @@
       <div class="container">
         <div class="demo reveal reveal--rise" id="wish-demo">
           <div class="demo__glow" aria-hidden="true"></div>
-          <div class="demo__window tilt">
+          <div class="demo__window">
             <div class="demo__titlebar">
               <span class="demo__dots"><i></i><i></i><i></i></span>
               <span class="demo__path">acme/web <b>&#8250;</b> worktree <b>wish/dark-mode</b></span>
-              <span class="demo__model">Opus</span>
+              <span class="demo__cost">18.2k tok &middot; included in plan</span>
+              <span class="demo__model">Claude Opus</span>
             </div>
             <div class="demo__body">
               <aside class="demo__side">
@@ -123,13 +127,13 @@
                 <div class="demo__msg demo__msg--ai" data-step="2">
                   <span class="demo__avatar demo__avatar--ai" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3l1.6 6.4L20 11l-6.4 1.6L12 19l-1.6-6.4L4 11l6.4-1.6z" fill="currentColor"/></svg></span>
                   <div class="demo__plan">
-                    <p class="demo__plan-head">Plan <span class="demo__pill">awaiting approval</span></p>
+                    <p class="demo__plan-head">Plan <span class="demo__pill">plan mode</span></p>
                     <ol>
                       <li data-step="3">Add <code>ThemeToggle</code> to the navbar</li>
                       <li data-step="4">Persist choice in <code>localStorage</code></li>
                       <li data-step="5">Respect <code>prefers-color-scheme</code> on first load</li>
                     </ol>
-                    <span class="demo__approve" data-step="6">Approved</span>
+                    <span class="demo__approve" data-step="6">You approved the plan</span>
                   </div>
                 </div>
                 <div class="demo__split">
@@ -144,7 +148,7 @@
                     <p class="demo__pr-num">#128</p>
                     <p class="demo__pr-title">Add persistent dark mode</p>
                     <p class="demo__pr-diff"><span class="t-ok">+84</span> <span class="t-bad">&minus;12</span> &middot; 4 files</p>
-                    <p class="demo__pr-ci"><span class="demo__ci-dot"></span>CI passing &middot; ready for review</p>
+                    <p class="demo__pr-ci"><span class="demo__ci-dot"></span>CI passing &middot; archives on merge</p>
                   </div>
                 </div>
               </div>
@@ -156,16 +160,16 @@
 
     <!-- Languages -->
     <section class="tongues" aria-label="Supported languages">
-      <p class="tongues__label">Speaks fifteen languages</p>
+      <p class="tongues__label">The interface speaks fifteen languages</p>
       <div class="tongues__marquee">
         <div class="tongues__track">
-          <span>English</span><span>Español</span><span>Português</span><span>Français</span><span>Deutsch</span><span>Italiano</span><span>Nederlands</span><span>Polski</span><span>Русский</span><span>日本語</span><span>한국어</span><span>中文</span><span>Türkçe</span><span lang="ar">العربية</span><span lang="hi">हिन्दी</span>
-          <span aria-hidden="true">English</span><span aria-hidden="true">Español</span><span aria-hidden="true">Português</span><span aria-hidden="true">Français</span><span aria-hidden="true">Deutsch</span><span aria-hidden="true">Italiano</span><span aria-hidden="true">Nederlands</span><span aria-hidden="true">Polski</span><span aria-hidden="true">Русский</span><span aria-hidden="true">日本語</span><span aria-hidden="true">한국어</span><span aria-hidden="true">中文</span><span aria-hidden="true">Türkçe</span><span aria-hidden="true" lang="ar">العربية</span><span aria-hidden="true" lang="hi">हिन्दी</span>
+          <span>English</span><span>Español</span><span>Português</span><span>Français</span><span>Deutsch</span><span>Italiano</span><span>Русский</span><span>日本語</span><span>한국어</span><span>中文</span><span>Türkçe</span><span lang="ar">العربية</span><span lang="hi">हिन्दी</span><span>Bahasa Indonesia</span><span>Tiếng Việt</span>
+          <span aria-hidden="true">English</span><span aria-hidden="true">Español</span><span aria-hidden="true">Português</span><span aria-hidden="true">Français</span><span aria-hidden="true">Deutsch</span><span aria-hidden="true">Italiano</span><span aria-hidden="true">Русский</span><span aria-hidden="true">日本語</span><span aria-hidden="true">한국어</span><span aria-hidden="true">中文</span><span aria-hidden="true">Türkçe</span><span aria-hidden="true" lang="ar">العربية</span><span aria-hidden="true" lang="hi">हिन्दी</span><span aria-hidden="true">Bahasa Indonesia</span><span aria-hidden="true">Tiếng Việt</span>
         </div>
       </div>
     </section>
 
-    <!-- Constellation: wish to merged -->
+    <!-- How it works -->
     <section class="constellation" id="how">
       <div class="container">
         <header class="sh reveal">
@@ -176,81 +180,147 @@
           <svg class="constellation__lines" viewBox="0 0 1000 220" preserveAspectRatio="none" aria-hidden="true">
             <path d="M 100 150 L 300 60 L 500 130 L 700 40 L 900 110" />
           </svg>
-          <li class="constellation__star" style="--i:0"><span class="constellation__dot"></span><span class="constellation__n">01</span><h3>Wish</h3><p>Say it in plain words. Prompt enhancement sharpens it before it is sent.</p></li>
-          <li class="constellation__star" style="--i:1"><span class="constellation__dot"></span><span class="constellation__n">02</span><h3>Plan</h3><p>Claude reads the whole workspace and proposes a plan you approve first.</p></li>
-          <li class="constellation__star" style="--i:2"><span class="constellation__dot"></span><span class="constellation__n">03</span><h3>Isolate</h3><p>Work happens in its own Git worktree. No stash, no branch collisions.</p></li>
-          <li class="constellation__star" style="--i:3"><span class="constellation__dot"></span><span class="constellation__n">04</span><h3>Run</h3><p>Real terminals run your tests. Errors go straight back to the AI.</p></li>
-          <li class="constellation__star" style="--i:4"><span class="constellation__dot"></span><span class="constellation__n">05</span><h3>Ship</h3><p>Open the PR, watch CI, and the workspace archives itself on merge.</p></li>
+          <li class="constellation__star" style="--i:0"><span class="constellation__dot"></span><span class="constellation__n">01</span><h3>Wish</h3><p>Say it in plain words. One click rewrites a rough request into a sharper prompt.</p></li>
+          <li class="constellation__star" style="--i:1"><span class="constellation__dot"></span><span class="constellation__n">02</span><h3>Plan</h3><p>The model reads the workspace and proposes a plan. Nothing changes until you approve.</p></li>
+          <li class="constellation__star" style="--i:2"><span class="constellation__dot"></span><span class="constellation__n">03</span><h3>Isolate</h3><p>Each workspace gets its own Git worktree, so parallel tasks never collide.</p></li>
+          <li class="constellation__star" style="--i:3"><span class="constellation__dot"></span><span class="constellation__n">04</span><h3>Run</h3><p>Tests run in a real terminal the AI can read. You decide which commands run.</p></li>
+          <li class="constellation__star" style="--i:4"><span class="constellation__dot"></span><span class="constellation__n">05</span><h3>Ship</h3><p>Open the pull request, follow CI, and let the workspace archive itself on merge.</p></li>
         </ol>
       </div>
     </section>
 
-    <!-- Bento features -->
+    <!-- Any model -->
+    <section class="models" id="models">
+      <div class="container">
+        <header class="sh sh--split reveal">
+          <div>
+            <p class="sh__index"><span>02</span>Any model</p>
+            <h2 class="sh__title">Bring the AI<br /><span class="sh__muted">you already have.</span></h2>
+          </div>
+          <p class="sh__lede">Cadente is not tied to one company. Sign in with a subscription, paste an API key or point it at a model on your machine &mdash; and switch per conversation.</p>
+        </header>
+        <div class="models__grid">
+          <article class="models__col reveal">
+            <p class="models__kind">Subscriptions</p>
+            <h3 class="models__title">Use the plan you pay for</h3>
+            <ul class="models__list">
+              <li><b>Claude</b><span>Pro, Max or Team, through the official Claude CLI</span></li>
+              <li><b>ChatGPT</b><span>Plus, Team or Pro, through the official Codex CLI</span></li>
+            </ul>
+          </article>
+          <article class="models__col reveal">
+            <p class="models__kind">API keys</p>
+            <h3 class="models__title">Any provider, your key</h3>
+            <ul class="models__chips">
+              <li>Anthropic</li><li>OpenAI</li><li>Google Gemini</li><li>DeepSeek</li><li>OpenRouter</li><li>Groq</li><li>Together AI</li><li>Fireworks AI</li><li>Any OpenAI-compatible URL</li>
+            </ul>
+          </article>
+          <article class="models__col reveal">
+            <p class="models__kind">On your machine</p>
+            <h3 class="models__title">Fully local, if you want</h3>
+            <ul class="models__list">
+              <li><b>Ollama</b><span>Detected automatically, with recommended models to pull</span></li>
+              <li><b>LM Studio</b><span>Or any local server that speaks the OpenAI API</span></li>
+            </ul>
+          </article>
+        </div>
+        <p class="models__foot reveal"><span class="models__badge">18.2k tok &middot; $0.21</span> Every turn shows its tokens and cost &mdash; or &ldquo;included in plan&rdquo; when it runs on a subscription.</p>
+      </div>
+    </section>
+
+    <!-- Features -->
     <section class="bento-section" id="features">
       <div class="container">
         <header class="sh sh--split reveal">
           <div>
-            <p class="sh__index"><span>02</span>Features</p>
+            <p class="sh__index"><span>03</span>Features</p>
             <h2 class="sh__title">Your whole desk,<br /><span class="sh__muted">in one window.</span></h2>
           </div>
-          <p class="sh__lede">Stop juggling ten apps. Cadente puts the development workflow under one roof, with AI woven through every layer &mdash; and everything runs locally.</p>
+          <p class="sh__lede">Chats, repositories, terminals, automations and the small tools around them live together, and each of them can ask the AI for help.</p>
         </header>
 
         <div class="bento">
-          <!-- AI -->
-          <article class="tile tile--ai tile--wide reveal">
+          <!-- Chat -->
+          <article class="tile tile--wide reveal">
             <header class="tile__head">
-              <span class="tile__tag">AI</span>
-              <h3 class="tile__title">AI that understands the whole project</h3>
-              <p class="tile__desc">Not a chatbot wrapper. Claude gets your files, structure and dependencies, so answers are grounded in your actual code.</p>
+              <span class="tile__tag">Chat</span>
+              <h3 class="tile__title">Conversations that know your project</h3>
+              <p class="tile__desc">Point a chat at a folder and the model works with your files. Queue the next message while one runs, fork a conversation to try another path, or rewind to any earlier turn.</p>
             </header>
             <div class="mini mini--chat">
-              <div class="mini__models"><span class="is-on">Opus</span><span>Sonnet</span><span>Haiku</span><span class="mini__think">Extended thinking</span></div>
+              <div class="mini__models"><span class="is-on">Claude Opus</span><span>GPT</span><span>Gemini</span><span>Ollama</span><span class="mini__think">Thinking mode</span></div>
               <div class="mini__stream">
                 <p class="mini__q">Why does checkout double-charge on retry?</p>
                 <p class="mini__a"><span class="mini__caret">Reading <code>payments/retry.rs</code>, <code>webhooks.ts</code>&hellip; The idempotency key is regenerated per attempt. Reuse the order&nbsp;ID instead.</span></p>
               </div>
             </div>
-            <ul class="tile__chips"><li>Live streaming</li><li>Plan approval</li><li>Prompt enhancement</li><li>History per project</li></ul>
+            <ul class="tile__chips"><li>Plan mode</li><li>Message queue</li><li>Branch a conversation</li><li>Undo to here</li></ul>
           </article>
 
-          <!-- Git -->
-          <article class="tile tile--git reveal">
+          <!-- Terminal -->
+          <article class="tile reveal">
             <header class="tile__head">
-              <span class="tile__tag tile__tag--git">Git</span>
-              <h3 class="tile__title">Git without leaving your flow</h3>
-              <p class="tile__desc">Worktrees, diffs and pull requests across every repo.</p>
+              <span class="tile__tag">Terminals</span>
+              <h3 class="tile__title">A terminal the AI can read</h3>
+              <p class="tile__desc">Real shells in tabs or their own window. Ask why a command failed; it suggests, you decide what runs.</p>
+            </header>
+            <div class="mini mini--term">
+              <p><span class="t-dim">~/acme</span> <span class="t-acc">cargo build</span></p>
+              <p class="t-bad">error[E0382]: borrow of moved value</p>
+              <p class="mini__ask">Why did the last command fail?</p>
+              <p><span class="t-dim">~/acme</span> <span class="mini__cursor"></span></p>
+            </div>
+          </article>
+
+          <!-- Automations -->
+          <article class="tile reveal">
+            <header class="tile__head">
+              <span class="tile__tag">Automations</span>
+              <h3 class="tile__title">Work that runs on a schedule</h3>
+              <p class="tile__desc">Recurring AI tasks with a full run history. Destructive steps are denied when nobody is watching.</p>
+            </header>
+            <ul class="mini mini--prs">
+              <li><span class="pr-dot pr-dot--ok"></span>Triage new issues<em>daily 09:00</em></li>
+              <li><span class="pr-dot pr-dot--ok"></span>Dependency report<em>Mondays</em></li>
+              <li><span class="pr-dot pr-dot--run"></span>Summarize yesterday&rsquo;s PRs<em>running</em></li>
+            </ul>
+          </article>
+
+          <!-- Git review -->
+          <article class="tile tile--wide reveal">
+            <header class="tile__head">
+              <span class="tile__tag">Workspaces &amp; PR reviews</span>
+              <h3 class="tile__title">Review like a teammate</h3>
+              <p class="tile__desc">Comment on any line of a diff and hand the notes back to the AI. Track pull requests across your repositories and review them with AI beside the code.</p>
             </header>
             <div class="mini mini--diff">
               <p class="d-meta">src/theme.ts</p>
               <p class="d-del">- const theme = 'dark';</p>
               <p class="d-add">+ const theme = stored ?? system();</p>
-              <p class="d-add">+ persist(theme);</p>
+              <p class="mini__note"><span>line 14</span>Also handle a corrupted stored value.</p>
               <div class="mini__checks"><span class="ok">build</span><span class="ok">test</span><span class="run">e2e</span></div>
             </div>
           </article>
 
-          <!-- Terminal -->
-          <article class="tile tile--term reveal">
+          <!-- Prompts -->
+          <article class="tile reveal">
             <header class="tile__head">
-              <span class="tile__tag tile__tag--term">Terminal</span>
-              <h3 class="tile__title">Full terminals, not toy shells</h3>
-              <p class="tile__desc">Real xterm.js, ANSI colour, tabs, and errors piped into AI.</p>
+              <span class="tile__tag">Prompts</span>
+              <h3 class="tile__title">From rough notes to a sharp prompt</h3>
+              <p class="tile__desc">Paste raw context, pick the techniques, get a prompt that is clearer and smaller.</p>
             </header>
-            <div class="mini mini--term">
-              <p><span class="t-dim">~/acme</span> <span class="t-acc">cargo build</span></p>
-              <p class="t-bad">error[E0382]: borrow of moved value</p>
-              <p class="mini__ask">Ask AI about this error</p>
-              <p><span class="t-dim">~/acme</span> <span class="mini__cursor"></span></p>
+            <div class="mini mini--prompt">
+              <div class="mini__techs"><span class="is-on">Think step by step</span><span class="is-on">Lock the format</span><span>Give AI a role</span></div>
+              <p class="mini__ratio"><b>2,140 tokens</b><span>was 5,380 &middot; 60% smaller</span></p>
             </div>
           </article>
 
-          <!-- API -->
-          <article class="tile tile--api reveal">
+          <!-- Requests -->
+          <article class="tile reveal">
             <header class="tile__head">
-              <span class="tile__tag tile__tag--api">API</span>
-              <h3 class="tile__title">Test APIs without Postman</h3>
-              <p class="tile__desc">Collections, environments and secrets that never leak. SSRF protection on by default.</p>
+              <span class="tile__tag">Requests</span>
+              <h3 class="tile__title">An API client that reads your code</h3>
+              <p class="tile__desc">Collections, environments and secrets, with endpoints discovered from your project.</p>
             </header>
             <div class="mini mini--api">
               <div class="mini__envs"><span>Dev</span><span class="is-on">Staging</span><span>Prod</span></div>
@@ -260,31 +330,26 @@
             </div>
           </article>
 
-          <!-- Diagrams -->
-          <article class="tile tile--draw reveal">
+          <!-- AI resources -->
+          <article class="tile reveal">
             <header class="tile__head">
-              <span class="tile__tag">Diagrams</span>
-              <h3 class="tile__title">Sketch the architecture</h3>
-              <p class="tile__desc">Excalidraw boards live next to the code they describe.</p>
+              <span class="tile__tag">AI resources</span>
+              <h3 class="tile__title">MCP servers, Skills and memory</h3>
+              <p class="tile__desc">Add local or remote MCP servers, write Skills and keep memories, per project or everywhere.</p>
             </header>
-            <div class="mini mini--draw">
-              <svg viewBox="0 0 260 120" aria-hidden="true">
-                <rect class="sk" x="8" y="40" width="70" height="38" rx="6"/>
-                <rect class="sk" x="182" y="12" width="70" height="38" rx="6"/>
-                <rect class="sk" x="182" y="72" width="70" height="38" rx="6"/>
-                <path class="sk sk--acc" d="M 80 56 C 120 50, 140 32, 178 31"/>
-                <path class="sk sk--acc" d="M 80 62 C 120 70, 140 90, 178 91"/>
-                <text x="43" y="64">app</text><text x="217" y="36">api</text><text x="217" y="96">db</text>
-              </svg>
-            </div>
+            <ul class="mini mini--prs">
+              <li><span class="pr-dot pr-dot--ok"></span>github<em>MCP &middot; ready</em></li>
+              <li><span class="pr-dot pr-dot--ok"></span>postgres<em>project MCP</em></li>
+              <li><span class="pr-dot pr-dot--merged"></span>release-notes<em>Skill</em></li>
+            </ul>
           </article>
 
           <!-- Focus -->
-          <article class="tile tile--focus tile--wide reveal">
+          <article class="tile tile--wide reveal">
             <header class="tile__head">
-              <span class="tile__tag tile__tag--focus">Focus</span>
-              <h3 class="tile__title">Stay focused, ship faster</h3>
-              <p class="tile__desc">Pomodoro, day planner, calendar, notes, Excalidraw diagrams and a link board &mdash; in the same window as your code.</p>
+              <span class="tile__tag">Focus &amp; everyday tools</span>
+              <h3 class="tile__title">The small things, next to the code</h3>
+              <p class="tile__desc">Pomodoro, day planner, quick notes and a calendar synced with Google or Outlook. Plus a link board, Excalidraw diagrams, Markdown-to-Word and a JSON fixer.</p>
             </header>
             <div class="mini mini--focus">
               <div class="mini__timer">
@@ -295,59 +360,87 @@
                 <li class="done">Review PR #128</li>
                 <li class="done">Sketch auth flow</li>
                 <li>Ship dark mode</li>
-                <li>Standup notes</li>
+                <li>Standup at 10:30</li>
               </ul>
             </div>
           </article>
-          <!-- PR radar -->
-          <article class="tile tile--prs reveal">
+
+          <!-- Profiles -->
+          <article class="tile reveal">
             <header class="tile__head">
-              <span class="tile__tag tile__tag--git">Pull requests</span>
-              <h3 class="tile__title">Every PR, at a glance</h3>
-              <p class="tile__desc">Status, CI and reviews across all your repos. Merged work archives itself.</p>
+              <span class="tile__tag">Profiles</span>
+              <h3 class="tile__title">Work and personal, apart</h3>
+              <p class="tile__desc">Separate profiles keep accounts, projects and history from mixing.</p>
             </header>
-            <ul class="mini mini--prs">
-              <li><span class="pr-dot pr-dot--ok"></span>#128 dark mode<em>approved</em></li>
-              <li><span class="pr-dot pr-dot--run"></span>#127 rate limit<em>CI running</em></li>
-              <li><span class="pr-dot pr-dot--rev"></span>#125 onboarding<em>changes requested</em></li>
-              <li><span class="pr-dot pr-dot--merged"></span>#121 search<em>merged &middot; archived</em></li>
+            <ul class="mini mini--profiles">
+              <li class="is-on"><i>W</i>Work<em>3 accounts</em></li>
+              <li><i>P</i>Personal<em>Ollama</em></li>
+              <li><i>S</i>Study<em>1 account</em></li>
             </ul>
           </article>
         </div>
       </div>
     </section>
 
-    <!-- Weight / Rust -->
+    <!-- Safety -->
+    <section class="safety" id="safety">
+      <div class="container">
+        <header class="sh sh--split reveal">
+          <div>
+            <p class="sh__index"><span>04</span>In control</p>
+            <h2 class="sh__title">Let it work.<br /><span class="sh__muted">Keep the last word.</span></h2>
+          </div>
+          <p class="sh__lede">An agent that edits files and runs commands needs brakes. Cadente asks before it acts, holds what cannot be undone, and keeps a way back.</p>
+        </header>
+        <div class="safety__grid">
+          <article class="safety__item reveal">
+            <div class="safety__ui safety__ui--modes"><span>Strict</span><span class="is-on">Approve</span><span>Trust</span></div>
+            <h3>You set the permissions</h3>
+            <p>Run only listed tools, confirm each call, or trust a workspace. Read-only tools can pass automatically.</p>
+          </article>
+          <article class="safety__item reveal">
+            <div class="safety__ui safety__ui--warn"><b>Irreversible action</b><span>git push --force &middot; denied if nobody responds</span></div>
+            <h3>Destructive steps wait for you</h3>
+            <p>Dropped tables, recursive deletes, force-pushes and cloud deletions are caught and held for a person.</p>
+          </article>
+          <article class="safety__item reveal">
+            <div class="safety__ui safety__ui--undo"><span>4 files changed</span><b>Undo to here</b></div>
+            <h3>Every edit can be rewound</h3>
+            <p>File changes are captured before and after, so a conversation can roll back to any turn.</p>
+          </article>
+          <article class="safety__item reveal">
+            <div class="safety__ui safety__ui--box"><span>bash</span><b>sandboxed</b><span>private HOME &middot; no secrets</span></div>
+            <h3>Commands run in a sandbox</h3>
+            <p>Shell and Python run in a supervised process tree with a private home and scrubbed credentials.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Built light -->
     <section class="weight" id="weight">
       <div class="container weight__inner">
         <div class="weight__text reveal">
-          <p class="sh__index"><span>03</span>Built with Rust</p>
-          <h2 class="sh__title">Eight apps idling.<br /><span class="sh__muted">Or just one.</span></h2>
-          <p class="weight__desc">Postman, a Git client, a terminal, notes, a timer, a calendar, a whiteboard, a Claude window &mdash; together they sit on over 2&nbsp;GB doing nothing. Cadente replaces all of them and idles at ~80&nbsp;MB. Under full load it stays below 500&nbsp;MB.</p>
-          <div class="weight__stats">
-            <div><span class="weight__num tabular" data-count="80" data-count-prefix="~" data-count-suffix=" MB">~80 MB</span><span class="weight__lbl">idle</span></div>
-            <div><span class="weight__num tabular">0</span><span class="weight__lbl">telemetry</span></div>
-            <div><span class="weight__num tabular">4.5&times;</span><span class="weight__lbl">less RAM</span></div>
-          </div>
+          <p class="sh__index"><span>05</span>Built with Rust</p>
+          <h2 class="sh__title">Light while it works.<br /><span class="sh__muted">Gone when it rests.</span></h2>
+          <p class="weight__desc">A small Rust core does the work, so chats, agents, terminals and automations keep running from the tray. Close the window and the interface is released from memory entirely &mdash; nothing lingers in the background pretending to be closed.</p>
           <ul class="weight__facts">
-            <li>Your code, chats and data never leave your machine</li>
-            <li>Cryptographically signed auto-updates</li>
-            <li>macOS (ARM + Intel), Windows, Linux</li>
-            <li>MCP servers for extensible tooling</li>
+            <li>Everything is a plugin &mdash; replace any built-in provider with your own</li>
+            <li>Workspaces, history and keys stay on your machine</li>
+            <li>Signed updates, and a launcher that can roll back to an earlier version</li>
+            <li>Builds for macOS (Apple Silicon and Intel), Windows and Linux</li>
           </ul>
         </div>
-        <div class="ledger reveal reveal--rise" id="ledger">
-          <p class="ledger__head">Memory at idle</p>
-          <div class="ledger__row" style="--w:90%;--i:0"><span>Postman</span><i></i><b>450 MB</b></div>
-          <div class="ledger__row" style="--w:76%;--i:1"><span>Claude Desktop</span><i></i><b>380 MB</b></div>
-          <div class="ledger__row" style="--w:70%;--i:2"><span>GitKraken</span><i></i><b>350 MB</b></div>
-          <div class="ledger__row" style="--w:64%;--i:3"><span>Notion</span><i></i><b>320 MB</b></div>
-          <div class="ledger__row" style="--w:50%;--i:4"><span>Excalidraw</span><i></i><b>250 MB</b></div>
-          <div class="ledger__row" style="--w:40%;--i:5"><span>iTerm2</span><i></i><b>200 MB</b></div>
-          <div class="ledger__row" style="--w:36%;--i:6"><span>Calendar</span><i></i><b>180 MB</b></div>
-          <div class="ledger__row" style="--w:24%;--i:7"><span>Pomodoro</span><i></i><b>120 MB</b></div>
-          <p class="ledger__sum"><span>Eight apps, doing nothing</span><b class="t-bad">~2.25 GB</b></p>
-          <div class="ledger__row ledger__row--us" style="--w:16%;--i:9"><span>Cadente</span><i></i><b>~80 MB</b></div>
+        <div class="memory reveal" id="ledger">
+          <div class="memory__state">
+            <p class="memory__label">Window open</p>
+            <div class="memory__bar"><span class="memory__core">Rust core</span><span class="memory__ui">Interface</span></div>
+          </div>
+          <div class="memory__state memory__state--closed">
+            <p class="memory__label">Window closed</p>
+            <div class="memory__bar"><span class="memory__core">Rust core</span><span class="memory__gone">released</span></div>
+          </div>
+          <p class="memory__note"><span class="memory__pulse"></span>Agents, automations and terminals keep running from the tray.</p>
         </div>
       </div>
     </section>
@@ -357,10 +450,10 @@
       <div class="container">
         <header class="sh sh--split reveal">
           <div>
-            <p class="sh__index"><span>04</span>Pricing</p>
+            <p class="sh__index"><span>06</span>Pricing</p>
             <h2 class="sh__title">All of it.<br /><span class="sh__muted">Free to start.</span></h2>
           </div>
-          <p class="sh__lede">Every feature is in the free plan. Limits apply only to how many items are active at once &mdash; archive one to free a slot.</p>
+          <p class="sh__lede">Every feature is in the free plan. You bring the model, so there is no markup on AI usage &mdash; limits apply only to how many items are active at once.</p>
         </header>
         <div class="pricing__grid">
           <div class="card card--pricing reveal">
@@ -370,18 +463,15 @@
                 <span class="card__pricing-amount">$0</span>
                 <span class="card__pricing-period">/ forever</span>
               </div>
-              <p class="card__pricing-desc">Every feature included. Limits only on how many items you can have active at once &mdash; archive to free slots anytime.</p>
+              <p class="card__pricing-desc">The whole app. Limits apply only to how many items are active at once.</p>
             </div>
             <ul class="card__pricing-features">
-              <li><span class="check">&#10003;</span> AI chat with Claude (Opus, Sonnet, Haiku)</li>
-              <li><span class="check">&#10003;</span> Git worktree management &amp; PR tracking</li>
-              <li><span class="check">&#10003;</span> Integrated terminals with AI suggestions</li>
-              <li><span class="check">&#10003;</span> HTTP request collections &amp; environments</li>
-              <li><span class="check">&#10003;</span> Pomodoro, planner, calendar, notes</li>
-              <li><span class="check">&#10003;</span> Excalidraw diagrams &amp; link board</li>
-              <li><span class="check">&#10003;</span> 5 active workspaces, 5 terminals, 5 PR reviews</li>
-              <li><span class="check">&#10003;</span> 3 request collections, 5 templates, 5 diagrams</li>
-              <li><span class="check">&#10003;</span> Cross-platform &amp; 100% local &mdash; zero telemetry</li>
+              <li><span class="check">&#10003;</span> Every feature and every model provider</li>
+              <li><span class="check">&#10003;</span> Your subscriptions, API keys or local models</li>
+              <li><span class="check">&#10003;</span> 5 workspaces, 5 terminals, 5 PR reviews</li>
+              <li><span class="check">&#10003;</span> 3 automations, 3 request collections</li>
+              <li><span class="check">&#10003;</span> 5 prompt sessions, 5 diagrams</li>
+              <li><span class="check">&#10003;</span> macOS, Windows and Linux</li>
             </ul>
             <a href="./downloads.html" class="btn btn--ghost btn--full">Download free</a>
           </div>
@@ -398,20 +488,19 @@
                 <span class="card__pricing-period" id="pro-price-period">/ mo</span>
               </div>
               <p class="card__pricing-note" id="pro-price-yearly"><span class="pricing-skeleton" style="width:180px"></span></p>
-              <p class="card__pricing-desc">Unlimited everything. No caps on simultaneous items, plus cloud sync and version history.</p>
+              <p class="card__pricing-desc">No caps on anything, and your setup synced between machines.</p>
             </div>
             <ul class="card__pricing-features">
               <li><span class="check">&#10003;</span> Everything in Free</li>
-              <li><span class="check">&#10003;</span> Unlimited workspaces, terminals, and everything else</li>
-              <li><span class="check">&#10003;</span> Cloud sync &mdash; seamlessly sync across all your devices</li>
+              <li><span class="check">&#10003;</span> Unlimited workspaces, terminals, automations and more</li>
+              <li><span class="check">&#10003;</span> Cloud sync between your devices</li>
               <li><span class="check">&#10003;</span> 30-day version history</li>
-              <li><span class="check">&#10003;</span> Priority support</li>
             </ul>
             <a href="./downloads.html" class="btn btn--primary btn--full" id="pro-cta">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19h14"/></svg>
               Download &amp; start free trial
             </a>
-            <p class="card__pricing-trial-note">Download the app &bull; Sign up with Google or GitHub &bull; Pro unlocks instantly</p>
+            <p class="card__pricing-trial-note">Download the app, then sign in with Google, GitHub or email to start the trial.</p>
           </div>
         </div>
       </div>
@@ -422,7 +511,7 @@
       <div class="container finale__inner reveal">
         <svg class="finale__comet" viewBox="0 0 512 512" aria-hidden="true"><path d="M 379 153 A 160 160 0 1 0 379 359" fill="none" stroke="url(#c-grad)" stroke-width="40" stroke-linecap="round"/><path d="M 424 240 L 429 252 L 442 256 L 429 260 L 424 272 L 419 260 L 406 256 L 419 252 Z" fill="url(#c-spark)"/></svg>
         <h2 class="cta__title finale__title">Your IDE is for writing code.<br /><span class="gradient-text">Cadente is for everything else.</span></h2>
-        <p class="finale__sub">AI conversations, Git workflows, terminals, API testing and focus tools &mdash; one native app that starts in under a second.</p>
+        <p class="finale__sub">Chats with any model, worktrees and pull requests, terminals, automations, API requests and your focus tools &mdash; in one desktop app.</p>
         <div class="hero__actions">
           <a href="./downloads.html" class="btn btn--primary btn--lg">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19h14"/></svg>
@@ -436,8 +525,6 @@
       </div>
     </section>
   </main>
-
-
   <!-- Footer -->
   <footer class="footer">
     <div class="container footer__inner">

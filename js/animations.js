@@ -50,7 +50,6 @@ function initReveal() {
       if (!entry.isIntersecting) continue;
       const el = entry.target;
       el.classList.add('in', 'visible');
-      el.querySelectorAll('[data-count]').forEach(countDown);
       io.unobserve(el);
     }
   }, { threshold: 0.15, rootMargin: '0px 0px -48px 0px' });
@@ -60,24 +59,6 @@ function initReveal() {
   document.querySelectorAll('.bento, .pricing__grid').forEach((grid) => {
     [...grid.children].forEach((child, i) => child.style.setProperty('--delay', `${i * 0.06}s`));
   });
-}
-
-// ---------- "~80 MB": the number shrinks from the 2.25 GB of eight apps ----------
-function countDown(el) {
-  const end = parseFloat(el.dataset.count);
-  if (Number.isNaN(end) || end === 0) return;
-  const from = 2250;
-  const prefix = el.dataset.countPrefix || '';
-  const suffix = el.dataset.countSuffix || '';
-  const start = performance.now();
-  const dur = 1400;
-  function step(now) {
-    const p = Math.min((now - start) / dur, 1);
-    const eased = 1 - Math.pow(1 - p, 4);
-    el.textContent = prefix + Math.round(from + (end - from) * eased) + suffix;
-    if (p < 1) requestAnimationFrame(step);
-  }
-  requestAnimationFrame(step);
 }
 
 // ---------- Product demo: the wish becomes a pull request ----------

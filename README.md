@@ -4,7 +4,7 @@
 [![GitHub Pages](https://img.shields.io/github/actions/workflow/status/cadente-hub/cadente-hub.github.io/deploy-site.yml?label=website&style=flat-square)](https://cadente-hub.github.io)
 [![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
 
-Your AI-Powered Desktop Assistant — bringing the power of Claude directly to your desktop.
+A desktop AI workspace for developers — use Claude, ChatGPT, Gemini or a local model with your repositories, terminals and pull requests.
 
 🌐 **Website**: [cadente-hub.github.io](https://cadente-hub.github.io)
 
@@ -44,10 +44,14 @@ Run the `.exe` installer or `.msi` package. Follow the installation wizard.
 
 ## Features
 
-- 🚀 **AI-Powered Coding** — Integrated Claude Code CLI for intelligent code assistance
-- 🔀 **Git Workspace Management** — Worktree-based isolation for organized projects
-- 💬 **Real-time Streaming** — Watch AI responses appear instantly
-- 🖥️ **Cross-Platform** — Native performance on macOS, Windows, and Linux
+- **Any model** — Claude and ChatGPT subscriptions (via the official CLIs), API keys for Anthropic, OpenAI, Gemini, DeepSeek, OpenRouter and other OpenAI-compatible providers, or local models through Ollama and LM Studio
+- **Chat with project context** — plan mode, message queue, conversation branching and undo to any earlier turn
+- **Workspaces & PR reviews** — Git worktree isolation, inline diff review, pull request tracking and AI-assisted review
+- **Terminals** — real shells the AI can read, in tabs or their own window
+- **Automations** — scheduled AI tasks with run history
+- **In control** — tool permission modes, guarded destructive actions, sandboxed shell and reversible file edits
+- **More** — prompt builder, API requests, MCP servers and Skills, focus tools, calendar, diagrams and profiles
+- **Cross-platform** — macOS, Windows and Linux, in 15 interface languages
 
 ## Auto-Updates
 
