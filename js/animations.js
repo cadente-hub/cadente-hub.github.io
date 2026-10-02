@@ -14,7 +14,7 @@ function initSplitText() {
     const walker = document.createTreeWalker(line, NodeFilter.SHOW_TEXT);
     const nodes = [];
     while (walker.nextNode()) nodes.push(walker.currentNode);
-    const step = li === 0 ? 0.11 : 0.05;
+    const step = line.classList.contains('hero__line--sub') ? 0.05 : 0.12;
     for (const node of nodes) {
       const frag = document.createDocumentFragment();
       node.textContent.split(/(\s+)/).forEach((part) => {

@@ -3,16 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cadente — make a wish</title>
-  <meta name="description" content="Cadente — make a wish. A desktop AI workspace for developers: any model, your repositories, terminals, automations and pull requests in one app." />
+  <title>Cadente — the AI harness you control</title>
+  <meta name="description" content="Cadente — the AI harness you control. Use any model, including your Claude or ChatGPT subscription; see exactly what the model sees; undo any step; replace any part of the agent with a plugin." />
   <meta property="og:title" content="Cadente" />
-  <meta property="og:description" content="make a wish — a desktop AI workspace for developers. Use Claude, ChatGPT, Gemini or local models with your repos, terminals and pull requests." />
+  <meta property="og:description" content="The AI harness you control: any model, every step visible, every edit undoable, every part replaceable." />
   <meta property="og:image" content="https://cadente-hub.github.io/assets/og-image.png" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://cadente-hub.github.io" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Cadente" />
-  <meta name="twitter:description" content="make a wish — a desktop AI workspace for developers. Use Claude, ChatGPT, Gemini or local models with your repos, terminals and pull requests." />
+  <meta name="twitter:description" content="The AI harness you control: any model, every step visible, every edit undoable, every part replaceable." />
   <meta name="twitter:image" content="https://cadente-hub.github.io/assets/og-image.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -36,12 +36,11 @@
         Cadente
       </a>
       <ul class="navbar__links">
-        <li><a href="#how">How it works</a></li>
-        <li><a href="#features">Features</a></li>
+        <li><a href="#models">Models</a></li>
+        <li><a href="#inside">See inside</a></li>
         <li><a href="#plugins">Plugins</a></li>
         <li><a href="#pricing">Pricing</a></li>
         <li><a href="./downloads.html">Downloads</a></li>
-        <li><a href="./release-notes.html">Release Notes</a></li>
         <li><a href="./blog/">Blog</a></li>
       </ul>
       <div class="navbar__actions">
@@ -62,7 +61,9 @@
   <!-- Mobile Menu -->
   <div class="mobile-menu" id="mobile-menu">
     <ul class="mobile-menu__links">
-      <li><a href="#how">How it works</a></li>
+      <li><a href="#models">Models</a></li>
+      <li><a href="#inside">See inside</a></li>
+      <li><a href="#plugins">Plugins</a></li>
       <li><a href="#features">Features</a></li>
       <li><a href="#pricing">Pricing</a></li>
       <li><a href="./downloads.html">Downloads</a></li>
@@ -77,13 +78,13 @@
     <section class="hero hero--sky" id="top">
       <div class="hero__aurora" aria-hidden="true"></div>
       <div class="container hero__inner">
-        <p class="hero__eyebrow reveal"><span class="hero__eyebrow-dot"></span>An AI workspace for developers &middot; macOS, Windows, Linux</p>
-        <h1 class="hero__title hero__title--wish" data-split>
-          <span class="hero__line">Make a <em class="wish-word">wish.</em></span>
-          <span class="hero__line hero__line--sub">Watch it land in your code.</span>
+        <p class="hero__eyebrow reveal"><span class="hero__eyebrow-dot"></span>make a wish &middot; for macOS, Windows and Linux</p>
+        <h1 class="hero__title hero__title--manifesto" data-split>
+          <span class="hero__line">The AI harness</span>
+          <span class="hero__line"><em class="wish-word">you control.</em></span>
         </h1>
         <p class="hero__tagline reveal">
-          Ask in plain words, with the model you already pay for &mdash; Claude, ChatGPT, Gemini or one running on your own machine. Cadente plans with you, works in an isolated Git worktree, runs your tests in a real terminal and opens the pull request. Every file it touches can be undone.
+          There are a thousand AI coding tools. Most hand you one company&rsquo;s models, a context you cannot see, edits you cannot take back and an agent you cannot change. Cadente gives all four back.
         </p>
         <div class="hero__actions reveal">
           <a href="./downloads.html" class="btn btn--primary btn--lg">
@@ -95,10 +96,226 @@
             View on GitHub
           </a>
         </div>
-      </div>
 
-      <!-- Animated product demo -->
+        <ol class="reasons reveal" aria-label="Why Cadente">
+          <li><a href="#models"><span class="reasons__n">01</span><b>Any model</b><span>Your Claude or ChatGPT subscription, any API key, or a model on your machine.</span></a></li>
+          <li><a href="#inside"><span class="reasons__n">02</span><b>See inside</b><span>Read exactly what the model receives each turn, token by token.</span></a></li>
+          <li><a href="#inside"><span class="reasons__n">03</span><b>Rewind</b><span>Undo any turn, or branch from any step to try another way.</span></a></li>
+          <li><a href="#plugins"><span class="reasons__n">04</span><b>Rewire</b><span>Replace any part of the agent with a plugin &mdash; including one you write.</span></a></li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- Any model -->
+    <section class="models" id="models">
       <div class="container">
+        <header class="sh sh--split reveal">
+          <div>
+            <p class="sh__index"><span>01</span>Any model</p>
+            <h2 class="sh__title">Bring the AI<br /><span class="sh__muted">you already pay for.</span></h2>
+          </div>
+          <p class="sh__lede">Cadente is not tied to one company. Sign in with the Claude or ChatGPT plan you already have &mdash; no second AI bill &mdash; or paste an API key, or point it at a model on your machine. Switch per conversation.</p>
+        </header>
+        <div class="models__grid">
+          <article class="models__col reveal">
+            <p class="models__kind">Subscriptions</p>
+            <h3 class="models__title">Use the plan you pay for</h3>
+            <ul class="models__list">
+              <li><b>Claude</b><span>Pro, Max or Team, through the official Claude CLI</span></li>
+              <li><b>ChatGPT</b><span>Plus, Team or Pro, through the official Codex CLI</span></li>
+            </ul>
+          </article>
+          <article class="models__col reveal">
+            <p class="models__kind">API keys</p>
+            <h3 class="models__title">Any provider, your key</h3>
+            <ul class="models__chips">
+              <li>Anthropic</li><li>OpenAI</li><li>Google Gemini</li><li>DeepSeek</li><li>OpenRouter</li><li>Groq</li><li>Together AI</li><li>Fireworks AI</li><li>Any OpenAI-compatible URL</li>
+            </ul>
+          </article>
+          <article class="models__col reveal">
+            <p class="models__kind">On your machine</p>
+            <h3 class="models__title">Fully local, if you want</h3>
+            <ul class="models__list">
+              <li><b>Ollama</b><span>Detected automatically, with recommended models to pull</span></li>
+              <li><b>LM Studio</b><span>Or any local server that speaks the OpenAI API</span></li>
+            </ul>
+          </article>
+        </div>
+        <p class="models__foot reveal"><span class="models__badge">18.2k tok &middot; $0.21</span> Every turn shows its tokens and cost &mdash; or &ldquo;included in plan&rdquo; when it runs on a subscription.</p>
+      </div>
+    </section>
+
+    <!-- See inside -->
+    <section class="inside" id="inside">
+      <div class="container">
+        <header class="sh sh--split reveal">
+          <div>
+            <p class="sh__index"><span>02</span>See inside</p>
+            <h2 class="sh__title">No black box.<br /><span class="sh__muted">Every step open, every step undoable.</span></h2>
+          </div>
+          <p class="sh__lede">Most agents hide what they send and what they did. Cadente shows the exact context each turn sends to the model, keeps a durable journal of every step, and lets you go back to any of them.</p>
+        </header>
+
+        <div class="inside__grid">
+          <article class="inside__panel reveal">
+            <div class="surface">
+              <div class="surface__head"><b>Model surface</b><span>turn 14 &middot; 23.5k of 200k &middot; sha256 9f2c&hellip;</span></div>
+              <div class="surface__bar" role="img" aria-label="23.5 thousand of 200 thousand tokens used">
+                <i style="--w:13.6%;--c:#a99bff"></i><i style="--w:8.9%;--c:#86b4ff"></i><i style="--w:48.5%;--c:#6fd3a8"></i><i style="--w:28.9%;--c:#f0b47e"></i>
+              </div>
+              <ul class="surface__legend">
+                <li><i style="--c:#a99bff"></i>Instructions<b>3.2k</b></li>
+                <li><i style="--c:#86b4ff"></i>Tools<b>2.1k</b></li>
+                <li><i style="--c:#6fd3a8"></i>Files<b>11.4k</b></li>
+                <li><i style="--c:#f0b47e"></i>History<b>6.8k</b></li>
+                <li class="surface__free">Free<b>176.5k</b></li>
+              </ul>
+              <div class="surface__diff">
+                <p class="surface__diff-head">Compared with turn 13</p>
+                <p class="d-add">+ src/theme.ts <span>2.4k</span></p>
+                <p class="d-del">&minus; test output, moved to a persisted result <span>5.1k</span></p>
+              </div>
+            </div>
+            <h3>See what the model sees</h3>
+            <p>The exact projection sent each turn, its token budget by fragment, and a semantic diff against the previous turn. Every turn shows its cost, too.</p>
+          </article>
+
+          <article class="inside__panel reveal">
+            <div class="journal">
+              <div class="surface__head"><b>Trajectory</b><span>branch: main</span></div>
+              <ol class="journal__list">
+                <li style="--i:0"><span class="journal__n">11</span>Read <code>src/theme.ts</code></li>
+                <li style="--i:1"><span class="journal__n">12</span>Edit <code>src/theme.ts</code><em class="t-ok">+18</em><em class="t-bad">&minus;4</em></li>
+                <li style="--i:2" class="is-target"><span class="journal__n">13</span>Edit <code>src/nav.tsx</code><button type="button" tabindex="-1" aria-hidden="true">Undo to here</button></li>
+                <li style="--i:3"><span class="journal__n">14</span>Run <code>npm test</code><em class="t-ok">42 passed</em></li>
+              </ol>
+              <p class="journal__branch"><span></span>Branch <b>try-css-vars</b> from step 12</p>
+            </div>
+            <h3>Rewind anything, branch anywhere</h3>
+            <p>A durable journal records every step. Roll file changes back to any turn, or fork the conversation from any event to try another approach.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Plugins -->
+    <section class="plugins" id="plugins">
+      <div class="container">
+        <header class="sh sh--split reveal">
+          <div>
+            <p class="sh__index"><span>03</span>Rewire</p>
+            <h2 class="sh__title">Don&rsquo;t like how the agent works?<br /><span class="sh__muted">Replace that part.</span></h2>
+          </div>
+          <p class="sh__lede">Other tools ship one agent loop and ask you to live with it. In Cadente the agent is a graph of plugins around a tiny Rust microkernel &mdash; models, context, compaction and tools are contracts that any plugin can provide, including one you write.</p>
+        </header>
+
+        <div class="pl-stage reveal" id="plugin-stage" aria-label="Animated diagram of Cadente's plugin graph">
+          <svg class="pl-wires" aria-hidden="true"></svg>
+          <div class="pl-world" aria-hidden="true"></div>
+          <p class="pl-toast" role="status">Collision &middot; <code>cadente.compaction@1</code> already has a provider</p>
+        </div>
+
+        <div class="pl-controls reveal">
+          <div class="pl-steps" role="group" aria-label="Plugin graph steps">
+            <button class="pl-step" type="button"><span>01</span>Kernel</button>
+            <button class="pl-step" type="button"><span>02</span>Contracts</button>
+            <button class="pl-step" type="button"><span>03</span>Consumers</button>
+            <button class="pl-step" type="button"><span>04</span>Providers</button>
+            <button class="pl-step" type="button"><span>05</span>Your plugin</button>
+            <button class="pl-step" type="button"><span>06</span>No guessing</button>
+          </div>
+          <p class="pl-caption" aria-live="polite">A small Rust microkernel owns only what must never be swapped: trust, permissions, integrity, isolation, persistence, resolution and recovery.</p>
+        </div>
+
+        <div class="pl-more">
+          <ul class="pl-facts reveal">
+            <li><b>One path for every plugin.</b> Built-in packages and yours go through the same graph, lifecycle and contracts.</li>
+            <li><b>Checked before it runs.</b> Artifacts are pinned by hash, locked, and granted only the permissions they declare. External code never runs inside the privileged process.</li>
+            <li><b>Code goes, data stays.</b> Turning a plugin off never deletes its configuration or data.</li>
+          </ul>
+          <figure class="pl-code reveal">
+            <figcaption><span>acme.compaction</span><span>host/index.js</span></figcaption>
+<pre><code><span class="k">export const</span> inject = [<span class="s">"cadenteServices"</span>];
+
+<span class="k">export function</span> <span class="f">apply</span>(ctx) {
+  ctx.cadenteServices.<span class="f">register</span>(
+    <span class="s">"cadente.compaction"</span>, <span class="n">1</span>, <span class="s">"cadente.compaction.v1"</span>,
+    <span class="k">async</span> (request) =&gt; <span class="f">summarize</span>(request),
+  );
+}</code></pre>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- Safety -->
+    <section class="safety" id="safety">
+      <div class="container">
+        <header class="sh sh--split reveal">
+          <div>
+            <p class="sh__index"><span>04</span>Unattended</p>
+            <h2 class="sh__title">Let it work while you&rsquo;re away.<br /><span class="sh__muted">With the brakes on.</span></h2>
+          </div>
+          <p class="sh__lede">Automations run on a schedule, and agents keep working from the tray after the window closes. Permissions, a guard on destructive steps and a sandbox decide what they may do when nobody is watching.</p>
+        </header>
+        <div class="safety__grid">
+          <article class="safety__item reveal">
+            <div class="safety__ui safety__ui--modes"><span>Strict</span><span class="is-on">Approve</span><span>Trust</span></div>
+            <h3>You set the permissions</h3>
+            <p>Run only listed tools, confirm each call, or trust a workspace. Read-only tools can pass automatically.</p>
+          </article>
+          <article class="safety__item reveal">
+            <div class="safety__ui safety__ui--warn"><b>Irreversible action</b><span>git push --force &middot; denied if nobody responds</span></div>
+            <h3>Destructive steps wait for you</h3>
+            <p>Dropped tables, recursive deletes, force-pushes and cloud deletions are caught and held for a person.</p>
+          </article>
+          <article class="safety__item reveal">
+            <div class="safety__ui safety__ui--undo"><span>4 files changed</span><b>Undo to here</b></div>
+            <h3>Every edit can be rewound</h3>
+            <p>File changes are captured before and after, so a conversation can roll back to any turn.</p>
+          </article>
+          <article class="safety__item reveal">
+            <div class="safety__ui safety__ui--box"><span>bash</span><b>sandboxed</b><span>private HOME &middot; no secrets</span></div>
+            <h3>Commands run in a sandbox</h3>
+            <p>Shell and Python run in a supervised process tree with a private home and scrubbed credentials.</p>
+          </article>
+        </div>
+        <div class="unattended">
+        <div class="memory reveal" id="ledger">
+          <div class="memory__state">
+            <p class="memory__label">Window open</p>
+            <div class="memory__bar"><span class="memory__core">Rust core</span><span class="memory__ui">Interface</span></div>
+          </div>
+          <div class="memory__state memory__state--closed">
+            <p class="memory__label">Window closed</p>
+            <div class="memory__bar"><span class="memory__core">Rust core</span><span class="memory__gone">released</span></div>
+          </div>
+          <p class="memory__note"><span class="memory__pulse"></span>Agents, automations and terminals keep running from the tray.</p>
+        </div>
+
+          <ul class="unattended__facts reveal">
+            <li><b>Close the window, keep the work.</b> The interface is released from memory; a small Rust core keeps agents, automations and terminals running from the tray.</li>
+            <li><b>Stays on your machine.</b> Workspaces, history and keys live locally.</li>
+            <li><b>Updates you can undo.</b> Updates are signed, and the launcher can roll back to an earlier version.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section class="bento-section" id="features">
+      <div class="container">
+        <header class="sh sh--split reveal">
+          <div>
+            <p class="sh__index"><span>05</span>Everything else</p>
+            <h2 class="sh__title">And the rest of your day,<br /><span class="sh__muted">in the same window.</span></h2>
+          </div>
+          <p class="sh__lede">A wish becomes a reviewed pull request without leaving the app &mdash; and the terminals, reviews, requests and small tools around it live right next to it.</p>
+        </header>
+
+        <div class="flow reveal">
+          <p class="flow__steps"><span>Wish</span><span>Plan</span><span>Worktree</span><span>Tests</span><span>Pull request</span></p>
+        </div>
         <div class="demo reveal reveal--rise" id="wish-demo">
           <div class="demo__glow" aria-hidden="true"></div>
           <div class="demo__window">
@@ -156,89 +373,6 @@
             </div>
           </div>
         </div>
-      </div>
-    </section>
-
-    <!-- Languages -->
-    <section class="tongues" aria-label="Supported languages">
-      <p class="tongues__label">The interface speaks fifteen languages</p>
-      <div class="tongues__marquee">
-        <div class="tongues__track">
-          <span>English</span><span>Español</span><span>Português</span><span>Français</span><span>Deutsch</span><span>Italiano</span><span>Русский</span><span>日本語</span><span>한국어</span><span>中文</span><span>Türkçe</span><span lang="ar">العربية</span><span lang="hi">हिन्दी</span><span>Bahasa Indonesia</span><span>Tiếng Việt</span>
-          <span aria-hidden="true">English</span><span aria-hidden="true">Español</span><span aria-hidden="true">Português</span><span aria-hidden="true">Français</span><span aria-hidden="true">Deutsch</span><span aria-hidden="true">Italiano</span><span aria-hidden="true">Русский</span><span aria-hidden="true">日本語</span><span aria-hidden="true">한국어</span><span aria-hidden="true">中文</span><span aria-hidden="true">Türkçe</span><span aria-hidden="true" lang="ar">العربية</span><span aria-hidden="true" lang="hi">हिन्दी</span><span aria-hidden="true">Bahasa Indonesia</span><span aria-hidden="true">Tiếng Việt</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- How it works -->
-    <section class="constellation" id="how">
-      <div class="container">
-        <header class="sh reveal">
-          <p class="sh__index"><span>01</span>How it works</p>
-          <h2 class="sh__title">Every wish follows<br /><span class="sh__muted">the same path to merged.</span></h2>
-        </header>
-        <ol class="constellation__path" id="constellation">
-          <svg class="constellation__lines" viewBox="0 0 1000 220" preserveAspectRatio="none" aria-hidden="true">
-            <path d="M 100 150 L 300 60 L 500 130 L 700 40 L 900 110" />
-          </svg>
-          <li class="constellation__star" style="--i:0"><span class="constellation__dot"></span><span class="constellation__n">01</span><h3>Wish</h3><p>Say it in plain words. One click rewrites a rough request into a sharper prompt.</p></li>
-          <li class="constellation__star" style="--i:1"><span class="constellation__dot"></span><span class="constellation__n">02</span><h3>Plan</h3><p>The model reads the workspace and proposes a plan. Nothing changes until you approve.</p></li>
-          <li class="constellation__star" style="--i:2"><span class="constellation__dot"></span><span class="constellation__n">03</span><h3>Isolate</h3><p>Each workspace gets its own Git worktree, so parallel tasks never collide.</p></li>
-          <li class="constellation__star" style="--i:3"><span class="constellation__dot"></span><span class="constellation__n">04</span><h3>Run</h3><p>Tests run in a real terminal the AI can read. You decide which commands run.</p></li>
-          <li class="constellation__star" style="--i:4"><span class="constellation__dot"></span><span class="constellation__n">05</span><h3>Ship</h3><p>Open the pull request, follow CI, and let the workspace archive itself on merge.</p></li>
-        </ol>
-      </div>
-    </section>
-
-    <!-- Any model -->
-    <section class="models" id="models">
-      <div class="container">
-        <header class="sh sh--split reveal">
-          <div>
-            <p class="sh__index"><span>02</span>Any model</p>
-            <h2 class="sh__title">Bring the AI<br /><span class="sh__muted">you already have.</span></h2>
-          </div>
-          <p class="sh__lede">Cadente is not tied to one company. Sign in with a subscription, paste an API key or point it at a model on your machine &mdash; and switch per conversation.</p>
-        </header>
-        <div class="models__grid">
-          <article class="models__col reveal">
-            <p class="models__kind">Subscriptions</p>
-            <h3 class="models__title">Use the plan you pay for</h3>
-            <ul class="models__list">
-              <li><b>Claude</b><span>Pro, Max or Team, through the official Claude CLI</span></li>
-              <li><b>ChatGPT</b><span>Plus, Team or Pro, through the official Codex CLI</span></li>
-            </ul>
-          </article>
-          <article class="models__col reveal">
-            <p class="models__kind">API keys</p>
-            <h3 class="models__title">Any provider, your key</h3>
-            <ul class="models__chips">
-              <li>Anthropic</li><li>OpenAI</li><li>Google Gemini</li><li>DeepSeek</li><li>OpenRouter</li><li>Groq</li><li>Together AI</li><li>Fireworks AI</li><li>Any OpenAI-compatible URL</li>
-            </ul>
-          </article>
-          <article class="models__col reveal">
-            <p class="models__kind">On your machine</p>
-            <h3 class="models__title">Fully local, if you want</h3>
-            <ul class="models__list">
-              <li><b>Ollama</b><span>Detected automatically, with recommended models to pull</span></li>
-              <li><b>LM Studio</b><span>Or any local server that speaks the OpenAI API</span></li>
-            </ul>
-          </article>
-        </div>
-        <p class="models__foot reveal"><span class="models__badge">18.2k tok &middot; $0.21</span> Every turn shows its tokens and cost &mdash; or &ldquo;included in plan&rdquo; when it runs on a subscription.</p>
-      </div>
-    </section>
-
-    <!-- Features -->
-    <section class="bento-section" id="features">
-      <div class="container">
-        <header class="sh sh--split reveal">
-          <div>
-            <p class="sh__index"><span>03</span>Features</p>
-            <h2 class="sh__title">Your whole desk,<br /><span class="sh__muted">in one window.</span></h2>
-          </div>
-          <p class="sh__lede">Chats, repositories, terminals, automations and the small tools around them live together, and each of them can ask the AI for help.</p>
-        </header>
 
         <div class="bento">
           <!-- Chat -->
@@ -383,115 +517,13 @@
       </div>
     </section>
 
-    <!-- Plugins -->
-    <section class="plugins" id="plugins">
-      <div class="container">
-        <header class="sh sh--split reveal">
-          <div>
-            <p class="sh__index"><span>04</span>Plugins</p>
-            <h2 class="sh__title">A tiny core.<br /><span class="sh__muted">Everything else snaps in.</span></h2>
-          </div>
-          <p class="sh__lede">Cadente is built as a microkernel. Models, chat, terminals, tools and even the navigation are plugins wired through versioned contracts &mdash; so any of them can be replaced, including by one you write.</p>
-        </header>
-
-        <div class="pl-stage reveal" id="plugin-stage" aria-label="Animated diagram of Cadente's plugin graph">
-          <svg class="pl-wires" aria-hidden="true"></svg>
-          <div class="pl-world" aria-hidden="true"></div>
-          <p class="pl-toast" role="status">Collision &middot; <code>cadente.compaction@1</code> already has a provider</p>
-        </div>
-
-        <div class="pl-controls reveal">
-          <div class="pl-steps" role="group" aria-label="Plugin graph steps">
-            <button class="pl-step" type="button"><span>01</span>Kernel</button>
-            <button class="pl-step" type="button"><span>02</span>Contracts</button>
-            <button class="pl-step" type="button"><span>03</span>Consumers</button>
-            <button class="pl-step" type="button"><span>04</span>Providers</button>
-            <button class="pl-step" type="button"><span>05</span>Your plugin</button>
-            <button class="pl-step" type="button"><span>06</span>No guessing</button>
-          </div>
-          <p class="pl-caption" aria-live="polite">A small Rust microkernel owns only what must never be swapped: trust, permissions, integrity, isolation, persistence, resolution and recovery.</p>
-        </div>
-
-        <div class="pl-more">
-          <ul class="pl-facts reveal">
-            <li><b>One path for every plugin.</b> Built-in packages and yours go through the same graph, lifecycle and contracts.</li>
-            <li><b>Checked before it runs.</b> Artifacts are pinned by hash, locked, and granted only the permissions they declare. External code never runs inside the privileged process.</li>
-            <li><b>Code goes, data stays.</b> Turning a plugin off never deletes its configuration or data.</li>
-          </ul>
-          <figure class="pl-code reveal">
-            <figcaption><span>acme.compaction</span><span>host/index.js</span></figcaption>
-<pre><code><span class="k">export const</span> inject = [<span class="s">"cadenteServices"</span>];
-
-<span class="k">export function</span> <span class="f">apply</span>(ctx) {
-  ctx.cadenteServices.<span class="f">register</span>(
-    <span class="s">"cadente.compaction"</span>, <span class="n">1</span>, <span class="s">"cadente.compaction.v1"</span>,
-    <span class="k">async</span> (request) =&gt; <span class="f">summarize</span>(request),
-  );
-}</code></pre>
-          </figure>
-        </div>
-      </div>
-    </section>
-
-    <!-- Safety -->
-    <section class="safety" id="safety">
-      <div class="container">
-        <header class="sh sh--split reveal">
-          <div>
-            <p class="sh__index"><span>05</span>In control</p>
-            <h2 class="sh__title">Let it work.<br /><span class="sh__muted">Keep the last word.</span></h2>
-          </div>
-          <p class="sh__lede">An agent that edits files and runs commands needs brakes. Cadente asks before it acts, holds what cannot be undone, and keeps a way back.</p>
-        </header>
-        <div class="safety__grid">
-          <article class="safety__item reveal">
-            <div class="safety__ui safety__ui--modes"><span>Strict</span><span class="is-on">Approve</span><span>Trust</span></div>
-            <h3>You set the permissions</h3>
-            <p>Run only listed tools, confirm each call, or trust a workspace. Read-only tools can pass automatically.</p>
-          </article>
-          <article class="safety__item reveal">
-            <div class="safety__ui safety__ui--warn"><b>Irreversible action</b><span>git push --force &middot; denied if nobody responds</span></div>
-            <h3>Destructive steps wait for you</h3>
-            <p>Dropped tables, recursive deletes, force-pushes and cloud deletions are caught and held for a person.</p>
-          </article>
-          <article class="safety__item reveal">
-            <div class="safety__ui safety__ui--undo"><span>4 files changed</span><b>Undo to here</b></div>
-            <h3>Every edit can be rewound</h3>
-            <p>File changes are captured before and after, so a conversation can roll back to any turn.</p>
-          </article>
-          <article class="safety__item reveal">
-            <div class="safety__ui safety__ui--box"><span>bash</span><b>sandboxed</b><span>private HOME &middot; no secrets</span></div>
-            <h3>Commands run in a sandbox</h3>
-            <p>Shell and Python run in a supervised process tree with a private home and scrubbed credentials.</p>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <!-- Built light -->
-    <section class="weight" id="weight">
-      <div class="container weight__inner">
-        <div class="weight__text reveal">
-          <p class="sh__index"><span>06</span>Built with Rust</p>
-          <h2 class="sh__title">Light while it works.<br /><span class="sh__muted">Gone when it rests.</span></h2>
-          <p class="weight__desc">A small Rust core does the work, so chats, agents, terminals and automations keep running from the tray. Close the window and the interface is released from memory entirely &mdash; nothing lingers in the background pretending to be closed.</p>
-          <ul class="weight__facts">
-            <li>Bounded buffers for terminals and logs, so memory does not creep</li>
-            <li>Workspaces, history and keys stay on your machine</li>
-            <li>Signed updates, and a launcher that can roll back to an earlier version</li>
-            <li>Builds for macOS (Apple Silicon and Intel), Windows and Linux</li>
-          </ul>
-        </div>
-        <div class="memory reveal" id="ledger">
-          <div class="memory__state">
-            <p class="memory__label">Window open</p>
-            <div class="memory__bar"><span class="memory__core">Rust core</span><span class="memory__ui">Interface</span></div>
-          </div>
-          <div class="memory__state memory__state--closed">
-            <p class="memory__label">Window closed</p>
-            <div class="memory__bar"><span class="memory__core">Rust core</span><span class="memory__gone">released</span></div>
-          </div>
-          <p class="memory__note"><span class="memory__pulse"></span>Agents, automations and terminals keep running from the tray.</p>
+    <!-- Languages -->
+    <section class="tongues" aria-label="Supported languages">
+      <p class="tongues__label">The interface speaks fifteen languages</p>
+      <div class="tongues__marquee">
+        <div class="tongues__track">
+          <span>English</span><span>Español</span><span>Português</span><span>Français</span><span>Deutsch</span><span>Italiano</span><span>Русский</span><span>日本語</span><span>한국어</span><span>中文</span><span>Türkçe</span><span lang="ar">العربية</span><span lang="hi">हिन्दी</span><span>Bahasa Indonesia</span><span>Tiếng Việt</span>
+          <span aria-hidden="true">English</span><span aria-hidden="true">Español</span><span aria-hidden="true">Português</span><span aria-hidden="true">Français</span><span aria-hidden="true">Deutsch</span><span aria-hidden="true">Italiano</span><span aria-hidden="true">Русский</span><span aria-hidden="true">日本語</span><span aria-hidden="true">한국어</span><span aria-hidden="true">中文</span><span aria-hidden="true">Türkçe</span><span aria-hidden="true" lang="ar">العربية</span><span aria-hidden="true" lang="hi">हिन्दी</span><span aria-hidden="true">Bahasa Indonesia</span><span aria-hidden="true">Tiếng Việt</span>
         </div>
       </div>
     </section>
@@ -501,7 +533,7 @@
       <div class="container">
         <header class="sh sh--split reveal">
           <div>
-            <p class="sh__index"><span>07</span>Pricing</p>
+            <p class="sh__index"><span>06</span>Pricing</p>
             <h2 class="sh__title">All of it.<br /><span class="sh__muted">Free to start.</span></h2>
           </div>
           <p class="sh__lede">Every feature is in the free plan. You bring the model, so there is no markup on AI usage &mdash; limits apply only to how many items are active at once.</p>
@@ -561,8 +593,8 @@
     <section class="finale" id="finale">
       <div class="container finale__inner reveal">
         <svg class="finale__comet" viewBox="0 0 512 512" aria-hidden="true"><path d="M 379 153 A 160 160 0 1 0 379 359" fill="none" stroke="url(#c-grad)" stroke-width="40" stroke-linecap="round"/><path d="M 424 240 L 429 252 L 442 256 L 429 260 L 424 272 L 419 260 L 406 256 L 419 252 Z" fill="url(#c-spark)"/></svg>
-        <h2 class="cta__title finale__title">Your IDE is for writing code.<br /><span class="gradient-text">Cadente is for everything else.</span></h2>
-        <p class="finale__sub">Chats with any model, worktrees and pull requests, terminals, automations, API requests and your focus tools &mdash; in one desktop app.</p>
+        <h2 class="cta__title finale__title">Make a <span class="gradient-text">wish.</span><br />Keep the controls.</h2>
+        <p class="finale__sub">Any model, every step visible, every edit undoable, every part replaceable. Free to start on macOS, Windows and Linux.</p>
         <div class="hero__actions">
           <a href="./downloads.html" class="btn btn--primary btn--lg">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19h14"/></svg>
