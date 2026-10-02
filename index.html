@@ -38,6 +38,7 @@
       <ul class="navbar__links">
         <li><a href="#how">How it works</a></li>
         <li><a href="#features">Features</a></li>
+        <li><a href="#plugins">Plugins</a></li>
         <li><a href="#pricing">Pricing</a></li>
         <li><a href="./downloads.html">Downloads</a></li>
         <li><a href="./release-notes.html">Release Notes</a></li>
@@ -382,12 +383,62 @@
       </div>
     </section>
 
+    <!-- Plugins -->
+    <section class="plugins" id="plugins">
+      <div class="container">
+        <header class="sh sh--split reveal">
+          <div>
+            <p class="sh__index"><span>04</span>Plugins</p>
+            <h2 class="sh__title">A tiny core.<br /><span class="sh__muted">Everything else snaps in.</span></h2>
+          </div>
+          <p class="sh__lede">Cadente is built as a microkernel. Models, chat, terminals, tools and even the navigation are plugins wired through versioned contracts &mdash; so any of them can be replaced, including by one you write.</p>
+        </header>
+
+        <div class="pl-stage reveal" id="plugin-stage" aria-label="Animated diagram of Cadente's plugin graph">
+          <svg class="pl-wires" aria-hidden="true"></svg>
+          <div class="pl-world" aria-hidden="true"></div>
+          <p class="pl-toast" role="status">Collision &middot; <code>cadente.compaction@1</code> already has a provider</p>
+        </div>
+
+        <div class="pl-controls reveal">
+          <div class="pl-steps" role="group" aria-label="Plugin graph steps">
+            <button class="pl-step" type="button"><span>01</span>Kernel</button>
+            <button class="pl-step" type="button"><span>02</span>Contracts</button>
+            <button class="pl-step" type="button"><span>03</span>Consumers</button>
+            <button class="pl-step" type="button"><span>04</span>Providers</button>
+            <button class="pl-step" type="button"><span>05</span>Your plugin</button>
+            <button class="pl-step" type="button"><span>06</span>No guessing</button>
+          </div>
+          <p class="pl-caption" aria-live="polite">A small Rust microkernel owns only what must never be swapped: trust, permissions, integrity, isolation, persistence, resolution and recovery.</p>
+        </div>
+
+        <div class="pl-more">
+          <ul class="pl-facts reveal">
+            <li><b>One path for every plugin.</b> Built-in packages and yours go through the same graph, lifecycle and contracts.</li>
+            <li><b>Checked before it runs.</b> Artifacts are pinned by hash, locked, and granted only the permissions they declare. External code never runs inside the privileged process.</li>
+            <li><b>Code goes, data stays.</b> Turning a plugin off never deletes its configuration or data.</li>
+          </ul>
+          <figure class="pl-code reveal">
+            <figcaption><span>acme.compaction</span><span>host/index.js</span></figcaption>
+<pre><code><span class="k">export const</span> inject = [<span class="s">"cadenteServices"</span>];
+
+<span class="k">export function</span> <span class="f">apply</span>(ctx) {
+  ctx.cadenteServices.<span class="f">register</span>(
+    <span class="s">"cadente.compaction"</span>, <span class="n">1</span>, <span class="s">"cadente.compaction.v1"</span>,
+    <span class="k">async</span> (request) =&gt; <span class="f">summarize</span>(request),
+  );
+}</code></pre>
+          </figure>
+        </div>
+      </div>
+    </section>
+
     <!-- Safety -->
     <section class="safety" id="safety">
       <div class="container">
         <header class="sh sh--split reveal">
           <div>
-            <p class="sh__index"><span>04</span>In control</p>
+            <p class="sh__index"><span>05</span>In control</p>
             <h2 class="sh__title">Let it work.<br /><span class="sh__muted">Keep the last word.</span></h2>
           </div>
           <p class="sh__lede">An agent that edits files and runs commands needs brakes. Cadente asks before it acts, holds what cannot be undone, and keeps a way back.</p>
@@ -421,11 +472,11 @@
     <section class="weight" id="weight">
       <div class="container weight__inner">
         <div class="weight__text reveal">
-          <p class="sh__index"><span>05</span>Built with Rust</p>
+          <p class="sh__index"><span>06</span>Built with Rust</p>
           <h2 class="sh__title">Light while it works.<br /><span class="sh__muted">Gone when it rests.</span></h2>
           <p class="weight__desc">A small Rust core does the work, so chats, agents, terminals and automations keep running from the tray. Close the window and the interface is released from memory entirely &mdash; nothing lingers in the background pretending to be closed.</p>
           <ul class="weight__facts">
-            <li>Everything is a plugin &mdash; replace any built-in provider with your own</li>
+            <li>Bounded buffers for terminals and logs, so memory does not creep</li>
             <li>Workspaces, history and keys stay on your machine</li>
             <li>Signed updates, and a launcher that can roll back to an earlier version</li>
             <li>Builds for macOS (Apple Silicon and Intel), Windows and Linux</li>
@@ -450,7 +501,7 @@
       <div class="container">
         <header class="sh sh--split reveal">
           <div>
-            <p class="sh__index"><span>06</span>Pricing</p>
+            <p class="sh__index"><span>07</span>Pricing</p>
             <h2 class="sh__title">All of it.<br /><span class="sh__muted">Free to start.</span></h2>
           </div>
           <p class="sh__lede">Every feature is in the free plan. You bring the model, so there is no markup on AI usage &mdash; limits apply only to how many items are active at once.</p>
@@ -564,6 +615,7 @@
   <script type="module" src="./js/main.js"></script>
   <script type="module" src="./js/sky.js"></script>
   <script type="module" src="./js/animations.js"></script>
+  <script type="module" src="./js/plugins-demo.js"></script>
   <script>
     // Pricing state
     var priceData = null;
