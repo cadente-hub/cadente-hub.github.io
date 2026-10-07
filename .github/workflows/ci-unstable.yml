@@ -875,10 +875,9 @@ jobs:
             "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" \
             site-repo >/dev/null 2>&1
           cp update-beta.json site-repo/update-beta.json
-          cp update-beta.json site-repo/update.json
           cd site-repo
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add update-beta.json update.json
+          git add update-beta.json
           git commit -m "chore: update manifests for ${TAG}" || echo "No changes to commit"
           git push

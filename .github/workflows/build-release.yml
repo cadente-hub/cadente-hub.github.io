@@ -229,57 +229,54 @@ jobs:
   # ─────────────────────────────────────────────────────────────
   build-macos:
     needs: validate
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: aarch64-apple-darwin
+            arch: arm64
+          - target: x86_64-apple-darwin
+            arch: x64
     runs-on: macos-15
+    timeout-minutes: 30
     steps:
-      - name: Clone private repo at specific SHA
+      - uses: actions/checkout@v4
+
+      - name: Clone private repo at exact SHA
         env:
           PRIVATE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
         run: |
           set -euo pipefail
-
-          # Mask the token and source paths from logs
           echo "::add-mask::${PRIVATE_TOKEN}"
           echo "::add-mask::$(pwd)/source"
-
-          # Clone with depth=1 - suppress all output to prevent code leaks
           git clone --depth=1 \
-            "https://x-access-token:${PRIVATE_TOKEN}@github.com/jeancatarina/catarina-claude.git" \
-            source 2>&1 | head -1 || true
-
+            "https://x-access-token:${PRIVATE_TOKEN}@github.com/${PRIVATE_REPO}.git" source >/dev/null 2>&1
           cd source
-
-          # Fetch and checkout exact SHA - MUST succeed (no || true)
           EXPECTED_SHA="${{ needs.validate.outputs.sha }}"
           git fetch --depth=1 origin "$EXPECTED_SHA" 2>/dev/null
           git checkout "$EXPECTED_SHA" 2>/dev/null
-
-          # Hard verify SHA matches
           ACTUAL_SHA=$(git rev-parse HEAD)
           if [ "$ACTUAL_SHA" != "$EXPECTED_SHA" ]; then
             echo "::error::SHA mismatch! Expected ${EXPECTED_SHA:0:8}, got ${ACTUAL_SHA:0:8}. Aborting."
             exit 1
           fi
           echo "✅ Checked out: ${ACTUAL_SHA:0:8}"
-
-          # Purge credentials from git config and credential store
           git remote set-url origin "https://REDACTED@github.com/redacted/redacted.git"
           git config --unset-all http.https://github.com/.extraheader 2>/dev/null || true
           unset PRIVATE_TOKEN
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Install Rust stable with both targets
-        uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          targets: aarch64-apple-darwin,x86_64-apple-darwin
+          targets: ${{ matrix.target }}
 
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: source/src-tauri
-          shared-key: cadente
+          shared-key: cadente-${{ matrix.target }}
           cache-on-failure: true
 
       - name: Install frontend dependencies
@@ -288,7 +285,7 @@ jobs:
           set -euo pipefail
           npm ci 2>&1 | tail -5
 
-      - name: Build ARM64 (Apple Silicon)
+      - name: Build Tauri app (${{ matrix.target }})
         working-directory: source
         env:
           npm_config_ignore_scripts: "true"
@@ -296,124 +293,106 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
           PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_WRITE_TOKEN || secrets.CATARINA_PRIVATE_LOG_TOKEN || secrets.CATARINA_PRIVATE_READ_TOKEN }}
         run: |
-          persist_private_build_log() {
-            local log_file="$1" label="$2" repo_dir safe_workflow safe_job dest_dir dest_rel
-            safe_workflow="$(printf '%s' "${GITHUB_WORKFLOW:-workflow}" | tr -cs 'A-Za-z0-9._-' '-')"
-            safe_job="$(printf '%s' "${GITHUB_JOB:-job}" | tr -cs 'A-Za-z0-9._-' '-')"
-            dest_rel=".cadente-build-logs/public-actions/${safe_workflow}/${GITHUB_RUN_ID:-local}-${GITHUB_RUN_ATTEMPT:-0}/${safe_job}-${label}.log"
-            if [ -z "${PRIVATE_LOG_TOKEN:-}" ]; then
-              echo "::error::Build failed; private log token is not configured."
-              return
-            fi
-            echo "::add-mask::${PRIVATE_LOG_TOKEN}"
-            repo_dir="$(mktemp -d)"
-            if git clone --depth=1 "https://x-access-token:${PRIVATE_LOG_TOKEN}@github.com/${PRIVATE_REPO}.git" "$repo_dir" >/dev/null 2>&1; then
-              dest_dir="$repo_dir/$(dirname "$dest_rel")"
-              mkdir -p "$dest_dir"
-              cp "$log_file" "$repo_dir/$dest_rel"
-              git -C "$repo_dir" config user.name "github-actions[bot]"
-              git -C "$repo_dir" config user.email "github-actions[bot]@users.noreply.github.com"
-              git -C "$repo_dir" add -f "$dest_rel"
-              git -C "$repo_dir" commit -m "ci: store private build log for ${GITHUB_RUN_ID:-local} ${safe_job}" >/dev/null 2>&1 || true
-              if git -C "$repo_dir" push >/dev/null 2>&1; then
-                echo "::error::Build failed. Full log committed privately at ${dest_rel}."
-              else
-                echo "::error::Build failed. Could not push private build log."
-              fi
-            else
-              echo "::error::Build failed. Could not clone private log repository."
-            fi
-            rm -rf "$repo_dir"
-          }
-          echo "Building aarch64-apple-darwin..."
-          if npx tauri build --target aarch64-apple-darwin > /tmp/build-arm64.log 2>&1; then
-            echo "ARM64 build succeeded ($(wc -l < /tmp/build-arm64.log) log lines suppressed)"
+          set -euo pipefail
+          source "$GITHUB_WORKSPACE/.github/scripts/persist-private-log.sh"
+          LOG_FILE="/tmp/build-${{ matrix.arch }}.log"
+          if npx tauri build --target "${{ matrix.target }}" -- --locked > "$LOG_FILE" 2>&1; then
+            echo "${{ matrix.target }} build succeeded ($(wc -l < "$LOG_FILE") log lines suppressed)"
           else
             EXIT_CODE=$?
-            persist_private_build_log /tmp/build-arm64.log macos-arm64
-            rm -f /tmp/build-arm64.log
-            exit $EXIT_CODE
+            if [ -n "${PRIVATE_LOG_TOKEN:-}" ]; then
+              persist_private_build_log "$LOG_FILE" "macos-${{ matrix.arch }}"
+            else
+              echo "::error::${{ matrix.target }} build failed; private diagnostic token is not configured."
+            fi
+            rm -f "$LOG_FILE"
+            exit "$EXIT_CODE"
           fi
-          rm -f /tmp/build-arm64.log
+          rm -f "$LOG_FILE"
 
-      - name: Build x86_64 (Intel)
+      - name: Build and integrate Cadente Launcher (Fat Bundle)
         working-directory: source
         env:
-          npm_config_ignore_scripts: "true"
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
           PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_WRITE_TOKEN || secrets.CATARINA_PRIVATE_LOG_TOKEN || secrets.CATARINA_PRIVATE_READ_TOKEN }}
+          CI: "true"
         run: |
-          persist_private_build_log() {
-            local log_file="$1" label="$2" repo_dir safe_workflow safe_job dest_dir dest_rel
-            safe_workflow="$(printf '%s' "${GITHUB_WORKFLOW:-workflow}" | tr -cs 'A-Za-z0-9._-' '-')"
-            safe_job="$(printf '%s' "${GITHUB_JOB:-job}" | tr -cs 'A-Za-z0-9._-' '-')"
-            dest_rel=".cadente-build-logs/public-actions/${safe_workflow}/${GITHUB_RUN_ID:-local}-${GITHUB_RUN_ATTEMPT:-0}/${safe_job}-${label}.log"
-            if [ -z "${PRIVATE_LOG_TOKEN:-}" ]; then
-              echo "::error::Build failed; private log token is not configured."
-              return
-            fi
-            echo "::add-mask::${PRIVATE_LOG_TOKEN}"
-            repo_dir="$(mktemp -d)"
-            if git clone --depth=1 "https://x-access-token:${PRIVATE_LOG_TOKEN}@github.com/${PRIVATE_REPO}.git" "$repo_dir" >/dev/null 2>&1; then
-              dest_dir="$repo_dir/$(dirname "$dest_rel")"
-              mkdir -p "$dest_dir"
-              cp "$log_file" "$repo_dir/$dest_rel"
-              git -C "$repo_dir" config user.name "github-actions[bot]"
-              git -C "$repo_dir" config user.email "github-actions[bot]@users.noreply.github.com"
-              git -C "$repo_dir" add -f "$dest_rel"
-              git -C "$repo_dir" commit -m "ci: store private build log for ${GITHUB_RUN_ID:-local} ${safe_job}" >/dev/null 2>&1 || true
-              if git -C "$repo_dir" push >/dev/null 2>&1; then
-                echo "::error::Build failed. Full log committed privately at ${dest_rel}."
-              else
-                echo "::error::Build failed. Could not push private build log."
-              fi
-            else
-              echo "::error::Build failed. Could not clone private log repository."
-            fi
-            rm -rf "$repo_dir"
-          }
-          echo "Building x86_64-apple-darwin..."
-          if npx tauri build --target x86_64-apple-darwin > /tmp/build-x64.log 2>&1; then
-            echo "x86_64 build succeeded ($(wc -l < /tmp/build-x64.log) log lines suppressed)"
+          set -euo pipefail
+          source "$GITHUB_WORKSPACE/.github/scripts/persist-private-log.sh"
+          LOG_FILE="/tmp/launcher-${{ matrix.arch }}.log"
+          if cargo build --release --target "${{ matrix.target }}" --manifest-path crates/cadente-launcher/Cargo.toml > "$LOG_FILE" 2>&1; then
+            echo "Launcher build succeeded ($(wc -l < "$LOG_FILE") log lines suppressed)"
           else
             EXIT_CODE=$?
-            persist_private_build_log /tmp/build-x64.log macos-x64
-            rm -f /tmp/build-x64.log
-            exit $EXIT_CODE
+            if [ -n "${PRIVATE_LOG_TOKEN:-}" ]; then
+              persist_private_build_log "$LOG_FILE" "macos-launcher-${{ matrix.arch }}"
+            else
+              echo "::error::Launcher build failed; private diagnostic token is not configured."
+            fi
+            rm -f "$LOG_FILE"
+            exit "$EXIT_CODE"
           fi
-          rm -f /tmp/build-x64.log
+          rm -f "$LOG_FILE"
+
+          BUNDLE_APP="src-tauri/target/${{ matrix.target }}/release/bundle/macos/Cadente.app"
+          LAUNCHER_BIN="crates/cadente-launcher/target/${{ matrix.target }}/release/cadente"
+          CORE_BIN="$BUNDLE_APP/Contents/MacOS/cadente"
+          if [ ! -d "$BUNDLE_APP" ]; then
+            echo "::error::Tauri app bundle is missing: $BUNDLE_APP"
+            exit 1
+          fi
+          if [ ! -f "$LAUNCHER_BIN" ]; then
+            echo "::error::Launcher binary is missing: $LAUNCHER_BIN"
+            exit 1
+          fi
+          if [ ! -f "$CORE_BIN" ]; then
+            echo "::error::Cadente core binary is missing: $CORE_BIN"
+            exit 1
+          fi
+
+          mv "$CORE_BIN" "$BUNDLE_APP/Contents/MacOS/cadente-core"
+          cp "$LAUNCHER_BIN" "$CORE_BIN"
+          chmod +x "$CORE_BIN" "$BUNDLE_APP/Contents/MacOS/cadente-core"
+          mkdir -p "$BUNDLE_APP/Contents/SharedSupport/baseline_version"
+          echo "{\"version\": \"${{ needs.validate.outputs.version }}\", \"channel\": \"stable\"}" > "$BUNDLE_APP/Contents/SharedSupport/baseline_version/metadata.json"
+          codesign --force --deep --sign - "$BUNDLE_APP"
+
+          TAR_GZ="src-tauri/target/${{ matrix.target }}/release/bundle/macos/Cadente.app.tar.gz"
+          rm -f "$TAR_GZ" "$TAR_GZ.sig"
+          tar -czf "$TAR_GZ" -C "src-tauri/target/${{ matrix.target }}/release/bundle/macos" Cadente.app
+          if [ -n "${TAURI_SIGNING_PRIVATE_KEY:-}" ]; then
+            npx tauri signer sign --password "" "$TAR_GZ"
+          fi
+
+          DMG_DIR="src-tauri/target/${{ matrix.target }}/release/bundle/dmg"
+          if [ ! -d "$DMG_DIR" ]; then
+            echo "::error::Tauri DMG directory is missing: $DMG_DIR"
+            exit 1
+          fi
+          rm -f "$DMG_DIR"/*.dmg
+          hdiutil create -volname "Cadente" -srcfolder "$BUNDLE_APP" -ov -format UDZO "$DMG_DIR/Cadente_${{ needs.validate.outputs.version }}_${{ matrix.arch }}.dmg"
 
       - name: Collect artifacts
         shell: bash
         run: |
+          set -euo pipefail
           VERSION="${{ needs.validate.outputs.version }}"
           mkdir -p artifacts
-
-          BUNDLE_ARM="source/src-tauri/target/aarch64-apple-darwin/release/bundle"
-          find "$BUNDLE_ARM/dmg" -name "*.dmg" -exec cp {} "artifacts/cadente-${VERSION}-macos-arm64.dmg" \; 2>/dev/null || true
-          find "$BUNDLE_ARM/macos" -name "*.app.tar.gz" -exec cp {} "artifacts/cadente-${VERSION}-macos-arm64.app.tar.gz" \; 2>/dev/null || true
-          find "$BUNDLE_ARM/macos" -name "*.app.tar.gz.sig" -exec cp {} "artifacts/cadente-${VERSION}-macos-arm64.app.tar.gz.sig" \; 2>/dev/null || true
-
-          BUNDLE_X64="source/src-tauri/target/x86_64-apple-darwin/release/bundle"
-          find "$BUNDLE_X64/dmg" -name "*.dmg" -exec cp {} "artifacts/cadente-${VERSION}-macos-x64.dmg" \; 2>/dev/null || true
-          find "$BUNDLE_X64/macos" -name "*.app.tar.gz" -exec cp {} "artifacts/cadente-${VERSION}-macos-x64.app.tar.gz" \; 2>/dev/null || true
-          find "$BUNDLE_X64/macos" -name "*.app.tar.gz.sig" -exec cp {} "artifacts/cadente-${VERSION}-macos-x64.app.tar.gz.sig" \; 2>/dev/null || true
-
+          BUNDLE="source/src-tauri/target/${{ matrix.target }}/release/bundle"
+          find "$BUNDLE/dmg" -name "*.dmg" -exec cp {} "artifacts/cadente-${VERSION}-macos-${{ matrix.arch }}.dmg" \;
+          find "$BUNDLE/macos" -name "*.app.tar.gz" -exec cp {} "artifacts/cadente-${VERSION}-macos-${{ matrix.arch }}.app.tar.gz" \;
+          find "$BUNDLE/macos" -name "*.app.tar.gz.sig" -exec cp {} "artifacts/cadente-${VERSION}-macos-${{ matrix.arch }}.app.tar.gz.sig" \;
           echo "📦 Artifacts collected:"
           ls -la artifacts/
 
       - name: Smoke test native macOS app boot
+        if: matrix.target == 'aarch64-apple-darwin'
         shell: bash
         run: |
           set -euo pipefail
           VERSION="${{ needs.validate.outputs.version }}"
-          ARCH="$(uname -m)"
-          if [ "$ARCH" = "arm64" ]; then
-            ARCHIVE="artifacts/cadente-${VERSION}-macos-arm64.app.tar.gz"
-          else
-            ARCHIVE="artifacts/cadente-${VERSION}-macos-x64.app.tar.gz"
-          fi
+          ARCHIVE="artifacts/cadente-${VERSION}-macos-arm64.app.tar.gz"
           rm -rf /tmp/cadente-boot-smoke
           mkdir -p /tmp/cadente-boot-smoke
           tar -xzf "$ARCHIVE" -C /tmp/cadente-boot-smoke
@@ -421,20 +400,20 @@ jobs:
             --macos-app /tmp/cadente-boot-smoke/Cadente.app \
             --timeout-secs 30
 
+      - uses: actions/upload-artifact@v4
+        with:
+          name: artifacts-macos-${{ matrix.arch }}
+          path: artifacts/*
+          if-no-files-found: error
+
       - name: Scrub credentials and non-cacheable outputs
         if: always()
+        shell: bash
         run: |
           rm -rf source/.git
           rm -rf source/dist
           rm -rf source/src-tauri/target/*/release/bundle source/src-tauri/target/release/bundle
-          rm -f /tmp/build-*.log
-
-      - name: Upload macOS artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: artifacts-macos
-          path: artifacts/*
-          if-no-files-found: error
+          rm -f /tmp/build-*.log /tmp/launcher-*.log
 
   smoke-macos-intel:
     needs: [validate, build-macos]
@@ -444,7 +423,7 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          name: artifacts-macos
+          name: artifacts-macos-x64
           path: artifacts
 
       - name: Smoke test Intel macOS app boot
