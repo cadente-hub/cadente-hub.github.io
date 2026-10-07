@@ -1,6 +1,6 @@
 {
   "version": "0.2.93",
-  "notes": "## Cadente v0.2.93\n\nBuilt from commit: d0bbbf48\n\nRelease notes were generated from a manual public builder run.",
+  "notes": "## Cadente v0.2.93\n\n- Channel: `stable`\n- Commit: `d0bbbf48`\n- Promoted from: `v0.2.92-beta.250`\n\nThis stable release includes the code from the latest beta, with the application version updated to 0.2.93.\n\n### Latest beta improvement\n- Use Cmd+J to switch themes on Mac so changing themes is quick again.\n\n### Downloads\n- **macOS Apple Silicon**: `cadente-0.2.93-macos-arm64.dmg`\n- **macOS Intel**: `cadente-0.2.93-macos-x64.dmg`\n- **Linux**: `cadente-0.2.93-linux-x64.AppImage` or `.deb`\n- **Windows**: `cadente-0.2.93-windows-x64.exe` or `.msi`\n\n---\n*Built via Secure Public Builder*",
   "pub_date": "2026-10-07T10:55:21Z",
   "platforms": {
     "darwin-aarch64": {
