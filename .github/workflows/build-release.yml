@@ -26,6 +26,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
+  PRIVATE_REPO: jeancatarina/catarina-claude
   CARGO_INCREMENTAL: 0
 
 jobs:
@@ -170,6 +171,59 @@ jobs:
             echo "CADENTE_RELEASE_NOTES"
           } >> "$GITHUB_OUTPUT"
 
+  # Run the repository guardrails once on Ubuntu, outside platform build jobs.
+  # Platform builds skip npm lifecycle scripts, so prebuild must remain only
+  # the guardrail command; this check fails if it later grows code generation.
+  guardrails:
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Clone private repo at exact SHA
+        env:
+          PRIVATE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
+        run: |
+          set -euo pipefail
+          echo "::add-mask::${PRIVATE_TOKEN}"
+          git clone --depth=1 "https://x-access-token:${PRIVATE_TOKEN}@github.com/${PRIVATE_REPO}.git" source >/dev/null 2>&1
+          cd source
+          git fetch --depth=1 origin "${{ needs.validate.outputs.sha }}" >/dev/null 2>&1
+          git checkout "${{ needs.validate.outputs.sha }}" >/dev/null 2>&1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install ripgrep
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends ripgrep
+
+      - name: Verify prebuild remains guardrails-only
+        working-directory: source
+        run: |
+          node - <<'NODE'
+          const { scripts } = require('./package.json');
+          if (scripts?.prebuild !== 'npm run guardrails:quick') {
+            console.error(`Unexpected prebuild script: ${scripts?.prebuild ?? '(missing)'}`);
+            process.exit(1);
+          }
+          NODE
+
+      - name: Install frontend dependencies
+        working-directory: source
+        run: |
+          set -euo pipefail
+          npm ci 2>&1 | tail -5
+
+      - name: Run guardrails
+        working-directory: source
+        run: npm run guardrails:quick
+
+      - name: Cleanup source
+        if: always()
+        run: rm -rf source
+
   # ─────────────────────────────────────────────────────────────
   # Step 2: Build on each platform
   # ─────────────────────────────────────────────────────────────
@@ -237,6 +291,7 @@ jobs:
       - name: Build ARM64 (Apple Silicon)
         working-directory: source
         env:
+          npm_config_ignore_scripts: "true"
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
           PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_WRITE_TOKEN || secrets.CATARINA_PRIVATE_LOG_TOKEN || secrets.CATARINA_PRIVATE_READ_TOKEN }}
@@ -284,6 +339,7 @@ jobs:
       - name: Build x86_64 (Intel)
         working-directory: source
         env:
+          npm_config_ignore_scripts: "true"
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
           PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_WRITE_TOKEN || secrets.CATARINA_PRIVATE_LOG_TOKEN || secrets.CATARINA_PRIVATE_READ_TOKEN }}
@@ -477,6 +533,7 @@ jobs:
       - name: Build Tauri app
         working-directory: source
         env:
+          npm_config_ignore_scripts: "true"
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
           PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_WRITE_TOKEN || secrets.CATARINA_PRIVATE_LOG_TOKEN || secrets.CATARINA_PRIVATE_READ_TOKEN }}
@@ -593,6 +650,21 @@ jobs:
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
 
+      - name: Patch Windows crate type for Tauri build
+        working-directory: source
+        shell: bash
+        run: |
+          python3 - <<'PYEOF'
+          from pathlib import Path
+
+          path = Path('src-tauri/Cargo.toml')
+          text = path.read_text()
+          original = 'crate-type = ["staticlib", "cdylib", "rlib"]'
+          if text.count(original) != 1:
+              raise SystemExit('Expected exactly one Tauri crate-type declaration')
+          path.write_text(text.replace(original, 'crate-type = ["rlib"]'))
+          PYEOF
+
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: source/src-tauri
@@ -610,6 +682,7 @@ jobs:
         working-directory: source
         shell: bash
         env:
+          npm_config_ignore_scripts: "true"
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
           PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_WRITE_TOKEN || secrets.CATARINA_PRIVATE_LOG_TOKEN || secrets.CATARINA_PRIVATE_READ_TOKEN }}
@@ -691,7 +764,7 @@ jobs:
   # Step 3: Create release with all artifacts
   # ─────────────────────────────────────────────────────────────
   release:
-    needs: [validate, build-macos, smoke-macos-intel, build-linux, build-windows]
+    needs: [validate, guardrails, build-macos, smoke-macos-intel, build-linux, build-windows]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -950,7 +1023,7 @@ jobs:
   # when any platform fails. Runs only on failure.
   # ─────────────────────────────────────────────────────────────
   debug-on-failure:
-    needs: [validate, build-macos, smoke-macos-intel, build-linux, build-windows]
+    needs: [validate, guardrails, build-macos, smoke-macos-intel, build-linux, build-windows]
     if: failure()
     runs-on: ubuntu-latest
     strategy:
