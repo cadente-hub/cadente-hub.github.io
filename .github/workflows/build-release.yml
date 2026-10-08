@@ -356,6 +356,9 @@ jobs:
           chmod +x "$CORE_BIN" "$BUNDLE_APP/Contents/MacOS/cadente-core"
           mkdir -p "$BUNDLE_APP/Contents/SharedSupport/baseline_version"
           echo "{\"version\": \"${{ needs.validate.outputs.version }}\", \"channel\": \"stable\"}" > "$BUNDLE_APP/Contents/SharedSupport/baseline_version/metadata.json"
+          python3 "$GITHUB_WORKSPACE/.github/scripts/stamp-launcher-identity.py" \
+            --source . --app "$BUNDLE_APP" --bin "$LAUNCHER_BIN" \
+            --build "${{ needs.validate.outputs.version }}"
           codesign --force --deep --sign - "$BUNDLE_APP"
 
           TAR_GZ="src-tauri/target/${{ matrix.target }}/release/bundle/macos/Cadente.app.tar.gz"
@@ -859,6 +862,17 @@ jobs:
           echo "✅ update.json generated with all signatures:"
           python3 -c "import json; d=json.load(open('update.json')); [print(f'  {k}: sig={v[\"signature\"][:20]}...') for k,v in d['platforms'].items()]"
 
+      - name: Generate launcher-identity.json
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${{ needs.validate.outputs.version }}"
+          if tar -xzOf "all-artifacts/cadente-${VERSION}-macos-arm64.app.tar.gz" Cadente.app/Contents/SharedSupport/launcher.json > /tmp/launcher.json 2>/dev/null; then
+            jq --arg build "$VERSION" '{build:$build,digest:.digest}' /tmp/launcher.json > launcher-identity.json
+          else
+            echo "::warning::Bundle carries no launcher identity; launcher-identity.json not updated"
+          fi
+
       - name: Validate generated stable release
         run: |
           python3 scripts/release-asset-guard.py \
@@ -908,10 +922,12 @@ jobs:
           git clone --depth=1 https://x-access-token:${GH_TOKEN}@github.com/cadente-hub/cadente-hub.github.io.git site-repo
           cd site-repo
           cp ../update.json ./update.json
+          if [ -f ../launcher-identity.json ]; then cp ../launcher-identity.json ./launcher-identity.json; fi
           if [ -d "dist" ]; then cp ../update.json ./dist/update.json; fi
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add update.json
+          [ -f launcher-identity.json ] && git add launcher-identity.json
           git commit -m "chore: update update.json for v${{ needs.validate.outputs.version }}" || echo "No changes"
           git push
 

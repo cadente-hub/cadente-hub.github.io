@@ -10,6 +10,9 @@ import './animations.js';
 
 const GITHUB_REPO = 'cadente-hub/cadente-hub.github.io';
 const API_URL = `https://api.github.com/repos/${GITHUB_REPO}/releases/latest`;
+const TAG_API_URL = (tag) => `https://api.github.com/repos/${GITHUB_REPO}/releases/tags/${encodeURIComponent(tag)}`;
+// The updater reads this manifest, so the page offers the same version it does.
+const MANIFEST_URL = '/update.json';
 const RELEASES_URL = `https://github.com/${GITHUB_REPO}/releases`;
 
 // Platform mapping: filename patterns -> platform keys
@@ -550,6 +553,27 @@ function swapPrimaryPlatform(platformKey) {
 }
 
 // ---------- Fetch and Render ----------
+// Resolve the release the update manifest points to; null when unavailable
+// so the caller can fall back to GitHub's "latest".
+async function fetchManifestRelease() {
+  try {
+    const manifest = await fetch(MANIFEST_URL, { cache: 'no-store' });
+    if (!manifest.ok) return null;
+    const { version } = await manifest.json();
+    if (typeof version !== 'string' || !/^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/.test(version)) return null;
+    const response = await fetch(TAG_API_URL(`v${version}`));
+    return response.ok ? await response.json() : null;
+  } catch {
+    return null;
+  }
+}
+
+async function fetchLatestFallback() {
+  const response = await fetch(API_URL);
+  if (!response.ok) throw new Error(`GitHub API returned ${response.status}`);
+  return response.json();
+}
+
 async function fetchLatestRelease() {
   const versionValue = document.getElementById('version-value');
   const fallback = document.getElementById('downloads-fallback');
@@ -569,10 +593,7 @@ async function fetchLatestRelease() {
   buildDownloadsLayout(detectedOS);
 
   try {
-    const response = await fetch(API_URL);
-    if (!response.ok) throw new Error(`GitHub API returned ${response.status}`);
-
-    const release = await response.json();
+    const release = await fetchManifestRelease() || await fetchLatestFallback();
     cachedRelease = release;
 
     if (versionValue) {

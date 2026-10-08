@@ -406,6 +406,10 @@ jobs:
             mkdir -p "$BUNDLE_APP/Contents/SharedSupport/baseline_version"
             echo "{\"version\": \"${{ needs.resolve.outputs.version }}\", \"channel\": \"beta\"}" > "$BUNDLE_APP/Contents/SharedSupport/baseline_version/metadata.json"
 
+            python3 "$GITHUB_WORKSPACE/.github/scripts/stamp-launcher-identity.py" \
+              --source . --app "$BUNDLE_APP" --bin "$LAUNCHER_BIN" \
+              --build "${{ needs.resolve.outputs.build_version }}"
+
             codesign --force --deep --sign - "$BUNDLE_APP"
 
             # Repack .app.tar.gz
@@ -807,6 +811,15 @@ jobs:
 
           echo "Generated update-beta.json for ${TAG}"
 
+          # Launcher identity: the digest stamped inside the signed bundle. It only
+          # changes between builds when the launcher's own code changed.
+          if tar -xzOf "all-artifacts/cadente-${VERSION}-macos-arm64.app.tar.gz" Cadente.app/Contents/SharedSupport/launcher.json > /tmp/launcher.json 2>/dev/null; then
+            jq --arg build "${TAG#v}" '{build:$build,digest:.digest}' /tmp/launcher.json > launcher-identity-beta.json
+            echo "Generated launcher-identity-beta.json"
+          else
+            echo "::warning::Bundle carries no launcher identity; launcher-identity-beta.json not updated"
+          fi
+
       - name: Write release notes
         env:
           RELEASE_NOTES: ${{ needs.resolve.outputs.release_notes }}
@@ -875,9 +888,11 @@ jobs:
             "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" \
             site-repo >/dev/null 2>&1
           cp update-beta.json site-repo/update-beta.json
+          if [ -f launcher-identity-beta.json ]; then cp launcher-identity-beta.json site-repo/launcher-identity-beta.json; fi
           cd site-repo
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add update-beta.json
+          [ -f launcher-identity-beta.json ] && git add launcher-identity-beta.json
           git commit -m "chore: update manifests for ${TAG}" || echo "No changes to commit"
           git push
