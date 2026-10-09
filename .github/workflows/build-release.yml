@@ -673,7 +673,9 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
         with:
-          workspaces: source/src-tauri
+          workspaces: |
+            source/src-tauri
+            source/crates/cadente-launcher
           shared-key: cadente
           cache-on-failure: true
 
@@ -691,6 +693,8 @@ jobs:
           npm_config_ignore_scripts: "true"
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
+          BUILD_VERSION: ${{ needs.validate.outputs.version }}
+          BUILD_CHANNEL: stable
           PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_WRITE_TOKEN || secrets.CATARINA_PRIVATE_LOG_TOKEN || secrets.CATARINA_PRIVATE_READ_TOKEN }}
         run: |
           persist_private_build_log() {
@@ -723,7 +727,16 @@ jobs:
             rm -rf "$repo_dir"
           }
           echo "Building windows x86_64..."
-          if npx tauri build > /tmp/build-windows.log 2>&1; then
+          # The launcher and the app are packaged together (one layout on every platform);
+          # nothing here prints source text: all output goes to the private log.
+          build_windows() {
+            # `set -e` does not apply inside an `if` condition: fail explicitly.
+            cargo build --release --manifest-path crates/cadente-launcher/Cargo.toml --bin cadente || return 1
+            digest="$(python3 "$GITHUB_WORKSPACE/.github/scripts/stamp-launcher-identity.py" --source . --build "$BUILD_VERSION" --print --bin crates/cadente-launcher/target/release/cadente.exe)" || return 1
+            bash scripts/packaging/bundle-with-launcher.sh --launcher crates/cadente-launcher/target/release/cadente.exe \
+              --version "$BUILD_VERSION" --channel "$BUILD_CHANNEL" --digest "$digest" --formats nsis,msi || return 1
+          }
+          if build_windows > /tmp/build-windows.log 2>&1; then
             echo "Windows build succeeded ($(wc -l < /tmp/build-windows.log) log lines suppressed)"
           else
             EXIT_CODE=$?
@@ -732,6 +745,48 @@ jobs:
             exit $EXIT_CODE
           fi
           rm -f /tmp/build-windows.log
+
+      - name: Verify the Windows installers install and run before they are published
+        working-directory: source
+        shell: pwsh
+        env:
+          BUILD_VERSION: ${{ needs.validate.outputs.version }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $bundle = 'src-tauri/target/release/bundle'
+          $nsis = (Get-ChildItem "$bundle/nsis" -Filter *.exe | Select-Object -First 1).FullName
+          $msi = (Get-ChildItem "$bundle/msi" -Filter *.msi | Select-Object -First 1).FullName
+          ./scripts/packaging/verify-built-package.ps1 -Kind nsis -File $nsis -Version $env:BUILD_VERSION
+          ./scripts/packaging/verify-built-package.ps1 -Kind msi -File $msi -Version $env:BUILD_VERSION
+
+      # What a launcher installs as a version: the installed tree, with the launcher
+      # beside the Core, zipped and signed. The installer archive is not a Core.
+      - name: Create and sign the portable package
+        working-directory: source
+        shell: pwsh
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
+          npm_config_ignore_scripts: "true"
+          VERSION: ${{ needs.validate.outputs.version }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $setup = (Get-ChildItem 'src-tauri/target/release/bundle/nsis' -Filter *.exe | Select-Object -First 1).FullName
+          $tree = Join-Path $env:RUNNER_TEMP 'cadente-portable'
+          Remove-Item $tree -Recurse -Force -ErrorAction SilentlyContinue
+          $install = Start-Process -FilePath $setup -ArgumentList '/S', "/D=$tree" -Wait -PassThru
+          if ($install.ExitCode -ne 0) { throw "installer exited with $($install.ExitCode)" }
+          foreach ($need in 'cadente.exe', 'cadente-core.exe', 'baseline_version\metadata.json', 'launcher.json') {
+            if (-not (Test-Path (Join-Path $tree $need))) { throw "the portable tree lacks $need" }
+          }
+          New-Item -ItemType Directory -Force -Path '../artifacts' | Out-Null
+          $zip = (Resolve-Path '../artifacts').Path + "\cadente-$($env:VERSION)-windows-x64.portable.zip"
+          Remove-Item $zip -ErrorAction SilentlyContinue
+          Get-ChildItem $tree -Exclude 'uninstall*.exe' | Compress-Archive -DestinationPath $zip
+          Get-ChildItem $tree -Filter 'uninstall*.exe' | ForEach-Object { Start-Process $_.FullName -ArgumentList '/S' -Wait | Out-Null }
+          npx tauri signer sign --password "" $zip
+          if (-not (Test-Path "$zip.sig")) { throw "the portable package was not signed" }
+          Write-Output "portable package ready: $(Split-Path $zip -Leaf)"
 
       - name: Collect artifacts
         shell: bash
@@ -885,6 +940,27 @@ jobs:
           PYEOF
           echo "✅ update.json generated with all signatures:"
           python3 -c "import json; d=json.load(open('update.json')); [print(f'  {k}: sig={v[\"signature\"][:20]}...') for k,v in d['platforms'].items()]"
+
+      - name: Add the Windows portable package to the manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - "update.json" "${{ needs.validate.outputs.version }}" "${{ needs.validate.outputs.tag }}" <<'PYEOF'
+          import json, sys, pathlib
+          manifest, version, tag = sys.argv[1:4]
+          sig = pathlib.Path(f"all-artifacts/cadente-{version}-windows-x64.portable.zip.sig")
+          if not sig.exists() or not sig.read_text().strip():
+              sys.exit("::error::the Windows portable package is missing or unsigned")
+          data = json.load(open(manifest))
+          data["platforms"]["windows-x86_64-portable"] = {
+              "signature": sig.read_text().strip(),
+              "url": f"https://github.com/cadente-hub/cadente-hub.github.io/releases/download/{tag}/cadente-{version}-windows-x64.portable.zip",
+          }
+          with open(manifest, "w") as fh:
+              json.dump(data, fh, indent=2)
+              fh.write("\n")
+          PYEOF
+          python3 -c "import json; d=json.load(open('update.json')); print(sorted(d['platforms']))"
 
       - name: Generate launcher-identity.json
         shell: bash
