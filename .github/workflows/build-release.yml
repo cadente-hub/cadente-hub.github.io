@@ -784,9 +784,23 @@ jobs:
           Remove-Item $zip -ErrorAction SilentlyContinue
           Get-ChildItem $tree -Exclude 'uninstall*.exe' | Compress-Archive -DestinationPath $zip
           Get-ChildItem $tree -Filter 'uninstall*.exe' | ForEach-Object { Start-Process $_.FullName -ArgumentList '/S' -Wait | Out-Null }
-          npx tauri signer sign --password "" $zip
-          if (-not (Test-Path "$zip.sig")) { throw "the portable package was not signed" }
-          Write-Output "portable package ready: $(Split-Path $zip -Leaf)"
+          Write-Output "portable package zipped: $(Split-Path $zip -Leaf)"
+
+      # Signed from bash: PowerShell drops the empty `--password ""` argument.
+      - name: Sign the portable package
+        working-directory: source
+        shell: bash
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
+          npm_config_ignore_scripts: "true"
+          VERSION: ${{ needs.validate.outputs.version }}
+        run: |
+          set -euo pipefail
+          zip="../artifacts/cadente-${VERSION}-windows-x64.portable.zip"
+          npx tauri signer sign --password "" "$zip"
+          test -s "$zip.sig"
+          echo "portable package signed: $(basename "$zip")"
 
       - name: Collect artifacts
         shell: bash
