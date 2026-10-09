@@ -499,7 +499,8 @@ jobs:
   build-linux:
     needs: resolve
     runs-on: ubuntu-22.04
-    timeout-minutes: 30
+    # A cold cache builds the launcher and the app and installs every package: 30 was too tight.
+    timeout-minutes: 75
     steps:
       - uses: actions/checkout@v4
 
