@@ -522,7 +522,9 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
         with:
-          workspaces: source/src-tauri
+          workspaces: |
+            source/src-tauri
+            source/crates/cadente-launcher
           shared-key: cadente
           cache-on-failure: true
 
@@ -534,7 +536,7 @@ jobs:
       - name: Install Linux dependencies
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf lld rpm
+          sudo apt-get install -y --no-install-recommends libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf lld rpm pkg-config clang libssl-dev libfontconfig1-dev libfreetype6-dev libxkbcommon-dev libxkbcommon-x11-dev libwayland-dev libx11-dev libx11-xcb-dev libxcb1-dev libxcursor-dev libxrandr-dev libxi-dev libgl1-mesa-dev libegl1-mesa-dev
 
       - name: Patch beta version in source
         working-directory: source
@@ -571,10 +573,21 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
           CADENTE_BUILD_VERSION: ${{ needs.resolve.outputs.build_version }}
+          BUILD_VERSION: ${{ needs.resolve.outputs.build_version }}
+          BUILD_CHANNEL: beta
           PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_WRITE_TOKEN || secrets.CATARINA_PRIVATE_LOG_TOKEN }}
         run: |
           source "$GITHUB_WORKSPACE/.github/scripts/persist-private-log.sh"
-          if npx tauri build -- --locked > /tmp/build-linux.log 2>&1; then
+          # The launcher and the app are packaged together (one layout on every platform);
+          # nothing here prints source text: all output goes to the private log.
+          build_linux() {
+            # `set -e` does not apply inside an `if` condition: fail explicitly.
+            cargo build --release --manifest-path crates/cadente-launcher/Cargo.toml --bin cadente || return 1
+            digest="$(python3 "$GITHUB_WORKSPACE/.github/scripts/stamp-launcher-identity.py" --source . --build "$BUILD_VERSION" --print --bin crates/cadente-launcher/target/release/cadente)" || return 1
+            bash scripts/packaging/bundle-with-launcher.sh --launcher crates/cadente-launcher/target/release/cadente \
+              --version "$BUILD_VERSION" --channel "$BUILD_CHANNEL" --digest "$digest" --formats deb,rpm,appimage || return 1
+          }
+          if build_linux > /tmp/build-linux.log 2>&1; then
             echo "Linux build succeeded ($(wc -l < /tmp/build-linux.log) log lines suppressed)"
           else
             EXIT_CODE=$?
@@ -583,6 +596,17 @@ jobs:
             exit $EXIT_CODE
           fi
           rm -f /tmp/build-linux.log
+
+      - name: Verify the Linux packages install and run before they are published
+        working-directory: source
+        run: |
+          set -euo pipefail
+          bundle=src-tauri/target/release/bundle
+          bash scripts/packaging/verify-built-package.sh deb "$(ls "$bundle"/deb/*.deb)" "$BUILD_VERSION"
+          bash scripts/packaging/verify-built-package.sh rpm "$(ls "$bundle"/rpm/*.rpm)" "$BUILD_VERSION"
+          bash scripts/packaging/verify-built-package.sh appimage "$(ls "$bundle"/appimage/*.AppImage)" "$BUILD_VERSION"
+        env:
+          BUILD_VERSION: ${{ needs.resolve.outputs.build_version }}
 
       - name: Collect artifacts
         shell: bash
