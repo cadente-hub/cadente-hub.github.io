@@ -404,7 +404,7 @@ jobs:
             chmod +x "$BUNDLE_APP/Contents/MacOS/cadente" "$BUNDLE_APP/Contents/MacOS/cadente-core"
 
             mkdir -p "$BUNDLE_APP/Contents/SharedSupport/baseline_version"
-            echo "{\"version\": \"${{ needs.resolve.outputs.version }}\", \"channel\": \"beta\"}" > "$BUNDLE_APP/Contents/SharedSupport/baseline_version/metadata.json"
+            echo "{\"version\": \"${{ needs.resolve.outputs.build_version }}\", \"channel\": \"beta\"}" > "$BUNDLE_APP/Contents/SharedSupport/baseline_version/metadata.json"
 
             python3 "$GITHUB_WORKSPACE/.github/scripts/stamp-launcher-identity.py" \
               --source . --app "$BUNDLE_APP" --bin "$LAUNCHER_BIN" \
