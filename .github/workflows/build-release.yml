@@ -359,7 +359,7 @@ jobs:
           python3 "$GITHUB_WORKSPACE/.github/scripts/stamp-launcher-identity.py" \
             --source . --app "$BUNDLE_APP" --bin "$LAUNCHER_BIN" \
             --build "${{ needs.validate.outputs.version }}"
-          codesign --force --deep --sign - "$BUNDLE_APP"
+          codesign --force --deep --sign - --options runtime --entitlements src-tauri/Entitlements.plist "$BUNDLE_APP"
 
           TAR_GZ="src-tauri/target/${{ matrix.target }}/release/bundle/macos/Cadente.app.tar.gz"
           rm -f "$TAR_GZ" "$TAR_GZ.sig"
