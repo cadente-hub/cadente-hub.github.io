@@ -8,6 +8,10 @@ on:
         description: "Private repo commit SHA (40 hex)"
         required: true
         type: string
+      diagnostic_public_key:
+        description: "Optional base64 PEM RSA public key for encrypted failure diagnostics"
+        required: false
+        type: string
   schedule:
     - cron: '0 */3 * * *'
 
@@ -100,12 +104,14 @@ jobs:
       SHA: ${{ needs.resolve.outputs.sha }}
       MATRIX_OS: ${{ matrix.os }}
       CARGO_TERM_COLOR: always
+      DIAGNOSTIC_PUBLIC_KEY: ${{ inputs.diagnostic_public_key }}
     steps:
       - name: Setup builder scripts
         uses: actions/checkout@v4
         with:
           sparse-checkout: |
             .github/scripts/persist-private-log.sh
+            .github/scripts/encrypt-ci-log.cjs
           sparse-checkout-cone-mode: false
           path: _builder
 
@@ -113,6 +119,7 @@ jobs:
         run: |
           mkdir -p "$RUNNER_TEMP/scripts"
           cp _builder/.github/scripts/persist-private-log.sh "$RUNNER_TEMP/scripts/persist-private-log.sh"
+          cp _builder/.github/scripts/encrypt-ci-log.cjs "$RUNNER_TEMP/scripts/encrypt-ci-log.cjs"
           chmod +x "$RUNNER_TEMP/scripts/persist-private-log.sh"
           rm -rf _builder
 
@@ -239,6 +246,19 @@ jobs:
               -H "Content-Type: application/json" \
               -d "{\"state\":\"failure\",\"target_url\":\"https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\",\"description\":\"Failed at ${FAILED_STEP}\",\"context\":\"native-ci/${MATRIX_OS}\"}" >/dev/null 2>&1 || true
           fi
+
+      - name: Encrypt failure diagnostic
+        if: failure() && inputs.diagnostic_public_key != ''
+        run: node "$RUNNER_TEMP/scripts/encrypt-ci-log.cjs"
+
+      - name: Upload encrypted diagnostic
+        if: failure() && inputs.diagnostic_public_key != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-ci-diagnostic-${{ matrix.os }}
+          path: ${{ runner.temp }}/ci-diagnostic.enc.json
+          if-no-files-found: error
+          retention-days: 1
 
       - name: Handle success
         if: success()
