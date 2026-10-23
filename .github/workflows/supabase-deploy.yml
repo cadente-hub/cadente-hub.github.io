@@ -1,0 +1,176 @@
+name: Supabase deploy
+
+# Publishes the Edge Functions and applies SQL migrations through the
+# Supabase Management API. Needs one repository secret:
+#   SUPABASE_ACCESS_TOKEN  — a personal access token (supabase.com/dashboard/account/tokens)
+# Function secrets (PADDLE_API_KEY, PADDLE_WEBHOOK_SECRET) live in Supabase.
+
+on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: "Private repo commit SHA to deploy"
+        required: true
+        type: string
+  workflow_call:
+    inputs:
+      sha:
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: supabase-deploy
+  cancel-in-progress: false
+
+env:
+  PROJECT_REF: awglxdeqzkursbmotjpm
+  PRIVATE_REPO: jeancatarina/catarina-claude
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      PRIVATE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
+      PRIVATE_WRITE_TOKEN: ${{ secrets.CATARINA_PRIVATE_WRITE_TOKEN }}
+      SHA: ${{ inputs.sha }}
+    steps:
+      - name: Check credentials
+        id: creds
+        run: |
+          if [ -z "$SUPABASE_ACCESS_TOKEN" ]; then
+            echo "::warning::SUPABASE_ACCESS_TOKEN is not set; skipping deploy. Add it under Settings > Secrets and variables > Actions."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Clone private repository
+        if: steps.creds.outputs.ready == 'true'
+        run: |
+          echo "::add-mask::${PRIVATE_TOKEN}"
+          [ -n "${PRIVATE_WRITE_TOKEN:-}" ] && echo "::add-mask::${PRIVATE_WRITE_TOKEN}"
+          git clone --filter=blob:none "https://x-access-token:${PRIVATE_TOKEN}@github.com/${PRIVATE_REPO}.git" . >/dev/null 2>&1
+          git checkout "$SHA" >/dev/null 2>&1
+
+      - uses: supabase/setup-cli@v1
+        if: steps.creds.outputs.ready == 'true'
+        with:
+          version: latest
+
+      - name: Apply migrations
+        if: steps.creds.outputs.ready == 'true'
+        run: |
+          set -euo pipefail
+          for file in supabase/migrations/*.sql; do
+            [ -e "$file" ] || continue
+            echo "Applying $file"
+            body=$(jq -Rs '{query: .}' < "$file")
+            status=$(curl -sS -o /tmp/migration.json -w '%{http_code}' \
+              -X POST "https://api.supabase.com/v1/projects/${PROJECT_REF}/database/query" \
+              -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
+              -H "Content-Type: application/json" \
+              --data "$body")
+            if [ "$status" -ge 300 ]; then
+              echo "::error::Migration $file failed (HTTP $status)"
+              cat /tmp/migration.json
+              exit 1
+            fi
+          done
+
+      - name: Audit profiles access
+        if: steps.creds.outputs.ready == 'true'
+        run: |
+          set -euo pipefail
+          query=$(jq -n --arg q "
+            select 'policy' as kind, policyname as name, cmd, roles::text as detail, qual as rule
+              from pg_policies where schemaname = 'public' and tablename = 'profiles'
+            union all
+            select 'grant', grantee, privilege_type, table_name, null
+              from information_schema.role_table_grants
+              where table_schema = 'public' and table_name = 'profiles' and grantee in ('anon', 'authenticated')
+            union all
+            select 'rls', relname, case when relrowsecurity then 'enabled' else 'DISABLED' end, null, null
+              from pg_class where oid = 'public.profiles'::regclass;" '{query: $q}')
+          curl -sS -X POST "https://api.github.com/repos/${PRIVATE_REPO}/statuses/${SHA}" >/dev/null 2>&1 || true
+          curl -sS -X POST "https://api.supabase.com/v1/projects/${PROJECT_REF}/database/query" \
+            -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
+            -H "Content-Type: application/json" \
+            --data "$query" | tee /tmp/audit.json | jq -r '.[] | [.kind, .name, .cmd, .detail, .rule] | @tsv'
+          if jq -e '.[] | select(.kind == "grant" and (.cmd == "UPDATE" or .cmd == "INSERT" or .cmd == "DELETE"))' /tmp/audit.json >/dev/null; then
+            echo "::error::anon/authenticated can still write public.profiles"
+            exit 1
+          fi
+          if jq -e '.[] | select(.kind == "rls" and .cmd != "enabled")' /tmp/audit.json >/dev/null; then
+            echo "::error::Row level security is disabled on public.profiles"
+            exit 1
+          fi
+
+      - name: Check function secrets
+        if: steps.creds.outputs.ready == 'true'
+        run: |
+          set -euo pipefail
+          names=$(supabase secrets list --project-ref "$PROJECT_REF" -o json | jq -r '.[].name')
+          for required in PADDLE_API_KEY PADDLE_WEBHOOK_SECRET; do
+            if ! printf '%s\n' "$names" | grep -qx "$required"; then
+              echo "::warning::Function secret $required is not set in Supabase"
+            fi
+          done
+
+      - name: Deploy functions
+        if: steps.creds.outputs.ready == 'true'
+        run: |
+          set -euo pipefail
+          supabase functions deploy get-prices --project-ref "$PROJECT_REF" --use-api
+          supabase functions deploy paddle-webhook --project-ref "$PROJECT_REF" --use-api
+
+      - name: Smoke test
+        if: steps.creds.outputs.ready == 'true'
+        run: |
+          set -euo pipefail
+          base="https://${PROJECT_REF}.supabase.co/functions/v1"
+          sleep 5
+          prices=$(curl -sS -w '\n%{http_code}' "$base/get-prices?country=BR")
+          code=$(printf '%s' "$prices" | tail -n1)
+          json=$(printf '%s' "$prices" | sed '$d')
+          echo "get-prices: HTTP $code $json"
+          [ "$code" = "200" ] || { echo "::error::get-prices returned HTTP $code"; exit 1; }
+          printf '%s' "$json" | jq -e '.monthly.amount and .yearly.amount' >/dev/null
+          if printf '%s' "$json" | jq -e '.fallback == true' >/dev/null; then
+            echo "::warning::get-prices answered with fallback prices — check PADDLE_API_KEY and the function logs"
+          fi
+          hook=$(curl -sS -o /dev/null -w '%{http_code}' -X POST "$base/paddle-webhook" -H 'paddle-signature: ts=1;h1=00' -d '{}')
+          echo "paddle-webhook with a bad signature: HTTP $hook"
+          [ "$hook" = "401" ] || { echo "::error::paddle-webhook should reject a bad signature with 401, got $hook"; exit 1; }
+
+      - name: Record deployed SHA
+        if: steps.creds.outputs.ready == 'true'
+        run: |
+          set -euo pipefail
+          if [ -z "${PRIVATE_WRITE_TOKEN:-}" ]; then
+            echo "::warning::CATARINA_PRIVATE_WRITE_TOKEN not set; cannot record supabase-deployed SHA."
+            exit 0
+          fi
+          echo "::add-mask::${PRIVATE_WRITE_TOKEN}"
+          LOGS_DIR="$(mktemp -d)"
+          if git clone --depth=1 --branch ci-logs "https://x-access-token:${PRIVATE_WRITE_TOKEN}@github.com/${PRIVATE_REPO}.git" "$LOGS_DIR" >/dev/null 2>&1; then
+            echo "$SHA" > "$LOGS_DIR/supabase-deployed"
+            git -C "$LOGS_DIR" config user.name "github-actions[bot]"
+            git -C "$LOGS_DIR" config user.email "github-actions[bot]@users.noreply.github.com"
+            git -C "$LOGS_DIR" add supabase-deployed
+            if ! git -C "$LOGS_DIR" diff --cached --quiet; then
+              git -C "$LOGS_DIR" commit -m "ci: update supabase-deployed to $SHA" >/dev/null 2>&1
+              for attempt in 1 2 3 4 5; do
+                if git -C "$LOGS_DIR" push origin ci-logs >/dev/null 2>&1; then
+                  break
+                fi
+                git -C "$LOGS_DIR" pull --rebase origin ci-logs >/dev/null 2>&1 || true
+                sleep "$attempt"
+              done
+            fi
+          fi
+          rm -rf "$LOGS_DIR"

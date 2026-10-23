@@ -1,0 +1,293 @@
+name: native-ci
+run-name: native-ci ${{ inputs.sha }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: "Private repo commit SHA (40 hex)"
+        required: true
+        type: string
+  schedule:
+    - cron: '0 */3 * * *'
+
+concurrency:
+  group: native-ci
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  actions: write
+
+env:
+  PRIVATE_REPO: jeancatarina/catarina-claude
+
+jobs:
+  resolve:
+    name: resolve
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      sha: ${{ steps.resolve_sha.outputs.sha }}
+      skip: ${{ steps.resolve_sha.outputs.skip }}
+    steps:
+      - name: Resolve and validate SHA
+        id: resolve_sha
+        env:
+          PRIVATE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+          INPUT_SHA: ${{ inputs.sha }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+          echo "::add-mask::${PRIVATE_TOKEN}"
+
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            SHA="$INPUT_SHA"
+          else
+            # schedule trigger: resolve HEAD of private main
+            SHA=$(git ls-remote "https://x-access-token:${PRIVATE_TOKEN}@github.com/${PRIVATE_REPO}.git" refs/heads/main | awk '{print $1}')
+            if [ -z "$SHA" ]; then
+              echo "::error::Could not resolve main HEAD for ${PRIVATE_REPO}"
+              exit 1
+            fi
+            # Check if there is already a successful run for this SHA
+            PREV_SUCCESS=$(gh run list -R "$GITHUB_REPOSITORY" -w native-ci.yml --status success --json name --jq '.[].name' 2>/dev/null | grep -F "native-ci $SHA" || true)
+            if [ -n "$PREV_SUCCESS" ]; then
+              echo "SHA $SHA has already succeeded in native-ci. Skipping."
+              echo "skip=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          fi
+
+          if ! printf '%s' "$SHA" | grep -qE '^[0-9a-f]{40}$'; then
+            echo "::error::Invalid SHA format (must be 40 hex digits): $SHA"
+            exit 1
+          fi
+
+          # Clone private repo and verify SHA is ancestor of main
+          TMP_DIR="$(mktemp -d)"
+          git clone --filter=blob:none "https://x-access-token:${PRIVATE_TOKEN}@github.com/${PRIVATE_REPO}.git" "$TMP_DIR" >/dev/null 2>&1
+          cd "$TMP_DIR"
+          git checkout "$SHA" >/dev/null 2>&1
+          git fetch origin main >/dev/null 2>&1
+          if ! git merge-base --is-ancestor "$SHA" origin/main; then
+            echo "::error::SHA $SHA is not an ancestor of main."
+            rm -rf "$TMP_DIR"
+            exit 1
+          fi
+          rm -rf "$TMP_DIR"
+
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+
+  check:
+    name: ${{ matrix.os }}
+    needs: resolve
+    if: needs.resolve.outputs.skip != 'true'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-15, ubuntu-latest, windows-latest]
+    defaults:
+      run:
+        shell: bash
+    env:
+      PRIVATE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
+      PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_WRITE_TOKEN }}
+      PRIVATE_WRITE_TOKEN: ${{ secrets.CATARINA_PRIVATE_WRITE_TOKEN }}
+      SHA: ${{ needs.resolve.outputs.sha }}
+      MATRIX_OS: ${{ matrix.os }}
+      CARGO_TERM_COLOR: always
+    steps:
+      - name: Setup builder scripts
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            .github/scripts/persist-private-log.sh
+          sparse-checkout-cone-mode: false
+          path: _builder
+
+      - name: Stage builder scripts and clean checkout
+        run: |
+          mkdir -p "$RUNNER_TEMP/scripts"
+          cp _builder/.github/scripts/persist-private-log.sh "$RUNNER_TEMP/scripts/persist-private-log.sh"
+          chmod +x "$RUNNER_TEMP/scripts/persist-private-log.sh"
+          rm -rf _builder
+
+      - name: Clone private repository
+        run: |
+          echo "::add-mask::${PRIVATE_TOKEN}"
+          [ -n "${PRIVATE_WRITE_TOKEN:-}" ] && echo "::add-mask::${PRIVATE_WRITE_TOKEN}"
+          git clone --filter=blob:none "https://x-access-token:${PRIVATE_TOKEN}@github.com/${PRIVATE_REPO}.git" . >/dev/null 2>&1
+          git checkout "$SHA" >/dev/null 2>&1
+
+      - name: Publish pending status
+        run: |
+          if [ -n "${PRIVATE_WRITE_TOKEN:-}" ]; then
+            echo "::add-mask::${PRIVATE_WRITE_TOKEN}"
+            curl -sf -X POST "https://api.github.com/repos/${PRIVATE_REPO}/statuses/${SHA}" \
+              -H "Authorization: Bearer ${PRIVATE_WRITE_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              -H "Content-Type: application/json" \
+              -d "{\"state\":\"pending\",\"target_url\":\"https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\",\"description\":\"native-ci on ${MATRIX_OS} running\",\"context\":\"native-ci/${MATRIX_OS}\"}" >/dev/null 2>&1 || true
+          fi
+
+      - name: Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: System libraries (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libfontconfig1-dev libxkbcommon-dev libssl-dev pkg-config libdbus-1-dev
+
+      - name: Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Install nextest
+        uses: taiki-e/install-action@nextest
+
+      - name: Initialize log file
+        run: |
+          touch "$RUNNER_TEMP/ci-build.log"
+
+      - name: Check formatting (cargo fmt)
+        run: |
+          echo "Passo: cargo fmt --all --check"
+          if cargo fmt --all --check >> "$RUNNER_TEMP/ci-build.log" 2>&1; then
+            echo "Resultado: OK"
+          else
+            echo "Resultado: FALHOU"
+            echo "cargo fmt" > "$RUNNER_TEMP/failed_step"
+            exit 1
+          fi
+
+      - name: Workspace check (cargo check)
+        run: |
+          echo "Passo: cargo check --workspace --all-targets"
+          if RUSTFLAGS="-D warnings" cargo check --workspace --all-targets >> "$RUNNER_TEMP/ci-build.log" 2>&1; then
+            echo "Resultado: OK"
+          else
+            echo "Resultado: FALHOU"
+            echo "cargo check" > "$RUNNER_TEMP/failed_step"
+            exit 1
+          fi
+
+      - name: Clippy (cargo clippy)
+        run: |
+          echo "Passo: cargo clippy --workspace --all-targets"
+          if cargo clippy --workspace --all-targets >> "$RUNNER_TEMP/ci-build.log" 2>&1; then
+            echo "Resultado: OK"
+          else
+            echo "Resultado: Avisos/falhas encontrados (continue-on-error ativo)"
+          fi
+
+      - name: Run tests (cargo nextest)
+        run: |
+          echo "Passo: cargo nextest run --workspace --profile ci"
+          NEXTEST_RAW="$RUNNER_TEMP/nextest_raw.log"
+          set +e
+          cargo nextest run --workspace --profile ci > "$NEXTEST_RAW" 2>&1
+          NEXTEST_EXIT=$?
+          set -e
+          cat "$NEXTEST_RAW" >> "$RUNNER_TEMP/ci-build.log"
+
+          # Print nextest summary and failing test names
+          grep -E '^(Summary \[|  FAIL \[|FAIL \[)' "$NEXTEST_RAW" || true
+
+          if [ $NEXTEST_EXIT -eq 0 ]; then
+            echo "Resultado: OK"
+          else
+            echo "Resultado: FALHOU"
+            echo "cargo nextest" > "$RUNNER_TEMP/failed_step"
+            exit 1
+          fi
+
+      - name: Documentation tests (cargo test --doc)
+        run: |
+          echo "Passo: cargo test --workspace --doc"
+          if cargo test --workspace --doc >> "$RUNNER_TEMP/ci-build.log" 2>&1; then
+            echo "Resultado: OK"
+          else
+            echo "Resultado: FALHOU"
+            echo "cargo test --doc" > "$RUNNER_TEMP/failed_step"
+            exit 1
+          fi
+
+      - name: Handle failure
+        if: failure()
+        run: |
+          FAILED_STEP="passo desconhecido"
+          if [ -f "$RUNNER_TEMP/failed_step" ]; then
+            FAILED_STEP=$(cat "$RUNNER_TEMP/failed_step")
+          fi
+          source "$RUNNER_TEMP/scripts/persist-private-log.sh"
+          persist_private_build_log "$RUNNER_TEMP/ci-build.log" "${MATRIX_OS}" "$FAILED_STEP"
+
+          if [ -n "${PRIVATE_WRITE_TOKEN:-}" ]; then
+            echo "::add-mask::${PRIVATE_WRITE_TOKEN}"
+            curl -sf -X POST "https://api.github.com/repos/${PRIVATE_REPO}/statuses/${SHA}" \
+              -H "Authorization: Bearer ${PRIVATE_WRITE_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              -H "Content-Type: application/json" \
+              -d "{\"state\":\"failure\",\"target_url\":\"https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\",\"description\":\"Failed at ${FAILED_STEP}\",\"context\":\"native-ci/${MATRIX_OS}\"}" >/dev/null 2>&1 || true
+          fi
+
+      - name: Handle success
+        if: success()
+        run: |
+          if [ -n "${PRIVATE_WRITE_TOKEN:-}" ]; then
+            echo "::add-mask::${PRIVATE_WRITE_TOKEN}"
+            curl -sf -X POST "https://api.github.com/repos/${PRIVATE_REPO}/statuses/${SHA}" \
+              -H "Authorization: Bearer ${PRIVATE_WRITE_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              -H "Content-Type: application/json" \
+              -d "{\"state\":\"success\",\"target_url\":\"https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\",\"description\":\"native-ci passed\",\"context\":\"native-ci/${MATRIX_OS}\"}" >/dev/null 2>&1 || true
+          fi
+
+      - name: Trigger Supabase deploy
+        if: success() && matrix.os == 'ubuntu-latest'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          echo "Verificando se houve alterações em supabase/ desde o último deploy..."
+          LAST_DEPLOYED_SHA=""
+          TMP_LOGS="$(mktemp -d)"
+          if git clone --depth=1 --branch ci-logs "https://x-access-token:${PRIVATE_TOKEN}@github.com/${PRIVATE_REPO}.git" "$TMP_LOGS" >/dev/null 2>&1; then
+            if [ -f "$TMP_LOGS/supabase-deployed" ]; then
+              LAST_DEPLOYED_SHA=$(cat "$TMP_LOGS/supabase-deployed" | tr -d ' \n\r')
+            fi
+          fi
+          rm -rf "$TMP_LOGS"
+
+          SHOULD_DEPLOY="false"
+          if [ -z "$LAST_DEPLOYED_SHA" ]; then
+            if [ -d "supabase" ]; then
+              SHOULD_DEPLOY="true"
+            fi
+          else
+            git fetch origin "$LAST_DEPLOYED_SHA" >/dev/null 2>&1 || true
+            if git cat-file -e "$LAST_DEPLOYED_SHA^{commit}" 2>/dev/null; then
+              DIFF=$(git diff --name-only "$LAST_DEPLOYED_SHA" "$SHA" -- supabase/ || true)
+              if [ -n "$DIFF" ]; then
+                SHOULD_DEPLOY="true"
+              fi
+            else
+              SHOULD_DEPLOY="true"
+            fi
+          fi
+
+          if [ "$SHOULD_DEPLOY" = "true" ]; then
+            echo "Alterações detectadas em supabase/; disparando supabase-deploy.yml..."
+            gh workflow run supabase-deploy.yml -f sha="$SHA" || echo "::warning::Não foi possível disparar supabase-deploy.yml"
+          else
+            echo "Nenhuma alteração em supabase/ desde $LAST_DEPLOYED_SHA."
+          fi
