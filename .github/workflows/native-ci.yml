@@ -42,9 +42,17 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           INPUT_SHA: ${{ inputs.sha }}
           EVENT_NAME: ${{ github.event_name }}
+          DIAGNOSTIC_REQUESTED: ${{ inputs.diagnostic_public_key != '' }}
         run: |
           set -euo pipefail
           echo "::add-mask::${PRIVATE_TOKEN}"
+
+          # A public-builder collaborator must not choose a recipient for
+          # diagnostics that contain private source fragments.
+          if [ "$DIAGNOSTIC_REQUESTED" = "true" ] && [ "$GITHUB_ACTOR" != "${PRIVATE_REPO%%/*}" ]; then
+            echo "::error::Encrypted diagnostics require dispatch by the private repository owner."
+            exit 1
+          fi
 
           if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
             SHA="$INPUT_SHA"
