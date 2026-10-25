@@ -64,8 +64,11 @@ jobs:
             if [ "$LABEL" = after ]; then git checkout "$AFTER" >/dev/null 2>&1; fi
             cargo clean -p cadente-app >> "$LOG" 2>&1
             if [ "$LABEL" = after ]; then cargo clean -p cadente-app-ui >> "$LOG" 2>&1; fi
-            /usr/bin/time -f "$LABEL wall=%e user=%U system=%S maxrss_kb=%M" -o "$RUNNER_TEMP/$LABEL.txt" \
-              cargo test -p cadente-app --no-run >> "$LOG" 2>&1
+            if ! /usr/bin/time -f "$LABEL wall=%e user=%U system=%S maxrss_kb=%M" -o "$RUNNER_TEMP/$LABEL.txt" \
+              cargo test -p cadente-app --no-run --message-format json > "$RUNNER_TEMP/$LABEL-build.jsonl" 2>> "$LOG"; then
+              cat "$RUNNER_TEMP/$LABEL-build.jsonl" >> "$LOG"
+              exit 1
+            fi
             cargo nextest list -p cadente-app --message-format json > "$RUNNER_TEMP/$LABEL-tests.json" 2>> "$LOG"
             cat "$RUNNER_TEMP/$LABEL.txt" | tee -a "$GITHUB_STEP_SUMMARY"
           done
@@ -75,6 +78,11 @@ jobs:
           def cases(label):
               suites = json.loads((Path(os.environ['RUNNER_TEMP']) / f'{label}-tests.json').read_text())['rust-suites']
               return sorted(name.removeprefix('shell_golden::') for suite in suites.values() for name in suite['testcases'])
+          artifacts = [json.loads(line) for line in (Path(os.environ['RUNNER_TEMP']) / 'after-build.jsonl').read_text().splitlines()]
+          ui = [a for a in artifacts if a['reason'] == 'compiler-artifact' and a['target']['name'] == 'cadente_app_ui']
+          assert len(ui) == 1 and not ui[0]['fresh'], 'Generated UI must compile exactly once'
+          harnesses = [a for a in artifacts if a['reason'] == 'compiler-artifact' and a['profile']['test'] and a['target']['name'] == 'cadente_app']
+          assert len(harnesses) == 1, 'App tests must share one executable'
           before, after = cases('before'), cases('after')
           assert before == after, 'A7 changed the test inventory'
           with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
