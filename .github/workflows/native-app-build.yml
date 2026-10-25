@@ -10,6 +10,10 @@ on:
         description: Private main SHA after A7
         required: true
         type: string
+      diagnostic_public_key:
+        description: Optional base64 PEM public key for encrypted failure diagnostics
+        required: false
+        type: string
 permissions:
   contents: read
 jobs:
@@ -20,6 +24,7 @@ jobs:
       PRIVATE_REPO: jeancatarina/catarina-claude
       PRIVATE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
       PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_WRITE_TOKEN }}
+      DIAGNOSTIC_PUBLIC_KEY: ${{ inputs.diagnostic_public_key }}
       BEFORE: ${{ inputs.before }}
       AFTER: ${{ inputs.after }}
     steps:
@@ -30,6 +35,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          if [ -n "$DIAGNOSTIC_PUBLIC_KEY" ]; then test "$GITHUB_ACTOR" = "${PRIVATE_REPO%%/*}"; fi
           echo "::add-mask::$PRIVATE_TOKEN"
           for SHA in "$BEFORE" "$AFTER"; do
             [[ "$SHA" =~ ^[0-9a-f]{40}$ ]]
@@ -61,7 +67,7 @@ jobs:
             /usr/bin/time -f "$LABEL wall=%e user=%U system=%S maxrss_kb=%M" -o "$RUNNER_TEMP/$LABEL.txt" \
               cargo test -p cadente-app --no-run >> "$LOG" 2>&1
             cargo nextest list -p cadente-app --message-format json > "$RUNNER_TEMP/$LABEL-tests.json" 2>> "$LOG"
-            cat "$RUNNER_TEMP/$LABEL.txt" >> "$GITHUB_STEP_SUMMARY"
+            cat "$RUNNER_TEMP/$LABEL.txt" | tee -a "$GITHUB_STEP_SUMMARY"
           done
           python3 - <<'PYTHON'
           import json, os
@@ -80,3 +86,12 @@ jobs:
         run: |
           source builder/.github/scripts/persist-private-log.sh
           persist_private_build_log "$RUNNER_TEMP/ci-build.log" app-build measurement
+      - name: Encrypt failure diagnostic
+        if: failure() && inputs.diagnostic_public_key != ''
+        run: node builder/.github/scripts/encrypt-ci-log.cjs
+      - uses: actions/upload-artifact@v4
+        if: failure() && inputs.diagnostic_public_key != ''
+        with:
+          name: app-build-diagnostic
+          path: ${{ runner.temp }}/ci-diagnostic.enc.json
+          retention-days: 1
