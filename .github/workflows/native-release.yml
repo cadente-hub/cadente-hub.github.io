@@ -94,8 +94,7 @@ jobs:
     env:
       RELEASE_VERSION: ${{ needs.resolve.outputs.version }}
       RELEASE_CHANNEL: ${{ inputs.channel }}
-      # The release key has an empty password (as in the Tauri workflows).
-      MINISIGN_PASSWORD: ""
+      TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
       APPLE_SIGNING_IDENTITY: "-"
     steps:
       - name: Clone the private repository at the commit
@@ -132,15 +131,9 @@ jobs:
           choco install nsis -y --no-progress
           echo "C:\Program Files (x86)\NSIS" >> "$GITHUB_PATH"
 
-      - name: Release signing key
-        env:
-          KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-        run: |
-          set -euo pipefail
-          echo "::add-mask::${KEY}"
-          umask 077
-          printf '%s' "$KEY" | base64 --decode > "$RUNNER_TEMP/release.key" 2>/dev/null || printf '%s' "$KEY" > "$RUNNER_TEMP/release.key"
-          echo "MINISIGN_KEY_FILE=$RUNNER_TEMP/release.key" >> "$GITHUB_ENV"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
 
       - name: Bundle and update payload
         working-directory: src
@@ -170,8 +163,7 @@ jobs:
     env:
       RELEASE_VERSION: ${{ needs.resolve.outputs.version }}
       RELEASE_CHANNEL: ${{ inputs.channel }}
-      # The release key has an empty password (as in the Tauri workflows).
-      MINISIGN_PASSWORD: ""
+      TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
       GH_TOKEN: ${{ secrets.CATARINA_RELEASE_TOKEN }}
     steps:
       - uses: actions/download-artifact@v4
@@ -196,15 +188,9 @@ jobs:
         with:
           workspaces: src
 
-      - name: Release signing key
-        env:
-          KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-        run: |
-          set -euo pipefail
-          echo "::add-mask::${KEY}"
-          umask 077
-          printf '%s' "$KEY" | base64 --decode > "$RUNNER_TEMP/release.key" 2>/dev/null || printf '%s' "$KEY" > "$RUNNER_TEMP/release.key"
-          echo "MINISIGN_KEY_FILE=$RUNNER_TEMP/release.key" >> "$GITHUB_ENV"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
 
       - name: Signed feed
         working-directory: src

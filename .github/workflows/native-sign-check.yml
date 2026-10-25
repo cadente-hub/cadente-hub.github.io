@@ -35,16 +35,15 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: src
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
       - name: Sign a file with the release key
         working-directory: src
         env:
-          KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          MINISIGN_PASSWORD: ""
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
         run: |
           set -euo pipefail
-          echo "::add-mask::${KEY}"
-          umask 077
-          printf '%s' "$KEY" > "$RUNNER_TEMP/release.key"
           echo "check" > "$RUNNER_TEMP/check.txt"
-          MINISIGN_KEY_FILE="$RUNNER_TEMP/release.key" cargo xtask sign "$RUNNER_TEMP/check.txt"
+          cargo xtask sign "$RUNNER_TEMP/check.txt"
           test -s "$RUNNER_TEMP/check.txt.minisig" && echo "signed with the release key"
