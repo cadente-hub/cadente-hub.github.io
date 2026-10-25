@@ -96,6 +96,7 @@ jobs:
       RELEASE_CHANNEL: ${{ inputs.channel }}
       TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
       APPLE_SIGNING_IDENTITY: "-"
+      XTASK_FREE_DISK: "1"
     steps:
       - name: Clone the private repository at the commit
         env:
