@@ -230,12 +230,12 @@ jobs:
           }
           RS
           for PROFILE in default ci; do
-            export GATE_ATTEMPTS="$PROBE/attempts-$PROFILE"
+            export GATE_ATTEMPTS="attempts-$PROFILE"
             if cargo nextest run --manifest-path "$PROBE/Cargo.toml" --config-file "$PWD/.config/nextest.toml" --profile "$PROFILE" > "$RUNNER_TEMP/retry-probe-$PROFILE.log" 2>&1; then
               echo "::error::The $PROFILE profile hid a failing test"
               exit 1
             fi
-            test "$(cat "$GATE_ATTEMPTS")" = 1
+            test "$(cat "$PROBE/$GATE_ATTEMPTS")" = 1
           done
 
       - name: Run tests (cargo nextest)
