@@ -212,7 +212,7 @@ jobs:
           PROBE="$PWD/.ci-gate-probe"
           trap 'rm -rf "$PROBE"' EXIT
           mkdir -p "$PROBE/src"
-          printf '[package]\nname = "gate-probe"\nversion = "0.0.0"\nedition = "2021"\n[workspace]\n' > "$PROBE/Cargo.toml"
+          printf '[package]\nname = "cadente-core"\nversion = "0.0.0"\nedition = "2021"\nautotests = false\n[[bin]]\nname = "gate-probe"\npath = "src/main.rs"\ntest = false\n[[test]]\nname = "it"\npath = "src/main.rs"\n[workspace]\n' > "$PROBE/Cargo.toml"
           printf 'fn main() { let _ = std::process::Command::new("forbidden"); }\n' > "$PROBE/src/main.rs"
           if cargo clippy --manifest-path "$PROBE/Cargo.toml" -- -A clippy::all -D clippy::disallowed_methods > "$RUNNER_TEMP/lint-probe.log" 2>&1; then
             echo '::error::The invariant gate accepted a forbidden process call'
@@ -233,6 +233,10 @@ jobs:
             export GATE_ATTEMPTS="attempts-$PROFILE"
             if cargo nextest run --manifest-path "$PROBE/Cargo.toml" --config-file "$PWD/.config/nextest.toml" --profile "$PROFILE" > "$RUNNER_TEMP/retry-probe-$PROFILE.log" 2>&1; then
               echo "::error::The $PROFILE profile hid a failing test"
+              exit 1
+            fi
+            if [ ! -f "$PROBE/$GATE_ATTEMPTS" ]; then
+              cat "$RUNNER_TEMP/retry-probe-$PROFILE.log"
               exit 1
             fi
             test "$(cat "$PROBE/$GATE_ATTEMPTS")" = 1
