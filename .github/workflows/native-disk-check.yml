@@ -1,0 +1,13 @@
+name: native-disk-check
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  disk:
+    runs-on: macos-15-intel
+    steps:
+      - run: |
+          df -h / /System/Volumes/Data /Users/runner/work 2>&1 || df -h
+          sudo du -sh /Users/runner/Library /Users/runner/hostedtoolcache /Applications /Library/Developer /opt/homebrew /usr/local 2>/dev/null | sort -h | tail -10
+          xcrun simctl list runtimes 2>/dev/null | head -5
