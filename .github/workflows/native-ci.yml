@@ -215,7 +215,7 @@ jobs:
           cat "$NEXTEST_RAW" >> "$RUNNER_TEMP/ci-build.log"
 
           # Print nextest summary and failing test names
-          grep -E '^(Summary \[|  FAIL \[|FAIL \[)' "$NEXTEST_RAW" || true
+          sed 's/\x1b\[[0-9;]*m//g' "$NEXTEST_RAW" | grep -E '(Summary \[|FAIL \[|SIGABRT|SIGSEGV|TIMEOUT|panicked at|^error)' | head -120 || true
 
           if [ $NEXTEST_EXIT -eq 0 ]; then
             echo "Resultado: OK"
