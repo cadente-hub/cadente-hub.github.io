@@ -1,0 +1,31 @@
+name: Withdraw native 1.0.0
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  withdraw:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.CATARINA_RELEASE_TOKEN }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Publish an authenticated empty stable feed
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          printf '%s' '{"channel":"stable","releases":[],"schemaVersion":1}' > public/feeds/stable.json
+          npx --yes @tauri-apps/cli@2 signer sign --password '' public/feeds/stable.json
+          node -e "const fs=require('fs'); fs.writeFileSync('public/feeds/stable.json.minisig',Buffer.from(fs.readFileSync('public/feeds/stable.json.sig','utf8').trim(),'base64'));"
+          rm public/feeds/stable.json.sig
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add public/feeds/stable.json public/feeds/stable.json.minisig
+          if ! git diff --cached --quiet; then
+            git commit -m 'fix: Retire a versão nativa ainda não aceita do canal estável'
+            git push
+          fi
