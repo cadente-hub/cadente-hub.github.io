@@ -1,0 +1,82 @@
+name: Measure app test build
+on:
+  workflow_dispatch:
+    inputs:
+      before:
+        description: Private main SHA before A7
+        required: true
+        type: string
+      after:
+        description: Private main SHA after A7
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      PRIVATE_REPO: jeancatarina/catarina-claude
+      PRIVATE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
+      PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_WRITE_TOKEN }}
+      BEFORE: ${{ inputs.before }}
+      AFTER: ${{ inputs.after }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: builder
+      - name: Clone and validate revisions
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "::add-mask::$PRIVATE_TOKEN"
+          for SHA in "$BEFORE" "$AFTER"; do
+            [[ "$SHA" =~ ^[0-9a-f]{40}$ ]]
+          done
+          git clone --filter=blob:none "https://x-access-token:${PRIVATE_TOKEN}@github.com/${PRIVATE_REPO}.git" src >/dev/null 2>&1
+          cd src
+          git merge-base --is-ancestor "$BEFORE" origin/main
+          git merge-base --is-ancestor "$AFTER" origin/main
+          git checkout "$BEFORE" >/dev/null 2>&1
+          git remote remove origin
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: taiki-e/install-action@nextest
+      - name: System libraries
+        run: sudo apt-get update && sudo apt-get install -y libfontconfig1-dev libxkbcommon-dev libssl-dev pkg-config libdbus-1-dev
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src
+      - name: Compare clean app builds with identical warmed dependencies
+        working-directory: src
+        shell: bash
+        run: |
+          set -euo pipefail
+          LOG="$RUNNER_TEMP/ci-build.log"
+          cargo test -p cadente-app --no-run > "$LOG" 2>&1
+          for LABEL in before after; do
+            if [ "$LABEL" = after ]; then git checkout "$AFTER" >/dev/null 2>&1; fi
+            cargo clean -p cadente-app >> "$LOG" 2>&1
+            if [ "$LABEL" = after ]; then cargo clean -p cadente-app-ui >> "$LOG" 2>&1; fi
+            /usr/bin/time -f "$LABEL wall=%e user=%U system=%S maxrss_kb=%M" -o "$RUNNER_TEMP/$LABEL.txt" \
+              cargo test -p cadente-app --no-run >> "$LOG" 2>&1
+            cargo nextest list -p cadente-app --message-format json > "$RUNNER_TEMP/$LABEL-tests.json" 2>> "$LOG"
+            cat "$RUNNER_TEMP/$LABEL.txt" >> "$GITHUB_STEP_SUMMARY"
+          done
+          python3 - <<'PYTHON'
+          import json, os
+          from pathlib import Path
+          def cases(label):
+              suites = json.loads((Path(os.environ['RUNNER_TEMP']) / f'{label}-tests.json').read_text())['rust-suites']
+              return sorted(name.removeprefix('shell_golden::') for suite in suites.values() for name in suite['testcases'])
+          before, after = cases('before'), cases('after')
+          assert before == after, 'A7 changed the test inventory'
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
+              summary.write(f'Preserved all {len(after)} app tests. Dependencies warm; app outputs removed before each measurement.\n')
+          PYTHON
+      - name: Preserve private failure diagnostics
+        if: failure()
+        shell: bash
+        run: |
+          source builder/.github/scripts/persist-private-log.sh
+          persist_private_build_log "$RUNNER_TEMP/ci-build.log" app-build measurement
