@@ -44,7 +44,11 @@ jobs:
           cd src
           git merge-base --is-ancestor "$BEFORE" origin/main
           git merge-base --is-ancestor "$BEFORE" "$AFTER"
+          # Materialize both trees before removing the authenticated promisor remote.
+          git checkout "$AFTER" >/dev/null 2>&1
+          test -s Cargo.toml
           git checkout "$BEFORE" >/dev/null 2>&1
+          test -s Cargo.toml
           git remote remove origin
       - uses: dtolnay/rust-toolchain@stable
       - uses: taiki-e/install-action@nextest
@@ -61,7 +65,8 @@ jobs:
           LOG="$RUNNER_TEMP/ci-build.log"
           cargo test -p cadente-app --no-run > "$LOG" 2>&1
           for LABEL in before after; do
-            if [ "$LABEL" = after ]; then git checkout "$AFTER" >/dev/null 2>&1; fi
+            if [ "$LABEL" = after ]; then git checkout "$AFTER" >> "$LOG" 2>&1; fi
+            test -s Cargo.toml
             cargo clean -p cadente-app >> "$LOG" 2>&1
             if [ "$LABEL" = after ]; then cargo clean -p cadente-app-ui >> "$LOG" 2>&1; fi
             if ! /usr/bin/time -f "$LABEL wall=%e user=%U system=%S maxrss_kb=%M" -o "$RUNNER_TEMP/$LABEL.txt" \
