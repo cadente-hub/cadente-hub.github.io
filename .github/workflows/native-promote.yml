@@ -1,0 +1,33 @@
+name: Native Promote to Stable
+
+# Promotes a tested native beta: builds the same commit as the stable version of the crate.
+# (The version is compiled into the app, so a promotion is a rebuild of the commit, not a rename.)
+
+on:
+  workflow_dispatch:
+    inputs:
+      beta_version:
+        description: "Native beta to promote (e.g. 1.0.0-beta.2)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Find the commit of the beta and start the stable build
+        env:
+          GH_TOKEN: ${{ secrets.CATARINA_RELEASE_TOKEN }}
+          BETA: ${{ inputs.beta_version }}
+        run: |
+          set -euo pipefail
+          printf '%s' "$BETA" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+-beta\.[0-9]+$' || { echo "::error::Expected X.Y.Z-beta.N, got: $BETA"; exit 1; }
+          BODY="$(gh release view "v${BETA}" --repo "$GITHUB_REPOSITORY" --json body --jq .body)"
+          SHA="$(printf '%s\n' "$BODY" | sed -n 's/^commit: \([0-9a-f]\{40\}\)$/\1/p' | head -1)"
+          [ -n "$SHA" ] || { echo "::error::v${BETA} does not record its commit"; exit 1; }
+          echo "Promoting v${BETA} (commit ${SHA})"
+          gh workflow run native-release.yml --repo "$GITHUB_REPOSITORY" -f sha="$SHA" -f channel=stable

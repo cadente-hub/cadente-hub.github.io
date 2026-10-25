@@ -1,0 +1,315 @@
+name: native-release
+run-name: native-release ${{ inputs.channel }} ${{ inputs.sha }}
+
+# Builds the native Cadente from the private repo and publishes it: packages as a GitHub release,
+# the signed update feed on the site. `beta` builds are numbered 1.0.0-beta.N; `stable` builds the
+# exact version of the crate. A stable release is the build of a commit that already ran as beta
+# (see native-promote), because the version is compiled into the app.
+
+on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: "Private repo commit SHA (40 hex), already green in native-ci"
+        required: true
+        type: string
+      channel:
+        description: "Release channel"
+        required: true
+        default: beta
+        type: choice
+        options: [beta, stable]
+
+concurrency:
+  group: native-release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+env:
+  PRIVATE_REPO: jeancatarina/catarina-claude
+  CARGO_INCREMENTAL: 0
+
+jobs:
+  resolve:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      sha: ${{ steps.meta.outputs.sha }}
+      version: ${{ steps.meta.outputs.version }}
+      tag: ${{ steps.meta.outputs.tag }}
+    steps:
+      - name: Validate the commit and number the release
+        id: meta
+        env:
+          PRIVATE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+          INPUT_SHA: ${{ inputs.sha }}
+          CHANNEL: ${{ inputs.channel }}
+        run: |
+          set -euo pipefail
+          echo "::add-mask::${PRIVATE_TOKEN}"
+          if ! printf '%s' "$INPUT_SHA" | grep -qE '^[0-9a-f]{40}$'; then
+            echo "::error::Invalid SHA: $INPUT_SHA"; exit 1
+          fi
+          TMP="$(mktemp -d)"
+          git clone --filter=blob:none "https://x-access-token:${PRIVATE_TOKEN}@github.com/${PRIVATE_REPO}.git" "$TMP" >/dev/null 2>&1
+          cd "$TMP"
+          git checkout "$INPUT_SHA" >/dev/null 2>&1
+          git fetch origin main >/dev/null 2>&1
+          git merge-base --is-ancestor "$INPUT_SHA" origin/main || { echo "::error::$INPUT_SHA is not on main"; exit 1; }
+          BASE="$(sed -n 's/^version = "\(.*\)"/\1/p' crates/app/Cargo.toml | head -1)"
+          printf '%s' "$BASE" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$' || { echo "::error::crate version is not X.Y.Z: $BASE"; exit 1; }
+          if [ "$CHANNEL" = "stable" ]; then
+            VERSION="$BASE"
+            if gh release view "v${VERSION}" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+              echo "::error::v${VERSION} already exists; raise the crate version first"; exit 1
+            fi
+          else
+            LAST="$(gh release list --repo "$GITHUB_REPOSITORY" --limit 300 --json tagName --jq '.[].tagName' | sed -n "s/^v${BASE}-beta\.\([0-9]*\)$/\1/p" | sort -n | tail -1)"
+            VERSION="${BASE}-beta.$(( ${LAST:-0} + 1 ))"
+          fi
+          echo "sha=$INPUT_SHA" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Releasing $VERSION from $INPUT_SHA"
+
+  package:
+    name: package ${{ matrix.target }}
+    needs: resolve
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - { os: macos-15, target: aarch64-apple-darwin }
+          - { os: macos-15-intel, target: x86_64-apple-darwin }
+          - { os: ubuntu-22.04, target: x86_64-unknown-linux-gnu }
+          - { os: windows-latest, target: x86_64-pc-windows-msvc }
+    defaults:
+      run:
+        shell: bash
+    env:
+      RELEASE_VERSION: ${{ needs.resolve.outputs.version }}
+      RELEASE_CHANNEL: ${{ inputs.channel }}
+      MINISIGN_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+      APPLE_SIGNING_IDENTITY: "-"
+    steps:
+      - name: Clone the private repository at the commit
+        env:
+          TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
+          SHA: ${{ needs.resolve.outputs.sha }}
+        run: |
+          set -euo pipefail
+          echo "::add-mask::${TOKEN}"
+          git clone --filter=blob:none "https://x-access-token:${TOKEN}@github.com/${PRIVATE_REPO}.git" src >/dev/null 2>&1
+          git -C src checkout "$SHA" >/dev/null 2>&1
+          git -C src remote remove origin
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src
+
+      - name: System libraries (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libfontconfig1-dev libxkbcommon-dev libssl-dev pkg-config libdbus-1-dev dpkg-dev
+          curl -fsSL -o appimagetool https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x appimagetool
+          sudo mv appimagetool /usr/local/bin/appimagetool
+
+      - name: Installer tool (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          choco install nsis -y --no-progress
+          echo "C:\Program Files (x86)\NSIS" >> "$GITHUB_PATH"
+
+      - name: Release signing key
+        env:
+          KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          echo "::add-mask::${KEY}"
+          umask 077
+          printf '%s' "$KEY" | base64 --decode > "$RUNNER_TEMP/release.key" 2>/dev/null || printf '%s' "$KEY" > "$RUNNER_TEMP/release.key"
+          echo "MINISIGN_KEY_FILE=$RUNNER_TEMP/release.key" >> "$GITHUB_ENV"
+
+      - name: Bundle and update payload
+        working-directory: src
+        run: |
+          set -euo pipefail
+          cargo xtask bundle --target "${{ matrix.target }}"
+          cargo xtask payload --target "${{ matrix.target }}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ matrix.target }}
+          path: |
+            src/dist/*.dmg
+            src/dist/*.AppImage
+            src/dist/*.deb
+            src/dist/cadente-*-windows-x64.exe
+            src/dist/cadente-*.tar.gz
+            src/dist/cadente-*.zip
+            src/dist/*.minisig
+            src/dist/descriptor-*.json
+          if-no-files-found: error
+
+  publish:
+    name: sign the feed and publish
+    needs: [resolve, package]
+    runs-on: ubuntu-latest
+    env:
+      RELEASE_VERSION: ${{ needs.resolve.outputs.version }}
+      RELEASE_CHANNEL: ${{ inputs.channel }}
+      MINISIGN_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+      GH_TOKEN: ${{ secrets.CATARINA_RELEASE_TOKEN }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: dist-*
+          path: dist
+          merge-multiple: true
+
+      - name: Clone the private repository for the feed tool
+        env:
+          TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
+          SHA: ${{ needs.resolve.outputs.sha }}
+        run: |
+          set -euo pipefail
+          echo "::add-mask::${TOKEN}"
+          git clone --filter=blob:none "https://x-access-token:${TOKEN}@github.com/${PRIVATE_REPO}.git" src >/dev/null 2>&1
+          git -C src checkout "$SHA" >/dev/null 2>&1
+          git -C src remote remove origin
+
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src
+
+      - name: Release signing key
+        env:
+          KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          echo "::add-mask::${KEY}"
+          umask 077
+          printf '%s' "$KEY" | base64 --decode > "$RUNNER_TEMP/release.key" 2>/dev/null || printf '%s' "$KEY" > "$RUNNER_TEMP/release.key"
+          echo "MINISIGN_KEY_FILE=$RUNNER_TEMP/release.key" >> "$GITHUB_ENV"
+
+      - name: Signed feed
+        working-directory: src
+        run: |
+          set -euo pipefail
+          cargo xtask feed "${{ inputs.channel }}" ../dist/descriptor-*.json
+          cp -r dist/feeds ../feeds
+
+      - name: Checksums and notes
+        env:
+          SHA: ${{ needs.resolve.outputs.sha }}
+        run: |
+          set -euo pipefail
+          rm -f dist/descriptor-*.json
+          (cd dist && sha256sum * > SHA256SUMS.txt)
+          {
+            echo "Cadente ${RELEASE_VERSION}"
+            echo
+            if [ -f src/docs/release/notes.md ]; then sed '1d' src/docs/release/notes.md; fi
+            echo
+            echo "commit: ${SHA}"
+            echo
+            echo "---"
+            echo "*Built via Secure Public Builder*"
+          } > release-notes.md
+
+      - name: Create the release
+        env:
+          TAG: ${{ needs.resolve.outputs.tag }}
+        run: |
+          set -euo pipefail
+          echo "::add-mask::${GH_TOKEN}"
+          gh release delete "$TAG" --repo "$GITHUB_REPOSITORY" --yes 2>/dev/null || true
+          if [ "${{ inputs.channel }}" = "stable" ]; then FLAGS="--latest"; else FLAGS="--prerelease"; fi
+          gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --title "Cadente v${RELEASE_VERSION}" \
+            --notes-file release-notes.md $FLAGS dist/*
+
+      - name: Publish the feed on the site
+        run: |
+          set -euo pipefail
+          echo "::add-mask::${GH_TOKEN}"
+          git clone --depth=1 "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" site
+          cd site
+          mkdir -p public/feeds
+          cp ../feeds/* public/feeds/
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/feeds
+          git commit -m "chore: publish ${{ inputs.channel }} feed for v${RELEASE_VERSION}" || echo "No changes"
+          git push
+
+      - name: Update Homebrew cask (stable only)
+        if: inputs.channel == 'stable'
+        run: |
+          set -euo pipefail
+          git clone --depth=1 "https://x-access-token:${GH_TOKEN}@github.com/cadente-hub/homebrew-apps.git" homebrew-repo
+          cd homebrew-repo
+          ARM64_SHA=$(sha256sum ../dist/cadente-${RELEASE_VERSION}-macos-arm64.dmg | awk '{print $1}')
+          X64_SHA=$(sha256sum ../dist/cadente-${RELEASE_VERSION}-macos-x64.dmg | awk '{print $1}')
+          cat > Casks/cadente.rb <<RUBY
+          cask "cadente" do
+            version "${RELEASE_VERSION}"
+
+            if Hardware::CPU.arm?
+              url "https://github.com/cadente-hub/cadente-hub.github.io/releases/download/v#{version}/cadente-#{version}-macos-arm64.dmg"
+              sha256 "${ARM64_SHA}"
+            else
+              url "https://github.com/cadente-hub/cadente-hub.github.io/releases/download/v#{version}/cadente-#{version}-macos-x64.dmg"
+              sha256 "${X64_SHA}"
+            end
+
+            name "Cadente"
+            desc "AI-powered desktop assistant — chat, terminal, Git and more"
+            homepage "https://cadente-hub.github.io"
+
+            livecheck do
+              url "https://github.com/cadente-hub/cadente-hub.github.io/releases/latest"
+              strategy :github_latest
+            end
+
+            auto_updates true
+            depends_on macos: ">= :big_sur"
+
+            app "Cadente.app"
+
+            # Unsigned app: drop the quarantine flag and sign ad-hoc so it opens without the "is damaged" error.
+            postflight do
+              system_command "/usr/bin/xattr",
+                             args: ["-cr", "#{appdir}/Cadente.app"],
+                             sudo: true
+              system_command "/usr/bin/codesign",
+                             args: ["--force", "--deep", "--sign", "-", "#{appdir}/Cadente.app"],
+                             sudo: true
+            end
+
+            zap trash: [
+              "~/Library/Application Support/com.cadente.app",
+              "~/Library/Caches/com.cadente.app",
+              "~/Library/Preferences/com.cadente.app.plist",
+              "~/Library/Saved Application State/com.cadente.app.savedState",
+            ]
+          end
+          RUBY
+          sed -i 's/^          //' Casks/cadente.rb
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Casks/cadente.rb
+          git diff --cached --quiet && { echo "No cask changes"; exit 0; }
+          git commit -m "chore: bump cadente to v${RELEASE_VERSION}"
+          git push
