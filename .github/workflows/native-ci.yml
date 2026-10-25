@@ -197,11 +197,13 @@ jobs:
 
       - name: Clippy (cargo clippy)
         run: |
-          echo "Passo: cargo clippy --workspace --all-targets"
-          if cargo clippy --workspace --all-targets >> "$RUNNER_TEMP/ci-build.log" 2>&1; then
+          echo "Passo: cargo clippy --workspace --all-targets -- -A clippy::all -D clippy::disallowed_methods"
+          if cargo clippy --workspace --all-targets -- -A clippy::all -D clippy::disallowed_methods >> "$RUNNER_TEMP/ci-build.log" 2>&1; then
             echo "Resultado: OK"
           else
-            echo "Resultado: Avisos/falhas encontrados (continue-on-error ativo)"
+            echo "Resultado: FALHOU"
+            echo "clippy::disallowed_methods" > "$RUNNER_TEMP/failed_step"
+            exit 1
           fi
 
       - name: Run tests (cargo nextest)
