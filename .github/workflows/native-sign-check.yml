@@ -1,0 +1,50 @@
+name: native-sign-check
+
+# Proves the release key can sign what the app verifies, in about two minutes, before a release is built.
+
+on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: "Private repo commit SHA (40 hex)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  PRIVATE_REPO: jeancatarina/catarina-claude
+
+jobs:
+  sign:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Clone the private repository at the commit
+        env:
+          TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
+          SHA: ${{ inputs.sha }}
+        run: |
+          set -euo pipefail
+          echo "::add-mask::${TOKEN}"
+          printf '%s' "$SHA" | grep -qE '^[0-9a-f]{40}$'
+          git clone --filter=blob:none "https://x-access-token:${TOKEN}@github.com/${PRIVATE_REPO}.git" src >/dev/null 2>&1
+          git -C src checkout "$SHA" >/dev/null 2>&1
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src
+      - name: Sign a file with the release key
+        working-directory: src
+        env:
+          KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          MINISIGN_PASSWORD: ""
+        run: |
+          set -euo pipefail
+          echo "::add-mask::${KEY}"
+          umask 077
+          printf '%s' "$KEY" > "$RUNNER_TEMP/release.key"
+          echo "check" > "$RUNNER_TEMP/check.txt"
+          MINISIGN_KEY_FILE="$RUNNER_TEMP/release.key" cargo xtask sign "$RUNNER_TEMP/check.txt"
+          test -s "$RUNNER_TEMP/check.txt.minisig" && echo "signed with the release key"
