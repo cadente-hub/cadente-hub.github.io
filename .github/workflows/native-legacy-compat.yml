@@ -1,0 +1,49 @@
+name: native-legacy-compat
+run-name: native-legacy-compat ${{ inputs.tag }}
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Published native release tag
+        required: true
+        type: string
+  workflow_call:
+    inputs:
+      tag:
+        required: true
+        type: string
+permissions:
+  contents: write
+concurrency:
+  group: native-legacy-compat
+  cancel-in-progress: false
+jobs:
+  compatibility:
+    runs-on: macos-15
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ secrets.CATARINA_RELEASE_TOKEN }}
+      TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+      RELEASE_TAG: ${{ inputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          token: ${{ secrets.CATARINA_RELEASE_TOKEN }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Package and sign app bundles from verified published DMGs
+        run: python3 scripts/native-legacy-assets.py "$RELEASE_TAG" "$RUNNER_TEMP/compatibility"
+      - name: Publish compatible launcher feed
+        run: |
+          set -euo pipefail
+          git pull --rebase origin main
+          if [[ "$RELEASE_TAG" == *-beta.* ]]; then CHANNEL=beta; TARGET=update-beta.json; else CHANNEL=stable; TARGET=update.json; fi
+          python3 scripts/native-legacy-manifest.py "public/feeds/$CHANNEL.json" "$TARGET" "$RUNNER_TEMP/compatibility/compatibility.json"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "$TARGET"
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "fix: Entregue bundles compativeis aos launchers instalados"
+          git push origin HEAD:main
