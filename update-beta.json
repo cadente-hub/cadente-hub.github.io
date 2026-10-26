@@ -1,41 +1,41 @@
 {
-  "version": "1.1.0-beta.1",
+  "version": "1.1.0-beta.2",
   "channel": "beta",
   "platforms": {
     "darwin-aarch64": {
-      "url": "https://github.com/cadente-hub/cadente-hub.github.io/releases/download/v1.1.0-beta.1/cadente-1.1.0-beta.1-macos-arm64.app.tar.gz",
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSU1N2Z0ZkZVNmMXdTRjFwK3hqbnd6NkxPRlJ3MWdMMnprYzBHc3JiWXJid1NRL1RtL0hMV09CdjNZdyswbjFvcmFyQkRlVTZFRVZDYlBmOW12U3RWMkFHakxhVEpEY0E0PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkzMDQ0MzQ1CWZpbGU6Y2FkZW50ZS0xLjEuMC1iZXRhLjEtbWFjb3MtYXJtNjQuYXBwLnRhci5negprRGdNY2dPd3J0cks0b01HRVdlOVV6akt3TTBGMUZudHBmUnQyNkpNNk1GUTFpNDZJeDNHNFNJR1BCd3R6RllpTVZaVnJQKzc3azgwWStJYmIydnlCQT09Cg==",
-      "sha256": "319564031cbf869db23158aab8a0d0fdf1197889e8afe72a030edf5e536dbb1c",
-      "installerUrl": "https://github.com/cadente-hub/cadente-hub.github.io/releases/download/v1.1.0-beta.1/cadente-1.1.0-beta.1-macos-arm64.dmg",
-      "installerSha256": "b379f72ce47dbc4ac594d0369e071a6afb72fda81776b8e5770f5d63911362de"
+      "url": "https://github.com/cadente-hub/cadente-hub.github.io/releases/download/v1.1.0-beta.2/cadente-1.1.0-beta.2-macos-arm64.app.tar.gz",
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSU1N2Z0ZkZVNmMTlqanNIeW5XWW9vRmZDMkVIaU0wMnJYdGtPZnN2SGxKdUZveDF6ZWlmcmxHWjlwRUU2am1OSWZIVHR3RkFJY3ZCS3pCNjE2eGk2VEE0RUMwcTFjVmdVPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkzMDQ4MDgxCWZpbGU6Y2FkZW50ZS0xLjEuMC1iZXRhLjItbWFjb3MtYXJtNjQuYXBwLnRhci5negp4WmFZU3VZRkZzS2JRdGM4aG5tbGVQaHdsZWlmMnVuMkNZdFc2dktQRVJRVTVidHpSOVBXMzUvR1cxWS9vYmwyeXVEYWw2bm1MUENlSDNpbVVZYzNDQT09Cg==",
+      "sha256": "64b4832e43d99a4bae1a6234579af4c8560b8b0ae63d5e0a8014b9855799800b",
+      "installerUrl": "https://github.com/cadente-hub/cadente-hub.github.io/releases/download/v1.1.0-beta.2/cadente-1.1.0-beta.2-macos-arm64.dmg",
+      "installerSha256": "ace20c245aeaf0f4e6f79dff76ed5175d23ee068ce51eda10bb48ce54214b401"
     },
     "darwin-x86_64": {
-      "url": "https://github.com/cadente-hub/cadente-hub.github.io/releases/download/v1.1.0-beta.1/cadente-1.1.0-beta.1-macos-x64.app.tar.gz",
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSU1N2Z0ZkZVNmMTU0d2NEcUhrbEZMT2hpLzgwNk9jWkxKL0s5UGJiUmR4NXFNMldKck9FQ3hWemlOeFRiNGVJUnZBTzI2bUQ1eXVnajRmOHpnR1Z0YkFMSU1leEdJU0EwPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkzMDQ0MzYxCWZpbGU6Y2FkZW50ZS0xLjEuMC1iZXRhLjEtbWFjb3MteDY0LmFwcC50YXIuZ3oKdzcwbStsd2pSRXBySG5qYmFJNTZoa2pob1FON3RqWDZjbkt3R3Vhd2VlRXd3WVdNa0ZwSWt0VmxOMmlOdkxLd09Jdm5mdVEzQzkrcjJEeGUxQlZqQWc9PQo=",
-      "sha256": "b760be9feffe7c55c0d30c743ce2c4a864c05189610e227a74c2649a4e18fb2b",
-      "installerUrl": "https://github.com/cadente-hub/cadente-hub.github.io/releases/download/v1.1.0-beta.1/cadente-1.1.0-beta.1-macos-x64.dmg",
-      "installerSha256": "a94847c525cdc7d3fd876abb44fe399c730ee3711f2a44967575cdc96fb8c55f"
+      "url": "https://github.com/cadente-hub/cadente-hub.github.io/releases/download/v1.1.0-beta.2/cadente-1.1.0-beta.2-macos-x64.app.tar.gz",
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSU1N2Z0ZkZVNmMTU3QXZlOXY3SUR3MDhIbnc4R0dQZnhTdk45OHJydEt6L3BOVytDSHFwS2hHSTZab09vbmNXeThhL2xOM08rUWlveFc3MGQvZkJweDVwM1RzZFQzWWdVPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkzMDQ4MDk0CWZpbGU6Y2FkZW50ZS0xLjEuMC1iZXRhLjItbWFjb3MteDY0LmFwcC50YXIuZ3oKTnlQS2dndG5reStrRWxPWTVhKytHOWpKeTZMeTFaUkVHYmJUTXlxazNsODlIb3lTdGtkYlNIbDY3SDVVZjQ3a0pNWmx3d2ZucGJ2RHBLR0ZmczFZRHc9PQo=",
+      "sha256": "f7e302ac3a0426826812be8bcfc0d2946528e37517af17365fcad871a4e1c6cb",
+      "installerUrl": "https://github.com/cadente-hub/cadente-hub.github.io/releases/download/v1.1.0-beta.2/cadente-1.1.0-beta.2-macos-x64.dmg",
+      "installerSha256": "10ff878463e7a750d3c0c5829c00a33ce3b5b631236fda214fe2d46ec51b97b8"
     },
     "linux-x86_64": {
-      "url": "https://github.com/cadente-hub/cadente-hub.github.io/releases/download/v1.1.0-beta.1/cadente-1.1.0-beta.1-linux-x86_64.tar.gz",
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSU1N2Z0ZkZVNmMTUrZzhNdkk5N2NqQ2dBMjFZTGV1ZFhXeDFLMkprS2UvUlFGNDlONjBPblhOZDZkR1J5YzljR0MzQkNQRkNjb1pBM2dSaEpXeFVPWGE4d2J0dWlwWHdZPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkzMDMwNzY1CWZpbGU6Y2FkZW50ZS0xLjEuMC1iZXRhLjEtbGludXgteDg2XzY0LnRhci5negpVbFJpVnYraEkwcHUrOUdmM1QyekdOZXRBMzlKTFZHMW1QVXprMWxEZ0hRZ0U4OE42Y2dkTmFGeTVKZkZQYUo2Mno3RzR2RVVhbHhvSzFNTExxQ0VBQT09Cg==",
-      "sha256": "e4b0ea8212f9b92aa90023b670aa65dd294d8ced1f65d02bee9c55ee25188f60",
-      "installerUrl": "https://github.com/cadente-hub/cadente-hub.github.io/releases/download/v1.1.0-beta.1/cadente-1.1.0-beta.1-linux-x64.AppImage",
-      "installerSha256": "2ad5e24ab9141ebefe120827dfb3b45340129009081824f9bc24c8ebfce099c2"
+      "url": "https://github.com/cadente-hub/cadente-hub.github.io/releases/download/v1.1.0-beta.2/cadente-1.1.0-beta.2-linux-x86_64.tar.gz",
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSU1N2Z0ZkZVNmMThrU0hqQnVRakZGK1ZmYklRNDJBell3Z2JVZWt2ZEc4SVZISUtPRWFvaUllNEFieEkxTEszcjNhdHJBVXFwUGFIZEJqdU1NLzlwY1J3MHJuMUIzRVFFPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkzMDQ3Mjk0CWZpbGU6Y2FkZW50ZS0xLjEuMC1iZXRhLjItbGludXgteDg2XzY0LnRhci5negp5V3VVenNvdG1GcU1YMTFjLy8xcWRuS0NLNSttR01icVJXbEx0dGNXU0hUTGZEK0VIOEkzU003L1hWblRaaGtWM2JIN0txTk8xVFF1blQ5L1QrdG1Bdz09Cg==",
+      "sha256": "8bce229648e23eeb7b5394f337a23b464eca0c972a043cb30c5eca4cb41ba53e",
+      "installerUrl": "https://github.com/cadente-hub/cadente-hub.github.io/releases/download/v1.1.0-beta.2/cadente-1.1.0-beta.2-linux-x64.AppImage",
+      "installerSha256": "fae7284f1a44ffda08d5c7d852e2eceeb7632cd2306acff15c31fe9114867bc9"
     },
     "windows-x86_64": {
-      "url": "https://github.com/cadente-hub/cadente-hub.github.io/releases/download/v1.1.0-beta.1/cadente-1.1.0-beta.1-windows-x86_64.zip",
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSU1N2Z0ZkZVNmMXl4Zkg3Ry9jZzRYaVVlY2dzTTVFTkpRdHpUTlpWQXIwb29tenUxN3ZpS3VGa3RaemR1cURNUEo5emppNXJySzJWaGpTOWxHUklEWTh2ekI4dERjYUE0PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkzMDMxMTYxCWZpbGU6Y2FkZW50ZS0xLjEuMC1iZXRhLjEtd2luZG93cy14ODZfNjQuemlwCjU5V0VGeUlSVnBja29uV1l4WHNwN1JaeFhscXlrKzZ3Ukdocmw1bzVZUzk4SHFrZGVFSDRCcUVwWTUyUDU2Ym1Ud0hsUndhR2pId1l2NUsyUjFJT0NBPT0K",
-      "sha256": "abc771c0f867769a5b63242a5fd4d4af4c4a482ad028f55cdbe6e6fd0b74aed8",
-      "installerUrl": "https://github.com/cadente-hub/cadente-hub.github.io/releases/download/v1.1.0-beta.1/cadente-1.1.0-beta.1-windows-x64.exe",
-      "installerSha256": "cdcd8ab807a25c5c908388f98a2e6433840764e13a7ec4f32d69bec4fc0f6016"
+      "url": "https://github.com/cadente-hub/cadente-hub.github.io/releases/download/v1.1.0-beta.2/cadente-1.1.0-beta.2-windows-x86_64.zip",
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSU1N2Z0ZkZVNmMTRkN3NyaVFYRHBCV1J0WlJVV3JwZTBpeWhMQjlhZENQRUhtdDVqZm9tVHVLSGFiOFdjWkIxdnFaQmN2V1VkZWlqa3h0THBvSCt6ZTBiU0xwaW83Z1FJPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkzMDQ3NjM5CWZpbGU6Y2FkZW50ZS0xLjEuMC1iZXRhLjItd2luZG93cy14ODZfNjQuemlwCmJJSG1XU013STEvSWd5d1JUeURMVC80eE1yb2xMaW54Ni94ekQyNEpBTFdmbStWbVhwdVNndmtZUVE5V3FoQUJqa2M1ajd4M1JWbDRMM043VlVwVERnPT0K",
+      "sha256": "d899fcf0d7c6239d12eab4a6f9cb58f810fa41dfb2367fb1215c1b3291c57bb5",
+      "installerUrl": "https://github.com/cadente-hub/cadente-hub.github.io/releases/download/v1.1.0-beta.2/cadente-1.1.0-beta.2-windows-x64.exe",
+      "installerSha256": "5fddebf19c30181b903a1a76fb4e85e8ff1a206e84ed96c237709fcc2da193a3"
     },
     "windows-x86_64-portable": {
-      "url": "https://github.com/cadente-hub/cadente-hub.github.io/releases/download/v1.1.0-beta.1/cadente-1.1.0-beta.1-windows-x86_64.zip",
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSU1N2Z0ZkZVNmMXl4Zkg3Ry9jZzRYaVVlY2dzTTVFTkpRdHpUTlpWQXIwb29tenUxN3ZpS3VGa3RaemR1cURNUEo5emppNXJySzJWaGpTOWxHUklEWTh2ekI4dERjYUE0PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkzMDMxMTYxCWZpbGU6Y2FkZW50ZS0xLjEuMC1iZXRhLjEtd2luZG93cy14ODZfNjQuemlwCjU5V0VGeUlSVnBja29uV1l4WHNwN1JaeFhscXlrKzZ3Ukdocmw1bzVZUzk4SHFrZGVFSDRCcUVwWTUyUDU2Ym1Ud0hsUndhR2pId1l2NUsyUjFJT0NBPT0K",
-      "sha256": "abc771c0f867769a5b63242a5fd4d4af4c4a482ad028f55cdbe6e6fd0b74aed8",
-      "installerUrl": "https://github.com/cadente-hub/cadente-hub.github.io/releases/download/v1.1.0-beta.1/cadente-1.1.0-beta.1-windows-x64.exe",
-      "installerSha256": "cdcd8ab807a25c5c908388f98a2e6433840764e13a7ec4f32d69bec4fc0f6016"
+      "url": "https://github.com/cadente-hub/cadente-hub.github.io/releases/download/v1.1.0-beta.2/cadente-1.1.0-beta.2-windows-x86_64.zip",
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSU1N2Z0ZkZVNmMTRkN3NyaVFYRHBCV1J0WlJVV3JwZTBpeWhMQjlhZENQRUhtdDVqZm9tVHVLSGFiOFdjWkIxdnFaQmN2V1VkZWlqa3h0THBvSCt6ZTBiU0xwaW83Z1FJPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkzMDQ3NjM5CWZpbGU6Y2FkZW50ZS0xLjEuMC1iZXRhLjItd2luZG93cy14ODZfNjQuemlwCmJJSG1XU013STEvSWd5d1JUeURMVC80eE1yb2xMaW54Ni94ekQyNEpBTFdmbStWbVhwdVNndmtZUVE5V3FoQUJqa2M1ajd4M1JWbDRMM043VlVwVERnPT0K",
+      "sha256": "d899fcf0d7c6239d12eab4a6f9cb58f810fa41dfb2367fb1215c1b3291c57bb5",
+      "installerUrl": "https://github.com/cadente-hub/cadente-hub.github.io/releases/download/v1.1.0-beta.2/cadente-1.1.0-beta.2-windows-x64.exe",
+      "installerSha256": "5fddebf19c30181b903a1a76fb4e85e8ff1a206e84ed96c237709fcc2da193a3"
     }
   }
 }
