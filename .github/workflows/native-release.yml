@@ -237,9 +237,12 @@ jobs:
           cd site
           mkdir -p public/feeds
           cp ../feeds/* public/feeds/
+          if [ "${{ inputs.channel }}" = "beta" ]; then
+            python3 scripts/native-legacy-manifest.py public/feeds/beta.json update-beta.json
+          fi
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add public/feeds
+          git add public/feeds update-beta.json
           git commit -m "chore: publish ${{ inputs.channel }} feed for v${RELEASE_VERSION}" || echo "No changes"
           git push
 

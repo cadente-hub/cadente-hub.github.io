@@ -1,27 +1,31 @@
 {
-  "version": "0.2.93-beta.53",
-  "notes": "## Cadente v0.2.93-beta.53\n\n- Channel: `unstable`\n- Commit: `0ead0c54`\n- Changes since: `remote release: v0.2.93-beta.52`\n\n### Features\n- Improve reconnection so saved command outcomes prevent repeated changes (`69fc337d`)\n\n### Fixes\n- Fix oversized replies so local connections recover safely (`0ead0c54`)",
-  "pub_date": "2026-10-16T01:04:38Z",
+  "version": "1.0.0-beta.1",
+  "channel": "beta",
   "platforms": {
     "darwin-aarch64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSU1N2Z0ZkZVNmMStSUjBXWE1lSDE5cGFvOFoyaWlURFh5QnhxT1gxc1pXV0VUUitYUXFqUzlpbVlWUTcyM05RUlNWQVUxcmpncFE1eGwvSGJXSGNiWHk5dkE5ZW11NmdJPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkyMTEyNDc1CWZpbGU6Q2FkZW50ZS5hcHAudGFyLmd6CmxQMDFLVTRoZXNSdVdVWDIreXp5bUdjTGlnWWZ5NmtaRFZBdzd2cThoVlBCSGNQeEZhOFJ0Vlp1MDZFaTFJYTd2VWtPQ3JyUHhsSzFXSjdOYUhCY0R3PT0K",
-      "url": "https://github.com/cadente-hub/cadente-hub.github.io/releases/download/v0.2.93-beta.53/cadente-0.2.93-macos-arm64.app.tar.gz"
+      "url": "https://github.com/cadente-hub/cadente-hub.github.io/releases/download/v1.0.0-beta.1/cadente-1.0.0-beta.1-darwin-aarch64.tar.gz",
+      "signature": "untrusted comment: signature from tauri secret key\nRURSSvgFdeSf18ARC++YAVnct3QyIg48FIBjYMEuENJ3upkc4jJGp2vslCC92bam5+ckv9xt0AOHDb1vbDmfqDD5XKDQaTPxjws=\ntrusted comment: timestamp:1792909755\tfile:cadente-1.0.0-beta.1-darwin-aarch64.tar.gz\nk01W3EXEbS6brxFMB3AgM+V8uHP8CgZlFIMqyY5lRocOmR1LRYrhEwNupdEegWa/q3UsmYXA/an0KjWEzxKDDg==\n",
+      "sha256": "114a509c6c7485ddf3ad28d460cb26d9c5db4eff719d01dc67e8de9de81378b3"
     },
     "darwin-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSU1N2Z0ZkZVNmMTFaZGRLR2R1ZlE0RnpiMTFqVGlRZHZSejdadU1aNU5ZcVJFd29zTmxUOGJJaGF4M1FySzFXaXY3dS95dmpYNmNJZ0NCSEl2QnhFTEh3Snc4NG0wdHdvPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkyMTEyNDg2CWZpbGU6Q2FkZW50ZS5hcHAudGFyLmd6CjdhcWhwYytaWVhKOG14MEJuRlBSRGh0eEVzKzdta3lzK0RtaWs4aVk0bmV1aVZkcDg0TlNNK3A0MVEvM2tlZTFvMmU3QjJNMjByYUlVQys5VWRmWUJRPT0K",
-      "url": "https://github.com/cadente-hub/cadente-hub.github.io/releases/download/v0.2.93-beta.53/cadente-0.2.93-macos-x64.app.tar.gz"
+      "url": "https://github.com/cadente-hub/cadente-hub.github.io/releases/download/v1.0.0-beta.1/cadente-1.0.0-beta.1-darwin-x86_64.tar.gz",
+      "signature": "untrusted comment: signature from tauri secret key\nRURSSvgFdeSf10kJwBLSOIy1E/LDXWPJxF67sUT3q0I23c+fRczDWtM7AOmWG30412lPA8keCe45/LhEyde170MCXKv/3gvDtgY=\ntrusted comment: timestamp:1792910985\tfile:cadente-1.0.0-beta.1-darwin-x86_64.tar.gz\nso2IrcMEKM1A4juwA16kFpEq0MkyEaJwbcp36Vnjk3sYFNnc/Zk1EN+8zgFzmt/V3j+oVOgSegeXq7Eim+2+Cg==\n",
+      "sha256": "be670783d0043b9067278c665ec6ecea2bfc145be535f8ce2f251a01b1addc40"
     },
     "linux-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSU1N2Z0ZkZVNmMXdURXRCa1BTVVJnVmJTYjZGZkZrdjdtY1B0cTJuSVRWbHArdU1xaTNyUXBrUHZURk1NQnZybkNGcWxsR2tjNDRQditIeUFFWVlHSFVYbXF0ZmxlVUFjPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkyMTEyNTkwCWZpbGU6Q2FkZW50ZV8wLjIuOTMtYmV0YS41M19hbWQ2NC5BcHBJbWFnZS50YXIuZ3oKMDdidXI3c1QyNlArRFBQUXV6QmxFRWdoS201dzUyN2h6T2FvZEU3eFd5OGY5dVRsUTRDZUhtSkVzSTJvK3J0ektmS2Qvb0FBNjhLQldGZGI0b1JtQXc9PQo=",
-      "url": "https://github.com/cadente-hub/cadente-hub.github.io/releases/download/v0.2.93-beta.53/cadente-0.2.93-linux-x64.AppImage.tar.gz"
+      "url": "https://github.com/cadente-hub/cadente-hub.github.io/releases/download/v1.0.0-beta.1/cadente-1.0.0-beta.1-linux-x86_64.tar.gz",
+      "signature": "untrusted comment: signature from tauri secret key\nRURSSvgFdeSf1+4KL1ro3yKNn1X/S/XGVjzzK9C1gusTn0Z1eG5+FdEKxiCHqtltd571mymeFkeYhcBG1eS97jOmapLxOV9v2Q0=\ntrusted comment: timestamp:1792909738\tfile:cadente-1.0.0-beta.1-linux-x86_64.tar.gz\nmW/DlWa8bAulsw7pija0t0l23rLYW4x+irhvcEWwDzAFGWkiJ8A2S7WhWKQ3JayO9NufoIxK/JCpzSoNMzPrBg==\n",
+      "sha256": "c304ad1725fc0f64593052227943af60796cedc86cda315781310c8c089deafc"
     },
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSU1N2Z0ZkZVNmMXlZTXV2cXJFbmhXb0piZUxpaUtScUIvSWlBdU0rdVpRaUtFYnFHcnNIVjJrM25PYi9nVFd2RnV0akZsRThYYUxRL2NITlVIbFNjdGMyWUY0ckhxWlFnPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkyMTEyNDY0CWZpbGU6Q2FkZW50ZV8wLjIuOTNfeDY0LXNldHVwLm5zaXMuemlwCklYcVVIS0YxbUZEOVpzbWpEdDZHNCttZ2pyM1BMRHJXVTdhTzlQcllOWjVpQUZ5Y2ZpU0dUVWZRbzZMdmx4QlV2cVdmUDRISmdhb3prclM1Tm0vdER3PT0K",
-      "url": "https://github.com/cadente-hub/cadente-hub.github.io/releases/download/v0.2.93-beta.53/cadente-0.2.93-windows-x64.nsis.zip"
+      "url": "https://github.com/cadente-hub/cadente-hub.github.io/releases/download/v1.0.0-beta.1/cadente-1.0.0-beta.1-windows-x86_64.zip",
+      "signature": "untrusted comment: signature from tauri secret key\nRURSSvgFdeSf16p4ANwC/nGKJV+wPYgsLv5kPYdG6A2FmzSZO2689g7DkiREGNMViZgwjs8RFdY2IyirQLzZpTxFCDwV52638A4=\ntrusted comment: timestamp:1792909951\tfile:cadente-1.0.0-beta.1-windows-x86_64.zip\ncGrgjFatc6wyTD7A8Po1bCJ1K5gchfnkCeYARqhvNULTX+Jiso+XgipRUMoLUQe1AQfgrHM0atw3/0GvBrEqBg==\n",
+      "sha256": "084c308b49d0caad01f0a609568cf8f316b4f20216cc158e9fb050f9bfda4b76"
     },
     "windows-x86_64-portable": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSU1N2Z0ZkZVNmMTlGdFRRbnRLUW1sK0U1cGplQW5TeGljVzM3alFDakJYZksxRlNSSXVZRVlqZ2R4LzQ1eXNKeDd6MGN5TVh6bC9JZFE3K0k5anZBNWpBdkd4NWFRT1EwPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkyMTEyNTAwCWZpbGU6Y2FkZW50ZS0wLjIuOTMtd2luZG93cy14NjQucG9ydGFibGUuemlwCm0xSWNuSWpnZjhTNnFadGtQM3pjeFVZN2dwemZING1DV3AxL3g2dXdHYXVPN1JaekxQeHZ1VDhIMFk2dzJ4ZVVwdVl2UUdERkgrcXpFWGRYcHA0SUFRPT0K",
-      "url": "https://github.com/cadente-hub/cadente-hub.github.io/releases/download/v0.2.93-beta.53/cadente-0.2.93-windows-x64.portable.zip"
+      "url": "https://github.com/cadente-hub/cadente-hub.github.io/releases/download/v1.0.0-beta.1/cadente-1.0.0-beta.1-windows-x86_64.zip",
+      "signature": "untrusted comment: signature from tauri secret key\nRURSSvgFdeSf16p4ANwC/nGKJV+wPYgsLv5kPYdG6A2FmzSZO2689g7DkiREGNMViZgwjs8RFdY2IyirQLzZpTxFCDwV52638A4=\ntrusted comment: timestamp:1792909951\tfile:cadente-1.0.0-beta.1-windows-x86_64.zip\ncGrgjFatc6wyTD7A8Po1bCJ1K5gchfnkCeYARqhvNULTX+Jiso+XgipRUMoLUQe1AQfgrHM0atw3/0GvBrEqBg==\n",
+      "sha256": "084c308b49d0caad01f0a609568cf8f316b4f20216cc158e9fb050f9bfda4b76"
     }
   }
 }
