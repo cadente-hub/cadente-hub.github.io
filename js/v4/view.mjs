@@ -42,6 +42,7 @@ function line(l, cur) {
     case 'msg': return ln(`msg ${l.who}`, l.who === 'agent' ? '<span class="sr">Cadente: </span>◆' : '<span class="sr">Você: </span>›', esc(l.text), '', c);
     case 'ask': return ln('ask', '●', esc(l.text), '', c) + ln('note keys', '', esc(l.keys));
     case 'hr': return '<div class="hr"></div>';
+    case 'tui': return l.html;
     default: return '';
   }
 }

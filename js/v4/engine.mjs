@@ -19,8 +19,9 @@ import automacoes from './manifests/automacoes.json' with { type: 'json' };
 import sistema from './manifests/sistema.json' with { type: 'json' };
 import config from './manifests/config.json' with { type: 'json' };
 import plugins from './manifests/plugins.json' with { type: 'json' };
+import banco from '../v4-site/banco.json' with { type: 'json' };
 
-export const MANIFESTS = Object.fromEntries([host, links, pr, workspaces, projetos, terminal, chat, prompts, requests, recursos, ferramentas, inicio, uso, calendario, foco, automacoes, sistema, config, plugins].map(m => [m.plugin, m]));
+export const MANIFESTS = Object.fromEntries([host, links, pr, workspaces, projetos, terminal, chat, prompts, requests, recursos, ferramentas, inicio, uso, calendario, foco, automacoes, sistema, config, plugins, banco].map(m => [m.plugin, m]));
 // Construtores das linhas tipadas, compartilhados por todos os plugins.
 export const h = (text, meta) => ({ t: 'h', text, meta });
 export const row = (id, g, text, meta, tone, extra) => ({ t: 'row', id, g, text, meta, tone, ...extra });

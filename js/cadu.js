@@ -1,9 +1,8 @@
 // Cadu, the Cadente mascot and app icon (ADR 0065 and 0066 of the app). The art is the app's own sprite sheet:
 // 16×16 frames of role characters, drawn here as one SVG path per colour role.
 import sheet from './cadu.sprites.json' with { type: 'json' };
+import { COLORS } from './cadu-colors.mjs';
 
-// Colours of the brand ramp (tokens --brand-cadente-*). The trail takes the accent: purple on the site.
-export const COLORS = { body: '#f6c343', light: '#fbe48d', shade: '#df8623', deep: '#a04f27', glow: '#fff9e2', ink: '#291508', blush: '#f68678', spark: '#fbe48d', dust: '#a855f7', alert: '#ff8272' };
 const ORDER = ['body', 'light', 'shade', 'deep', 'glow', 'blush', 'ink', 'spark', 'dust', 'alert'];
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 

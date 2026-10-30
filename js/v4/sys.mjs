@@ -66,11 +66,11 @@ export const plugins = fromManifest({
     if (leaf.data.view === 'grafo') return { lines: [h('grafo', `${pv.length} serviços`), ...pv.flatMap(p => [note(`${p.consumers.join(', ')} → ${p.service}`, null, '◇'), note(p.provider, 'dim', '└')])] };
     if (leaf.data.view !== 'catálogo') return null;
     const q = leaf.input.text.startsWith('/') ? '' : leaf.input.text.toLowerCase(), hit = t => !q || t.toLowerCase().includes(q);
-    const ps = PLUGINS.filter(p => hit(`${p.title} ${p.keywords}`)), sv = pv.filter(p => hit(`${p.service} ${p.provider}`));
-    return { status: q ? `${ps.length + sv.length} de ${PLUGINS.length + pv.length}` : undefined, lines: [h('first-party', String(ps.length)), ...ps.map(p => {
+    const ps = PLUGINS.filter(p => !p.community && hit(`${p.title} ${p.keywords}`)), cs = PLUGINS.filter(p => p.community && hit(`${p.title} ${p.keywords}`)), sv = pv.filter(p => hit(`${p.service} ${p.provider}`));
+    return { status: q ? `${ps.length + cs.length + sv.length} de ${PLUGINS.length + pv.length}` : undefined, lines: [h('first-party', String(ps.length)), ...ps.map(p => {
       const off = S.disabled.includes(p.id);
       return row(p.id, off ? '○' : '●', `${p.glyph} ${p.title}`, off ? 'desligado' : p.id === 'plugins' || p.id === 'inicio' ? 'essencial' : 'ligado', off ? 'dim' : null, { kind: 'plugin' });
-    }), h('serviços', String(sv.length)), ...sv.map(p => row(`pv:${p.id}`, '◇', p.service, p.provider, null, { ref: { list: 'providers', id: p.id } }))] };
+    }), ...(cs.length ? [h('comunidade', String(cs.length)), ...cs.map(p => { const off = S.disabled.includes(p.id); return row(p.id, off ? '○' : '●', `${p.glyph} ${p.title}`, `@${p.author} · ${off ? 'desligado' : 'ligado'}`, off ? 'dim' : null, { kind: 'plugin' }); })] : []), h('serviços', String(sv.length)), ...sv.map(p => row(`pv:${p.id}`, '◇', p.service, p.provider, null, { ref: { list: 'providers', id: p.id } }))] };
   },
   key: (leaf, key, item, S) => item?.kind === 'plugin' && key === ' ' ? { actions: [{ type: 'PATCH_SETTINGS', disabled: S.disabled.includes(item.id) ? S.disabled.filter(x => x !== item.id) : [...S.disabled, item.id] }] } : null,
   activate: (leaf, item) => item.kind === 'plugin' ? { log: { cmd: item.text, out: [`requires: core.storage${REQ[item.id] ? `, ${REQ[item.id]}` : ''}`, `permissões: ${REQ[item.id] ? 'rede e disco do workspace' : 'nenhuma além do Core'}`, `id: cadente.${item.id}`], ok: null } } : null,

@@ -18,7 +18,7 @@ export const requests = fromManifest({
   init: () => ({ last: null }),
   view(leaf, S) {
     const d = S.store.reqDraft, v = leaf.data.view, last = leaf.data.last;
-    if (v === 'requisição') return { lines: [
+    if (v === 'requisição') return { lines: [row('rq-go', '▶', `enviar ${d.method}`, resolve(S, d).url, null, { kind: 'go' }),
       row('rq-m', '·', 'método', d.method, null, { kind: 'rq', f: 'method' }), row('rq-u', '·', 'url', d.url, null, { kind: 'rq', f: 'url' }),
       h('params', `${d.params.filter(p => p.on).length}/${d.params.length}`), ...d.params.map((p, i) => row(`pa${i}`, p.on ? '●' : '○', `${p.k}=${p.v}`, p.on ? '' : 'desligado', p.on ? null : 'dim', { kind: 'param', list: 'params', i })),
       h('headers', `${d.headers.filter(p => p.on).length}/${d.headers.length}`), ...d.headers.map((p, i) => row(`he${i}`, p.on ? '●' : '○', `${p.k}: ${p.v}`, p.on ? '' : 'desligado', p.on ? null : 'dim', { kind: 'param', list: 'headers', i })),
@@ -58,6 +58,7 @@ export const requests = fromManifest({
     return null;
   },
   activate(leaf, item, S) {
+    if (item.kind === 'go') return send(S, leaf);
     if (item.kind === 'rq') { const k = requests.key(leaf, ' ', item, S); if (k) return k; leaf.data.editing = { path: `store.reqDraft.${item.f}`, label: item.f }; return { input: S.store.reqDraft[item.f] }; }
     if (item.kind === 'param') { leaf.data.editing = { path: `store.reqDraft.${item.list}.${item.i}.v`, label: S.store.reqDraft[item.list][item.i].k }; return { input: S.store.reqDraft[item.list][item.i].v }; }
     return null;

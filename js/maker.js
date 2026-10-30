@@ -87,7 +87,7 @@ export class Maker {
       async w => {
         await w(600);
         this.a.signal = 'escrevendo';
-        this.say('msg agent', '◆', 'Vou criar o pacote ana.cadu-tamagotchi na camada flutuante: fome e sujeira caem com o tempo, f alimenta e b dá banho.');
+        this.say('msg agent', '◆', 'Vou criar o pacote ana.cadu-tamagotchi na camada flutuante: ele voa pela tela, sente fome e se suja com o tempo; f dá comida e b dá banho.');
         this.b.mode = 'code';
         const files = [['escrevendo cadente-plugin.toml', 'note dim', '└', 'escreveu cadente-plugin.toml'], ['escrevendo src/lib.rs', 'note dim', '└', 'escreveu src/lib.rs · o Cadu em ANSI, a fome e o banho'],
           ['rodando cargo test', 'note ok', '✓', 'testes ok · 5 passaram']];
@@ -104,7 +104,7 @@ export class Maker {
         this.b.mode = 'dev';
         for (let i = 1; i <= DEV.length; i++) { this.b.dev = i; this.draw(); await w(i === 2 ? 700 : 300); }
         this.tama.show();
-        this.say('msg agent', '◆', 'Pronto. O Cadu está flutuando no app, com fome e sujo. Arraste ele e dê comida.');
+        this.say('msg agent', '◆', 'Pronto. O Cadu está solto no app, com fome e sujo. Arraste ele, f dá comida e b dá banho.');
       },
       async (w, type) => {
         await w(2200);

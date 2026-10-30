@@ -99,7 +99,8 @@ const DESC = {
   plugins: 'Catálogo, grafo e troca de provider com prévia.',
 };
 const grid = $('#plugin-grid'), note = $('#plugin-note');
-grid.innerHTML = PLUGINS.map(p => `<li><button class="pcard" data-plugin="${p.id}" aria-pressed="false"><span class="pcard__glyph" aria-hidden="true">${esc(p.glyph)}</span><span class="pcard__title">${esc(p.title)}</span></button></li>`).join('');
+const FIRST = PLUGINS.filter(p => !p.community);
+grid.innerHTML = FIRST.map(p => `<li><button class="pcard" data-plugin="${p.id}" aria-pressed="false"><span class="pcard__glyph" aria-hidden="true">${esc(p.glyph)}</span><span class="pcard__title">${esc(p.title)}</span></button></li>`).join('');
 
 const preview = $('.plugins__preview');
 // The review scene of the prototype has three tabs with real-looking data (PR #248, Claude at work, Requests,
@@ -124,16 +125,16 @@ function showPlugin(id) {
 // Each plugin shows its first view, then walks two more with ⇥, then the next plugin opens.
 function tour(from) {
   pstage.play(async (s, id) => {
-    for (let k = from; ; k = (k + 1) % PLUGINS.length) {
+    for (let k = from; ; k = (k + 1) % FIRST.length) {
       await s.whenVisible(id);
-      showPlugin(PLUGINS[k].id);
+      showPlugin(FIRST[k].id);
       await s.wait(1700, id);
       for (let v = 0; v < 2; v++) { await s.key('⇥', id, { hold: 0 }); await s.wait(1300, id); }
     }
   });
 }
-grid.addEventListener('click', e => { const b = e.target.closest('.pcard'); if (b) tour(PLUGINS.findIndex(p => p.id === b.dataset.plugin)); });
-tour(PLUGINS.findIndex(p => p.id === 'pr'));
+grid.addEventListener('click', e => { const b = e.target.closest('.pcard'); if (b) tour(FIRST.findIndex(p => p.id === b.dataset.plugin)); });
+tour(FIRST.findIndex(p => p.id === 'pr'));
 
 // ── Plugin architecture: toggle, swap, install, remove ────────────────
 const SERVICES = [
@@ -188,7 +189,7 @@ function togglePlugin(id) {
   const p = rack.plugins.find(x => x.id === id);
   p.on = !p.on;
   drawRack();
-  log(p.on ? `<b>${esc(p.name)}</b> ligado de novo, sem reiniciar.` : `<b>${esc(p.name)}</b> desligado. A folha que usava ele fica e abre o seletor.`);
+  log(p.on ? `<b>${esc(p.name)}</b> voltou, sem reiniciar nada.` : `<b>${esc(p.name)}</b> desligado. Se ele estava aberto numa folha, ela fica lá esperando outro plugin.`);
 }
 function swap(sid) {
   const s = SERVICES.find(x => x.id === sid), from = s.options[rack.provider[sid]];
@@ -206,12 +207,12 @@ function install() {
   drawRack('kanban');
   wire({ plugin: 'kanban' });
   setTimeout(() => wire(), 1600);
-  log('instalado <b>ana.kanban 0.1.0</b> · sha256 ok · permissão: rede (api.github.com) · sem reiniciar');
+  log('Pronto, <b>Kanban da @ana</b> instalado. Ele só pediu para acessar api.github.com.');
 }
 function remove() {
   rack.plugins = rack.plugins.filter(p => p.id !== 'kanban');
   drawRack();
-  log('<b>Kanban</b> removido. Os dados dele ficam no seu perfil até você apagar.');
+  log('<b>Kanban</b> removido. Os dados dele continuam no seu perfil, caso você mude de ideia.');
 }
 let rackTouched = false;
 rp.addEventListener('click', e => {
@@ -226,7 +227,7 @@ rs.addEventListener('click', e => { rackTouched = true; const b = e.target.close
 radd.addEventListener('click', () => { rackTouched = true; install(); });
 new ResizeObserver(() => wire()).observe(rackEl);
 drawRack();
-log('Clique num plugin para desligar, num serviço para trocar o provider, ou instale um da comunidade.');
+log('Experimente: clique num plugin para desligar, num serviço para trocar, ou instale um da comunidade.');
 onVisible(rackEl, async () => {
   for (const step of [() => swap('ai'), () => install(), () => togglePlugin('tray')]) {
     await sleep(1500);
@@ -245,19 +246,24 @@ wall.innerHTML = Array.from({ length: rows }, (_, r) => {
 }).join('');
 
 const q = $('#shop-q'), cats = $('#shop-cats'), sgrid = $('#shop-grid'), empty = $('#shop-empty');
-let cat = 'Todos', shopTouched = false;
+let cat = 'Todos', shopTouched = false, shopKey = '';
+let onScreen = new Set();
 const installed = new Set();
 cats.innerHTML = CATEGORIES.map(c => `<button role="tab" aria-selected="${c === cat}" data-cat="${c}">${c}</button>`).join('');
 const ACTION = { free: 'instalar', donation: 'instalar', subscription: 'assinar', once: 'comprar', trial: 'testar grátis' };
 function drawShop() {
   const query = norm(q.value.trim());
   const hits = APPS.map((a, i) => ({ a, i })).filter(({ a }) => (cat === 'Todos' || a[4] === cat) && (!query || norm(`${a[1]} ${a[3]} ${a[4]} ${a[2]}`).includes(query))).slice(0, 9);
+  const key = `${hits.map(h => h.i).join(',')}|${[...installed].join(',')}`;
+  if (key === shopKey) return;
+  shopKey = key;
   empty.hidden = hits.length > 0;
   if (!hits.length) empty.innerHTML = 'Nenhum plugin com esse nome ainda. <a href="#creator">Que tal criar o seu?</a>';
   sgrid.innerHTML = hits.map(({ a: [glyph, name, by, desc], i }, k) => {
     const [kind, label] = priceOf(i), done = installed.has(i);
-    return `<li class="app${done ? ' is-done' : ''}" style="animation-delay:${k * 40}ms"><div class="app__top"><span class="app__glyph" aria-hidden="true">${esc(glyph)}</span><div><p class="app__name">${esc(name)}</p><p class="app__by">@${esc(by)}</p></div></div><p class="app__desc">${esc(desc)}</p><div class="app__foot"><span class="price${kind === 'free' || kind === 'donation' ? ' price--free' : ''}">${label}</span><button class="install${done ? ' is-done' : ''}" data-app="${i}"${done ? ' disabled' : ''}>${done ? 'instalado' : ACTION[kind]}</button></div></li>`;
+    return `<li class="app${done ? ' is-done' : ''}${onScreen.has(i) ? '' : ' is-new'}" style="animation-delay:${k * 40}ms"><div class="app__top"><span class="app__glyph" aria-hidden="true">${esc(glyph)}</span><div><p class="app__name">${esc(name)}</p><p class="app__by">@${esc(by)}</p></div></div><p class="app__desc">${esc(desc)}</p><div class="app__foot"><span class="price${kind === 'free' || kind === 'donation' ? ' price--free' : ''}">${label}</span><button class="install${done ? ' is-done' : ''}" data-app="${i}"${done ? ' disabled' : ''}>${done ? 'instalado' : ACTION[kind]}</button></div></li>`;
   }).join('');
+  onScreen = new Set(hits.map(h => h.i));
 }
 async function installApp(btn) {
   const i = Number(btn.dataset.app), [kind] = priceOf(i);

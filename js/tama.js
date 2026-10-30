@@ -1,18 +1,18 @@
-// Cadu Tamagotchi: the example plugin of Creator mode. It lives in the app's floating layer (shell.overlay),
-// so it hovers over the panes: the visitor drags it around, feeds it and gives it a bath.
-// Cadu is drawn in ANSI half blocks (▀ ▄), two sprite pixels per character, from the app's sprite sheet.
+// Cadu Tamagotchi: the example plugin of Creator mode. It lives in the app's floating layer (shell.overlay), so Cadu
+// is loose over the panes, with no window: he floats, wanders, gets hungry and dirty, and the visitor drags him,
+// feeds him (f) and gives him a bath (b). He is drawn in ANSI half blocks (▀ ▄), two sprite pixels per character,
+// from the app's sprite sheet in the site palette.
 import sheet from './cadu.sprites.json' with { type: 'json' };
-import { COLORS } from './cadu.js';
+import { COLORS, MUD } from './cadu-colors.mjs';
 
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const MUD = { M: '#6b4423', N: '#4a2f17' };
 const color = ch => (ch === '.' ? null : MUD[ch] ?? COLORS[sheet.palette[ch]]);
-
 // A frown for the hungry face, drawn over the resting frame.
 const FRAMES = { ...sheet.frames, hungry: sheet.frames.rest.map((r, y) => (y === 10 ? '....SGGKKGGD....' : y === 11 ? '.....SKGGKD.....' : r)) };
 // Where mud sticks, in order: more dirt, more spots. Every spot sits on Cadu's body.
 const SPOTS = [[6, 5], [10, 9], [2, 7], [13, 8], [5, 9], [9, 5], [10, 10], [3, 8], [7, 11], [10, 6]];
 const MAX = 5;
+const sleep = ms => new Promise(r => setTimeout(r, REDUCED ? 0 : ms));
 
 function ansi(rows, dirt) {
   const px = rows.map(r => [...r]);
@@ -28,111 +28,128 @@ function ansi(rows, dirt) {
   }
   return out.join('\n');
 }
-const meter = n => `${'▮'.repeat(n)}<span class="tama__off">${'▯'.repeat(MAX - n)}</span>`;
 
 export class Tama {
   constructor(host) {
     this.host = host;
-    this.food = 1; this.dirt = 4; this.busy = false; this.frame = 'hungry'; this.fx = '';
+    this.food = 1; this.dirt = 4; this.busy = false; this.dragging = false; this.tick = 0;
     this.el = document.createElement('div');
-    this.el.className = 'tama';
-    this.el.tabIndex = 0;
-    this.el.setAttribute('aria-label', 'Cadu Tamagotchi: arraste, f alimenta, b dá banho');
+    this.el.className = 'cadu-pet';
     this.el.hidden = true;
-    this.el.innerHTML = `<div class="tama__bar"><span class="tama__grip" aria-hidden="true">⠿</span><span>cadu · tamagotchi</span><span class="tama__tag">flutuante</span></div>
-      <div class="tama__stage"><p class="tama__say" aria-live="polite"></p><pre class="tama__art" aria-hidden="true"></pre><pre class="tama__fx" aria-hidden="true"></pre></div>
-      <dl class="tama__meters"><div><dt>fome</dt><dd data-m="food"></dd></div><div><dt>sujeira</dt><dd data-m="dirt"></dd></div></dl>
-      <div class="tama__acts"><button type="button" data-act="feed"><b>f</b> alimentar</button><button type="button" data-act="bath"><b>b</b> dar banho</button></div>`;
+    this.el.tabIndex = 0;
+    this.el.setAttribute('role', 'img');
+    this.el.innerHTML = `<p class="cadu-pet__say" aria-live="polite"></p><pre class="cadu-pet__fx" aria-hidden="true"></pre><pre class="cadu-pet__art" aria-hidden="true"></pre>
+      <div class="cadu-pet__acts"><button type="button" data-act="feed"><b>f</b> comer</button><button type="button" data-act="bath"><b>b</b> banho</button></div>`;
     host.append(this.el);
-    this.art = this.el.querySelector('.tama__art');
-    this.fxEl = this.el.querySelector('.tama__fx');
-    this.say = this.el.querySelector('.tama__say');
+    this.art = this.el.querySelector('.cadu-pet__art');
+    this.fx = this.el.querySelector('.cadu-pet__fx');
+    this.bubble = this.el.querySelector('.cadu-pet__say');
     this.el.addEventListener('click', e => { const b = e.target.closest('[data-act]'); if (b) this[b.dataset.act](); });
     this.el.addEventListener('keydown', e => { if (e.key === 'f') this.feed(); if (e.key === 'b') this.bath(); });
     this.drag();
-    // He gets hungry and dirty again over time, but only while someone is looking.
     this.visible = false;
     new IntersectionObserver(([e]) => { this.visible = e.isIntersecting; }).observe(host);
-    setInterval(() => { if (this.visible && !this.el.hidden && !this.busy && this.food > 0) { this.food--; this.mood(); } }, 9000);
-    setInterval(() => { if (this.visible && !this.el.hidden && !this.busy && this.dirt < MAX) { this.dirt++; this.mood(); } }, 14000);
-    setInterval(() => { if (this.visible && !this.el.hidden && !this.busy) this.idle(); }, 700);
+    // He gets hungry and dirty again over time, and wanders when left alone, but only while someone is looking.
+    const alive = () => this.visible && !this.el.hidden && !this.busy && !this.dragging;
+    setInterval(() => { if (alive() && this.food > 0) { this.food--; this.mood(); } }, 10000);
+    setInterval(() => { if (alive() && this.dirt < MAX) { this.dirt++; this.mood(); } }, 15000);
+    setInterval(() => { if (alive()) this.breathe(); }, 600);
+    setInterval(() => { if (alive() && !REDUCED) this.wander(); }, 5200);
     this.mood();
   }
-  // Floats in from the top right of the window, like a plugin opening its overlay.
+  // Pops out of the plugin's pane, like an overlay opening.
   show() {
     if (!this.el.hidden) return;
     this.el.hidden = false;
-    const w = this.host.clientWidth, h = this.host.clientHeight;
-    this.place(w - this.el.offsetWidth - 24, h - this.el.offsetHeight - 56);
-    if (!REDUCED) this.el.animate([{ opacity: 0, transform: 'translateY(-14px) scale(.92)' }, { opacity: 1, transform: 'none' }], { duration: 520, easing: 'cubic-bezier(.2,.8,.2,1)' });
+    this.place(this.host.clientWidth - this.el.offsetWidth - 40, this.host.clientHeight - this.el.offsetHeight - 70, false);
+    if (!REDUCED) this.el.animate([{ opacity: 0, translate: '0 24px', scale: '.6' }, { opacity: 1, translate: '0 -10px', scale: '1.05', offset: 0.7 }, { opacity: 1, translate: '0 0', scale: '1' }], { duration: 700, easing: 'cubic-bezier(.2,.8,.2,1)' });
+    this.say('oi! estou com fome…');
   }
-  place(x, y) {
+  place(x, y, glide) {
     const maxX = this.host.clientWidth - this.el.offsetWidth - 4, maxY = this.host.clientHeight - this.el.offsetHeight - 4;
-    this.x = Math.max(4, Math.min(maxX, x)); this.y = Math.max(4, Math.min(maxY, y));
+    this.x = Math.max(4, Math.min(maxX, x)); this.y = Math.max(28, Math.min(maxY, y));
+    this.el.classList.toggle('is-gliding', !!glide);
     this.el.style.transform = `translate(${this.x}px, ${this.y}px)`;
+  }
+  // A short flight to somewhere near, with the shooting-star frames of the sheet.
+  async wander() {
+    const w = this.host.clientWidth, h = this.host.clientHeight;
+    const tx = this.x + (Math.random() - 0.5) * w * 0.5, ty = this.y + (Math.random() - 0.5) * h * 0.4;
+    this.place(tx, ty, true);
+    this.busy = true;
+    for (let i = 0; i < 12; i++) { this.drawRows(FRAMES[['fly_0', 'fly_1', 'fly_2'][i % 3]]); await sleep(120); }
+    this.busy = false;
+    this.mood();
   }
   drag() {
     let start = null;
     this.el.addEventListener('pointerdown', e => {
       if (e.target.closest('button')) return;
       start = { px: e.clientX, py: e.clientY, x: this.x, y: this.y };
+      this.dragging = true;
       this.el.setPointerCapture(e.pointerId);
       this.el.classList.add('is-drag');
-      this.talk('opa! para onde vamos?');
+      this.drawRows(FRAMES.happy);
+      this.say('uou! para onde vamos?');
     });
-    this.el.addEventListener('pointermove', e => { if (start) this.place(start.x + e.clientX - start.px, start.y + e.clientY - start.py); });
-    const end = () => { if (start) { start = null; this.el.classList.remove('is-drag'); this.mood(); } };
+    this.el.addEventListener('pointermove', e => { if (start) this.place(start.x + e.clientX - start.px, start.y + e.clientY - start.py, false); });
+    const end = () => {
+      if (!start) return;
+      start = null; this.dragging = false;
+      this.el.classList.remove('is-drag');
+      if (!REDUCED) this.art.animate([{ transform: 'scale(1.12, .86)' }, { transform: 'scale(.95, 1.06)' }, { transform: 'none' }], { duration: 380, easing: 'ease-out' });
+      this.mood();
+    };
     this.el.addEventListener('pointerup', end);
     this.el.addEventListener('pointercancel', end);
   }
-  talk(text) { this.say.textContent = text; }
+  say(text) {
+    this.bubble.textContent = text;
+    this.el.classList.toggle('has-say', !!text);
+  }
+  state() { return this.food <= 2 ? 'hungry' : this.dirt >= 3 ? 'dirty' : 'happy'; }
   mood() {
     if (this.busy) return;
-    this.frame = this.food <= 2 ? 'hungry' : this.dirt >= 3 ? 'rest' : 'happy';
-    this.talk(this.food === 0 ? 'fome… muita fome' : this.food <= 2 ? 'estou com fome' : this.dirt >= 3 ? 'que sujeira…' : 'tô feliz ✦');
-    this.fx = this.dirt >= 3 ? 'stink' : '';
-    this.draw();
+    const s = this.state();
+    this.say(this.food === 0 ? 'fome… muita fome' : s === 'hungry' ? 'estou com fome' : s === 'dirty' ? 'preciso de um banho' : '');
+    this.el.classList.toggle('is-hungry', s === 'hungry');
+    this.el.setAttribute('aria-label', `Cadu: ${s === 'hungry' ? 'com fome' : s === 'dirty' ? 'sujo' : 'feliz'}. Arraste, f dá comida, b dá banho.`);
+    this.breathe();
   }
-  idle() {
-    // Breathes: the resting frames alternate with a float now and then.
-    if (this.frame === 'hungry') { this.tick = (this.tick ?? 0) + 1; this.drawRows(this.tick % 6 === 0 ? FRAMES.blink : FRAMES.hungry); this.drawFx(); return; }
-    this.tick = (this.tick ?? 0) + 1;
-    this.drawRows(this.tick % 4 === 1 ? FRAMES.float : FRAMES[this.frame]);
-    this.drawFx();
-  }
-  draw() {
-    this.drawRows(FRAMES[this.frame]);
-    this.drawFx();
-    this.el.querySelector('[data-m="food"]').innerHTML = meter(this.food);
-    this.el.querySelector('[data-m="dirt"]').innerHTML = meter(this.dirt);
-    this.el.classList.toggle('is-hungry', this.food <= 2);
+  breathe() {
+    this.tick++;
+    const s = this.state(), base = s === 'hungry' ? 'hungry' : s === 'happy' ? 'happy' : 'rest';
+    this.drawRows(FRAMES[this.tick % 7 === 0 ? 'blink' : this.tick % 2 ? 'float' : base]);
+    this.drawFx(this.dirt >= 3 ? 'stink' : s === 'happy' && this.tick % 3 === 0 ? 'spark' : '');
   }
   drawRows(rows) { this.art.innerHTML = ansi(rows, this.dirt); }
-  drawFx() {
-    const t = this.tick ?? 0;
-    this.fxEl.className = `tama__fx fx-${this.fx}`;
-    this.fxEl.textContent = this.fx === 'stink' ? (t % 2 ? ' ~   ≈    ~\n   ~    ≈ ' : '  ≈   ~   ≈\n ~    ~    ') : this.fx === 'crumbs' ? (t % 2 ? '     ·  °\n   °   ·' : '    °  ·\n  ·   °  ') : this.fx === 'bubbles' ? (t % 2 ? ' o   °  O\n   O    o ' : '  °  O   o\n o    °  ') : '';
+  drawFx(kind) {
+    const t = this.tick % 2;
+    this.fx.className = `cadu-pet__fx fx-${kind}`;
+    this.fx.textContent = { stink: t ? ' ~   ≈    ~\n   ≈   ~  ' : '  ≈   ~   ≈\n ~    ≈    ', crumbs: t ? '     ·  °\n   °   ·' : '    °  ·\n  ·   °  ', bubbles: t ? ' o   °  O\n   O    o ' : '  °  O   o\n o    °  ', spark: t ? '  ✦      ·' : '·      ✦  ' }[kind] ?? '';
   }
   // Plays sheet frames at the sheet's tick, with an effect, then settles.
-  async act(frames, fx, ms = 130) {
-    this.busy = true; this.fx = fx;
-    for (const [i, f] of frames.entries()) { this.tick = i; this.drawRows(FRAMES[f]); this.drawFx(); await new Promise(r => setTimeout(r, REDUCED ? 0 : ms)); }
+  async act(frames, fx, ms) {
+    this.busy = true;
+    for (const [i, f] of frames.entries()) { this.tick = i; this.drawRows(FRAMES[f]); this.drawFx(fx); await sleep(ms); }
     this.busy = false;
   }
   async feed() {
     if (this.busy) return;
-    if (this.food >= MAX) { this.talk('já comi, obrigado!'); return; }
-    this.talk('nham nham!');
-    await this.act(['happy', 'cheer_crouch', 'happy', 'cheer_crouch', 'happy', 'cheer_a', 'cheer_b', 'cheer_a', 'happy'], 'crumbs');
+    if (this.food >= MAX) { this.say('já comi, obrigado!'); return; }
+    this.say('nham nham!');
+    await this.act(['happy', 'cheer_crouch', 'happy', 'cheer_crouch', 'happy', 'cheer_a', 'cheer_b', 'cheer_a', 'happy'], 'crumbs', 130);
     this.food = Math.min(MAX, this.food + 2);
     this.mood();
+    if (this.food >= MAX && this.dirt < 3) this.say('obrigado ✦');
   }
   async bath() {
     if (this.busy) return;
-    if (this.dirt === 0) { this.talk('já estou limpinho'); return; }
-    this.talk('splash!');
+    if (this.dirt === 0) { this.say('já estou limpinho'); return; }
+    this.say('splash!');
     await this.act(['blink', 'rest', 'blink', 'float', 'blink', 'rest', 'float', 'rest'], 'bubbles', 150);
     this.dirt = 0;
     this.mood();
+    if (this.state() === 'happy') this.say('cheirosinho ✦');
   }
 }

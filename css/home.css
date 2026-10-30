@@ -69,6 +69,31 @@
 .stack b { font-weight: 400; color: var(--violet-hi); }
 .facts--light { grid-template-columns: repeat(3, 1fr); }
 
+/* ── Agent CLI screens inside the Cadente window (js/v4-site/tui.mjs) ─ */
+.v4 [data-pane][data-view="tui"] .pp { display: none; }
+.v4 .tui { --c: var(--fg-60); display: flex; flex-direction: column; gap: 4px; min-height: 100%; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--fg-90); }
+.v4 .tui--claude { --c: #d97757; }
+.v4 .tui--codex { --c: rgba(255, 255, 255, .8); }
+.v4 .tui--agy { --c: #8ab4f8; }
+.v4 .tui--opencode { --c: #fab283; }
+.v4 .tui-box { padding: 4px 8px; border: 1px solid color-mix(in srgb, var(--c) 55%, transparent); border-radius: 6px; }
+.v4 .tui-ask { border-color: var(--c); }
+.v4 .tui-log { display: flex; flex-direction: column; gap: 2px; }
+.v4 .tui-you { margin-top: 6px; color: var(--fg-60); }
+.v4 .tui-you--bar { padding-left: 8px; border-left: 2px solid var(--c); color: var(--fg-90); }
+.v4 .tui-grow { flex: 1; }
+.v4 .tui-in--bar { padding-left: 8px; border-left: 2px solid var(--c); }
+.v4 .tui-foot { display: flex; justify-content: space-between; gap: 1ch; padding: 0 2px; font-size: var(--fs-ui); }
+.v4 .tui-rule { text-align: center; }
+.v4 .tui-logo { font-weight: 700; }
+.v4 .tui-logo--big { font-size: 22px; line-height: 26px; letter-spacing: .02em; }
+.v4 .tui .t-dim { color: var(--fg-40); }
+.v4 .tui .t-acc { color: var(--c); }
+.v4 .tui .t-b { color: var(--fg-90); font-weight: 700; }
+.v4 .tui .t-ok { color: var(--ansi-green); }
+.v4 .tui .t-red { color: var(--ansi-red); }
+.v4 .tui .spin { color: inherit; }
+
 /* ── First-party plugins ────────────────────────────────────────────── */
 .plugins__layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: clamp(24px, 4vw, 56px); align-items: start; }
 .plugins__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 18px; overflow: hidden; }
@@ -134,7 +159,7 @@
 /* ── Store ──────────────────────────────────────────────────────────── */
 .store { overflow: hidden; }
 .store__wall { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; gap: 14px; opacity: .55; -webkit-mask: radial-gradient(70% 60% at 50% 45%, transparent 18%, #000 75%); mask: radial-gradient(70% 60% at 50% 45%, transparent 18%, #000 75%); pointer-events: none; }
-.wall__row { display: flex; gap: 14px; width: max-content; animation: marquee var(--t, 80s) linear infinite; animation-play-state: paused; }
+.wall__row { display: flex; gap: 14px; width: max-content; animation: marquee var(--t, 80s) linear infinite; animation-play-state: paused; will-change: transform; backface-visibility: hidden; }
 .store.is-live .wall__row { animation-play-state: running; }
 .wall__row:nth-child(even) { animation-direction: reverse; }
 .wall__row span { padding: 8px 14px; border: 1px solid var(--line); border-radius: 10px; font-family: var(--mono); font-size: 12px; color: var(--fg-3); white-space: nowrap; }
@@ -153,7 +178,8 @@
 .shop__cats button { height: 32px; padding: 0 12px; border: 1px solid var(--line); border-radius: 999px; font-size: 13px; color: var(--fg-2); transition: border-color .2s, color .2s, background-color .2s; }
 .shop__cats button[aria-selected="true"] { border-color: var(--fg); color: var(--bg); background: var(--fg); }
 .shop__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; padding-top: 14px; min-height: 380px; align-content: start; }
-.app { display: flex; flex-direction: column; gap: 10px; padding: 16px; border: 1px solid var(--line); border-radius: 14px; background: #000; animation: appIn .5s var(--ease) both; transition: border-color .25s; }
+.app { display: flex; flex-direction: column; gap: 10px; padding: 16px; border: 1px solid var(--line); border-radius: 14px; background: #000; transition: border-color .25s; }
+.app.is-new { animation: appIn .45s var(--ease) both; }
 .app:hover { border-color: var(--line-2); }
 @keyframes appIn { from { opacity: 0; transform: translateY(10px) scale(.98); } }
 .app__top { display: flex; align-items: center; gap: 12px; }
@@ -184,31 +210,25 @@
 .maker__win .code .k { color: var(--accent); }
 .maker__win .code .s { color: var(--ansi-green); }
 .maker__win [data-cursor] { background: var(--sel); outline: 2px solid var(--sel); }
-/* Cadu Tamagotchi (js/tama.js): a plugin of the floating layer, over the panes of the Creator window */
-.tama { position: absolute; top: 0; left: 0; z-index: 6; width: 250px; padding-bottom: 10px; border: 1px solid rgba(255, 255, 255, .18); border-radius: 10px; background: #080808; box-shadow: 0 0 0 1px rgba(168, 85, 247, .25), 0 18px 50px -12px rgba(0, 0, 0, .9); font-family: var(--mono); font-size: 11px; color: var(--fg-2); cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; outline: 0; }
-.tama:focus-visible { box-shadow: 0 0 0 2px var(--violet-hi), 0 18px 50px -12px rgba(0, 0, 0, .9); }
-.tama.is-drag { cursor: grabbing; box-shadow: 0 0 0 1px var(--violet), 0 24px 60px -12px rgba(168, 85, 247, .55); }
-.tama__bar { display: flex; align-items: center; gap: 8px; height: 26px; padding: 0 10px; border-bottom: 1px solid var(--line); color: var(--fg); white-space: nowrap; }
-.tama__grip { color: var(--fg-3); }
-.tama__tag { margin-left: auto; color: var(--violet-hi); font-size: 10px; }
-.tama__stage { position: relative; display: grid; place-items: center; padding: 26px 0 4px; }
-.tama__say { position: absolute; top: 7px; left: 0; right: 0; text-align: center; color: var(--fg-2); }
-.tama.is-hungry .tama__say { color: #e5a01a; }
-.tama__art { margin: 0; font: 16px/1.164 var(--mono); letter-spacing: 0; white-space: pre; }
-.tama__art i { font-style: normal; }
-.tama__fx { position: absolute; left: 0; right: 0; top: 22px; margin: 0; text-align: center; font: 12px/1.3 var(--mono); white-space: pre; pointer-events: none; }
-.tama__fx.fx-stink { color: #9aa34a; }
-.tama__fx.fx-crumbs { top: auto; bottom: 0; color: #fbe48d; }
-.tama__fx.fx-bubbles { color: rgba(255, 255, 255, .75); }
-.tama__meters { display: flex; justify-content: center; gap: 14px; margin: 6px 0 8px; }
-.tama__meters div { display: flex; gap: 6px; }
-.tama__meters dt { color: var(--fg-3); }
-.tama__meters dd { color: var(--violet-hi); letter-spacing: 1px; }
-.tama__off { color: var(--fg-4); }
-.tama__acts { display: flex; justify-content: center; gap: 6px; }
-.tama__acts button { height: 26px; padding: 0 10px; border: 1px solid var(--line-2); border-radius: 6px; background: #000; font: 11px var(--mono); color: var(--fg); cursor: pointer; transition: border-color .2s; }
-.tama__acts button:hover { border-color: var(--violet); }
-.tama__acts b { margin-right: 4px; font-weight: 400; color: var(--violet-hi); }
+/* Cadu Tamagotchi (js/tama.js): loose over the panes of the Creator window, in the app's floating layer */
+.cadu-pet { position: absolute; top: 0; left: 0; z-index: 6; display: flex; flex-direction: column; align-items: center; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; outline: 0; filter: drop-shadow(0 10px 18px rgba(0, 0, 0, .7)) drop-shadow(0 0 20px rgba(180, 107, 255, .35)); }
+.cadu-pet.is-gliding { transition: transform 1.4s cubic-bezier(.45, 0, .25, 1); }
+.cadu-pet.is-drag { cursor: grabbing; filter: drop-shadow(0 18px 24px rgba(0, 0, 0, .75)) drop-shadow(0 0 26px rgba(180, 107, 255, .6)); }
+.cadu-pet:focus-visible .cadu-pet__art { outline: 1px dashed var(--violet-hi); outline-offset: 6px; }
+.cadu-pet__art { margin: 0; font: 13px/1.164 var(--mono); letter-spacing: 0; white-space: pre; }
+.cadu-pet__art i { font-style: normal; }
+.cadu-pet__say { order: -2; margin-bottom: 6px; padding: 3px 9px; border-radius: 10px; border: 1px solid rgba(180, 107, 255, .6); background: #000; font: 11px/1.4 var(--mono); color: var(--fg); white-space: nowrap; opacity: 0; transform: translateY(4px); transition: opacity .25s, transform .25s; }
+.cadu-pet.has-say .cadu-pet__say { opacity: 1; transform: none; }
+.cadu-pet.is-hungry .cadu-pet__say { color: var(--violet-hi); }
+.cadu-pet__fx { order: -1; height: 2.4em; margin: 0 0 -1.6em; font: 12px/1.2 var(--mono); white-space: pre; text-align: center; pointer-events: none; color: rgba(255, 255, 255, .45); }
+.cadu-pet__fx.fx-crumbs { order: 1; margin: -1.4em 0 0; color: #f3e8ff; }
+.cadu-pet__fx.fx-bubbles { color: rgba(255, 255, 255, .8); }
+.cadu-pet__fx.fx-spark { color: var(--violet-hi); }
+.cadu-pet__acts { display: flex; gap: 4px; margin-top: 6px; opacity: 0; transition: opacity .2s; }
+.cadu-pet:hover .cadu-pet__acts, .cadu-pet:focus-within .cadu-pet__acts, .cadu-pet.is-hungry .cadu-pet__acts { opacity: 1; }
+.cadu-pet__acts button { height: 22px; padding: 0 8px; border: 1px solid var(--line-2); border-radius: 999px; background: #000; font: 10.5px var(--mono); color: var(--fg); cursor: pointer; }
+.cadu-pet__acts button:hover { border-color: var(--violet); }
+.cadu-pet__acts b { margin-right: 3px; font-weight: 400; color: var(--violet-hi); }
 .maker__steps kbd { font-size: 11px; }
 
 .maker__steps { display: flex; flex-direction: column; gap: 4px; counter-reset: step; }
@@ -255,9 +275,9 @@
 .finale { text-align: center; overflow: hidden; }
 .finale__glow { position: absolute; left: 50%; top: 50%; width: 900px; height: 900px; transform: translate(-50%, -50%); background: radial-gradient(50% 50% at 50% 50%, rgba(168, 85, 247, .22), transparent 70%); pointer-events: none; }
 .finale__inner { position: relative; display: flex; flex-direction: column; align-items: center; }
-.finale__mark { display: block; width: 96px; height: 96px; margin-bottom: 32px; filter: drop-shadow(0 0 28px rgba(246, 195, 67, .35)); }
+.finale__mark { display: block; width: 96px; height: 96px; margin-bottom: 32px; filter: drop-shadow(0 0 28px rgba(180, 107, 255, .45)); }
 .finale__mark svg, .hero__cadu svg { display: block; width: 100%; height: 100%; }
-.hero__cadu { display: block; width: 64px; height: 64px; margin: 0 auto 22px; filter: drop-shadow(0 0 22px rgba(246, 195, 67, .3)); }
+.hero__cadu { display: block; width: 64px; height: 64px; margin: 0 auto 22px; filter: drop-shadow(0 0 22px rgba(180, 107, 255, .4)); }
 .finale .lede { margin-left: auto; margin-right: auto; }
 .oneliner { display: flex; align-items: center; gap: 4px; max-width: 100%; margin-top: 36px; padding: 6px 6px 6px 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
 .oneliner code { overflow-x: auto; white-space: nowrap; font-size: 13px; color: var(--fg-2); scrollbar-width: none; }

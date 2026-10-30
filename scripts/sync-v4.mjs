@@ -44,33 +44,81 @@ const english = text => text.replace(slashLists, (all, lead, slash, list) =>
 const neutral = text => text.replaceAll('catarina-claude', 'cadente').replaceAll('jeancatarina', 'voce').replace(/\bjean(?=[@/])/g, 'voce');
 
 const changes = [];
-// The site's copy of the prototype gets three small additions for the demo. The Terminal follows two agent CLIs,
-// claude and codex; the site shows more of them side by side,
-// so the copy learns agy, gemini and opencode with the same step script format ('?' asks you, '✓' finishes).
+// The site's copy of the prototype gets a few additions for the demo, all applied here so a new sync keeps them:
+// - Terminal: `claude`, `codex`, `agy`, `gemini` and `opencode` open the CLI's own interactive screen
+//   (js/v4-site/tui.mjs); the next line typed is the task, and the steps below fill the transcript.
+// - Requests: a "▶ enviar" row in the request, and collection items that set the method, used like Bruno.
+// - Postgres: a community plugin with saved queries (js/v4-site/banco.*), shown apart from the first-party ones.
 const EXTRA_AGENTS = {
   agy: { model: 'gemini 3 pro', steps: ['lendo src/auth/login.ts', 'escrevendo login.test.ts  +48', '?rodar `npm test`', 'rodando npm test', '✓12 testes novos · todos passam'] },
   gemini: { model: 'gemini 2.5 pro', steps: ['lendo docs/', 'resumindo 14 arquivos', '✓resumo salvo em RESUMO.md'] },
   opencode: { model: 'qwen3 coder · ollama', steps: ['indexando o repositório', 'refatorando cache.rs  +21 −14', 'rodando cargo check', '✓refatoração pronta · build ok'] },
 };
+const AGENT_RE = `claude|codex|${Object.keys(EXTRA_AGENTS).join('|')}`;
 function moreAgents(text) {
-  const swaps = [
+  return swapAll('dev.mjs', text, [
+    ["import { fromManifest, registerFn, h, row, note } from './engine.mjs';", "import { fromManifest, registerFn, h, row, note } from './engine.mjs';\nimport { tui } from '../v4-site/tui.mjs';"],
     [/^(const AGENTS = \{\n)/m, `$1${Object.entries(EXTRA_AGENTS).map(([k, v]) => `  ${k}: ${JSON.stringify(v.steps)},\n`).join('')}`],
     [/^const MODEL = \{ claude: 'opus 4.6', codex: 'gpt-5 codex' \};$/m, `const MODEL = { claude: 'opus 4.6', codex: 'gpt-5 codex', ${Object.entries(EXTRA_AGENTS).map(([k, v]) => `${k}: '${v.model}'`).join(', ')} };`],
-    ['cmd.match(/^(claude|codex)\\b', `cmd.match(/^(claude|codex|${Object.keys(EXTRA_AGENTS).join('|')})\\b`],
-    // A database query in the Terminal: psql answers with the projects table after the POST and DELETE of Requests.
-    [/^(const SHELL = \{\n)/m, `$1  psql: () => [${PSQL.map(l => JSON.stringify(l)).join(', ')}],\n`],
-  ];
-  return swapAll('dev.mjs', text, swaps);
+    // While a CLI is open, the pane shows its screen instead of the blocks.
+    ['  view(leaf) {\n    const { blocks, folded } = leaf.data;', `  view(leaf, S) {
+    const open = lastAgent(leaf);
+    if (open?.b.tui && open.i === leaf.data.blocks.length - 1) return { subject: open.b.task || open.b.agent, lines: [{ t: 'tui', html: tui(open.b, { model: MODEL[open.b.agent], ctx: leaf.ctx, input: leaf.input, clock: S?.clock ?? 0, focused: !!S && S.tabs.find(t => t.id === S.active)?.focus === leaf.id }) }] };
+    const { blocks, folded } = leaf.data;`],
+    ['  activity(leaf, S) {\n    const a = lastAgent(leaf), b = leaf.data.blocks.at(-1);', "  activity(leaf, S) {\n    const a = lastAgent(leaf), b = leaf.data.blocks.at(-1);\n    if (a?.b.tui && a.b.state === 'ocioso') return null;"],
+    // A line typed into an open CLI is its next task.
+    ["    if (cmd === 'clear') return", `    const open = lastAgent(leaf);
+    if (open?.b.tui && open.i === d.blocks.length - 1 && open.b.running) {
+      if (['trabalhando', 'precisa de você'].includes(open.b.state)) return { toast: \`\${open.b.agent} ainda está trabalhando\` };
+      const next = { ...open.b, task: cmd, step: 0, state: 'trabalhando', started: S?.clock ?? 0, out: [...open.b.out, { text: cmd, tone: 'you' }, \`● \${AGENTS[open.b.agent][0]}\`] };
+      return { data: { blocks: d.blocks.map((b, i) => (i === open.i ? next : b)) } };
+    }
+    if (cmd === 'clear') return`],
+    [/const ag = cmd\.match\(\/\^\(claude\|codex\)\\b\\s\*\["'\]\?\(\.\*\?\)\["'\]\?\$\/\);\n    if \(ag\) return push\(.*\n/, `const ag = cmd.match(/^(${AGENT_RE})\\b\\s*["']?(.*?)["']?$/);
+    if (ag) {
+      const fx = ag[2]
+        ? push([{ text: ag[2], tone: 'you' }, \`● \${AGENTS[ag[1]][0]}\`], null, { agent: ag[1], task: ag[2], tui: true, step: 0, state: 'trabalhando', running: true, ms: '', started: S?.clock ?? 0 })
+        : push([], null, { agent: ag[1], task: '', tui: true, step: -1, state: 'ocioso', running: true, ms: '', started: S?.clock ?? 0 });
+      fx.data.view = 'tui';
+      return fx;
+    }
+`],
+  ]);
 }
-const PSQL = ['   id    |  nome   | paineis', '---------+---------+---------', ' proj_01 | cadente |       4', ' proj_03 | nora    |       0', '(2 linhas)'];
-// Requests answers each method the way an API would: 201 with the new item for POST, 204 for DELETE.
+// Requests answers each method the way an API would (201 with the new item for POST, 204 for DELETE), and the
+// request view starts with a row that sends it, like the send button of Bruno, reached with the arrows.
 function restfulRequests(text) {
   return swapAll('apis.mjs', text, [
     ["status: 200, ms: 184, size: '1,2 KB', headers: r.headers", "status: { POST: 201, DELETE: 204 }[d.method] ?? 200, ms: { POST: 212, DELETE: 96 }[d.method] ?? 184, size: { POST: '64 B', DELETE: '0 B' }[d.method] ?? '1,2 KB', headers: r.headers"],
     ["status: last.error ? 'erro' : 200, url: r.url", 'status: last.error ? \'erro\' : last.status, url: r.url'],
     [": leaf.data.raw ? [BODY.join('').replace(/\\s+/g, ' ')] : BODY;", ": leaf.data.raw ? [BODY.join('').replace(/\\s+/g, ' ')] : { POST: ['{ \"id\": \"proj_03\", \"name\": \"nora\", \"panes\": 0 }'], DELETE: [] }[last.method] ?? BODY;"],
     ['`${last.status} OK · ${last.ms} ms', "`${last.status} ${{ 201: 'Created', 204: 'No Content' }[last.status] ?? 'OK'} · ${last.ms} ms"],
+    ["if (v === 'requisição') return { lines: [", "if (v === 'requisição') return { lines: [row('rq-go', '▶', `enviar ${d.method}`, resolve(S, d).url, null, { kind: 'go' }),"],
+    ["  activate(leaf, item, S) {\n    if (item.kind === 'rq')", "  activate(leaf, item, S) {\n    if (item.kind === 'go') return send(S, leaf);\n    if (item.kind === 'rq')"],
   ]);
+}
+// The Postgres community plugin joins the engine, the plugin list and the catalog (under "comunidade").
+const communityPlugins = {
+  engine: text => swapAll('engine.mjs', text, [
+    ["import plugins from './manifests/plugins.json' with { type: 'json' };", "import plugins from './manifests/plugins.json' with { type: 'json' };\nimport banco from '../v4-site/banco.json' with { type: 'json' };"],
+    ['config, plugins].map(m => [m.plugin, m])', 'config, plugins, banco].map(m => [m.plugin, m])'],
+  ]),
+  plugins: text => swapAll('plugins.mjs', text, [
+    ["import { sistema, config, plugins } from './sys.mjs';", "import { sistema, config, plugins } from './sys.mjs';\nimport { banco } from '../v4-site/banco.mjs';"],
+    ['ferramentas, config, plugins];', 'ferramentas, config, plugins, banco];'],
+  ]),
+  sys: text => swapAll('sys.mjs', text, [
+    ['const ps = PLUGINS.filter(p => hit(`${p.title} ${p.keywords}`))', 'const ps = PLUGINS.filter(p => !p.community && hit(`${p.title} ${p.keywords}`)), cs = PLUGINS.filter(p => p.community && hit(`${p.title} ${p.keywords}`))'],
+    ['`${ps.length + sv.length} de', '`${ps.length + cs.length + sv.length} de'],
+    ["}), h('serviços', String(sv.length)),", "}), ...(cs.length ? [h('comunidade', String(cs.length)), ...cs.map(p => { const off = S.disabled.includes(p.id); return row(p.id, off ? '○' : '●', `${p.glyph} ${p.title}`, `@${p.author} · ${off ? 'desligado' : 'ligado'}`, off ? 'dim' : null, { kind: 'plugin' }); })] : []), h('serviços', String(sv.length)),"],
+  ]),
+  view: text => swapAll('view.mjs', text, [["    case 'hr': return '<div class=\"hr\"></div>';", "    case 'hr': return '<div class=\"hr\"></div>';\n    case 'tui': return l.html;"]]),
+};
+// Collection items carry their method, and opening one sets it, as in Bruno.
+function brunoCollections(m) {
+  for (const c of m.seed.collections) if (c.kind === 'request') c.method = c.name.split(' ')[0];
+  m.lists.collections.enter.ops.unshift({ op: 'set', path: 'store.reqDraft.method', value: '${method}' });
+  return m;
 }
 function swapAll(file, text, swaps) {
   for (const [from, to] of swaps) {
@@ -95,12 +143,14 @@ for (const m of MODULES) {
   if (m === 'life') text = text.replace("name: 'abrir'", "name: 'open'");
   if (m === 'dev') text = moreAgents(text);
   if (m === 'apis') text = restfulRequests(text);
+  if (communityPlugins[m]) text = communityPlugins[m](text);
   fs.writeFileSync(path.join(out, `${m}.mjs`), `// Generated by scripts/sync-v4.mjs from the Cadente v4 prototype. Do not edit.\n${adapt(`${m}.mjs`, text)}`);
 }
 fs.writeFileSync(path.join(out, 'capability-map.json'), `${JSON.stringify({ commands: [] })}\n`);
 
 for (const f of fs.readdirSync(path.join(src, 'manifests')).filter(f => f.endsWith('.json'))) {
-  const m = JSON.parse(adapt(`manifests/${f}`, fs.readFileSync(path.join(src, 'manifests', f), 'utf8')));
+  let m = JSON.parse(adapt(`manifests/${f}`, fs.readFileSync(path.join(src, 'manifests', f), 'utf8')));
+  if (f === 'requests.json') m = brunoCollections(m);
   const seen = new Set();
   for (const c of m.commands ?? []) {
     c.name = COMMANDS[c.name] ?? c.name;

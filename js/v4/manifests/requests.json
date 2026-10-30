@@ -56,6 +56,11 @@
     "ops": [
      {
       "op": "set",
+      "path": "store.reqDraft.method",
+      "value": "${method}"
+     },
+     {
+      "op": "set",
       "path": "store.reqDraft.url",
       "value": "https://api.example.test${path}"
      },
@@ -467,14 +472,16 @@
     "kind": "request",
     "g": "  ·",
     "name": "GET /v1/projects",
-    "path": "/v1/projects"
+    "path": "/v1/projects",
+    "method": "GET"
    },
    {
     "id": "c3",
     "kind": "request",
     "g": "  ·",
     "name": "POST /v1/projects",
-    "path": "/v1/projects"
+    "path": "/v1/projects",
+    "method": "POST"
    },
    {
     "id": "c4",
@@ -493,7 +500,8 @@
     "kind": "request",
     "g": "  ·",
     "name": "POST /oauth/token",
-    "path": "/oauth/token"
+    "path": "/oauth/token",
+    "method": "POST"
    }
   ],
   "reqHistory": [
