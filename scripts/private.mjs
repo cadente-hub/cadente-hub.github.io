@@ -1,22 +1,23 @@
 #!/usr/bin/env node
 // Private names (internal projects, private checkouts, personal handles) must never reach the public site.
-// The names live only in private-names.json at the repo root, which git ignores:
+// The names live only outside the repo, in ~/.config/cadente-site/private-names.json (or $CADENTE_PRIVATE_NAMES):
 //   { "replace": [["private", "public"], …], "forbid": ["word", …] }
 // "replace" pairs are applied in order, whole words only, by scripts/sync-v4.mjs; "forbid" words fail the check.
 // Usage: node scripts/private.mjs   checks every tracked text file and dist/, and exits 1 on a leak.
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const FILE = path.join(root, 'private-names.json');
+const FILE = process.env.CADENTE_PRIVATE_NAMES ?? path.join(os.homedir(), '.config/cadente-site/private-names.json');
 const escape = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 // Whole words: a name glued to other letters ("ignora") is a different word.
 const word = s => new RegExp(`(?<![\\p{L}\\p{N}])${escape(s)}(?![\\p{L}\\p{N}])`, 'gu');
 
 export function loadPrivate() {
-  if (!fs.existsSync(FILE)) throw new Error(`${path.relative(root, FILE)} is missing: it lists the private names to keep off the site`);
+  if (!fs.existsSync(FILE)) throw new Error(`${FILE} is missing: it lists the private names to keep off the site`);
   const { replace = [], forbid = [] } = JSON.parse(fs.readFileSync(FILE, 'utf8'));
   return {
     neutral: text => replace.reduce((t, [from, to]) => t.replace(word(from), to), text),

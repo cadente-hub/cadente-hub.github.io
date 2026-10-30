@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // Copies the frozen Cadente v4 prototype into the site and adapts it for a public web page:
 // - slash commands in English (the app's decision of 2026-10-30), with a guard against clashes;
-// - private names (projects, checkouts, handles) replaced by neutral ones from private-names.json, and the sync
-//   fails if any of them is left in what it writes (scripts/private.mjs);
+// - private names (projects, checkouts, handles) replaced by neutral ones from a list kept outside the repo, and
+//   the sync fails if any of them is left in what it writes (scripts/private.mjs);
 // - no internal capability census (the palette lists actions and plugins only);
 // - shell.css scoped under `.v4`, so the prototype never styles the rest of the page.
 // Usage: node scripts/sync-v4.mjs <path to the v4 prototype>   (or set CADENTE_V4)

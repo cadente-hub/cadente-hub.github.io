@@ -2,5 +2,5 @@ node_modules/
 dist/
 .DS_Store
 *.local
-# Private names kept off the public site (see scripts/private.mjs)
+# Private names kept off the public site: the list lives outside the repo (see scripts/private.mjs)
 /private-names.json
