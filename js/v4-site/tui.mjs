@@ -106,28 +106,64 @@ const tone = c => (c === 'default' ? null : NAMED[c] ?? NAMED[c.replace(/^bright
 export const hasRecording = agent => !!REC[agent];
 const phase = (rec, kind) => rec.frames.filter(f => f.kind === kind);
 
-function cellStyle([fg, bg, bold, italics, , reverse]) {
-  let f = tone(fg), b = tone(bg);
-  if (reverse) [f, b] = [b ?? '#000', f ?? '#e6e6e6'];
-  // Underline is left out: the capture reads some dim and colon-style colour sequences as underline.
-  return [f && `color:${f}`, b && `background:${b}`, bold && 'font-weight:700', italics && 'font-style:italic'].filter(Boolean).join(';');
+// Each recorded screen is drawn as an SVG on the terminal's own grid: every run starts at its exact column and is
+// stretched to its exact width, block characters become pixel rectangles and rules become lines. The SVG scales to
+// the pane, so the screen keeps its layout at any pane size and with any font the visitor has.
+const CW = 8.4, CH = 17, BASE = 12.5;
+const QUAD = { '▘': 1, '▝': 2, '▖': 4, '▗': 8, '▀': 3, '▄': 12, '▌': 5, '▐': 10, '▚': 9, '▞': 6, '▛': 7, '▜': 11, '▙': 13, '▟': 14, '█': 15 };
+const PLAIN = ['default', 'default', false, false, false, false];
+const n = v => Math.round(v * 10) / 10;
+function colors([fg, bg, , , , reverse]) {
+  let f = tone(fg) ?? '#e6e6e6', b = tone(bg);
+  if (reverse) [f, b] = [b ?? '#000', tone(fg) ?? '#e6e6e6'];
+  return [f, b];
 }
-function rowHTML(rec, li) {
-  return rec.lines[li].map(([t, si]) => { const st = cellStyle(rec.styles[si]); return st ? `<span style="${st}">${esc(t)}</span>` : esc(t); }).join('');
+function svgRows(rec, rows, extra = '') {
+  let back = '', front = '';
+  rows.forEach((runs, y) => {
+    let x = 0;
+    for (const [t, si] of runs) {
+      const st = Array.isArray(si) ? si : rec.styles[si], [f, b] = colors(st), chars = [...t];
+      if (b) back += `<rect x="${n(x * CW)}" y="${y * CH}" width="${n(chars.length * CW)}" height="${CH}" fill="${b}"/>`;
+      let seg = '', sx = x;
+      const flush = () => {
+        if (seg.trim()) front += `<text x="${n(sx * CW)}" y="${n(y * CH + BASE)}" textLength="${n([...seg].length * CW)}" lengthAdjust="spacingAndGlyphs" fill="${f}"${st[2] ? ' font-weight="700"' : ''}${st[3] ? ' font-style="italic"' : ''}>${esc(seg)}</text>`;
+        seg = '';
+      };
+      chars.forEach((ch, i) => {
+        const cx = x + i;
+        if (QUAD[ch]) {
+          flush();
+          for (let q = 0; q < 4; q++) if (QUAD[ch] & (1 << q)) front += `<rect x="${n((cx + (q % 2) / 2) * CW)}" y="${n((y + (q > 1 ? 0.5 : 0)) * CH)}" width="${n(CW / 2 + 0.2)}" height="${n(CH / 2 + 0.2)}" fill="${f}"/>`;
+          return;
+        }
+        if (ch === '─' || ch === '━') { flush(); front += `<rect x="${n(cx * CW)}" y="${n(y * CH + CH / 2 - 0.6)}" width="${n(CW + 0.2)}" height="1.2" fill="${f}"/>`; return; }
+        if (ch === '│' || ch === '┃') { flush(); front += `<rect x="${n(cx * CW + CW / 2 - 0.6)}" y="${y * CH}" width="1.2" height="${CH}" fill="${f}"/>`; return; }
+        if (ch === '└' || ch === '⎿') { flush(); front += `<rect x="${n(cx * CW + CW / 2 - 0.6)}" y="${y * CH}" width="1.2" height="${n(CH / 2 + 0.6)}" fill="${f}"/><rect x="${n(cx * CW + CW / 2 - 0.6)}" y="${n(y * CH + CH / 2 - 0.6)}" width="${n(CW / 2 + 0.8)}" height="1.2" fill="${f}"/>`; return; }
+        // Spaces end a word: each word is its own <text> at its own column, so a browser that collapses spaces
+        // cannot shift or stretch the words after it.
+        if (ch === ' ' || ch === '\u00a0') { flush(); return; }
+        if (!seg) sx = cx;
+        seg += ch;
+      });
+      flush();
+      x += chars.length;
+    }
+  });
+  return `<svg class="tui-svg" viewBox="0 0 ${n(rec.cols * CW)} ${rec.rows * CH}" preserveAspectRatio="xMinYMin meet" font-family="Hack, ui-monospace, Menlo, monospace" font-size="13.6" xml:space="preserve">${back}${front}${extra}</svg>`;
 }
-// The empty prompt row of the welcome screen, with what is being typed in place of the placeholder.
-function typedRow(rec, li, input, focused) {
-  const runs = rec.lines[li], col = rec.input.col;
-  let x = 0, head = '';
-  for (const [t, si] of runs) {
+// The empty prompt row of the welcome screen, with what is being typed in place of the placeholder, and the caret.
+function typedRuns(rec, li, text) {
+  const out = [], col = rec.input.col;
+  let x = 0;
+  for (const [t, si] of rec.lines[li]) {
     if (x >= col) break;
-    const part = t.slice(0, col - x);
-    const st = cellStyle(rec.styles[si]);
-    head += st ? `<span style="${st}">${esc(part)}</span>` : esc(part);
+    out.push([t.slice(0, col - x), si]);
     x += t.length;
   }
-  const t = input?.text ?? '', at = input?.caret ?? t.length;
-  return `${head}${esc(t.slice(0, at))}${focused ? `<b class="cur">${esc(t[at] ?? ' ')}</b>` : ''}${esc(t.slice(at + 1))}`;
+  if (x < col) out.push([' '.repeat(col - x), PLAIN]);
+  out.push([text, PLAIN]);
+  return out;
 }
 function frameFor(rec, b, clock) {
   if (b.state === 'ocioso') return phase(rec, 'welcome')[0];
@@ -140,8 +176,11 @@ function frameFor(rec, b, clock) {
 }
 function recordingScreen(b, o) {
   const rec = REC[b.agent], f = frameFor(rec, b, o.clock ?? 0);
-  const rows = f.rows.map((li, y) => (f.kind === 'welcome' && rec.input && y === rec.input.row && (o.input?.text || o.focused) ? typedRow(rec, li, o.input, o.focused) : rowHTML(rec, li)));
-  return `<div class="tui-rec tui-rec--${esc(b.agent)}">${rows.map(r => `<div>${r || ' '}</div>`).join('')}</div>`;
+  const typing = f.kind === 'welcome' && rec.input && (o.input?.text || o.focused);
+  const t = o.input?.text ?? '', at = o.input?.caret ?? t.length;
+  const rows = f.rows.map((li, y) => (typing && y === rec.input.row ? typedRuns(rec, li, t) : rec.lines[li]));
+  const caret = typing && o.focused ? `<rect class="tui-caret" x="${n((rec.input.col + at) * CW)}" y="${rec.input.row * CH + 1}" width="${CW}" height="${CH - 2}"/>` : '';
+  return `<div class="tui-rec">${svgRows(rec, rows, caret)}</div>`;
 }
 // One tick of time: the recording moves on, asks for permission where the real CLI asked, and finishes.
 export function recordingTick(b, S) {

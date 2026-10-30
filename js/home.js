@@ -38,7 +38,7 @@ const stage = new Stage($('#theater-stage'), {
   maxHeight: () => Math.max(300, innerHeight - 64 - $('.theater__head').offsetHeight - (narrow ? 40 : 64)),
 });
 
-stepsEl.innerHTML = CHAPTERS.map((c, i) => `<li><button data-i="${i}"><span>${String(i + 1).padStart(2, '0')} ${c.step}</span><i class="steps__bar"></i></button></li>`).join('');
+stepsEl.innerHTML = CHAPTERS.map((c, i) => `<li><button data-i="${i}" aria-label="${i + 1}. ${c.step}"><span>${c.step}</span><i class="steps__bar"></i></button></li>`).join('');
 const markSteps = i => [...stepsEl.children].forEach((li, k) => { li.classList.toggle('is-on', k === i); li.classList.toggle('is-done', k < i); });
 function showCaption(i) {
   const c = CHAPTERS[i];
@@ -99,7 +99,7 @@ const DESC = {
   plugins: 'Catálogo, grafo e troca de provider com prévia.',
 };
 const grid = $('#plugin-grid'), note = $('#plugin-note');
-const FIRST = PLUGINS.filter(p => !p.community);
+const FIRST = PLUGINS.filter(p => !p.community && !p.store);
 grid.innerHTML = FIRST.map(p => `<li><button class="pcard" data-plugin="${p.id}" aria-pressed="false"><span class="pcard__glyph" aria-hidden="true">${esc(p.glyph)}</span><span class="pcard__title">${esc(p.title)}</span></button></li>`).join('');
 
 const preview = $('.plugins__preview');
@@ -137,8 +137,9 @@ grid.addEventListener('click', e => { const b = e.target.closest('.pcard'); if (
 tour(FIRST.findIndex(p => p.id === 'pr'));
 
 // ── Plugin architecture: toggle, swap, install, remove ────────────────
+const NO_AI = 'nenhum · IA desligada';
 const SERVICES = [
-  { id: 'ai', name: 'provider de IA', options: ['cadente.ai.anthropic', 'cadente.ai.openai', 'cadente.ai.ollama'] },
+  { id: 'ai', name: 'provider de IA', options: ['cadente.ai.anthropic', 'cadente.ai.openai', 'cadente.ai.ollama', NO_AI] },
   { id: 'compaction', name: 'compactação do contexto', options: ['cadente.compaction.default', 'cadente.compaction.manual', 'ana.compaction.resumo'] },
   { id: 'pty', name: 'terminal (pty)', options: ['cadente.pty.default', 'leo.pty.sandbox'] },
   { id: 'theme', name: 'tema', options: ['cadente.theme.dark', 'bitcraft.theme.neon', 'lumen.theme.contraste'] },
@@ -162,7 +163,7 @@ function drawRack(fresh) {
   rp.innerHTML = rack.plugins.map(p => `<li><button class="rchip${p.on ? '' : ' is-off'}${p.id === fresh ? ' is-new' : ''}" data-plugin="${p.id}" aria-pressed="${p.on}"><span class="rchip__dot" aria-hidden="true"></span><span class="rchip__g" aria-hidden="true">${esc(p.g)}</span><span class="rchip__name">${esc(p.name)}</span><span class="rchip__meta">${p.community ? 'comunidade' : p.on ? 'ligado' : 'desligado'}</span></button>${p.community ? '<button class="rchip__x" data-remove aria-label="Remover Kanban">×</button>' : ''}</li>`).join('');
   rs.innerHTML = SERVICES.map(s => {
     const users = rack.plugins.filter(p => p.on && p.uses.includes(s.id)).map(p => p.name.split(' ·')[0]);
-    return `<li><button class="svc" data-service="${s.id}"><span class="svc__name">${s.name}</span><span class="svc__provider"><i>${s.options[rack.provider[s.id]]}</i></span><span class="svc__uses">${users.length ? `usado por ${users.join(', ')}` : 'ninguém usa agora'}</span></button></li>`;
+    return `<li><button class="svc" data-service="${s.id}"><span class="svc__name">${s.name}</span><span class="svc__provider"><i>${s.options[rack.provider[s.id]]}</i></span><span class="svc__uses">${s.options[rack.provider[s.id]] === NO_AI ? 'clique de novo para religar' : users.length ? `usado por ${users.join(', ')}` : 'ninguém usa agora'}</span></button></li>`;
   }).join('');
   rcount.textContent = `${rack.plugins.filter(p => p.on).length} ligados`;
   radd.disabled = rack.plugins.some(p => p.id === 'kanban');
@@ -199,7 +200,9 @@ function swap(sid) {
   wire({ service: sid });
   setTimeout(() => wire(), 1600);
   const users = rack.plugins.filter(p => p.on && p.uses.includes(sid)).map(p => p.name.split(' ·')[0]);
-  log(`prévia · ${s.name}: <b>${from} → ${s.options[rack.provider[sid]]}</b>${users.length ? ` · ${users.join(', ')} terminam o que estão fazendo e reiniciam no novo provider` : ''}`);
+  const to = s.options[rack.provider[sid]];
+  if (to === NO_AI) return log(`<b>IA desligada.</b> ${users.join(', ')} ficam esperando um provider; Terminal, Workspaces, notas, banco e agenda seguem iguais.`);
+  log(`prévia · ${s.name}: <b>${from} → ${to}</b>${users.length ? ` · ${users.join(', ')} terminam o que estão fazendo e reiniciam no novo provider` : ''}`);
 }
 function install() {
   if (rack.plugins.some(p => p.id === 'kanban')) return;
@@ -301,7 +304,7 @@ onVisible($('#shop'), async () => {
 }, 0.35);
 
 // ── Creator mode ──────────────────────────────────────────────────────
-new Maker($('#maker-win'), $('#maker-steps'));
+new Maker($('#maker-win'), $('#maker-steps'), $('#maker-ex'));
 
 // ── Earnings calculator ───────────────────────────────────────────────
 const MODELS = {

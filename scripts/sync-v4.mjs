@@ -48,7 +48,10 @@ const changes = [];
 // - Terminal: `claude`, `codex`, `agy`, `gemini` and `opencode` open the CLI's own interactive screen
 //   (js/v4-site/tui.mjs); the next line typed is the task, and the steps below fill the transcript.
 // - Requests: a "▶ enviar" row in the request, and collection items that set the method, used like Bruno.
-// - Postgres: a community plugin with saved queries (js/v4-site/banco.*), shown apart from the first-party ones.
+// - Postgres: a community plugin laid out like DBeaver (js/v4-site/banco.*), shown apart from the first-party ones.
+// - Documentos, Navegador and Excalidraw: community plugins for markdown notes like Obsidian, web pages and
+//   hand-drawn diagrams (js/v4-site/docs.*, web.*, draw.*).
+// - Loja: the plugin store in a pane (js/v4-site/loja.*), where the demo installs Postgres and Excalidraw.
 // - Workspaces: four worktrees at once, with the state of each pull request or agent.
 const EXTRA_AGENTS = {
   agy: { model: 'gemini 3 pro', steps: ['lendo src/auth/login.ts', 'escrevendo login.test.ts  +48', '?rodar `npm test`', 'rodando npm test', '✓12 testes novos · todos passam'] },
@@ -101,18 +104,23 @@ function restfulRequests(text) {
     ["  activate(leaf, item, S) {\n    if (item.kind === 'rq')", "  activate(leaf, item, S) {\n    if (item.kind === 'go') return send(S, leaf);\n    if (item.kind === 'rq')"],
   ]);
 }
-// The Postgres community plugin joins the engine, the plugin list and the catalog (under "comunidade").
+// The site's plugins (js/v4-site): Postgres, Documentos and Navegador from the community, and the store. They join the
+// engine, the plugin list and the catalog (community ones under "comunidade"); the store stays out of the catalog,
+// since in the app it is part of Plugins.
+const SITE = ['banco', 'docs', 'web', 'draw', 'loja'];
 const communityPlugins = {
   engine: text => swapAll('engine.mjs', text, [
-    ["import plugins from './manifests/plugins.json' with { type: 'json' };", "import plugins from './manifests/plugins.json' with { type: 'json' };\nimport banco from '../v4-site/banco.json' with { type: 'json' };"],
-    ['config, plugins].map(m => [m.plugin, m])', 'config, plugins, banco].map(m => [m.plugin, m])'],
+    ["import plugins from './manifests/plugins.json' with { type: 'json' };", `import plugins from './manifests/plugins.json' with { type: 'json' };\n${SITE.map(p => `import ${p} from '../v4-site/${p}.json' with { type: 'json' };`).join('\n')}`],
+    ['config, plugins].map(m => [m.plugin, m])', `config, plugins, ${SITE.join(', ')}].map(m => [m.plugin, m])`],
   ]),
   plugins: text => swapAll('plugins.mjs', text, [
-    ["import { sistema, config, plugins } from './sys.mjs';", "import { sistema, config, plugins } from './sys.mjs';\nimport { banco } from '../v4-site/banco.mjs';"],
-    ['ferramentas, config, plugins];', 'ferramentas, config, plugins, banco];'],
+    ["import { sistema, config, plugins } from './sys.mjs';", `import { sistema, config, plugins } from './sys.mjs';\n${SITE.map(p => `import { ${p} } from '../v4-site/${p}.mjs';`).join('\n')}`],
+    ['ferramentas, config, plugins];', `ferramentas, config, plugins, ${SITE.join(', ')}];`],
   ]),
+  // A plugin can claim a ⌘ shortcut the window does not use, such as ⌘↵ to run a query or ⌘L for an address.
+  keys: text => swapAll('keys.mjs', text, [["    const g = lookup(S, ev, 'global');\n    if (g) return g;\n", "    const g = lookup(S, ev, 'global');\n    if (g) return g;\n    const own = !S.ui.side && !S.overlay && keyLabel(ev);\n    if (own && (plugin(focused(S).plugin)?.keys?.(focused(S), S) ?? []).includes(own)) return { type: 'PKEY', key: own };\n"]]),
   sys: text => swapAll('sys.mjs', text, [
-    ['const ps = PLUGINS.filter(p => hit(`${p.title} ${p.keywords}`))', 'const ps = PLUGINS.filter(p => !p.community && hit(`${p.title} ${p.keywords}`)), cs = PLUGINS.filter(p => p.community && hit(`${p.title} ${p.keywords}`))'],
+    ['const ps = PLUGINS.filter(p => hit(`${p.title} ${p.keywords}`))', 'const ps = PLUGINS.filter(p => !p.community && !p.store && hit(`${p.title} ${p.keywords}`)), cs = PLUGINS.filter(p => p.community && hit(`${p.title} ${p.keywords}`))'],
     ['`${ps.length + sv.length} de', '`${ps.length + cs.length + sv.length} de'],
     ["}), h('serviços', String(sv.length)),", "}), ...(cs.length ? [h('comunidade', String(cs.length)), ...cs.map(p => { const off = S.disabled.includes(p.id); return row(p.id, off ? '○' : '●', `${p.glyph} ${p.title}`, `@${p.author} · ${off ? 'desligado' : 'ligado'}`, off ? 'dim' : null, { kind: 'plugin' }); })] : []), h('serviços', String(sv.length)),"],
   ]),

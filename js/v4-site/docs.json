@@ -1,0 +1,15 @@
+{
+  "plugin": "docs",
+  "views": [{ "id": "cofre", "label": "cofre" }],
+  "seed": {
+    "docs": [
+      { "id": "d1", "dir": "diário", "name": "2026-10-29", "lines": ["# Quarta, 29 de outubro", "", "- [x] mandar o build para a @ana", "- [x] responder o issue #212", "", "Ideia: tema claro para o [[Site]]."] },
+      { "id": "d2", "dir": "diário", "name": "2026-10-30", "lines": ["# Quinta, 30 de outubro", "", "- [x] revisar o PR #248", "- [ ] reunião de produto às 10h, ver [[Produto 30-10]]", "", "O Postgres da @leo resolveu o meu dia. #dica"] },
+      { "id": "d3", "dir": "projetos", "name": "Plano 1.3", "lines": ["# Plano 1.3", "", "A loja abre nesta versão. #roadmap", "", "## Falta", "- [ ] tela de descobrir", "- [ ] checkout", "- [x] assinatura dos pacotes"] },
+      { "id": "d4", "dir": "projetos", "name": "Site", "lines": ["# Site", "", "- [x] o teatro tocando sozinho", "- [ ] a loja numa folha", "", "Referência: [[Plano 1.3]]"] },
+      { "id": "d5", "dir": "reuniões", "name": "Produto 30-10", "lines": ["# Reunião de produto", "Quinta, 30/10 · 10h · com @ana e @leo", "", "## Decisões", "- A loja abre na 1.3, ver [[Plano 1.3]]", "- O Postgres da @leo entra em destaque", "", "## Próximos passos", "- [ ] escrever o anúncio no blog", "- [ ] gravar o vídeo da loja"] },
+      { "id": "d6", "dir": "reuniões", "name": "Time 28-10", "lines": ["# Time · 28/10", "", "- [x] dividir as tarefas da 1.3", "- [ ] marcar a retro"] }
+    ]
+  },
+  "commands": []
+}

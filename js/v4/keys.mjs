@@ -108,6 +108,8 @@ export function resolveKey(S, raw) {
   if (meta) {
     const g = lookup(S, ev, 'global');
     if (g) return g;
+    const own = !S.ui.side && !S.overlay && keyLabel(ev);
+    if (own && (plugin(focused(S).plugin)?.keys?.(focused(S), S) ?? []).includes(own)) return { type: 'PKEY', key: own };
     if (!alt && key === 'ArrowLeft') return { type: 'EDIT', op: 'home' };
     if (!alt && key === 'ArrowRight') return { type: 'EDIT', op: 'end' };
     if (key === 'Backspace') return { type: 'EDIT', op: 'lineBack' };

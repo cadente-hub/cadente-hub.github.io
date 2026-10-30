@@ -1,0 +1,6 @@
+{
+  "plugin": "web",
+  "views": [{ "id": "pagina", "label": "página" }],
+  "seed": {},
+  "commands": []
+}

@@ -4,7 +4,10 @@ export const CATEGORIES = ['Todos', 'Dev', 'IA', 'Produtividade', 'Dados', 'Tema
 // glyph, name, author, description, category
 export const APPS = [
   ['▦', 'Kanban', 'ana', 'Quadro com as issues do repositório, em três colunas.', 'Produtividade'],
-  ['⛁', 'Postgres', 'leo', 'Consultas, tabelas e planos de execução numa folha.', 'Dados'],
+  ['✎', 'Excalidraw', 'bitcraft', 'Diagramas com cara de feitos à mão, desenhados pelo teclado.', 'Produtividade'],
+  ['⛁', 'Postgres', 'leo', 'Script, navegador e resultado como no DBeaver, numa folha.', 'Dados'],
+  ['❖', 'Documentos', 'sofia', 'Notas em markdown como no Obsidian, com [[links]] e tarefas.', 'Produtividade'],
+  ['◍', 'Navegador', 'orbita', 'Um site numa folha, com os links no teclado.', 'Dev'],
   ['◆', 'Escritor de testes', 'ana', 'Um agente que escreve testes para o diff atual.', 'IA'],
   ['◑', 'Tema Neon', 'bitcraft', 'Detalhes em roxo e rosa sobre o preto.', 'Temas'],
   ['⎈', 'Kubernetes', 'nuvem', 'Pods, logs e eventos do cluster sem sair do teclado.', 'Dev'],

@@ -5,16 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="color-scheme" content="dark" />
   <meta name="theme-color" content="#000000" />
-  <title>Cadente — divida a tela, escolha o plugin</title>
-  <meta name="description" content="Cadente é um app de desktop para trabalhar com IA no teclado. Chat, Terminal, PRs, Requests, Calendário e outros plugins lado a lado, numa janela só. Grátis para macOS, Windows e Linux." />
+  <title>Cadente — agentes, terminal, banco e notas numa janela só</title>
+  <meta name="description" content="Cadente é um app de desktop grátis que junta Claude Code, Codex, terminal, API, banco, notas e agenda numa janela dividida. Cada parte é um plugin: ligue o que usa e desligue o resto, até a IA. Feito em Rust, para Mac, Windows e Linux." />
   <meta property="og:title" content="Cadente" />
-  <meta property="og:description" content="Divida a tela, escolha o plugin. Tudo no Cadente é plugin, e o dono é você." />
+  <meta property="og:description" content="Agentes, terminal, banco e notas numa janela só. Cada parte é um plugin, e você liga só o que usa." />
   <meta property="og:image" content="https://cadente-hub.github.io/assets/og-image.png" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://cadente-hub.github.io" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Cadente" />
-  <meta name="twitter:description" content="Divida a tela, escolha o plugin. Tudo no Cadente é plugin, e o dono é você." />
+  <meta name="twitter:description" content="Agentes, terminal, banco e notas numa janela só. Cada parte é um plugin, e você liga só o que usa." />
   <meta name="twitter:image" content="https://cadente-hub.github.io/assets/og-image.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -68,13 +68,13 @@
       <div class="hero__glow" aria-hidden="true"></div>
       <div class="wrap hero__inner">
         <span class="hero__cadu" id="hero-cadu" aria-hidden="true"></span>
-        <p class="eyebrow eyebrow--plain reveal"><span class="dot" aria-hidden="true"></span>Grátis para Mac, Windows e Linux</p>
+        <p class="eyebrow eyebrow--plain reveal"><span class="dot" aria-hidden="true"></span>App grátis para Mac, Windows e Linux</p>
         <h1 class="hero__title">
-          <span class="line"><span>Divida a tela.</span></span>
-          <span class="line"><span>Escolha o plugin.</span></span>
-          <span class="line"><span class="violet-text">O Cadente é seu.</span></span>
+          <span class="line"><span>Agentes, terminal,</span></span>
+          <span class="line"><span>banco e notas.</span></span>
+          <span class="line"><span class="violet-text">Numa janela só.</span></span>
         </h1>
-        <p class="hero__lede reveal">Abra o Claude Code, o Codex e o seu banco lado a lado, numa janela só, sem largar o teclado. Use a assinatura que você já paga. O Cadente é feito em Rust, é grátis, e você troca qualquer pedaço dele.</p>
+        <p class="hero__lede reveal">O Cadente é um app que junta as ferramentas do seu dia: o Claude Code e o Codex trabalhando lado a lado, o terminal, a API, o banco, as notas e a agenda. Cada parte da tela é um plugin, e você liga só o que usa. Não quer IA? Desligue tudo e fique com o resto. É grátis e feito em Rust.</p>
         <div class="hero__actions reveal">
           <a href="./downloads.html" class="btn btn--light btn--lg">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19h14"/></svg>
@@ -127,9 +127,9 @@
     <section class="section plugins" id="plugins">
       <div class="wrap">
         <header class="head reveal">
-          <p class="eyebrow"><span class="num">18</span> plugins de fábrica</p>
+          <p class="eyebrow"><span class="num">18</span> plugins de fábrica · milhões da comunidade</p>
           <h2 class="title">Cada folha,<br /><span class="muted">um plugin.</span></h2>
-          <p class="lede">Todos funcionam do mesmo jeito: <kbd>↵</kbd> abre, <kbd>.</kbd> mostra o que dá para fazer, <kbd>/</kbd> lista os comandos e <kbd>⇥</kbd> troca de vista. Aprendeu um, aprendeu todos. Clique num deles para ver.</p>
+          <p class="lede">Os 18 que vêm com o app cobrem o dia a dia: Chat, Terminal, PRs, Requests, Calendário, Foco e outros. Todos funcionam do mesmo jeito: <kbd>↵</kbd> abre, <kbd>.</kbd> mostra o que dá para fazer, <kbd>/</kbd> lista os comandos e <kbd>⇥</kbd> troca de vista. Clique num deles para ver.</p>
         </header>
         <div class="plugins__layout">
           <ul class="plugins__grid" id="plugin-grid" aria-label="Plugins de fábrica"></ul>
@@ -140,6 +140,16 @@
             <p class="plugins__note" id="plugin-note" aria-live="polite"></p>
           </div>
         </div>
+        <div class="community reveal">
+          <p class="community__big"><span class="violet-text">+ milhões</span><br />de plugins da comunidade.</p>
+          <div>
+            <p class="community__text">Além dos 18 de fábrica, qualquer pessoa pode publicar um plugin, e a loja foi feita para guardar milhões deles. Instalar é sempre de graça e leva um <kbd>↵</kbd>. Não usa IA? Fique só com os de produtividade.</p>
+            <a href="#loja" class="btn btn--ghost community__go">Ver a loja <span aria-hidden="true">↓</span></a>
+          </div>
+          <ul class="community__names" aria-label="Alguns plugins da comunidade">
+            <li>⛁ Postgres</li><li>✎ Excalidraw</li><li>❖ Documentos</li><li>◍ Navegador</li><li>▦ Kanban</li><li>⎈ Kubernetes</li><li>▣ Docker Compose</li><li>♪ Rádio lo-fi</li><li>◑ Tema Neon</li><li>⌕ RAG local</li><li>✓ Hábitos</li><li>☄ Chuva de estrelas</li><li>♞ Xadrez</li><li>…e o que você criar</li>
+          </ul>
+        </div>
       </div>
     </section>
 
@@ -149,7 +159,7 @@
         <header class="head head--center reveal">
           <p class="eyebrow">Arquitetura de plugins</p>
           <h2 class="title">Tudo é plugin.<br /><span class="violet-text">E quem decide é você.</span></h2>
-          <p class="lede">Aqui nada é sagrado. O Chat, o Terminal, a barra lateral, o provider de IA e até o tema são plugins, igualzinho aos da comunidade. Não gostou de algum? Desligue, troque por outro ou tire de vez.</p>
+          <p class="lede">Aqui nada é sagrado. O Chat, o Terminal, a barra lateral, o provider de IA e até o tema são plugins, igualzinho aos da comunidade. Não gostou de algum? Desligue, troque por outro ou tire de vez. Vale para a IA também: desligue e o Cadente vira um hub de produtividade, com terminal, banco, notas, agenda e foco.</p>
         </header>
         <div class="rack reveal" id="rack">
           <div class="rack__col">
@@ -212,8 +222,9 @@
         <header class="head reveal">
           <p class="eyebrow">Creator mode <span class="soon">em breve</span></p>
           <h2 class="title">Teve uma ideia?<br /><span class="violet-text">Vire plugin e ganhe com ela.</span></h2>
-          <p class="lede">Conte para o agente o que você quer e ele escreve o plugin para você. Aqui, alguém pediu um Cadu de estimação. Ele aparece solto na tela, com fome e meio sujo. Arraste, dê comida e um banho nele.</p>
+          <p class="lede">Conte para o agente o que você quer e ele escreve o plugin para você. Abaixo, três pedidos de verdade: um Cadu de estimação que fica solto na tela, um painel com as vendas do dia e um tradutor que usa IA. Cada um ganha de um jeito. E com o Cadu dá para brincar: arraste, dê comida e um banho nele.</p>
         </header>
+        <div class="maker__ex" id="maker-ex" role="tablist" aria-label="Exemplos de plugins"></div>
         <div class="maker reveal" id="maker">
           <div class="frame frame--maker">
             <div class="v4 maker__win" id="maker-win" aria-hidden="true"></div>
@@ -221,8 +232,8 @@
           <ol class="maker__steps" id="maker-steps">
             <li data-step="0"><b>Conte a ideia</b><span>Um Chat abre com o pedido. Nada é enviado até você apertar <kbd>↵</kbd>.</span></li>
             <li data-step="1"><b>O agente escreve</b><span>Manifesto, código e testes, numa folha ao lado de onde você está.</span></li>
-            <li data-step="2"><b>Teste na hora</b><span><code>cadente plugin dev</code> põe o plugin para rodar. Este vive solto por cima do app: arraste o Cadu, aperte <kbd>f</kbd> para dar comida e <kbd>b</kbd> para o banho.</span></li>
-            <li data-step="3"><b>Publique</b><span><code>/publish</code> e pronto, ele está na loja.</span></li>
+            <li data-step="2"><b>Teste na hora</b><span><code>cadente plugin dev</code> põe o plugin para rodar ali mesmo, ao lado da conversa. O Cadu vive solto por cima do app: arraste ele, aperte <kbd>f</kbd> para dar comida e <kbd>b</kbd> para o banho.</span></li>
+            <li data-step="3"><b>Publique</b><span><code>/publish</code> e pronto, ele está na loja, com o preço que você escolheu.</span></li>
           </ol>
         </div>
 
@@ -299,7 +310,7 @@
     <div class="wrap foot__inner">
       <div class="foot__brand">
         <a href="./" class="brand"><svg class="brand__mark" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><rect x="7" y="1" width="1" height="1" fill="#ffffff"/><rect x="8" y="1" width="1" height="1" fill="#b9b9c6"/><rect x="7" y="2" width="1" height="1" fill="#ffffff"/><rect x="8" y="2" width="1" height="1" fill="#b9b9c6"/><rect x="7" y="3" width="1" height="1" fill="#ffffff"/><rect x="8" y="3" width="1" height="1" fill="#b9b9c6"/><rect x="5" y="4" width="2" height="1" fill="#ffffff"/><rect x="7" y="4" width="2" height="1" fill="#ececf1"/><rect x="9" y="4" width="1" height="1" fill="#ffffff"/><rect x="10" y="4" width="1" height="1" fill="#b9b9c6"/><rect x="4" y="5" width="1" height="1" fill="#ffffff"/><rect x="5" y="5" width="6" height="1" fill="#ececf1"/><rect x="11" y="5" width="1" height="1" fill="#b9b9c6"/><rect x="4" y="6" width="1" height="1" fill="#ffffff"/><rect x="5" y="6" width="6" height="1" fill="#ececf1"/><rect x="11" y="6" width="1" height="1" fill="#b9b9c6"/><rect x="1" y="7" width="3" height="1" fill="#ffffff"/><rect x="4" y="7" width="1" height="1" fill="#ececf1"/><rect x="5" y="7" width="1" height="1" fill="#ffffff"/><rect x="6" y="7" width="1" height="1" fill="#0b0b10"/><rect x="7" y="7" width="2" height="1" fill="#ececf1"/><rect x="9" y="7" width="1" height="1" fill="#ffffff"/><rect x="10" y="7" width="1" height="1" fill="#0b0b10"/><rect x="11" y="7" width="1" height="1" fill="#ececf1"/><rect x="12" y="7" width="2" height="1" fill="#ffffff"/><rect x="14" y="7" width="1" height="1" fill="#b9b9c6"/><rect x="1" y="8" width="3" height="1" fill="#b9b9c6"/><rect x="4" y="8" width="1" height="1" fill="#ececf1"/><rect x="5" y="8" width="2" height="1" fill="#0b0b10"/><rect x="7" y="8" width="2" height="1" fill="#ececf1"/><rect x="9" y="8" width="2" height="1" fill="#0b0b10"/><rect x="11" y="8" width="1" height="1" fill="#ececf1"/><rect x="12" y="8" width="2" height="1" fill="#b9b9c6"/><rect x="14" y="8" width="1" height="1" fill="#7d7d8c"/><rect x="4" y="9" width="1" height="1" fill="#c99cff"/><rect x="5" y="9" width="6" height="1" fill="#ececf1"/><rect x="11" y="9" width="1" height="1" fill="#c99cff"/><rect x="4" y="10" width="1" height="1" fill="#b9b9c6"/><rect x="5" y="10" width="6" height="1" fill="#ececf1"/><rect x="11" y="10" width="1" height="1" fill="#7d7d8c"/><rect x="5" y="11" width="2" height="1" fill="#b9b9c6"/><rect x="7" y="11" width="2" height="1" fill="#ececf1"/><rect x="9" y="11" width="1" height="1" fill="#b9b9c6"/><rect x="10" y="11" width="1" height="1" fill="#7d7d8c"/><rect x="7" y="12" width="1" height="1" fill="#ffffff"/><rect x="8" y="12" width="1" height="1" fill="#b9b9c6"/><rect x="7" y="13" width="1" height="1" fill="#ffffff"/><rect x="8" y="13" width="1" height="1" fill="#b9b9c6"/><rect x="7" y="14" width="1" height="1" fill="#b9b9c6"/><rect x="8" y="14" width="1" height="1" fill="#7d7d8c"/></svg><span>Cadente</span></a>
-        <p>Divida a tela. Escolha o plugin.</p>
+        <p>Agentes, terminal, banco e notas. Numa janela só.</p>
       </div>
       <nav class="foot__cols" aria-label="Rodapé">
         <div><h4>Produto</h4><a href="#abrir">Como funciona</a><a href="#plugins">Plugins</a><a href="#loja">Loja</a><a href="#creator">Creator mode</a><a href="./downloads.html">Downloads</a></div>

@@ -95,6 +95,8 @@ export class Stage {
       else if (['terminal', 'chat'].includes(pc.closest('[data-pane]').dataset.plugin) || pc.querySelector('.pick')) pc.scrollTop = pc.scrollHeight;
     }
     for (const sel of this.root.querySelectorAll('.ov .res [data-sel="true"], [data-side-cursor]')) this.nearest(sel.closest('.res, .sl'), sel);
+    // Plugins drawn as one block (the Postgres script, the notes, the web page) keep their own line in view.
+    for (const box of this.root.querySelectorAll('[data-scrollbox]')) { const at = box.querySelector('[data-at]'); if (at) this.keep(box, at); }
     for (const on of this.root.querySelectorAll('.vts .vt.on')) {
       const t = on.parentElement, xs = [...t.children], at = xs.indexOf(on), x = el => el.offsetLeft - xs[0].offsetLeft;
       let first = xs.findIndex(el => x(el) >= t.scrollLeft);
@@ -108,6 +110,12 @@ export class Stage {
     const top = el.offsetTop - box.offsetTop, bottom = top + el.offsetHeight;
     if (top < box.scrollTop) box.scrollTop = top;
     else if (bottom > box.scrollTop + box.clientHeight) box.scrollTop = bottom - box.clientHeight;
+  }
+  // `box` is positioned, so offsetTop is measured from it; two lines of context stay visible around the target.
+  keep(box, el) {
+    const pad = el.offsetHeight * 2, top = el.offsetTop, bottom = top + el.offsetHeight;
+    if (top - pad < box.scrollTop) box.scrollTop = Math.max(0, top - pad);
+    else if (bottom + pad > box.scrollTop + box.clientHeight) box.scrollTop = bottom + pad - box.clientHeight;
   }
 
   // ── State ───────────────────────────────────────────────────────────────

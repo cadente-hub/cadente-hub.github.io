@@ -68,7 +68,7 @@ function pageShell({ title, description, canonical, body, rootClass = 'blog-page
   <main>${body}</main>
   <footer class="footer blog-footer">
     <div class="container footer__inner">
-      <div class="footer__brand"><a href="/" class="footer__logo">Cadente</a><p class="footer__tagline">Divida a tela. Escolha o plugin.</p></div>
+      <div class="footer__brand"><a href="/" class="footer__logo">Cadente</a><p class="footer__tagline">Agentes, terminal, banco e notas. Numa janela só.</p></div>
       <div class="footer__links">
         <div class="footer__col"><h4 class="footer__col-title">Produto</h4><a href="/#plugins">Plugins</a><a href="/#loja">Loja</a><a href="/downloads.html">Downloads</a><a href="/release-notes.html">Release notes</a></div>
         <div class="footer__col"><h4 class="footer__col-title">Recursos</h4><a href="/blog/">Blog</a><a href="https://github.com/cadente-hub/cadente-hub.github.io" rel="noopener noreferrer">GitHub</a></div>

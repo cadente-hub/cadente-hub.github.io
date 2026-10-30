@@ -1,0 +1,6 @@
+{
+  "plugin": "draw",
+  "views": [{ "id": "quadro", "label": "quadro" }],
+  "seed": {},
+  "commands": []
+}

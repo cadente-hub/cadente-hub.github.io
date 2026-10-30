@@ -1,6 +1,7 @@
 // The story told by the Cadente window: open, pick a plugin, run several agents side by side, open more pages,
-// bring any account, own every part, then reach everything from the keyboard. Each chapter is a script of real
-// keystrokes played on the v4 prototype; played in order they build one session.
+// install from the store, work the database, notes and the web, bring any account, own every part, then reach
+// everything from the keyboard. Each chapter is a script of real keystrokes played on the v4 prototype; played in
+// order they build one session.
 import { createState, leaves, activeTab, jumpLabels } from './v4/model.mjs';
 
 // Accounts shown in Configurações › contas: subscriptions, an API key and a local model.
@@ -138,30 +139,58 @@ export const CHAPTERS = [
     },
   },
   {
-    step: 'Banco',
-    title: 'E o banco logo abaixo.',
-    text: 'O Postgres, instalado da loja, guarda as suas consultas. Você desce por elas, reescreve um pedaço do SQL, roda só aquela e depois a de baixo. <kbd>⌘J</kbd> abre um Chat que já sabe de qual request você fala.',
+    step: 'Loja',
+    title: 'Faltou algo? Tem na loja.',
+    text: '<kbd>⌘⇧D</kbd> abre uma folha nova com a Loja, onde ficam os plugins da comunidade. Você busca o Postgres, vê o que ele pede para acessar e instala com <kbd>↵</kbd>, de graça. A mesma folha já vira o Postgres.',
     async run(s, id) {
       await s.key('⌘⇧D', id);
-      await pick(s, id, 'post', 'abrir o Postgres');
-      await s.key('⌘⇧↵', id, { label: 'ampliar a folha' });
-      await s.wait(400, id);
-      for (let i = 0; i < 6; i++) await s.key('↓', id, { hold: 330, label: 'próxima consulta' });
-      for (let i = 0; i < 5; i++) await s.key('↑', id, { hold: 260, label: 'subir' });
-      await s.key('.', id, { label: 'ações da consulta' });
+      await pick(s, id, 'loja', 'abrir a Loja');
+      await s.wait(700, id);
+      for (const label of ['Excalidraw', 'Kanban', 'Rádio lo-fi', 'Tema Neon', 'Kubernetes']) await s.key('↓', id, { hold: 380, label });
       await s.wait(300, id);
-      await s.key('e', id, { label: 'reescrever o SQL' });
-      await s.wait(400, id);
-      await s.key('⌥⌫', id, { label: 'apagar a última palavra' });
-      await s.type('paineis desc', id, { speed: 1.3 });
-      await s.key('↵', id, { label: 'gravar o SQL' });
-      await s.key('↵', id, { label: 'rodar só esta' });
+      await s.type('postgres', id, { speed: 1.4 });
+      await s.wait(300, id);
+      await s.key('↵', id, { label: 'ver o Postgres da @leo' });
+      await s.wait(1400, id);
+      await s.key('↵', id, { label: 'instalar, grátis' });
+      await s.wait(800, id);
       await s.ticks(1, id);
       await s.wait(900, id);
-      await s.key('↓', id, { label: 'a consulta de baixo' });
-      await s.key('↵', id, { label: 'rodar' });
       await s.ticks(1, id);
-      await s.wait(1100, id);
+      await s.wait(900, id);
+    },
+  },
+  {
+    step: 'Banco',
+    title: 'E o banco, como no DBeaver.',
+    text: 'Navegador à esquerda, o script no meio, o resultado embaixo. Você desce pelos selects e <kbd>⌘↵</kbd> roda o que está no cursor. <kbd>End</kbd> edita a linha ali mesmo, sem barra de comando. <kbd>⇥</kbd> vai às tabelas e <kbd>↵</kbd> abre os dados.',
+    async run(s, id) {
+      await s.key('⌘⇧↵', id, { label: 'ampliar a folha' });
+      await s.wait(500, id);
+      await s.key('⌘↵', id, { label: 'rodar o select do cursor' });
+      await s.ticks(1, id);
+      await s.wait(500, id);
+      for (let i = 0; i < 5; i++) await s.key('↓', id, { hold: 240, label: 'descer pelo script' });
+      await s.key('⌘↵', id, { label: 'rodar este select' });
+      await s.ticks(1, id);
+      await s.wait(500, id);
+      for (let i = 0; i < 2; i++) await s.key('↓', id, { hold: 300, label: 'até o order by' });
+      await s.key('End', id, { label: 'editar a linha, ali mesmo' });
+      await s.key('⌥⌫', id, { label: 'apagar a última palavra' });
+      await s.type('paineis desc;', id, { speed: 1.3 });
+      await s.key('⌘↵', id, { label: 'gravar e rodar' });
+      await s.ticks(1, id);
+      await s.wait(700, id);
+      for (let i = 0; i < 3; i++) await s.key('↓', id, { hold: 240, label: 'o select de baixo' });
+      await s.key('⌘↵', id, { label: 'rodar' });
+      await s.ticks(1, id);
+      await s.wait(600, id);
+      await s.key('⇥', id, { label: 'navegador do banco' });
+      for (const label of ['usuarios', 'sessoes']) await s.key('↓', id, { hold: 320, label });
+      await s.key('↵', id, { label: 'ver os dados da tabela' });
+      await s.ticks(1, id);
+      await s.wait(900, id);
+      await s.key('⇥', id, { label: 'voltar ao script' });
       await s.key('⌘⇧↵', id, { label: 'voltar às duas folhas' });
       await s.key('⌘⌥↑', id);
       await s.key('⌘J', id);
@@ -198,7 +227,80 @@ export const CHAPTERS = [
     },
   },
   {
-    step: 'Assinaturas',
+    step: 'Notas',
+    title: 'Suas notas, como no Obsidian.',
+    text: 'O Documentos, da comunidade, guarda cada nota como um arquivo .md na sua pasta. Você abre a ata da reunião e escreve direto no texto: <kbd>↵</kbd> puxa a próxima tarefa e <kbd>espaço</kbd> marca como feita. Nada disso precisa de IA.',
+    async run(s, id) {
+      await s.key('⌘T', id);
+      await pick(s, id, 'doc', 'abrir Documentos');
+      await s.wait(600, id);
+      for (const label of ['2026-10-30', 'Plano 1.3', 'Site', 'Produto 30-10']) await s.key('↓', id, { hold: 340, label });
+      await s.key('↵', id, { label: 'abrir a nota' });
+      await s.wait(700, id);
+      for (let i = 0; i < 9; i++) await s.key('↓', id, { hold: 150, label: 'descer pela nota' });
+      await s.key('↵', id, { label: 'nova tarefa' });
+      await s.type('mandar o changelog para o time', id, { speed: 1.6 });
+      await s.key('↵', id, { label: 'a lista continua' });
+      await s.type('revisar o [[Plano 1.3]]', id, { speed: 1.6 });
+      await s.key('↵', id, { hold: 300, label: 'a lista continua' });
+      await s.key('↵', id, { label: 'fechar a lista' });
+      for (let i = 0; i < 4; i++) await s.key('↑', id, { hold: 200, label: 'subir' });
+      await s.key('espaço', id, { label: 'marcar como feita' });
+      await s.wait(900, id);
+    },
+  },
+  {
+    step: 'Web',
+    title: 'Um site em outra aba.',
+    text: '<kbd>⌘T</kbd> e o Navegador abre o app que você está fazendo, em localhost. <kbd>⌘L</kbd> vai ao endereço, <kbd>↓</kbd> anda pelos links e <kbd>⌫</kbd> volta. O projeto nora, criado pelo POST lá atrás, já está na lista.',
+    async run(s, id) {
+      await s.key('⌘T', id);
+      await pick(s, id, 'naveg', 'abrir o Navegador');
+      await s.wait(500, id);
+      await s.key('⌘L', id, { label: 'ir ao endereço' });
+      await s.type('localhost:5173', id, { speed: 1.3 });
+      await s.key('↵', id, { label: 'abrir o site' });
+      await s.ticks(1, id);
+      await s.wait(600, id);
+      for (const label of ['warp', 'nora']) await s.key('↓', id, { hold: 420, label });
+      await s.key('↵', id, { label: 'abrir o projeto nora' });
+      await s.ticks(1, id);
+      await s.wait(1000, id);
+      await s.key('⌫', id, { label: 'voltar' });
+      await s.ticks(1, id);
+      await s.wait(600, id);
+    },
+  },
+  {
+    step: 'Desenho',
+    title: 'E o que mais você imaginar.',
+    text: 'Quer desenhar a arquitetura? <kbd>⌘D</kbd>, abra a Loja e instale o Excalidraw. A folha vira um quadro ao lado do site: <kbd>r</kbd> faz um retângulo, <kbd>o</kbd> uma elipse e <kbd>a</kbd> liga as duas com uma seta. Tudo pelo teclado.',
+    async run(s, id) {
+      await s.key('⌘D', id);
+      await pick(s, id, 'loja', 'abrir a Loja');
+      await s.wait(500, id);
+      await s.type('excali', id, { speed: 1.4 });
+      await s.wait(300, id);
+      await s.key('↵', id, { label: 'ver o Excalidraw' });
+      await s.wait(1100, id);
+      await s.key('↵', id, { label: 'instalar, grátis' });
+      await s.ticks(2, id);
+      await s.wait(600, id);
+      for (const [key, label, text] of [['r', 'retângulo', 'app nora'], ['r', 'outro retângulo', 'API /v1/projects']]) {
+        await s.key(key, id, { label });
+        await s.type(text, id, { speed: 1.5 });
+        await s.key('↵', id, { hold: 300, label: 'guardar o texto' });
+      }
+      await s.key('a', id, { label: 'ligar com uma seta' });
+      await s.key('o', id, { label: 'elipse' });
+      await s.type('Postgres', id, { speed: 1.5 });
+      await s.key('↵', id, { hold: 300, label: 'guardar o texto' });
+      await s.key('a', id, { label: 'mais uma seta' });
+      await s.wait(1400, id);
+    },
+  },
+  {
+    step: 'Contas',
     title: 'Use a assinatura que você já tem.',
     text: 'Claude Max, ChatGPT Plus, uma chave do Gemini ou um modelo rodando no seu notebook. Cada conversa escolhe a sua.',
     async run(s, id) {
@@ -214,7 +316,7 @@ export const CHAPTERS = [
   {
     step: 'Você manda',
     title: 'Quem manda aqui é você.',
-    text: 'Tudo é plugin, até o que vem de fábrica. Desligue o que não usa com <kbd>espaço</kbd> e troque o provider de IA vendo antes o que vai mudar.',
+    text: 'Tudo é plugin, até o que vem de fábrica. Desligue o que não usa com <kbd>espaço</kbd>, inclusive a IA, se quiser o Cadente só para produtividade. Ou troque o provider de IA, vendo antes o que vai mudar.',
     async run(s, id) {
       await s.key('⌘O', id);
       await pick(s, id, 'plug', 'abrir Plugins');

@@ -8,6 +8,10 @@ import { requests, recursos, ferramentas } from './apis.mjs';
 import { inicio, calendario, uso, foco, automacoes } from './life.mjs';
 import { sistema, config, plugins } from './sys.mjs';
 import { banco } from '../v4-site/banco.mjs';
+import { docs } from '../v4-site/docs.mjs';
+import { web } from '../v4-site/web.mjs';
+import { draw } from '../v4-site/draw.mjs';
+import { loja } from '../v4-site/loja.mjs';
 
 // Contexto efetivo: um Chat vinculado fala sempre do contexto atual da folha de origem.
 export function ctxOf(leaf, S) {
@@ -28,6 +32,6 @@ registerFn({
     return {};
   },
 });
-export const PLUGINS = [inicio, chat, terminal, workspaces, pr, requests, calendario, sistema, uso, foco, automacoes, prompts, projetos, recursos, links, ferramentas, config, plugins, banco];
+export const PLUGINS = [inicio, chat, terminal, workspaces, pr, requests, calendario, sistema, uso, foco, automacoes, prompts, projetos, recursos, links, ferramentas, config, plugins, banco, docs, web, draw, loja];
 const BY_ID = Object.fromEntries(PLUGINS.map(p => [p.id, p]));
 export const plugin = id => BY_ID[id] ?? null;
