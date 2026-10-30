@@ -34,9 +34,9 @@ export const requests = fromManifest({
     if (!last) return { lines: [note('nenhuma resposta ainda', 'dim'), note('digite MÉTODO url e ↵', 'dim'), note(`ambiente ${S.store.environments.find(e => e.active)?.name}`, 'dim')] };
     if (last.error) return { subject: `${last.method} ${last.path}`, lines: [{ t: 'blk', id: 'res', kind: 'res', cmd: `${last.method} ${last.url}`, out: [{ text: last.error, tone: 'err' }], ok: false }] };
     const sub = leaf.data.sub ? 'headers' : 'body';
-    const out = sub === 'headers' ? ['content-type: application/json', ...last.headers] : leaf.data.raw ? [BODY.join('').replace(/\s+/g, ' ')] : BODY;
+    const out = sub === 'headers' ? ['content-type: application/json', ...last.headers] : leaf.data.raw ? [BODY.join('').replace(/\s+/g, ' ')] : { POST: ['{ "id": "proj_03", "name": "nora", "panes": 0 }'], DELETE: [] }[last.method] ?? BODY;
     return { subject: `${last.method} ${last.path}`, status: `← body · headers → · ${sub} · ${leaf.data.raw ? 'bruto' : 'formatado'}`, lines: [{ t: 'blk', id: 'res', kind: 'res', cmd: `${last.method} ${last.url}`, meta: S.store.environments.find(e => e.active)?.name, ok: true,
-      out: [{ text: `${last.status} OK · ${last.ms} ms · ${last.size} · resposta local`, tone: 'ok' }, ...out] }] };
+      out: [{ text: `${last.status} ${{ 201: 'Created', 204: 'No Content' }[last.status] ?? 'OK'} · ${last.ms} ms · ${last.size} · resposta local`, tone: 'ok' }, ...out] }] };
   },
   signal: leaf => leaf.data.last?.error ? 'erro' : String(leaf.data.last?.status ?? ''),
   submit(leaf, text, S) {
@@ -65,8 +65,8 @@ export const requests = fromManifest({
 });
 function send(S, leaf) {
   const d = S.store.reqDraft, r = resolve(S, d), path = r.url.replace(/^\w+:\/\/[^/]+/, '').split('?')[0] || '/';
-  const last = /timeout/.test(r.url) ? { method: d.method, url: r.url, path, error: 'tempo esgotado depois de 30 s · . r tenta de novo' } : { method: d.method, url: r.url, path, status: 200, ms: 184, size: '1,2 KB', headers: r.headers };
-  S.store.reqHistory.unshift({ id: `reqHistory.${S.seq++}`, line: `${d.method} ${path}`, status: last.error ? 'erro' : 200, url: r.url });
+  const last = /timeout/.test(r.url) ? { method: d.method, url: r.url, path, error: 'tempo esgotado depois de 30 s · . r tenta de novo' } : { method: d.method, url: r.url, path, status: { POST: 201, DELETE: 204 }[d.method] ?? 200, ms: { POST: 212, DELETE: 96 }[d.method] ?? 184, size: { POST: '64 B', DELETE: '0 B' }[d.method] ?? '1,2 KB', headers: r.headers };
+  S.store.reqHistory.unshift({ id: `reqHistory.${S.seq++}`, line: `${d.method} ${path}`, status: last.error ? 'erro' : last.status, url: r.url });
   leaf.data.view = 'resposta';
   return { data: { last }, ctx: { subject: `${d.method} ${path}` }, cursor: -1 };
 }

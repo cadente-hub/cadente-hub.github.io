@@ -1,4 +1,5 @@
-// Home page: the pinned Cadente window, the plugin grid, the plugin rack, the store, Creator mode and the earnings calculator.
+// Home page: the Cadente window playing on its own, the plugin tour, the plugin rack, the store, Creator mode,
+// the earnings calculator and Cadu.
 import { Stage, REDUCED } from './stage.js';
 import { CHAPTERS, initial } from './theater.js';
 import { Maker } from './maker.js';
@@ -6,6 +7,7 @@ import { APPS, CATEGORIES, WALL, priceOf } from './store-data.js';
 import { PLUGINS, plugin } from './v4/plugins.mjs';
 import { scene } from './v4/scenes.mjs';
 import { reduce, leaves, activeTab } from './v4/model.mjs';
+import { Cadu } from './cadu.js';
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
@@ -23,89 +25,59 @@ sheet.addEventListener('click', e => { if (e.target.closest('a')) { menu.setAttr
 const reveal = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('is-in'); reveal.unobserve(e.target); } }), { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
 document.querySelectorAll('.reveal').forEach(el => reveal.observe(el));
 
-// ── Theater: the real v4 prototype, chapter by chapter ────────────────
-const theater = $('#abrir'), track = $('#track'), stepsEl = $('#steps'), caption = $('#caption');
-const body = $('.theater__body', theater), controls = $('#controls');
-track.style.height = `${CHAPTERS.length * 80}vh`;
-
-// Phones get a taller, narrower window without the sidebar, so the text stays readable once scaled.
+// ── Theater: the real v4 prototype, played like a video ───────────────
+// The window plays the chapters in order while it is on screen and starts over at the end. The page scrolls
+// normally; the steps above the window jump to a chapter.
+const stepsEl = $('#steps'), caption = $('#caption'), body = $('.theater__body');
 const narrow = matchMedia('(max-width: 760px)').matches;
+// Phones get a taller, narrower window without the sidebar, so the text stays readable once scaled.
 const fresh = () => (narrow ? reduce(initial(), { type: 'PATCH_SETTINGS', sidebar: false }) : initial());
 const stage = new Stage($('#theater-stage'), {
   width: narrow ? 640 : 1240, height: narrow ? 900 : 760, state: fresh(), fitTo: body,
-  maxHeight: () => body.clientHeight - parseFloat(getComputedStyle(body).paddingTop) - (controls.offsetHeight ? controls.offsetHeight + 14 : 0),
+  // The steps, the caption and the whole window fit in one screen below the navigation bar.
+  maxHeight: () => Math.max(300, innerHeight - 64 - $('.theater__head').offsetHeight - (narrow ? 40 : 64)),
 });
 
-stepsEl.innerHTML = CHAPTERS.map((c, i) => `<li><button data-i="${i}"><span>${String(i + 1).padStart(2, '0')} ${c.step}</span></button></li>`).join('');
-stepsEl.addEventListener('click', e => {
-  const b = e.target.closest('button');
-  if (!b) return;
-  const i = Number(b.dataset.i), span = theater.offsetHeight - innerHeight;
-  if (stage.user) { stage.release(); current = -1; }
-  scrollTo({ top: theater.offsetTop + ((i + 0.08) / CHAPTERS.length) * span, behavior: REDUCED ? 'auto' : 'smooth' });
-});
-
-let current = -1, built = -1;
+stepsEl.innerHTML = CHAPTERS.map((c, i) => `<li><button data-i="${i}"><span>${String(i + 1).padStart(2, '0')} ${c.step}</span><i class="steps__bar"></i></button></li>`).join('');
 const markSteps = i => [...stepsEl.children].forEach((li, k) => { li.classList.toggle('is-on', k === i); li.classList.toggle('is-done', k < i); });
-// The caption tells the chapter; when the visitor takes over, it tells them how to drive and how to come back.
-function showCaption(i, mode) {
-  const c = CHAPTERS[i], n = `${String(i + 1).padStart(2, '0')} / ${String(CHAPTERS.length).padStart(2, '0')}`;
-  caption.innerHTML = mode === 'user'
-    ? '<h3 class="caption__title"><span class="n">modo livre</span>Você está no controle.</h3><div class="caption__text"><p>Clique numa folha e use o teclado ou os atalhos abaixo. No navegador, <kbd>⌃</kbd> vale como <kbd>⌘</kbd>.</p><button class="btn btn--ghost btn--sm caption__resume" data-resume data-stage-control>↺ Voltar à demonstração</button></div>'
-    : `<h3 class="caption__title"><span class="n">${n}</span>${c.title}</h3><p class="caption__text">${c.text}${mode === 'invite' ? ' <span class="caption__invite">Sua vez: clique numa folha.</span>' : ''}</p>`;
+function showCaption(i) {
+  const c = CHAPTERS[i];
+  caption.innerHTML = `<h3 class="caption__title"><span class="n">${String(i + 1).padStart(2, '0')} / ${String(CHAPTERS.length).padStart(2, '0')}</span>${c.title}</h3><p class="caption__text">${c.text}</p>`;
   markSteps(i);
 }
-function playChapter(i) {
+// One run plays from chapter `from` to the end, then starts over from a fresh window.
+function story(from = 0) {
   stage.play(async (s, id) => {
-    if (built !== i - 1) {
+    let i = from;
+    if (i > 0) {
+      await s.fade(true, id);
       s.setState(fresh());
       await s.fastForward(async f => { for (let k = 0; k < i; k++) await CHAPTERS[k].run(f); });
+      await s.fade(false, id);
     }
-    built = -2;
-    if (i === 0) s.setState(fresh());
-    await CHAPTERS[i].run(s, id);
-    built = i;
-    if (i === CHAPTERS.length - 1) showCaption(i, 'invite');
+    for (;;) {
+      await s.whenVisible(id);
+      showCaption(i);
+      await CHAPTERS[i].run(s, id);
+      await s.wait(i === CHAPTERS.length - 1 ? 3200 : 1400, id);
+      i = (i + 1) % CHAPTERS.length;
+      if (i === 0) {
+        await s.whenVisible(id);
+        await s.fade(true, id);
+        s.setState(fresh());
+        await s.fade(false, id);
+      }
+    }
   });
 }
-function goTo(i) {
-  if (i === current) return;
-  current = i;
-  if (stage.user) { markSteps(i); return; }
-  showCaption(i);
-  playChapter(i);
-}
-stage.on(type => { if (type === 'user') { built = -2; showCaption(Math.max(0, current), 'user'); } });
-caption.addEventListener('click', e => {
-  if (!e.target.closest('[data-resume]')) return;
-  stage.release();
-  const i = current;
-  current = -1;
-  goTo(Math.max(0, i));
-});
-controls.addEventListener('click', e => {
-  const b = e.target.closest('[data-key]');
-  if (!b) return;
-  stage.takeOver();
-  stage.key(b.dataset.key);
-});
-
-let ticking = false;
-function onScroll() {
-  ticking = false;
-  nav.classList.toggle('is-scrolled', scrollY > 8);
-  const r = theater.getBoundingClientRect(), vh = innerHeight;
-  theater.style.setProperty('--rise', REDUCED ? 1 : clamp(1 - r.top / vh, 0, 1).toFixed(3));
-  if (r.top > vh * 0.5 || r.bottom < vh * 0.3) return;
-  const p = clamp(-r.top / (r.height - vh), 0, 0.9999);
-  goTo(Math.floor(p * CHAPTERS.length));
-}
-addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(onScroll); } }, { passive: true });
-addEventListener('resize', () => { stage.fit(); onScroll(); });
+stepsEl.addEventListener('click', e => { const b = e.target.closest('button'); if (b) story(Number(b.dataset.i)); });
 showCaption(0);
-onScroll();
+story(0);
 
-// ── First-party plugins: click a card, the window opens it ────────────
+addEventListener('scroll', () => nav.classList.toggle('is-scrolled', scrollY > 8), { passive: true });
+nav.classList.toggle('is-scrolled', scrollY > 8);
+
+// ── First-party plugins: the window walks through them on its own; a card jumps to one ──
 const DESC = {
   inicio: 'Seu dia: agenda, tarefas, notas, clima e o que ficou aberto.',
   chat: 'Qualquer modelo, com plano, fila, sessões e o contexto à vista.',
@@ -127,16 +99,15 @@ const DESC = {
   plugins: 'Catálogo, grafo e troca de provider com prévia.',
 };
 const grid = $('#plugin-grid'), note = $('#plugin-note');
-grid.innerHTML = PLUGINS.map(p => `<li><button class="pcard" data-plugin="${p.id}" aria-pressed="false"><span class="pcard__glyph" aria-hidden="true">${esc(p.glyph)}</span><span class="pcard__title">${esc(p.title)}</span><span class="pcard__desc">${esc(DESC[p.id] ?? '')}</span></button></li>`).join('');
+grid.innerHTML = PLUGINS.map(p => `<li><button class="pcard" data-plugin="${p.id}" aria-pressed="false"><span class="pcard__glyph" aria-hidden="true">${esc(p.glyph)}</span><span class="pcard__title">${esc(p.title)}</span></button></li>`).join('');
 
 const preview = $('.plugins__preview');
 // The review scene of the prototype has three tabs with real-looking data (PR #248, Claude at work, Requests,
 // a running Focus timer…). A plugin it already shows is zoomed in place; the others open in a tab of their own.
 let base = reduce(scene('quad'), { type: 'NEW_TAB' });
 const scratchTab = base.active, scratch = leaves(activeTab(base).tree)[0].id;
-base = reduce(base, { type: 'OPEN', plugin: 'inicio', pane: scratch });
-const pstage = new Stage($('#plugin-stage'), { width: 780, height: 560, state: base, sidebar: false, fitTo: preview });
-let auto = true, autoAt = 0;
+base = reduce(reduce(base, { type: 'OPEN', plugin: 'inicio', pane: scratch }), { type: 'PATCH_SETTINGS', sidebar: false });
+const pstage = new Stage($('#plugin-stage'), { width: 780, height: 560, state: base, fitTo: preview, hud: false });
 function showPlugin(id) {
   let S = pstage.S;
   const own = S.tabs.filter(t => t.id !== scratchTab).flatMap(t => leaves(t.tree).map(l => ({ t, l }))).find(x => x.l.plugin === id);
@@ -145,25 +116,24 @@ function showPlugin(id) {
   S = reduce(S, { type: 'FOCUS', id: target });
   if (!own) S = reduce(S, { type: 'OPEN', plugin: id, pane: scratch });
   pstage.setState({ ...S, zoom: target, overlay: null });
-  if (!REDUCED) pstage.reveal(target);
+  pstage.reveal(target);
   for (const b of grid.querySelectorAll('.pcard')) b.setAttribute('aria-pressed', String(b.dataset.plugin === id));
   const p = plugin(id);
-  note.innerHTML = `<b><span>${esc(p.glyph)}</span>${esc(p.title)}</b> · ${esc(DESC[id] ?? '')} Clique na janela e use <kbd>⇥</kbd> para trocar de vista.`;
+  note.innerHTML = `<b><span>${esc(p.glyph)}</span>${esc(p.title)}</b> · ${esc(DESC[id] ?? '')}`;
 }
-grid.addEventListener('click', e => {
-  const b = e.target.closest('.pcard');
-  if (!b) return;
-  auto = false;
-  showPlugin(b.dataset.plugin);
-});
-pstage.on(type => { if (type === 'user') auto = false; });
-showPlugin('pr');
-setInterval(() => {
-  if (!auto || !pstage.visible || document.hidden) return;
-  autoAt = (autoAt + 1) % PLUGINS.length;
-  showPlugin(PLUGINS[autoAt].id);
-}, 3600);
-autoAt = PLUGINS.findIndex(p => p.id === 'pr');
+// Each plugin shows its first view, then walks two more with ⇥, then the next plugin opens.
+function tour(from) {
+  pstage.play(async (s, id) => {
+    for (let k = from; ; k = (k + 1) % PLUGINS.length) {
+      await s.whenVisible(id);
+      showPlugin(PLUGINS[k].id);
+      await s.wait(1700, id);
+      for (let v = 0; v < 2; v++) { await s.key('⇥', id, { hold: 0 }); await s.wait(1300, id); }
+    }
+  });
+}
+grid.addEventListener('click', e => { const b = e.target.closest('.pcard'); if (b) tour(PLUGINS.findIndex(p => p.id === b.dataset.plugin)); });
+tour(PLUGINS.findIndex(p => p.id === 'pr'));
 
 // ── Plugin architecture: toggle, swap, install, remove ────────────────
 const SERVICES = [
@@ -365,6 +335,21 @@ price.addEventListener('input', calc);
 crowd.addEventListener('input', calc);
 onVisible($('#calc'), calc, 0.3);
 value.textContent = 'US$ 0';
+
+// ── Cadu ──────────────────────────────────────────────────────────────
+// The logo is Cadu, the app icon. He waves in the hero, waves again when the pointer touches the logo,
+// and celebrates at the download.
+const navMark = $('.nav .brand__mark'), navCadu = document.createElement('span');
+navCadu.className = 'brand__mark';
+navMark.replaceWith(navCadu);
+const logo = new Cadu(navCadu, { idle: null });
+$('.nav .brand').addEventListener('pointerenter', () => logo.play('wave'));
+new Cadu($('#hero-cadu')).play('wave');
+const finaleCadu = new Cadu($('#finale-cadu'));
+onVisible($('#finale-cadu'), () => finaleCadu.play('celebrate'), 0.6);
+
+// The store wall only moves while it is on screen.
+new IntersectionObserver(([e]) => $('#loja').classList.toggle('is-live', e.isIntersecting)).observe($('#loja'));
 
 // ── Install one-liner ─────────────────────────────────────────────────
 $('#oneliner-copy').addEventListener('click', async e => {

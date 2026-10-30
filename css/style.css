@@ -3294,7 +3294,6 @@ code, kbd, pre { font-family: var(--font-mono); }
 /* One theme: absolute black. */
 .theme-toggle { display: none; }
 html, body { background: #000; }
-.navbar__logo-icon { color: #fff; }
-.brand__spark { fill: #a855f7; filter: drop-shadow(0 0 6px #a855f7); }
+.navbar__logo-icon { width: 32px; height: 32px; margin: -4px 0; }
 
 .tabular { font-variant-numeric: tabular-nums; }

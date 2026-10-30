@@ -19,6 +19,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="preload" href="./assets/fonts/hack-regular.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="./assets/fonts/hack-bold.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="./css/site.css" />
   <link rel="stylesheet" href="./css/v4-theme.css" />
   <link rel="stylesheet" href="./css/v4.css" />
@@ -35,7 +37,7 @@
   <header class="nav" id="nav">
     <nav class="nav__inner wrap" aria-label="Navegação principal">
       <a href="./" class="brand" aria-label="Cadente, início">
-        <svg class="brand__mark" viewBox="0 0 512 512" aria-hidden="true"><path d="M 379 153 A 160 160 0 1 0 379 359" fill="none" stroke="currentColor" stroke-width="56" stroke-linecap="round"/><path class="brand__spark" d="M 424 240 L 429 252 L 442 256 L 429 260 L 424 272 L 419 260 L 406 256 L 419 252 Z"/></svg>
+        <svg class="brand__mark" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><rect x="7" y="1" width="1" height="1" fill="#fbe48d"/><rect x="8" y="1" width="1" height="1" fill="#df8623"/><rect x="7" y="2" width="1" height="1" fill="#fbe48d"/><rect x="8" y="2" width="1" height="1" fill="#df8623"/><rect x="7" y="3" width="1" height="1" fill="#fbe48d"/><rect x="8" y="3" width="1" height="1" fill="#df8623"/><rect x="5" y="4" width="2" height="1" fill="#fbe48d"/><rect x="7" y="4" width="2" height="1" fill="#f6c343"/><rect x="9" y="4" width="1" height="1" fill="#fbe48d"/><rect x="10" y="4" width="1" height="1" fill="#df8623"/><rect x="4" y="5" width="1" height="1" fill="#fbe48d"/><rect x="5" y="5" width="6" height="1" fill="#f6c343"/><rect x="11" y="5" width="1" height="1" fill="#df8623"/><rect x="4" y="6" width="1" height="1" fill="#fbe48d"/><rect x="5" y="6" width="6" height="1" fill="#f6c343"/><rect x="11" y="6" width="1" height="1" fill="#df8623"/><rect x="1" y="7" width="3" height="1" fill="#fbe48d"/><rect x="4" y="7" width="1" height="1" fill="#f6c343"/><rect x="5" y="7" width="1" height="1" fill="#fff9e2"/><rect x="6" y="7" width="1" height="1" fill="#291508"/><rect x="7" y="7" width="2" height="1" fill="#f6c343"/><rect x="9" y="7" width="1" height="1" fill="#fff9e2"/><rect x="10" y="7" width="1" height="1" fill="#291508"/><rect x="11" y="7" width="1" height="1" fill="#f6c343"/><rect x="12" y="7" width="2" height="1" fill="#fbe48d"/><rect x="14" y="7" width="1" height="1" fill="#df8623"/><rect x="1" y="8" width="3" height="1" fill="#df8623"/><rect x="4" y="8" width="1" height="1" fill="#f6c343"/><rect x="5" y="8" width="2" height="1" fill="#291508"/><rect x="7" y="8" width="2" height="1" fill="#f6c343"/><rect x="9" y="8" width="2" height="1" fill="#291508"/><rect x="11" y="8" width="1" height="1" fill="#f6c343"/><rect x="12" y="8" width="2" height="1" fill="#df8623"/><rect x="14" y="8" width="1" height="1" fill="#a04f27"/><rect x="4" y="9" width="1" height="1" fill="#f68678"/><rect x="5" y="9" width="6" height="1" fill="#f6c343"/><rect x="11" y="9" width="1" height="1" fill="#f68678"/><rect x="4" y="10" width="1" height="1" fill="#df8623"/><rect x="5" y="10" width="6" height="1" fill="#f6c343"/><rect x="11" y="10" width="1" height="1" fill="#a04f27"/><rect x="5" y="11" width="2" height="1" fill="#df8623"/><rect x="7" y="11" width="2" height="1" fill="#f6c343"/><rect x="9" y="11" width="1" height="1" fill="#df8623"/><rect x="10" y="11" width="1" height="1" fill="#a04f27"/><rect x="7" y="12" width="1" height="1" fill="#fbe48d"/><rect x="8" y="12" width="1" height="1" fill="#df8623"/><rect x="7" y="13" width="1" height="1" fill="#fbe48d"/><rect x="8" y="13" width="1" height="1" fill="#df8623"/><rect x="7" y="14" width="1" height="1" fill="#df8623"/><rect x="8" y="14" width="1" height="1" fill="#a04f27"/></svg>
         <span>Cadente</span>
       </a>
       <ul class="nav__links">
@@ -65,13 +67,14 @@
     <section class="hero" id="topo">
       <div class="hero__glow" aria-hidden="true"></div>
       <div class="wrap hero__inner">
+        <span class="hero__cadu" id="hero-cadu" aria-hidden="true"></span>
         <p class="eyebrow eyebrow--plain reveal"><span class="dot" aria-hidden="true"></span>Grátis para macOS, Windows e Linux</p>
         <h1 class="hero__title">
           <span class="line"><span>Divida a tela.</span></span>
           <span class="line"><span>Escolha o plugin.</span></span>
           <span class="line"><span class="violet-text">O Cadente é seu.</span></span>
         </h1>
-        <p class="hero__lede reveal">Um app de desktop para trabalhar com IA pelo teclado. Chat, Terminal, PRs, Requests, Calendário e mais 13 plugins lado a lado, numa janela só. Sem plano pago, e com cada parte trocável.</p>
+        <p class="hero__lede reveal">Um app de desktop, escrito em Rust, para trabalhar com IA pelo teclado. Traga qualquer agente e qualquer assinatura: Claude Code, Codex, agy e qualquer outra CLI rodam lado a lado, em quantas páginas você quiser. Sem plano pago, e com cada parte trocável.</p>
         <div class="hero__actions reveal">
           <a href="./downloads.html" class="btn btn--light btn--lg">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19h14"/></svg>
@@ -79,34 +82,45 @@
           </a>
           <a href="#abrir" class="btn btn--ghost btn--lg">Ver o Cadente abrir <span aria-hidden="true">↓</span></a>
         </div>
-        <p class="hero__models reveal"><span>Claude</span><span>ChatGPT</span><span>Gemini</span><span>DeepSeek</span><span>OpenRouter</span><span>Ollama</span><span>LM Studio</span></p>
+        <p class="hero__models reveal"><span>Claude Code</span><span>Codex</span><span>agy</span><span>Gemini CLI</span><span>OpenCode</span><span>Ollama</span><span>qualquer CLI</span></p>
       </div>
     </section>
 
     <!-- Theater: the real v4 prototype, driven by scroll -->
     <section class="theater" id="abrir" aria-label="O Cadente em uso">
-      <div class="theater__pin">
-        <div class="wrap theater__head">
-          <ol class="steps" id="steps" aria-label="Capítulos"></ol>
-          <div class="caption" id="caption" aria-live="polite"></div>
-        </div>
-        <div class="wrap theater__body">
-          <div class="frame" id="theater-frame">
-            <div class="frame__stage" id="theater-stage"></div>
-          </div>
-          <div class="controls" id="controls" role="toolbar" aria-label="Atalhos do Cadente">
-            <button data-stage-control data-key="⌘D"><kbd>⌘D</kbd>Dividir à direita</button>
-            <button data-stage-control data-key="⌘⇧D"><kbd>⌘⇧D</kbd>Dividir abaixo</button>
-            <button data-stage-control data-key="⌘O"><kbd>⌘O</kbd>Trocar plugin</button>
-            <button data-stage-control data-key="⌘J"><kbd>⌘J</kbd>Chat ao lado</button>
-            <button data-stage-control data-key="⌘P"><kbd>⌘P</kbd>Paleta</button>
-            <button data-stage-control data-key="⌘;"><kbd>⌘;</kbd>Saltar</button>
-            <button data-stage-control data-key="⌘W"><kbd>⌘W</kbd>Fechar folha</button>
-            <button data-stage-control data-key="⌘Z"><kbd>⌘Z</kbd>Desfazer</button>
-          </div>
+      <div class="wrap theater__head">
+        <ol class="steps" id="steps" aria-label="Capítulos"></ol>
+        <div class="caption" id="caption" aria-live="polite"></div>
+      </div>
+      <div class="wrap theater__body">
+        <div class="frame reveal" id="theater-frame">
+          <div class="frame__stage" id="theater-stage"></div>
         </div>
       </div>
-      <div class="theater__track" id="track" aria-hidden="true"></div>
+    </section>
+
+    <!-- Native, in Rust -->
+    <section class="section light" id="leve">
+      <div class="wrap light__inner">
+        <header class="head reveal">
+          <p class="eyebrow">Nativo</p>
+          <h2 class="title">Escrito em Rust.<br /><span class="muted">Leve na memória</span><br /><span class="violet-text">e na bateria.</span></h2>
+          <p class="lede">O Cadente não é um site dentro de uma janela. Não tem Electron, navegador embutido nem Node rodando por trás: o núcleo, a interface, o terminal e os plugins de fábrica são Rust.</p>
+        </header>
+        <pre class="stack reveal" aria-label="Do que o Cadente é feito"><span class="stack__root">cadente</span>
+├─ core       <b>rust</b>
+├─ interface  <b>rust</b> · slint, desenhada pela GPU
+├─ terminal   <b>rust</b> · pty nativo
+├─ agentes    <b>rust</b> · claude, codex, agy e qualquer cli
+└─ plugins    <b>rust</b> · webassembly para os da comunidade</pre>
+      </div>
+      <div class="wrap">
+        <ul class="facts facts--light reveal">
+          <li><b>Menos memória</b><span>Sem uma cópia do Chromium por janela. O histórico fica em disco e carrega sob demanda, então a memória não cresce com o uso.</span></li>
+          <li><b>Menos bateria</b><span>A interface só desenha o que mudou e fica parada quando nada acontece, o que poupa o processador do notebook.</span></li>
+          <li><b>Sem processo solto</b><span>Cada recurso aberto tem dono e é fechado junto com ele: terminais, agentes e plugins não ficam rodando escondidos.</span></li>
+        </ul>
+      </div>
     </section>
 
     <!-- First-party plugins -->
@@ -206,8 +220,8 @@
           </div>
           <ol class="maker__steps" id="maker-steps">
             <li data-step="0"><b>Descreva</b><span>O Creator mode abre um Chat com o pedido. Nada é enviado sem você.</span></li>
-            <li data-step="1"><b>O agente escreve</b><span>Manifesto, vistas e código no SDK, com testes.</span></li>
-            <li data-step="2"><b>Teste numa folha</b><span>O plugin roda ao lado, como “em desenvolvimento”.</span></li>
+            <li data-step="1"><b>O agente escreve</b><span>Manifesto, código no SDK e testes.</span></li>
+            <li data-step="2"><b>Teste no app</b><span><code>cadente plugin dev</code> roda o plugin na hora. Este mora na camada flutuante: arraste o Cadu, aperte <kbd>f</kbd> para dar comida e <kbd>b</kbd> para o banho.</span></li>
             <li data-step="3"><b>Publique</b><span><code>/publish</code> cria o release e o plugin entra na loja.</span></li>
           </ol>
         </div>
@@ -266,7 +280,7 @@
     <section class="section finale" id="baixar">
       <div class="finale__glow" aria-hidden="true"></div>
       <div class="wrap finale__inner reveal">
-        <svg class="finale__mark" viewBox="0 0 512 512" aria-hidden="true"><path d="M 379 153 A 160 160 0 1 0 379 359" fill="none" stroke="currentColor" stroke-width="40" stroke-linecap="round"/><path class="brand__spark" d="M 424 240 L 429 252 L 442 256 L 429 260 L 424 272 L 419 260 L 406 256 L 419 252 Z"/></svg>
+        <span class="finale__mark" id="finale-cadu" aria-hidden="true"></span>
         <h2 class="title title--xl">Baixe o Cadente.<br /><span class="muted">É grátis.</span></h2>
         <p class="lede">macOS com Apple Silicon ou Intel, Windows e Linux. Sem plano pago e sem cartão.</p>
         <div class="hero__actions">
@@ -284,7 +298,7 @@
   <footer class="foot">
     <div class="wrap foot__inner">
       <div class="foot__brand">
-        <a href="./" class="brand"><svg class="brand__mark" viewBox="0 0 512 512" aria-hidden="true"><path d="M 379 153 A 160 160 0 1 0 379 359" fill="none" stroke="currentColor" stroke-width="56" stroke-linecap="round"/><path class="brand__spark" d="M 424 240 L 429 252 L 442 256 L 429 260 L 424 272 L 419 260 L 406 256 L 419 252 Z"/></svg><span>Cadente</span></a>
+        <a href="./" class="brand"><svg class="brand__mark" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><rect x="7" y="1" width="1" height="1" fill="#fbe48d"/><rect x="8" y="1" width="1" height="1" fill="#df8623"/><rect x="7" y="2" width="1" height="1" fill="#fbe48d"/><rect x="8" y="2" width="1" height="1" fill="#df8623"/><rect x="7" y="3" width="1" height="1" fill="#fbe48d"/><rect x="8" y="3" width="1" height="1" fill="#df8623"/><rect x="5" y="4" width="2" height="1" fill="#fbe48d"/><rect x="7" y="4" width="2" height="1" fill="#f6c343"/><rect x="9" y="4" width="1" height="1" fill="#fbe48d"/><rect x="10" y="4" width="1" height="1" fill="#df8623"/><rect x="4" y="5" width="1" height="1" fill="#fbe48d"/><rect x="5" y="5" width="6" height="1" fill="#f6c343"/><rect x="11" y="5" width="1" height="1" fill="#df8623"/><rect x="4" y="6" width="1" height="1" fill="#fbe48d"/><rect x="5" y="6" width="6" height="1" fill="#f6c343"/><rect x="11" y="6" width="1" height="1" fill="#df8623"/><rect x="1" y="7" width="3" height="1" fill="#fbe48d"/><rect x="4" y="7" width="1" height="1" fill="#f6c343"/><rect x="5" y="7" width="1" height="1" fill="#fff9e2"/><rect x="6" y="7" width="1" height="1" fill="#291508"/><rect x="7" y="7" width="2" height="1" fill="#f6c343"/><rect x="9" y="7" width="1" height="1" fill="#fff9e2"/><rect x="10" y="7" width="1" height="1" fill="#291508"/><rect x="11" y="7" width="1" height="1" fill="#f6c343"/><rect x="12" y="7" width="2" height="1" fill="#fbe48d"/><rect x="14" y="7" width="1" height="1" fill="#df8623"/><rect x="1" y="8" width="3" height="1" fill="#df8623"/><rect x="4" y="8" width="1" height="1" fill="#f6c343"/><rect x="5" y="8" width="2" height="1" fill="#291508"/><rect x="7" y="8" width="2" height="1" fill="#f6c343"/><rect x="9" y="8" width="2" height="1" fill="#291508"/><rect x="11" y="8" width="1" height="1" fill="#f6c343"/><rect x="12" y="8" width="2" height="1" fill="#df8623"/><rect x="14" y="8" width="1" height="1" fill="#a04f27"/><rect x="4" y="9" width="1" height="1" fill="#f68678"/><rect x="5" y="9" width="6" height="1" fill="#f6c343"/><rect x="11" y="9" width="1" height="1" fill="#f68678"/><rect x="4" y="10" width="1" height="1" fill="#df8623"/><rect x="5" y="10" width="6" height="1" fill="#f6c343"/><rect x="11" y="10" width="1" height="1" fill="#a04f27"/><rect x="5" y="11" width="2" height="1" fill="#df8623"/><rect x="7" y="11" width="2" height="1" fill="#f6c343"/><rect x="9" y="11" width="1" height="1" fill="#df8623"/><rect x="10" y="11" width="1" height="1" fill="#a04f27"/><rect x="7" y="12" width="1" height="1" fill="#fbe48d"/><rect x="8" y="12" width="1" height="1" fill="#df8623"/><rect x="7" y="13" width="1" height="1" fill="#fbe48d"/><rect x="8" y="13" width="1" height="1" fill="#df8623"/><rect x="7" y="14" width="1" height="1" fill="#df8623"/><rect x="8" y="14" width="1" height="1" fill="#a04f27"/></svg><span>Cadente</span></a>
         <p>Divida a tela. Escolha o plugin.</p>
       </div>
       <nav class="foot__cols" aria-label="Rodapé">

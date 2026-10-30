@@ -7,6 +7,7 @@ const has = (q, ...xs) => !q || xs.join(' ').toLowerCase().includes(q);
 
 // ── Terminal ──────────────────────────────────────────────────────────────
 const SHELL = {
+  psql: () => ["   id    |  nome   | paineis", "---------+---------+---------", " proj_01 | cadente |       4", " proj_03 | nora    |       0", "(2 linhas)"],
   'git status': c => [`## ${c.branch}`, ' M crates/cadente-ui/src/pane.rs', ' M crates/cadente-ui/src/layout.rs'],
   ls: () => ['Cargo.toml  crates/  design/  docs/  scripts/'],
   pwd: c => [c.cwd],
@@ -19,10 +20,13 @@ const DIRS = ['crates/', 'design/', 'docs/', 'scripts/'];
 // Agentes no terminal (Claude Code, Codex): o Cadente reconhece a CLI e acompanha o estado, como o Orca faz pelos títulos OSC
 // e hooks. '?' pede você; '✓' termina. No app real, o estado vem do hook do agente, não de um roteiro.
 const AGENTS = {
+  agy: ["lendo src/auth/login.ts","escrevendo login.test.ts  +48","?rodar `npm test`","rodando npm test","✓12 testes novos · todos passam"],
+  gemini: ["lendo docs/","resumindo 14 arquivos","✓resumo salvo em RESUMO.md"],
+  opencode: ["indexando o repositório","refatorando cache.rs  +21 −14","rodando cargo check","✓refatoração pronta · build ok"],
   claude: ['lendo crates/cadente-ui/src/pane.rs', 'editando layout.rs  +12 −3', '?permitir `cargo test -p cadente-ui`', 'rodando cargo test -p cadente-ui', '✓2 arquivos alterados · testes ok'],
   codex: ['planejando 3 passos', 'aplicando patch em focus.rs  +8 −2', '?aplicar a migração 0042 no banco local', 'rodando npm test', '✓patch aplicado · 14 testes ok'],
 };
-const MODEL = { claude: 'opus 4.6', codex: 'gpt-5 codex' };
+const MODEL = { claude: 'opus 4.6', codex: 'gpt-5 codex', agy: 'gemini 3 pro', gemini: 'gemini 2.5 pro', opencode: 'qwen3 coder · ollama' };
 // Tempo de trabalho, como o "Sautéed for 36s · done 11:33" do Claude Code: o tique do app é de 1 s.
 export const took = sec => sec < 60 ? `${sec} s` : `${Math.floor(sec / 60)} min${sec % 60 ? ` ${String(sec % 60).padStart(2, '0')} s` : ''}`;
 const clockAt = sec => { const m = 10 * 60 + 48 + Math.floor(sec / 60); return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`; };
@@ -91,7 +95,7 @@ export const terminal = fromManifest({
     }
     const co = cmd.match(/^git (?:checkout|switch)\s+(?:-b\s+)?(\S+)$/);
     if (co) return push([`Switched to branch '${co[1]}'`], true, {}, { branch: co[1] });
-    const ag = cmd.match(/^(claude|codex)\b\s*["']?(.*?)["']?$/);
+    const ag = cmd.match(/^(claude|codex|agy|gemini|opencode)\b\s*["']?(.*?)["']?$/);
     if (ag) return push([{ text: `${ag[1]} · ${MODEL[ag[1]]} · ctx 4% · ⌃C interrompe`, tone: 'dim' }, `● ${AGENTS[ag[1]][0]}`], null, { agent: ag[1], task: ag[2], step: 0, state: 'trabalhando', running: true, ms: '', started: S?.clock ?? 0 });
     if (LONG.test(cmd)) return push(cmd.startsWith('htop') || cmd === 'top' ? ['sessão interativa (TUI) · ⌃C sai'] : ['rodando… localhost:5174'], null, { running: true });
     const known = Object.keys(SHELL).find(k => cmd === k || cmd.startsWith(`${k} `));

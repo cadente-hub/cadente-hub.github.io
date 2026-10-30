@@ -52,7 +52,7 @@ function pageShell({ title, description, canonical, body, rootClass = 'blog-page
   <header class="navbar" id="navbar">
     <nav class="navbar__inner container" aria-label="Navegação principal">
       <a href="/" class="navbar__logo" aria-label="Cadente — início">
-        <img class="blog-brand-mark" src="/assets/logo-symbol.svg" alt="" width="24" height="24">
+        <img class="blog-brand-mark" src="/assets/logo-symbol.svg" alt="" width="32" height="32">
         Cadente
       </a>
       <ul class="navbar__links">

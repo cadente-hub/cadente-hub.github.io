@@ -6,9 +6,10 @@
 }
 
 .blog-brand-mark {
-  width: 24px;
-  height: 24px;
-  object-fit: contain;
+  width: 32px;
+  height: 32px;
+  margin: -4px 0;
+  image-rendering: pixelated;
 }
 
 .blog-hero {
