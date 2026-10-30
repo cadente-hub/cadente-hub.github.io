@@ -84,7 +84,6 @@ kbd { display: inline-block; min-width: 1.6em; padding: 0.05em 0.4em; border: 1p
 .eyebrow--plain { text-transform: none; letter-spacing: .02em; }
 .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--violet); box-shadow: 0 0 10px var(--violet); }
 .eyebrow .num { color: var(--violet-hi); }
-.soon { padding: 2px 8px; border: 1px solid rgba(168, 85, 247, .5); border-radius: 999px; color: var(--violet-hi); font-size: 11px; letter-spacing: .04em; }
 .title { font-size: clamp(40px, 6.2vw, 84px); line-height: 0.98; letter-spacing: -0.045em; font-weight: 600; }
 .title--xl { font-size: clamp(44px, 7vw, 104px); }
 .lede { margin-top: 24px; font-size: clamp(17px, 1.6vw, 20px); line-height: 1.5; color: var(--fg-2); max-width: 640px; }
