@@ -42,10 +42,10 @@
       </a>
       <ul class="nav__links">
         <li><a href="#abrir">Como funciona</a></li>
+        <li><a href="#creator">Ganhe dinheiro</a></li>
         <li><a href="#plugins">Plugins</a></li>
         <li><a href="#dono">Arquitetura</a></li>
         <li><a href="#loja">Loja</a></li>
-        <li><a href="#creator">Creator mode</a></li>
         <li><a href="./blog/">Blog</a></li>
       </ul>
       <a href="./downloads.html" class="btn btn--light btn--sm nav__cta">Baixar grátis</a>
@@ -53,10 +53,10 @@
     </nav>
     <div class="nav__sheet" id="nav-sheet" hidden>
       <a href="#abrir">Como funciona</a>
+      <a href="#creator">Ganhe dinheiro</a>
       <a href="#plugins">Plugins</a>
       <a href="#dono">Arquitetura</a>
       <a href="#loja">Loja</a>
-      <a href="#creator">Creator mode</a>
       <a href="./blog/">Blog</a>
       <a href="./downloads.html" class="btn btn--light">Baixar grátis</a>
     </div>
@@ -82,6 +82,7 @@
           </a>
           <a href="#abrir" class="btn btn--ghost btn--lg">Ver um dia de trabalho <span aria-hidden="true">↓</span></a>
         </div>
+        <a class="hero__earn reveal" href="#creator"><b>Em breve</b><span>Crie plugins e fique com até 90% do que eles renderem</span><i aria-hidden="true">→</i></a>
         <p class="hero__models reveal"><span>Claude Code</span><span>Codex</span><span>agy</span><span>Gemini CLI</span><span>OpenCode</span><span>Ollama</span><span>qualquer CLI</span></p>
       </div>
     </section>
@@ -97,6 +98,82 @@
         <div class="frame reveal" id="theater-frame">
           <div class="frame__stage" id="theater-stage"></div>
         </div>
+      </div>
+    </section>
+
+    <!-- Creator mode -->
+    <section class="section creator" id="creator">
+      <div class="wrap">
+        <header class="head reveal">
+          <p class="eyebrow">Creator mode · ganhe dinheiro <span class="soon">em breve</span></p>
+          <h2 class="title">Seu plugin<br /><span class="violet-text">pode virar renda.</span></h2>
+          <p class="lede">Teve uma ideia que resolve o seu dia? Ela provavelmente resolve o de mais gente. Descreva para o agente, ele escreve o plugin, você publica na loja e escolhe como cobrar. Fica com 90% das doações e 70% das vendas e de cada renovação de assinatura.</p>
+        </header>
+        <div class="money">
+          <div class="money__models reveal">
+            <article class="model" data-model="donation">
+              <p class="model__cut">90%<span>para você</span></p>
+              <h3>Doações</h3>
+              <p>O plugin é grátis e quem gostou pode te apoiar.</p>
+            </article>
+            <article class="model" data-model="subscription">
+              <p class="model__cut">70%<span>para você</span></p>
+              <h3>Assinatura</h3>
+              <p>Mensal ou anual. Você ganha em toda renovação, não só na primeira.</p>
+            </article>
+            <article class="model" data-model="once">
+              <p class="model__cut">70%<span>para você</span></p>
+              <h3>Compra única</h3>
+              <p>A pessoa paga uma vez e usa em até 5 computadores.</p>
+            </article>
+            <article class="model" data-model="trial">
+              <p class="model__cut">7 dias<span>por exemplo</span></p>
+              <h3>Teste grátis</h3>
+              <p>Deixe testar alguns dias antes de cobrar.</p>
+            </article>
+          </div>
+
+          <div class="calc reveal" id="calc">
+            <div class="calc__inputs">
+              <div class="calc__tabs" role="radiogroup" aria-label="Modelo de preço">
+                <button role="radio" aria-checked="true" data-calc="subscription">Assinatura</button>
+                <button role="radio" aria-checked="false" data-calc="once">Compra única</button>
+                <button role="radio" aria-checked="false" data-calc="donation">Doações</button>
+              </div>
+              <label class="calc__range">
+                <span class="calc__label"><span id="calc-price-label">Preço por mês</span><output id="calc-price-out"></output></span>
+                <input type="range" id="calc-price" min="1" max="50" step="1" value="5" />
+              </label>
+              <label class="calc__range">
+                <span class="calc__label"><span id="calc-people-label">Assinantes</span><output id="calc-people-out"></output></span>
+                <input type="range" id="calc-people" min="0" max="100" step="1" value="58" />
+              </label>
+            </div>
+            <div class="calc__result">
+              <p class="calc__kicker">Você recebe até</p>
+              <p class="calc__value"><span id="calc-value">US$ 0</span><span class="calc__per" id="calc-per">por mês</span></p>
+              <p class="calc__note">É uma estimativa, antes dos impostos e da taxa do cartão. A conta é feita sobre o valor líquido, e toda venda passa pelo checkout do Cadente.</p>
+            </div>
+          </div>
+        </div>
+
+        <header class="head head--sub reveal">
+          <h3 class="subtitle">Da ideia à loja, sem sair do Cadente.</h3>
+          <p class="lede">Três pedidos de exemplo, cada um ganhando de um jeito: um Cadu de estimação solto na tela, um painel com as vendas do dia e uma status page que avisa quando o GitHub, a Cloudflare ou a AWS caem. O Cadu dá para arrastar, alimentar e dar banho.</p>
+        </header>
+        <div class="maker__ex" id="maker-ex" role="tablist" aria-label="Exemplos de plugins"></div>
+        <div class="maker reveal" id="maker">
+          <div class="frame frame--maker">
+            <div class="v4 maker__win" id="maker-win" aria-hidden="true"></div>
+          </div>
+          <ol class="maker__steps" id="maker-steps">
+            <li data-step="0"><b>Conte a ideia</b><span>Um Chat abre com o pedido. Nada é enviado até você apertar <kbd>↵</kbd>.</span></li>
+            <li data-step="1"><b>O agente escreve</b><span>Manifesto, código e testes, numa folha ao lado de onde você está.</span></li>
+            <li data-step="2"><b>Teste na hora</b><span><code>cadente plugin dev</code> põe o plugin para rodar ali mesmo, ao lado da conversa. O Cadu vive solto por cima do app: arraste ele, aperte <kbd>f</kbd> para dar comida e <kbd>b</kbd> para o banho.</span></li>
+            <li data-step="3"><b>Publique</b><span><code>/publish</code> e pronto, ele está na loja, com o preço que você escolheu.</span></li>
+          </ol>
+        </div>
+
       </div>
     </section>
 
@@ -217,76 +294,6 @@
       </div>
     </section>
 
-    <!-- Creator mode -->
-    <section class="section creator" id="creator">
-      <div class="wrap">
-        <header class="head reveal">
-          <p class="eyebrow">Creator mode <span class="soon">em breve</span></p>
-          <h2 class="title">Descreva a ideia.<br /><span class="violet-text">O agente escreve o plugin.</span></h2>
-          <p class="lede">Ele escreve, testa e põe para rodar do seu lado. Depois é publicar e ganhar com doação, assinatura ou compra única. Três pedidos de exemplo: um Cadu de estimação solto na tela, um painel com as vendas do dia e uma status page que grita quando o GitHub, a Cloudflare ou a AWS caem. O Cadu dá para arrastar, alimentar e dar banho.</p>
-        </header>
-        <div class="maker__ex" id="maker-ex" role="tablist" aria-label="Exemplos de plugins"></div>
-        <div class="maker reveal" id="maker">
-          <div class="frame frame--maker">
-            <div class="v4 maker__win" id="maker-win" aria-hidden="true"></div>
-          </div>
-          <ol class="maker__steps" id="maker-steps">
-            <li data-step="0"><b>Conte a ideia</b><span>Um Chat abre com o pedido. Nada é enviado até você apertar <kbd>↵</kbd>.</span></li>
-            <li data-step="1"><b>O agente escreve</b><span>Manifesto, código e testes, numa folha ao lado de onde você está.</span></li>
-            <li data-step="2"><b>Teste na hora</b><span><code>cadente plugin dev</code> põe o plugin para rodar ali mesmo, ao lado da conversa. O Cadu vive solto por cima do app: arraste ele, aperte <kbd>f</kbd> para dar comida e <kbd>b</kbd> para o banho.</span></li>
-            <li data-step="3"><b>Publique</b><span><code>/publish</code> e pronto, ele está na loja, com o preço que você escolheu.</span></li>
-          </ol>
-        </div>
-
-        <div class="money">
-          <div class="money__models reveal">
-            <article class="model" data-model="donation">
-              <p class="model__cut">90%<span>para você</span></p>
-              <h3>Doações</h3>
-              <p>O plugin é grátis e quem gostou pode te apoiar.</p>
-            </article>
-            <article class="model" data-model="subscription">
-              <p class="model__cut">70%<span>para você</span></p>
-              <h3>Assinatura</h3>
-              <p>Mensal ou anual. Você ganha em toda renovação, não só na primeira.</p>
-            </article>
-            <article class="model" data-model="once">
-              <p class="model__cut">70%<span>para você</span></p>
-              <h3>Compra única</h3>
-              <p>A pessoa paga uma vez e usa em até 5 computadores.</p>
-            </article>
-            <article class="model" data-model="trial">
-              <p class="model__cut">7 dias<span>por exemplo</span></p>
-              <h3>Teste grátis</h3>
-              <p>Deixe testar alguns dias antes de cobrar.</p>
-            </article>
-          </div>
-
-          <div class="calc reveal" id="calc">
-            <div class="calc__inputs">
-              <div class="calc__tabs" role="radiogroup" aria-label="Modelo de preço">
-                <button role="radio" aria-checked="true" data-calc="subscription">Assinatura</button>
-                <button role="radio" aria-checked="false" data-calc="once">Compra única</button>
-                <button role="radio" aria-checked="false" data-calc="donation">Doações</button>
-              </div>
-              <label class="calc__range">
-                <span class="calc__label"><span id="calc-price-label">Preço por mês</span><output id="calc-price-out"></output></span>
-                <input type="range" id="calc-price" min="1" max="50" step="1" value="5" />
-              </label>
-              <label class="calc__range">
-                <span class="calc__label"><span id="calc-people-label">Assinantes</span><output id="calc-people-out"></output></span>
-                <input type="range" id="calc-people" min="0" max="100" step="1" value="58" />
-              </label>
-            </div>
-            <div class="calc__result">
-              <p class="calc__kicker">Você recebe até</p>
-              <p class="calc__value"><span id="calc-value">US$ 0</span><span class="calc__per" id="calc-per">por mês</span></p>
-              <p class="calc__note">É uma estimativa, antes dos impostos e da taxa do cartão. A conta é feita sobre o valor líquido, e toda venda passa pelo checkout do Cadente.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
 
     <!-- Download -->
     <section class="section finale" id="baixar">

@@ -61,7 +61,7 @@ export const CHAPTERS = [
   {
     step: 'Manhã',
     title: '9h. O dia já está montado.',
-    text: 'Você abre o Cadente e a primeira folha já mostra o dia: a daily às 9h30, a reunião de design às 14h e um conflito de merge esperando. <kbd>⇥</kbd> passa para os recentes e as tarefas.',
+    text: 'Você abre o Cadente e a primeira folha já mostra o dia: a daily às 9h30, a reunião de design às 14h e um conflito de merge esperando. Sem abrir cinco apps para saber por onde começar. <kbd>⇥</kbd> passa para os recentes e as tarefas.',
     async run(s, id) {
       s.boot();
       await s.wait(900, id);
@@ -76,7 +76,7 @@ export const CHAPTERS = [
   {
     step: 'Claude',
     title: 'Primeiro, um teste para o Claude.',
-    text: '<kbd>⌘O</kbd> e quatro letras transformam a folha num Terminal. Você abre o Claude Code e pede um teste para <code>focus_neighbor</code>. Ele lê o arquivo e começa a escrever.',
+    text: '<kbd>⌘O</kbd> e quatro letras transformam a folha num Terminal. Você abre o Claude Code com a assinatura que já paga e pede um teste para <code>focus_neighbor</code>. Ele começa a escrever, e você segue para a próxima.',
     async run(s, id) {
       await s.key('⌘O', id);
       await pick(s, id, 'term', 'abrir o Terminal');
@@ -86,8 +86,8 @@ export const CHAPTERS = [
   },
   {
     step: 'Agentes',
-    title: 'Enquanto isso, mais dois agentes.',
-    text: '<kbd>⌘D</kbd> divide a tela para o lado e <kbd>⌘⇧D</kbd> para baixo. O Codex roda os testes, o agy explica o <code>layout.rs</code>, e embaixo do Claude ainda sobra um Terminal para você.',
+    title: 'Três agentes, nenhuma janela a mais.',
+    text: '<kbd>⌘D</kbd> divide a tela para o lado e <kbd>⌘⇧D</kbd> para baixo. O Codex roda os testes, o agy explica o <code>layout.rs</code>, e embaixo do Claude ainda sobra um Terminal para você. Todos trabalhando, todos à vista.',
     async run(s, id) {
       await s.key('⌘D', id);
       await pick(s, id, 'term', 'outro Terminal');
@@ -107,7 +107,7 @@ export const CHAPTERS = [
   {
     step: 'CI',
     title: 'Aí o CI do login quebra.',
-    text: 'Numa página nova estão os quatro branches abertos e o estado de cada PR. O login está vermelho. Você abre o branch, <kbd>⌘J</kbd> chama um Chat que já sabe onde você está, pergunta o motivo e abre o diff do lado.',
+    text: 'Numa página nova estão os quatro branches abertos e o estado de cada PR. O login está vermelho. Você abre o branch e <kbd>⌘J</kbd> chama um Chat que já sabe onde você está, então é só perguntar o motivo. O diff abre do lado.',
     async run(s, id) {
       await s.key('⌘T', id);
       await pick(s, id, 'work', 'abrir Workspaces');
@@ -130,7 +130,7 @@ export const CHAPTERS = [
   {
     step: 'API',
     title: 'Agora, a feature do dia.',
-    text: 'A tarefa de hoje é a API de projetos. No Requests você abre o <code>GET /v1/projects</code>, troca o <code>limit</code> para 5 e envia. Depois manda o POST que cria o projeto vitrine. Os agentes seguem trabalhando na primeira página.',
+    text: 'A tarefa de hoje é a API de projetos. No Requests você abre o <code>GET /v1/projects</code>, troca o <code>limit</code> para 5 e envia. Depois, o POST cria o projeto vitrine. Os agentes seguem na primeira página, e você não abriu outro programa.',
     async run(s, id) {
       await s.key('⌘T', id);
       await pick(s, id, 'req', 'abrir o Requests');
@@ -159,7 +159,7 @@ export const CHAPTERS = [
   {
     step: 'Loja',
     title: 'Falta um cliente de banco.',
-    text: 'Para ver se o POST salvou, você precisa olhar o banco. A Loja abre logo abaixo: você acha o Postgres, passa as fotos, confere o que ele pede para acessar e instala com <kbd>↵</kbd>, de graça.',
+    text: 'Para ver se o POST salvou, falta olhar o banco. A Loja abre logo abaixo: você acha o Postgres, passa as fotos, confere o que ele pede para acessar e instala com <kbd>↵</kbd>, de graça.',
     async run(s, id) {
       await s.key('⌘⇧D', id);
       await pick(s, id, 'loja', 'abrir a Loja');
@@ -240,7 +240,7 @@ export const CHAPTERS = [
   {
     step: 'Diagrama',
     title: 'Um diagrama para a reunião.',
-    text: 'Às 14h tem reunião de design. Do lado do site, você instala o Quadro pela Loja e desenha o caminho do dado: app web, API e Postgres. <kbd>r</kbd> faz um retângulo, <kbd>o</kbd> uma elipse e <kbd>a</kbd> liga os dois.',
+    text: 'Às 14h tem reunião de design. Do lado do site, você instala o Quadro pela Loja e desenha o caminho do dado, sem abrir outra ferramenta. <kbd>r</kbd> faz um retângulo, <kbd>o</kbd> uma elipse e <kbd>a</kbd> liga os dois.',
     async run(s, id) {
       await s.key('⌘D', id);
       await pick(s, id, 'loja', 'abrir a Loja');
@@ -314,8 +314,8 @@ export const CHAPTERS = [
   },
   {
     step: 'Contas',
-    title: 'Uma conta para cada conversa.',
-    text: 'O Uso mostrou o Claude em 58% do limite. Em Configurações estão as contas que você já paga: Claude Max, ChatGPT Plus, uma chave do Gemini, o OpenRouter e um modelo local no Ollama. Cada conversa escolhe a sua.',
+    title: 'Use as assinaturas que você já paga.',
+    text: 'O Uso mostrou o Claude em 58% do limite. Em Configurações estão as contas que você já tem: Claude Max, ChatGPT Plus, uma chave do Gemini, o OpenRouter e um modelo local no Ollama. Cada conversa escolhe a sua, e o Cadente não cobra nada por cima.',
     async run(s, id) {
       await s.key('⌘,', id);
       await s.wait(250, id);
@@ -354,7 +354,7 @@ export const CHAPTERS = [
   {
     step: 'Fim do dia',
     title: 'Fim do dia. Quem ainda espera?',
-    text: '<kbd>⌘⇧A</kbd> junta os agentes de todas as páginas, com quem espera por você no topo. O Claude ainda pede permissão para gravar o teste: <kbd>↵</kbd> leva até ele e <kbd>y</kbd> libera. <kbd>⌘;</kbd> salta para qualquer folha.',
+    text: '<kbd>⌘⇧A</kbd> junta os agentes de todas as páginas, com quem espera no topo. O Claude ainda pede permissão para gravar o teste: <kbd>↵</kbd> leva até ele e <kbd>y</kbd> libera. Cada plugin que você usou hoje foi feito por alguém, e o próximo pode ser o seu.',
     async run(s, id) {
       await s.key('⌘⇧A', id);
       await s.wait(1200, id);
