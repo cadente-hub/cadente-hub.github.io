@@ -38,19 +38,22 @@ function morph(a, b) {
 const leafIds = S => new Map(S.tabs.flatMap(t => leaves(t.tree)).map(l => [l.id, l.plugin]));
 
 export class Stage {
-  constructor(host, { width = 1240, height = 760, state = createState(), maxHeight = null, fitTo = host.parentElement, hud = true } = {}) {
+  constructor(host, { width = 1240, height = 760, state = createState(), maxHeight = null, fitTo = host.parentElement, hud = true, tempo = 1 } = {}) {
     this.host = host;
     this.width = width; this.height = height; this.maxHeight = maxHeight; this.fitTo = fitTo;
+    // Every wait, keystroke and tick plays at `tempo` of its written length (1 = as written).
+    this.tempo = tempo;
     this.S = state;
     this.run_ = 0;
     this.fast = false;
     this.tpl = document.createElement('template');
 
     host.classList.add('stage');
-    host.innerHTML = `<div class="stage__viewport"><div class="v4 stage__app" aria-hidden="true"></div></div>${hud ? '<div class="stage__hud" aria-hidden="true"></div>' : ''}`;
+    host.innerHTML = `<div class="stage__viewport"><div class="v4 stage__app" aria-hidden="true"></div></div>${hud ? '<div class="stage__card" aria-hidden="true"></div><div class="stage__hud" aria-hidden="true"></div>' : ''}`;
     this.viewport = host.querySelector('.stage__viewport');
     this.root = host.querySelector('.stage__app');
     this.hud = host.querySelector('.stage__hud');
+    this.cardEl = host.querySelector('.stage__card');
     Object.assign(this.root.style, { width: `${width}px`, height: `${height}px` });
 
     this.fit();
@@ -64,7 +67,7 @@ export class Stage {
       this.visible = e.isIntersecting;
       if (this.visible) { this.waiters.splice(0).forEach(fn => fn()); }
     }, { threshold: 0.2 }).observe(host);
-    setInterval(() => this.tick(), 1000);
+    setInterval(() => this.tick(), 1000 * this.tempo);
   }
 
   // ── Layout ──────────────────────────────────────────────────────────────
@@ -189,14 +192,18 @@ export class Stage {
   // Every step checks its run id, so starting another script cancels the one in progress.
   async play(script) {
     const id = ++this.run_;
+    this.hideCard();
     try { await script(this, id); return true; } catch (e) { if (e !== CANCEL) throw e; return false; }
   }
-  stop() { this.run_++; this.hideHud(); }
+  stop() { this.run_++; this.hideHud(); this.hideCard(); }
+  // A new run takes the title card down at once, even while the old run is still holding it.
+  hideCard() { this.cardEl?.getAnimations({ subtree: true }).forEach(a => a.cancel()); }
   check(id) { if (id !== undefined && id !== this.run_) throw CANCEL; }
   wait(ms, id) {
     this.check(id);
     if (this.fast || ms <= 0) return Promise.resolve();
-    return new Promise((resolve, reject) => setTimeout(() => (id !== undefined && id !== this.run_ ? reject(CANCEL) : resolve()), REDUCED ? Math.min(ms, 200) : ms));
+    const t = REDUCED ? Math.min(ms, 200) : ms * this.tempo;
+    return new Promise((resolve, reject) => setTimeout(() => (id !== undefined && id !== this.run_ ? reject(CANCEL) : resolve()), t));
   }
   // Resolves when the window is on screen, so the story never runs ahead while nobody is watching.
   whenVisible(id) {
@@ -226,6 +233,20 @@ export class Stage {
   async ticks(n, id) {
     if (this.fast) { for (let i = 0; i < n; i++) this.dispatch({ type: 'TICK' }); return; }
     await this.wait(n * 1000 + 250, id);
+  }
+  // A chapter's title card over the window, like a cut in a film: it fades in, holds, and fades out while the
+  // chapter already starts underneath. Only opacity and transform move.
+  async card(html, ms, id) {
+    this.check(id);
+    if (!this.cardEl || this.fast || REDUCED) return;
+    const el = this.cardEl, inn = 220;
+    el.innerHTML = `<div class="stage__card-in">${html}</div>`;
+    el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: inn, easing: 'ease-out', fill: 'forwards' });
+    el.firstElementChild.animate([{ opacity: 0, transform: 'translateY(14px) scale(.98)' }, { opacity: 1, transform: 'none' }], { duration: 520, easing: EASE, fill: 'forwards' });
+    try { await this.wait(ms - inn / this.tempo, id); } finally {
+      // Only the run that showed the card takes it down; a newer run already cleared it.
+      if (id === undefined || id === this.run_) el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 300, easing: 'ease-in', fill: 'forwards' });
+    }
   }
 
   // ── Keycaps under the window ────────────────────────────────────────────

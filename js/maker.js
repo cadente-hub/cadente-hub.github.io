@@ -1,14 +1,17 @@
 // Creator mode, told in the v4 look: a Chat writes a plugin, `cadente plugin dev` runs it, /publish ships it.
 // Three examples play in turn, each with its own way to earn: Cadu Tamagotchi, a plugin of the floating layer
 // (once it runs, Cadu floats over the panes and the visitor can drag, feed and wash him), a sales dashboard sold
-// by subscription and an AI translator sold once. Panes use the prototype's line classes.
+// by subscription and a status page of outside services sold once. Panes use the prototype's line classes.
 import { REDUCED } from './stage.js';
 import { Tama } from './tama.js';
 
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 const ln = (cls, g, html, meta = '') => `<div class="ln ${cls}"><i class="g">${g}</i><span class="tx">${html}</span>${meta ? `<span class="mt">${meta}</span>` : ''}</div>`;
-const bar = (label, pct, meta) => `<div class="ln bar ${pct >= 100 ? 'ok' : 'warn'}"><span class="lb">${label}</span><span class="track"><i style="width:${pct}%"></i></span><span class="mt">${meta}</span></div>`;
+// One service of the status page: the dot and, when something is wrong, the note take its colour.
+const status = (tone, name, meta) => `<div class="ln row"><i class="g ${tone}">●</i><span class="tx">${name}</span><span class="mt${tone === 'ok' ? '' : ` ${tone}`}">${meta}</span></div>`;
 const CANCEL = Symbol('cancel');
+// The examples play at TEMPO of their written waits, like the theater, so three plugins fit in a short look.
+const TEMPO = 0.7;
 const str = t => `<span class="s">"${t}"</span>`;
 const head = (id, name) => [['k', '[plugin]'], ['', `id = ${str(id)}`], ['', `name = ${str(name)}`], ['', `version = ${str('0.1.0')}`], ['', ''], ['k', '[engines]'], ['', `cadente = ${str('&gt;=1.2')}`], ['', '']];
 const dev = (id, perms, where) => [['cmd', '$', 'cadente plugin dev'], ['out', '', 'compilando para webassembly · 0,8 s'], ['out', '', `permissões: ${perms}`], ['ok', '✓', `${id} 0.1.0 rodando`], ['out', '', `${where} · em desenvolvimento`]];
@@ -39,16 +42,18 @@ const EXAMPLES = [
     price: 'preço: US$ 4 por mês · você recebe 70% de cada renovação',
   },
   {
-    tab: '◎ Tradutor de i18n', id: 'sofia.tradutor-i18n', dir: '~/dev/tradutor-i18n', glyph: '◎', title: 'Tradutor de i18n',
-    ask: 'crie um plugin que traduz o i18n do projeto para inglês e espanhol e mostra o que falta',
-    toml: [...head('sofia.tradutor-i18n', 'Tradutor de i18n'), ['k', '[services]'], ['', `uses = [${str('ai')}]`], ['', ''], ['k', '[permissions]'], ['', `fs = [${str('locales/')}]`]],
-    plan: 'Vou criar o sofia.tradutor-i18n: ele lê locales/, traduz o que falta com o provider de IA que você escolheu e mostra cada idioma com uma barra.',
-    files: ['escreveu src/lib.rs · leitura de locales/ e as traduções', 'testes ok · 6 passaram'],
-    dev: dev('sofia.tradutor-i18n', 'locales/ · provider de IA', 'folha nova'),
-    view: [ln('h', '', 'locales', '3 idiomas · 412 chaves'), bar('pt-BR', 100, '412 chaves'), bar('en', 100, 'traduzido agora'), bar('es', 86, '57 faltando'),
-      ln('h', '', 'revisar'), ln('row', '›', 'botao.salvar', 'Salvar · Save · Guardar'), ln('row', '›', 'loja.titulo', 'Loja · Store · Tienda')],
-    ready: 'Pronto. O inglês está completo e o espanhol tem 57 chaves esperando você.',
-    hint: '↵ traduz o que falta · e edita a chave',
+    tab: '↯ Status page', id: 'orbita.status-page', dir: '~/dev/status-page', glyph: '↯', title: 'Status page',
+    ask: 'crie uma status page que mostra quando o GitHub, a Cloudflare, a AWS e outros serviços caem',
+    toml: [...head('orbita.status-page', 'Status page'), ['k', '[permissions]'], ['', `net = [${str('githubstatus.com')}, ${str('cloudflarestatus.com')},`], ['', `       ${str('health.aws.amazon.com')}, …]`], ['', ''], ['k', '[schedule]'], ['', `every = ${str('1m')}`], ['', ''], ['k', '[notify]'], ['', `when = ${str('um serviço cair ou voltar')}`]],
+    plan: 'Vou criar o orbita.status-page: uma folha com o GitHub, a Cloudflare, a AWS e outros serviços, lidos das páginas de status oficiais a cada minuto. Quando um cai, o cabeçalho da folha fica vermelho e você recebe um aviso.',
+    files: ['escreveu src/lib.rs · leitura das páginas de status e os avisos', 'testes ok · 6 passaram'],
+    dev: dev('orbita.status-page', 'rede · 7 páginas de status', 'folha nova'),
+    signal: '<span class="err">● 1 fora do ar</span>',
+    view: [ln('h', '', 'agora', '1 fora · 1 instável · 5 ok'), status('err', 'AWS · CloudFront', 'fora · us-east-1 · 4 min'), status('warn', 'GitHub · Actions', 'lento · filas com atraso'),
+      status('ok', 'Cloudflare', 'operacional'), status('ok', 'Vercel', 'operacional'), status('ok', 'OpenAI', 'operacional'), status('ok', 'Anthropic', 'operacional'), status('ok', 'Stripe', 'operacional'),
+      `<div class="ln spark"><span class="lb">24 horas</span><span class="sk">▁▁▁▁▁▁▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▆█</span><span class="mt">2 incidentes</span></div>`],
+    ready: 'Pronto. A folha checa as páginas de status a cada minuto. Neste exemplo, o CloudFront da AWS aparece fora em us-east-1 e o GitHub Actions está lento.',
+    hint: '↵ abre o incidente · ⇥ histórico',
     price: 'preço: US$ 12, compra única · você recebe 70%',
   },
 ];
@@ -84,7 +89,7 @@ export class Maker {
     if (b.mode === 'empty') return { g: '+', title: 'folha nova', signal: '', status: '', hint: 'aguardando o agente', body: ln('note dim', '', 'o código aparece aqui') };
     const code = x.toml.slice(0, b.code).map(([k, t]) => `<div class="ln note code"><span class="tx">${k ? `<span class="k">${t}</span>` : t || ' '}</span></div>`).join('');
     if (b.mode === 'code') return { g: '#', title: 'cadente-plugin.toml', signal: `${b.code} linhas`, status: 'escrevendo', hint: '', body: code };
-    if (b.mode === 'run') return { g: x.glyph, title: x.title, signal: 'em desenvolvimento', status: 'cadente plugin dev', hint: x.hint, body: x.view.join('') };
+    if (b.mode === 'run') return { g: x.glyph, title: x.title, signal: x.signal ?? 'em desenvolvimento', status: 'cadente plugin dev', hint: x.hint, body: x.view.join('') };
     const out = x.dev.slice(0, b.dev).map(([k, g, t]) => (k === 'cmd' ? ln('cmd', g, t) : k === 'ok' ? ln('out ok', '', `${g} ${t}`) : ln('out', '', t))).join('');
     return { g: '$', title: 'Terminal · cadente plugin dev', signal: b.dev >= 4 ? 'rodando' : '', status: 'cadente plugin dev', hint: x.pet ? x.hint : '', body: `<div class="blk">${out}</div>` };
   }
@@ -103,10 +108,10 @@ export class Maker {
     pb.scrollTop = this.b.mode === 'run' ? 0 : pb.scrollHeight;
   }
   wait(ms, id) {
-    return new Promise((resolve, reject) => setTimeout(() => (id === this.run_ ? resolve() : reject(CANCEL)), REDUCED ? Math.min(ms, 120) : ms));
+    return new Promise((resolve, reject) => setTimeout(() => (id === this.run_ ? resolve() : reject(CANCEL)), REDUCED ? Math.min(ms, 120) : ms * TEMPO));
   }
   async type(text, id) {
-    for (const ch of text) { this.a.input += ch; this.draw(); await this.wait(28 + Math.random() * 40, id); }
+    for (const ch of text) { this.a.input += ch; this.draw(); await this.wait(22 + Math.random() * 30, id); }
   }
   say(cls, g, html) { this.a.lines.push(ln(cls, g, html)); this.draw(); }
   replaceLast(cls, g, html) { this.a.lines[this.a.lines.length - 1] = ln(cls, g, html); this.draw(); }
@@ -118,7 +123,7 @@ export class Maker {
     try {
       for (;;) {
         await this.playOne(from, id);
-        await this.wait(4200, id);
+        await this.wait(3200, id);
         this.ex = (this.ex + 1) % EXAMPLES.length;
         from = 0;
       }
@@ -160,7 +165,7 @@ export class Maker {
         this.say('msg agent', '◆', esc(x.ready));
       },
       async (w, type) => {
-        await w(2200);
+        await w(1600);
         await type('/pub');
         this.a.cmp = `<div class="cmp"><div class="ln row" data-sel="true"><i class="g">/</i><span class="tx">publish</span><span class="mt">release, sha256 e índice da loja</span></div></div>`;
         this.draw();

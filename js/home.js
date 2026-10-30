@@ -1,7 +1,7 @@
 // Home page: the Cadente window playing on its own, the plugin tour, the plugin rack, the store, Creator mode,
 // the earnings calculator and Cadu.
 import { Stage, REDUCED } from './stage.js';
-import { CHAPTERS, initial } from './theater.js';
+import { CHAPTERS, initial, TEMPO, CARD, PAUSE, durations } from './theater.js';
 import { Maker } from './maker.js';
 import { APPS, CATEGORIES, WALL, priceOf } from './store-data.js';
 import { PLUGINS, plugin } from './v4/plugins.mjs';
@@ -33,19 +33,29 @@ const narrow = matchMedia('(max-width: 760px)').matches;
 // Phones get a taller, narrower window without the sidebar, so the text stays readable once scaled.
 const fresh = () => (narrow ? reduce(initial(), { type: 'PATCH_SETTINGS', sidebar: false }) : initial());
 const stage = new Stage($('#theater-stage'), {
-  width: narrow ? 640 : 1240, height: narrow ? 900 : 760, state: fresh(), fitTo: body,
+  width: narrow ? 640 : 1240, height: narrow ? 900 : 760, state: fresh(), fitTo: body, tempo: TEMPO,
   // The steps, the caption and the whole window fit in one screen below the navigation bar.
   maxHeight: () => Math.max(300, innerHeight - 64 - $('.theater__head').offsetHeight - (narrow ? 40 : 64)),
 });
 
 stepsEl.innerHTML = CHAPTERS.map((c, i) => `<li><button data-i="${i}" aria-label="${i + 1}. ${c.step}"><span>${c.step}</span><i class="steps__bar"></i></button></li>`).join('');
-const markSteps = i => [...stepsEl.children].forEach((li, k) => { li.classList.toggle('is-on', k === i); li.classList.toggle('is-done', k < i); });
+// Each step's bar fills over its chapter, and stops while the window is off screen.
+durations().then(ds => ds.forEach((d, i) => stepsEl.children[i].style.setProperty('--d', `${Math.round(d)}ms`)));
+new IntersectionObserver(([e]) => stepsEl.classList.toggle('is-paused', !e.isIntersecting), { threshold: 0.2 }).observe($('#theater-stage'));
+const markSteps = i => [...stepsEl.children].forEach((li, k) => {
+  li.classList.toggle('is-done', k < i);
+  li.classList.remove('is-on');
+  if (k === i) { void li.offsetWidth; li.classList.add('is-on'); }
+});
+const pad = n => String(n).padStart(2, '0');
 function showCaption(i) {
   const c = CHAPTERS[i];
-  caption.innerHTML = `<h3 class="caption__title"><span class="n">${String(i + 1).padStart(2, '0')} / ${String(CHAPTERS.length).padStart(2, '0')}</span>${c.title}</h3><p class="caption__text">${c.text}</p>`;
+  caption.innerHTML = `<h3 class="caption__title"><span class="n">${pad(i + 1)} / ${pad(CHAPTERS.length)}</span>${c.title}</h3><p class="caption__text">${c.text}</p>`;
   markSteps(i);
 }
-// One run plays from chapter `from` to the end, then starts over from a fresh window.
+const card = i => `<span class="stage__card-n">${pad(i + 1)} · ${CHAPTERS[i].step}</span><b>${CHAPTERS[i].title}</b>`;
+// One run plays from chapter `from` to the end, then starts over from a fresh window. Each chapter opens on its
+// title card and cuts to the next after a short pause.
 function story(from = 0) {
   stage.play(async (s, id) => {
     let i = from;
@@ -58,8 +68,9 @@ function story(from = 0) {
     for (;;) {
       await s.whenVisible(id);
       showCaption(i);
+      await s.card(card(i), CARD, id);
       await CHAPTERS[i].run(s, id);
-      await s.wait(i === CHAPTERS.length - 1 ? 3200 : 1400, id);
+      await s.wait(i === CHAPTERS.length - 1 ? 2400 : PAUSE, id);
       i = (i + 1) % CHAPTERS.length;
       if (i === 0) {
         await s.whenVisible(id);
@@ -128,8 +139,8 @@ function tour(from) {
     for (let k = from; ; k = (k + 1) % FIRST.length) {
       await s.whenVisible(id);
       showPlugin(FIRST[k].id);
-      await s.wait(1700, id);
-      for (let v = 0; v < 2; v++) { await s.key('⇥', id, { hold: 0 }); await s.wait(1300, id); }
+      await s.wait(1300, id);
+      for (let v = 0; v < 2; v++) { await s.key('⇥', id, { hold: 0 }); await s.wait(1000, id); }
     }
   });
 }

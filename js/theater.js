@@ -31,9 +31,29 @@ async function cli(s, id, name, label, task) {
   await s.wait(300, id);
   await s.type(name, id, { speed: 1.4 });
   await s.key('↵', id, { label });
-  await s.wait(900, id);
-  await s.type(task, id, { speed: 2 });
+  await s.wait(700, id);
+  await s.type(task, id, { speed: 3.2 });
   await s.key('↵', id, { label: 'mandar a tarefa' });
+}
+
+// Pacing: every wait, keystroke and tick of the scripts below is played at TEMPO of its written length, so the
+// story moves like a cut film while each step stays on screen long enough to read. Each chapter opens with a title
+// card (CARD ms of script time) and leaves PAUSE ms before the next one. `secs` is how long a chapter lasts on screen
+// with this pacing; the step bars above the window fill over it.
+export const TEMPO = 0.72, CARD = 1500, PAUSE = 600;
+
+// How long each chapter lasts on screen, in ms, from its script alone: a stand-in for the Stage adds up the waits.
+export async function durations() {
+  const out = [];
+  for (const c of CHAPTERS) {
+    let t = 0;
+    const s = { S: initial(), boot() {}, setState() {}, async fade() {}, async whenVisible() {}, async card() {},
+      async wait(ms) { t += ms; }, async key(k, id, { hold = 520 } = {}) { t += hold; },
+      async type(text, id, { speed = 1 } = {}) { t += (text.length * 62.5) / speed; }, async ticks(n) { t += n * 1000 + 250; } };
+    await c.run(s);
+    out.push((t + CARD + PAUSE) * TEMPO);
+  }
+  return out;
 }
 
 export const CHAPTERS = [
@@ -43,12 +63,12 @@ export const CHAPTERS = [
     text: 'Começa com uma folha só e o seu dia nela: agenda, tarefas e o que ficou aberto ontem. <kbd>⇥</kbd> troca de vista.',
     async run(s, id) {
       s.boot();
-      await s.wait(1300, id);
+      await s.wait(900, id);
       await s.key('⇥', id, { label: 'próxima vista' });
-      await s.wait(700, id);
+      await s.wait(500, id);
       await s.key('⇥', id, { label: 'próxima vista' });
-      await s.wait(700, id);
-      await s.key('⇧⇥', id, { label: 'vista anterior' });
+      await s.wait(500, id);
+      await s.key('⇧⇥', id, { hold: 300, label: 'vista anterior' });
       await s.key('⇧⇥', id, { label: 'vista anterior' });
     },
   },
@@ -77,11 +97,8 @@ export const CHAPTERS = [
       await s.key('⌘⌥←', id);
       await s.key('⌘⇧D', id);
       await pick(s, id, 'term', 'um Terminal para você');
-      await s.wait(300, id);
-      await s.type('git status', id, { speed: 1.4 });
-      await s.key('↵', id, { label: 'rodar' });
-      await s.wait(600, id);
-      await s.type('cargo test', id, { speed: 1.4 });
+      await s.wait(200, id);
+      await s.type('cargo test', id, { speed: 1.8 });
       await s.key('↵', id, { label: 'rodar os testes' });
       await s.ticks(2, id);
     },
@@ -93,20 +110,20 @@ export const CHAPTERS = [
     async run(s, id) {
       await s.key('⌘T', id);
       await pick(s, id, 'work', 'abrir Workspaces');
-      await s.wait(900, id);
-      for (const label of ['login · o CI falhou', 'painéis · pronto para o merge', 'busca · o Claude trabalhando', 'tema · esperando revisão']) await s.key('↓', id, { hold: 650, label });
+      await s.wait(500, id);
+      for (const label of ['login · o CI falhou', 'painéis · pronto para o merge', 'busca · o Claude trabalhando', 'tema · esperando revisão']) await s.key('↓', id, { hold: 560, label });
       await s.key('Home', id, { label: 'voltar ao login' });
       await s.key('↵', id, { label: 'abrir o workspace login' });
       await s.key('⌘J', id, { label: 'Chat ao lado, ligado ao workspace' });
-      await s.wait(400, id);
-      await s.type('por que o CI falhou?', id, { speed: 1.6 });
+      await s.wait(250, id);
+      await s.type('por que o CI falhou?', id, { speed: 2.4 });
       await s.key('↵', id, { label: 'perguntar' });
       await s.key('⌘D', id, { label: 'abrir o diff do lado' });
       await pick(s, id, 'work', 'Workspaces, nas alterações');
       await s.key('⇥', id, { label: 'alterações' });
       await s.key('↓', id, { hold: 300, label: 'descer' });
       await s.key('↵', id, { label: 'abrir o diff' });
-      await s.ticks(2, id);
+      await s.ticks(1, id);
     },
   },
   {
@@ -128,14 +145,14 @@ export const CHAPTERS = [
       await s.key('↵', id, { label: 'gravar' });
       await s.key('Home', id, { label: 'voltar ao enviar' });
       await s.key('↵', id, { label: 'enviar o GET' });
-      await s.wait(1300, id);
+      await s.wait(1000, id);
       await s.key('⇥', id, { hold: 260, label: 'requisição' });
       await s.key('⇥', id, { label: 'coleções' });
       for (let i = 0; i < 2; i++) await s.key('↓', id, { hold: 260, label: 'descer' });
       await s.key('↓', id, { label: 'POST /v1/projects' });
       await s.key('↵', id, { label: 'abrir o request' });
       await s.key('↵', id, { label: 'enviar o POST' });
-      await s.wait(1200, id);
+      await s.wait(900, id);
     },
   },
   {
@@ -146,22 +163,18 @@ export const CHAPTERS = [
       await s.key('⌘⇧D', id);
       await pick(s, id, 'loja', 'abrir a Loja');
       await s.key('⌘⇧↵', id, { label: 'ampliar a folha' });
-      await s.wait(900, id);
-      for (const label of ['Excalidraw', 'Kanban', 'Rádio lo-fi', 'Tema Neon', 'Kubernetes']) await s.key('↓', id, { hold: 380, label });
+      await s.wait(700, id);
+      for (const label of ['Excalidraw', 'Kanban', 'Rádio lo-fi']) await s.key('↓', id, { hold: 380, label });
+      await s.type('postgres', id, { speed: 2 });
       await s.wait(300, id);
-      await s.type('postgres', id, { speed: 1.4 });
-      await s.wait(400, id);
       await s.key('↵', id, { label: 'abrir a página do Postgres' });
-      await s.wait(1000, id);
-      for (const label of ['próxima foto', 'mais uma']) await s.key('→', id, { hold: 1100, label });
-      for (const label of ['as fotos', 'sobre', 'o que ele faz', 'atalhos', 'novidades', 'o que ele pede']) await s.key('↓', id, { hold: 560, label });
+      await s.wait(800, id);
+      for (const label of ['próxima foto', 'mais uma']) await s.key('→', id, { hold: 950, label });
+      for (const label of ['as fotos', 'sobre', 'o que ele faz', 'atalhos']) await s.key('↓', id, { hold: 480, label });
       await s.key('Home', id, { label: 'voltar ao topo' });
       await s.key('↵', id, { label: 'instalar, grátis' });
+      await s.ticks(2, id);
       await s.wait(700, id);
-      await s.ticks(1, id);
-      await s.wait(800, id);
-      await s.ticks(1, id);
-      await s.wait(900, id);
     },
   },
   {
@@ -173,34 +186,23 @@ export const CHAPTERS = [
       await s.key('⌘↵', id, { label: 'rodar o select do cursor' });
       await s.ticks(1, id);
       await s.wait(500, id);
-      for (let i = 0; i < 5; i++) await s.key('↓', id, { hold: 240, label: 'descer pelo script' });
+      for (let i = 0; i < 5; i++) await s.key('↓', id, { hold: 180, label: 'descer pelo script' });
       await s.key('⌘↵', id, { label: 'rodar este select' });
       await s.ticks(1, id);
       await s.wait(500, id);
       for (let i = 0; i < 2; i++) await s.key('↓', id, { hold: 300, label: 'até o order by' });
       await s.key('End', id, { label: 'editar a linha, ali mesmo' });
       await s.key('⌥⌫', id, { label: 'apagar a última palavra' });
-      await s.type('paineis desc;', id, { speed: 1.3 });
+      await s.type('paineis desc;', id, { speed: 1.8 });
       await s.key('⌘↵', id, { label: 'gravar e rodar' });
       await s.ticks(1, id);
-      await s.wait(700, id);
-      for (let i = 0; i < 3; i++) await s.key('↓', id, { hold: 240, label: 'o select de baixo' });
-      await s.key('⌘↵', id, { label: 'rodar' });
-      await s.ticks(1, id);
-      await s.wait(600, id);
+      await s.wait(500, id);
       await s.key('⇥', id, { label: 'navegador do banco' });
       for (const label of ['usuarios', 'sessoes']) await s.key('↓', id, { hold: 320, label });
       await s.key('↵', id, { label: 'ver os dados da tabela' });
       await s.ticks(1, id);
-      await s.wait(900, id);
-      await s.key('⇥', id, { label: 'voltar ao script' });
+      await s.wait(700, id);
       await s.key('⌘⇧↵', id, { label: 'voltar às duas folhas' });
-      await s.key('⌘⌥↑', id);
-      await s.key('⌘J', id);
-      await s.wait(400, id);
-      await s.type('o POST salvou no banco?', id, { speed: 1.6 });
-      await s.key('↵', id, { label: 'perguntar' });
-      await s.ticks(2, id);
     },
   },
   {
@@ -218,15 +220,11 @@ export const CHAPTERS = [
       await s.key('⌘⌥←', id);
       await s.key('⌘⇧D', id);
       await pick(s, id, 'uso', 'abrir o Uso');
-      await s.wait(900, id);
-      await s.key('⌘1', id, { label: 'página 1: os agentes' });
-      await s.wait(1200, id);
-      await s.key('⌘2', id, { label: 'página 2: os workspaces' });
-      await s.wait(1100, id);
-      await s.key('⌘3', id, { label: 'página 3: a API e o banco' });
-      await s.wait(1000, id);
+      await s.wait(600, id);
+      await s.key('⌘1', id, { hold: 850, label: 'página 1: os agentes' });
+      await s.key('⌘2', id, { hold: 850, label: 'página 2: os workspaces' });
+      await s.key('⌘3', id, { hold: 850, label: 'página 3: a API e o banco' });
       await s.key('⌘4', id, { label: 'página 4: o seu dia' });
-      await s.wait(500, id);
     },
   },
   {
@@ -239,17 +237,17 @@ export const CHAPTERS = [
       await s.wait(600, id);
       for (const label of ['2026-10-30', 'Lançamento', 'Site', 'Produto 30-10']) await s.key('↓', id, { hold: 340, label });
       await s.key('↵', id, { label: 'abrir a nota' });
-      await s.wait(700, id);
-      for (let i = 0; i < 9; i++) await s.key('↓', id, { hold: 150, label: 'descer pela nota' });
+      await s.wait(450, id);
+      for (let i = 0; i < 9; i++) await s.key('↓', id, { hold: 110, label: 'descer pela nota' });
       await s.key('↵', id, { label: 'nova tarefa' });
-      await s.type('mandar o changelog para o time', id, { speed: 1.6 });
+      await s.type('mandar o changelog para o time', id, { speed: 2.6 });
       await s.key('↵', id, { label: 'a lista continua' });
-      await s.type('revisar o [[Lançamento]]', id, { speed: 1.6 });
+      await s.type('revisar o [[Lançamento]]', id, { speed: 2.6 });
       await s.key('↵', id, { hold: 300, label: 'a lista continua' });
       await s.key('↵', id, { label: 'fechar a lista' });
-      for (let i = 0; i < 4; i++) await s.key('↑', id, { hold: 200, label: 'subir' });
+      for (let i = 0; i < 4; i++) await s.key('↑', id, { hold: 160, label: 'subir' });
       await s.key('espaço', id, { label: 'marcar como feita' });
-      await s.wait(900, id);
+      await s.wait(700, id);
     },
   },
   {
@@ -261,17 +259,17 @@ export const CHAPTERS = [
       await pick(s, id, 'naveg', 'abrir o Navegador');
       await s.wait(500, id);
       await s.key('⌘L', id, { label: 'ir ao endereço' });
-      await s.type('localhost:5173', id, { speed: 1.3 });
+      await s.type('localhost:5173', id, { speed: 2 });
       await s.key('↵', id, { label: 'abrir o site' });
       await s.ticks(1, id);
       await s.wait(600, id);
       for (const label of ['mapa', 'vitrine']) await s.key('↓', id, { hold: 420, label });
       await s.key('↵', id, { label: 'abrir o projeto vitrine' });
       await s.ticks(1, id);
-      await s.wait(1000, id);
+      await s.wait(700, id);
       await s.key('⌫', id, { label: 'voltar' });
       await s.ticks(1, id);
-      await s.wait(600, id);
+      await s.wait(300, id);
     },
   },
   {
@@ -281,28 +279,25 @@ export const CHAPTERS = [
     async run(s, id) {
       await s.key('⌘D', id);
       await pick(s, id, 'loja', 'abrir a Loja');
-      await s.wait(500, id);
-      await s.type('excali', id, { speed: 1.4 });
-      await s.wait(300, id);
+      await s.type('excali', id, { speed: 2 });
+      await s.wait(250, id);
       await s.key('↵', id, { label: 'abrir a página do Excalidraw' });
-      await s.wait(900, id);
-      await s.key('→', id, { hold: 1100, label: 'próxima foto' });
-      for (const label of ['as fotos', 'sobre', 'o que ele faz']) await s.key('↓', id, { hold: 520, label });
-      await s.key('Home', id, { label: 'voltar ao topo' });
+      await s.wait(500, id);
+      await s.key('→', id, { hold: 900, label: 'próxima foto' });
       await s.key('↵', id, { label: 'instalar, grátis' });
       await s.ticks(2, id);
-      await s.wait(600, id);
+      await s.wait(400, id);
       for (const [key, label, text] of [['r', 'retângulo', 'app web'], ['r', 'outro retângulo', 'API /v1/projects']]) {
         await s.key(key, id, { label });
-        await s.type(text, id, { speed: 1.5 });
+        await s.type(text, id, { speed: 2.3 });
         await s.key('↵', id, { hold: 300, label: 'guardar o texto' });
       }
       await s.key('a', id, { label: 'ligar com uma seta' });
       await s.key('o', id, { label: 'elipse' });
-      await s.type('Postgres', id, { speed: 1.5 });
+      await s.type('Postgres', id, { speed: 2.3 });
       await s.key('↵', id, { hold: 300, label: 'guardar o texto' });
       await s.key('a', id, { label: 'mais uma seta' });
-      await s.wait(1400, id);
+      await s.wait(1100, id);
     },
   },
   {
@@ -311,12 +306,12 @@ export const CHAPTERS = [
     text: 'Claude Max, ChatGPT Plus, uma chave do Gemini ou um modelo rodando no seu notebook. Cada conversa escolhe a sua.',
     async run(s, id) {
       await s.key('⌘,', id);
-      await s.wait(400, id);
+      await s.wait(250, id);
       await s.key('⌘⇧↵', id);
-      for (let i = 0; i < 4; i++) await s.key('⇥', id, { hold: 260, label: 'próxima vista' });
-      await s.wait(700, id);
-      for (let i = 0; i < 4; i++) await s.key('↓', id, { hold: 420, label: 'próxima conta' });
-      await s.wait(600, id);
+      for (let i = 0; i < 4; i++) await s.key('⇥', id, { hold: 200, label: 'próxima vista' });
+      await s.wait(400, id);
+      for (let i = 0; i < 4; i++) await s.key('↓', id, { hold: 380, label: 'próxima conta' });
+      await s.wait(300, id);
     },
   },
   {
@@ -331,16 +326,16 @@ export const CHAPTERS = [
       await s.key('espaço', id, { label: 'desligar Links' });
       await s.key('↓', id, { label: 'descer' });
       await s.key('espaço', id, { label: 'desligar Ferramentas' });
-      await s.wait(500, id);
+      await s.wait(300, id);
       await s.key('End', id, { label: 'último item' });
       await s.key('↑', id, { label: 'provider de IA' });
       await s.key('↵', id, { label: 'trocar provider' });
       await s.wait(500, id);
       await s.key('↓', id, { label: 'Ollama, no seu computador' });
       await s.key('↵', id, { label: 'ver a prévia' });
-      await s.wait(1200, id);
+      await s.wait(900, id);
       await s.key('y', id, { label: 'aplicar' });
-      await s.wait(1200, id);
+      await s.wait(800, id);
       await s.key('⌘⇧↵', id);
     },
   },
@@ -350,7 +345,7 @@ export const CHAPTERS = [
     text: '<kbd>⌘⇧A</kbd> mostra os agentes de todas as páginas, quem precisa de você primeiro. <kbd>↵</kbd> leva até lá e <kbd>y</kbd> responde. <kbd>⌘;</kbd> põe uma letra em cada folha.',
     async run(s, id) {
       await s.key('⌘⇧A', id);
-      await s.wait(1600, id);
+      await s.wait(1200, id);
       await s.key('↵', id, { label: 'ir até quem espera' });
       await s.wait(600, id);
       await s.key('y', id, { label: 'permitir' });

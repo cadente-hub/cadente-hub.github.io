@@ -32,7 +32,10 @@
 .steps__bar::after { content: ''; position: absolute; inset: 0; background: rgba(255, 255, 255, .55); transform: scaleX(0); transform-origin: 0 50%; }
 .steps .is-done .steps__bar::after { transform: none; }
 .steps .is-on button { color: var(--fg); }
-.steps .is-on .steps__bar::after { background: var(--violet); transform: none; transition: transform .5s var(--ease); }
+/* The bar of the chapter on screen fills over its length (--d, set by js/home.js) and stops while the window is off screen */
+.steps .is-on .steps__bar::after { background: var(--violet); animation: stepFill var(--d, 10s) linear forwards; }
+.steps.is-paused .steps__bar::after { animation-play-state: paused; }
+@keyframes stepFill { from { transform: scaleX(0); } to { transform: none; } }
 .steps button:hover { color: var(--fg-2); }
 
 .caption { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: end; gap: 8px 48px; min-height: 84px; }
@@ -56,6 +59,11 @@
 .stage__app { position: absolute; top: 0; left: 0; transform-origin: 0 0; pointer-events: none; user-select: none; }
 .stage__hud { position: absolute; left: 50%; bottom: 22px; z-index: 5; display: flex; align-items: center; gap: 12px; padding: 8px 16px 8px 8px; transform: translateX(-50%) translateY(6px); border-radius: 14px; background: rgba(8, 8, 8, .92); border: 1px solid rgba(255, 255, 255, .14); font-family: var(--mono); font-size: 13px; color: var(--fg-2); opacity: 0; transition: opacity .25s, transform .25s var(--ease); pointer-events: none; white-space: nowrap; }
 .stage__hud.is-on { opacity: 1; transform: translateX(-50%); }
+/* Chapter title card over the window (Stage.card) */
+.stage__card { position: absolute; inset: 0; z-index: 4; display: grid; place-items: center; padding: 24px; border-radius: 14px; pointer-events: none; opacity: 0; background: radial-gradient(70% 60% at 50% 50%, rgba(0, 0, 0, .82), rgba(0, 0, 0, .55)); }
+.stage__card-in { text-align: center; }
+.stage__card-n { font-family: var(--mono); font-size: 13px; letter-spacing: .1em; text-transform: uppercase; color: var(--violet-hi); }
+.stage__card-in b { display: block; margin-top: 12px; font-size: clamp(28px, 4.4vw, 60px); line-height: 1; font-weight: 600; letter-spacing: -0.045em; color: #fff; text-shadow: 0 0 48px rgba(168, 85, 247, .55); }
 .hud__caps { display: flex; gap: 5px; }
 .hud__caps kbd { min-width: 32px; height: 32px; display: grid; place-items: center; padding: 0 8px; border-radius: 8px; border: 1px solid rgba(180, 107, 255, .7); border-bottom-width: 3px; background: linear-gradient(#1a0f2b, #0d0716); color: #fff; font-size: 15px; box-shadow: 0 0 18px rgba(168, 85, 247, .35); }
 .hud__label { color: var(--fg); }
