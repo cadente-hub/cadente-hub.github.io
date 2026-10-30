@@ -49,6 +49,7 @@ const changes = [];
 //   (js/v4-site/tui.mjs); the next line typed is the task, and the steps below fill the transcript.
 // - Requests: a "▶ enviar" row in the request, and collection items that set the method, used like Bruno.
 // - Postgres: a community plugin with saved queries (js/v4-site/banco.*), shown apart from the first-party ones.
+// - Workspaces: four worktrees at once, with the state of each pull request or agent.
 const EXTRA_AGENTS = {
   agy: { model: 'gemini 3 pro', steps: ['lendo src/auth/login.ts', 'escrevendo login.test.ts  +48', '?rodar `npm test`', 'rodando npm test', '✓12 testes novos · todos passam'] },
   gemini: { model: 'gemini 2.5 pro', steps: ['lendo docs/', 'resumindo 14 arquivos', '✓resumo salvo em RESUMO.md'] },
@@ -57,7 +58,7 @@ const EXTRA_AGENTS = {
 const AGENT_RE = `claude|codex|${Object.keys(EXTRA_AGENTS).join('|')}`;
 function moreAgents(text) {
   return swapAll('dev.mjs', text, [
-    ["import { fromManifest, registerFn, h, row, note } from './engine.mjs';", "import { fromManifest, registerFn, h, row, note } from './engine.mjs';\nimport { tui } from '../v4-site/tui.mjs';"],
+    ["import { fromManifest, registerFn, h, row, note } from './engine.mjs';", "import { fromManifest, registerFn, h, row, note } from './engine.mjs';\nimport { tui, hasRecording, recordingTick, recordingAnswer } from '../v4-site/tui.mjs';"],
     [/^(const AGENTS = \{\n)/m, `$1${Object.entries(EXTRA_AGENTS).map(([k, v]) => `  ${k}: ${JSON.stringify(v.steps)},\n`).join('')}`],
     [/^const MODEL = \{ claude: 'opus 4.6', codex: 'gpt-5 codex' \};$/m, `const MODEL = { claude: 'opus 4.6', codex: 'gpt-5 codex', ${Object.entries(EXTRA_AGENTS).map(([k, v]) => `${k}: '${v.model}'`).join(', ')} };`],
     // While a CLI is open, the pane shows its screen instead of the blocks.
@@ -66,11 +67,14 @@ function moreAgents(text) {
     if (open?.b.tui && open.i === leaf.data.blocks.length - 1) return { subject: open.b.task || open.b.agent, lines: [{ t: 'tui', html: tui(open.b, { model: MODEL[open.b.agent], ctx: leaf.ctx, input: leaf.input, clock: S?.clock ?? 0, focused: !!S && S.tabs.find(t => t.id === S.active)?.focus === leaf.id }) }] };
     const { blocks, folded } = leaf.data;`],
     ['  activity(leaf, S) {\n    const a = lastAgent(leaf), b = leaf.data.blocks.at(-1);', "  activity(leaf, S) {\n    const a = lastAgent(leaf), b = leaf.data.blocks.at(-1);\n    if (a?.b.tui && a.b.state === 'ocioso') return null;"],
+    // Recorded CLIs (js/v4-site/recordings.json) move through their real screens; the others use the steps above.
+    ["    if (a?.b.state !== 'trabalhando') return null;\n    const next = stepAgent(a.b, S);", "    if (a?.b.state !== 'trabalhando') return null;\n    const next = a.b.tui && hasRecording(a.b.agent) ? recordingTick(a.b, S) : stepAgent(a.b, S);\n    if (!next) return null;"],
+    ["    const next = stepAgent(answered, S, key === 'n' ? 1 : 0);", "    const next = a.b.tui && hasRecording(a.b.agent) ? recordingAnswer(answered, key, S) : stepAgent(answered, S, key === 'n' ? 1 : 0);"],
     // A line typed into an open CLI is its next task.
     ["    if (cmd === 'clear') return", `    const open = lastAgent(leaf);
     if (open?.b.tui && open.i === d.blocks.length - 1 && open.b.running) {
       if (['trabalhando', 'precisa de você'].includes(open.b.state)) return { toast: \`\${open.b.agent} ainda está trabalhando\` };
-      const next = { ...open.b, task: cmd, step: 0, state: 'trabalhando', started: S?.clock ?? 0, out: [...open.b.out, { text: cmd, tone: 'you' }, \`● \${AGENTS[open.b.agent][0]}\`] };
+      const next = { ...open.b, task: cmd, step: 0, phase: 'work', state: 'trabalhando', started: S?.clock ?? 0, out: [...open.b.out, { text: cmd, tone: 'you' }, \`● \${hasRecording(open.b.agent) ? 'trabalhando' : AGENTS[open.b.agent][0]}\`] };
       return { data: { blocks: d.blocks.map((b, i) => (i === open.i ? next : b)) } };
     }
     if (cmd === 'clear') return`],
@@ -112,8 +116,22 @@ const communityPlugins = {
     ['`${ps.length + sv.length} de', '`${ps.length + cs.length + sv.length} de'],
     ["}), h('serviços', String(sv.length)),", "}), ...(cs.length ? [h('comunidade', String(cs.length)), ...cs.map(p => { const off = S.disabled.includes(p.id); return row(p.id, off ? '○' : '●', `${p.glyph} ${p.title}`, `@${p.author} · ${off ? 'desligado' : 'ligado'}`, off ? 'dim' : null, { kind: 'plugin' }); })] : []), h('serviços', String(sv.length)),"],
   ]),
+  // ⌘J opens the Chat beside the pane whenever it is wider than tall, so the Chat lands in the middle of the page.
+  model: text => swapAll('model.mjs', text, [["const axis = r.w * S.ui.vw >= 1.6 * r.h * S.ui.vh ? 'row' : 'col';", "const axis = r.w * S.ui.vw >= r.h * S.ui.vh ? 'row' : 'col';"]]),
   view: text => swapAll('view.mjs', text, [["    case 'hr': return '<div class=\"hr\"></div>';", "    case 'hr': return '<div class=\"hr\"></div>';\n    case 'tui': return l.html;"]]),
 };
+// Four workspaces running at once, each with the state of its pull request or its agent.
+function liveWorkspaces(m) {
+  m.seed.workspaces = [
+    { id: 'ws1', name: 'login', branch: 'feature/login', path: '~/dev/cadente/.worktrees/login', archived: false, g: '●', tone: 'err', status: 'PR #251 · CI falhou em cargo test' },
+    { id: 'ws2', name: 'painéis', branch: 'feature/universal-panes', path: '~/dev/cadente/.worktrees/panes', archived: false, g: '●', tone: 'ok', status: 'PR #248 · aprovado, pronto para merge' },
+    { id: 'ws3', name: 'busca', branch: 'feature/sidebar-search', path: '~/dev/cadente/.worktrees/search', archived: false, g: '●', tone: 'accent', status: 'claude trabalhando · 3 min' },
+    { id: 'ws4', name: 'tema', branch: 'feature/high-contrast', path: '~/dev/cadente/.worktrees/theme', archived: false, g: '●', tone: 'warn', status: 'PR #253 · esperando revisão' },
+    ...m.seed.workspaces.filter(w => w.archived),
+  ];
+  Object.assign(m.lists.workspaces.row, { g: '${g}', meta: '${status}', tone: '${tone}' });
+  return m;
+}
 // Collection items carry their method, and opening one sets it, as in Bruno.
 function brunoCollections(m) {
   for (const c of m.seed.collections) if (c.kind === 'request') c.method = c.name.split(' ')[0];
@@ -151,6 +169,7 @@ fs.writeFileSync(path.join(out, 'capability-map.json'), `${JSON.stringify({ comm
 for (const f of fs.readdirSync(path.join(src, 'manifests')).filter(f => f.endsWith('.json'))) {
   let m = JSON.parse(adapt(`manifests/${f}`, fs.readFileSync(path.join(src, 'manifests', f), 'utf8')));
   if (f === 'requests.json') m = brunoCollections(m);
+  if (f === 'workspaces.json') m = liveWorkspaces(m);
   const seen = new Set();
   for (const c of m.commands ?? []) {
     c.name = COMMANDS[c.name] ?? c.name;

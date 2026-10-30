@@ -65,6 +65,7 @@ export class Tama {
     if (!REDUCED) this.el.animate([{ opacity: 0, translate: '0 24px', scale: '.6' }, { opacity: 1, translate: '0 -10px', scale: '1.05', offset: 0.7 }, { opacity: 1, translate: '0 0', scale: '1' }], { duration: 700, easing: 'cubic-bezier(.2,.8,.2,1)' });
     this.say('oi! estou com fome…');
   }
+  hide() { this.el.hidden = true; }
   place(x, y, glide) {
     const maxX = this.host.clientWidth - this.el.offsetWidth - 4, maxY = this.host.clientHeight - this.el.offsetHeight - 4;
     this.x = Math.max(4, Math.min(maxX, x)); this.y = Math.max(28, Math.min(maxY, y));

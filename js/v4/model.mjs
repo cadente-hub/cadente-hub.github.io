@@ -299,7 +299,7 @@ function chatBeside(S) {
     if (linked) return focusLeaf(S, linked.id);
   }
   const r = rects(activeTab(S).tree)[from.id];
-  const axis = r.w * S.ui.vw >= 1.6 * r.h * S.ui.vh ? 'row' : 'col';
+  const axis = r.w * S.ui.vw >= r.h * S.ui.vh ? 'row' : 'col';
   split(S, axis, f => newLeaf(S, 'chat', f.ctx, { link: f.id }));
   return true;
 }

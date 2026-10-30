@@ -74,6 +74,8 @@ export class Maker {
   // Plays the four steps once, from `from`; earlier steps are drawn at once. Cadu, once out, stays out.
   async play(from) {
     const id = ++this.run_;
+    // Replaying from before the test step puts Cadu away again: he only exists once the plugin runs.
+    if (from < 2) this.tama.hide();
     this.reset();
     this.draw();
     const phases = [

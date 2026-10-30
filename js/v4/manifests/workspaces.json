@@ -33,9 +33,10 @@
    "store": "workspaces",
    "view": "repositórios",
    "row": {
-    "g": "${archived?○:●}",
+    "g": "${g}",
     "text": "${name}",
-    "meta": "${branch} · ${path}"
+    "meta": "${status}",
+    "tone": "${tone}"
    },
    "enter": {
     "op": "fn",
@@ -322,25 +323,43 @@
   "workspaces": [
    {
     "id": "ws1",
-    "name": "cadente",
-    "branch": "main",
-    "path": "~/dev/cadente",
+    "name": "login",
+    "branch": "feature/login",
+    "path": "~/dev/cadente/.worktrees/login",
     "archived": false,
-    "ctxName": "cadente"
+    "g": "●",
+    "tone": "err",
+    "status": "PR #251 · CI falhou em cargo test"
    },
    {
     "id": "ws2",
-    "name": "cadente · painéis",
+    "name": "painéis",
     "branch": "feature/universal-panes",
     "path": "~/dev/cadente/.worktrees/panes",
-    "archived": false
+    "archived": false,
+    "g": "●",
+    "tone": "ok",
+    "status": "PR #248 · aprovado, pronto para merge"
    },
    {
     "id": "ws3",
-    "name": "warp",
-    "branch": "main",
-    "path": "~/dev/warp",
-    "archived": false
+    "name": "busca",
+    "branch": "feature/sidebar-search",
+    "path": "~/dev/cadente/.worktrees/search",
+    "archived": false,
+    "g": "●",
+    "tone": "accent",
+    "status": "claude trabalhando · 3 min"
+   },
+   {
+    "id": "ws4",
+    "name": "tema",
+    "branch": "feature/high-contrast",
+    "path": "~/dev/cadente/.worktrees/theme",
+    "archived": false,
+    "g": "●",
+    "tone": "warn",
+    "status": "PR #253 · esperando revisão"
    },
    {
     "id": "ws4",

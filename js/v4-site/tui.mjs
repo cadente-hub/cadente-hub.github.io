@@ -1,6 +1,8 @@
-// The interactive screens of the agent CLIs inside the site's Terminal: Claude Code, Codex, agy and OpenCode.
-// Typing `claude` opens the CLI; the next line typed is the task, and the agent's steps (dev.mjs) fill its transcript.
-// Each CLI keeps its own look: welcome header, tool calls, permission prompt, spinner and input box.
+// The interactive screens of the agent CLIs inside the site's Terminal. Typing `claude` opens the CLI; the next line
+// typed is the task. Claude Code, Codex and agy play real screen recordings (recordings.json, made with
+// scripts/capture-cli.py and scripts/import-cli-recordings.mjs): every character, colour and attribute as the CLI drew
+// it. A CLI without a recording falls back to a drawn approximation (STYLE below).
+import REC from './recordings.json' with { type: 'json' };
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 const span = (cls, t) => `<span class="${cls}">${t}</span>`;
 const dim = t => span('t-dim', t), acc = t => span('t-acc', t), bold = t => span('t-b', t), ok = t => span('t-ok', t);
@@ -87,10 +89,70 @@ const STYLE = {
 };
 
 export function tui(b, o) {
+  if (hasRecording(b.agent)) return recordingScreen(b, o);
   const st = STYLE[b.agent] ?? STYLE.agy, { items, live, asking } = transcript(b);
   const body = items.map((x, i) => x.k === 'you' ? st.you(x.text) : x.k === 'step' ? st.step(x.text, i === live) : x.k === 'ask' ? st.ask(x.text, i === asking) : x.k === 'done' ? st.done(x.text) : x.k === 'took' ? st.took(x.text) : x.k === 'stop' ? `<div>${span('t-red', '■ Interrupted')}</div>` : '').join('');
   const spin = b.state === 'trabalhando' ? st.spin(Math.max(0, (o.clock ?? 0) - (b.started ?? 0))) : '';
   const t = o.input?.text ?? '', at = o.input?.caret ?? t.length;
   const caret = o.focused ? `${esc(t.slice(0, at))}<b class="cur">${esc(t[at] ?? ' ')}</b>${esc(t.slice(at + 1))}` : esc(t);
   return `<div class="tui tui--${esc(b.agent)}">${st.header(b, o)}<div class="tui-log">${body}${spin}</div><div class="tui-grow"></div>${asking >= 0 ? '' : st.input(o, t || o.focused ? caret : '')}</div>`;
+}
+
+// ── Recorded screens ──────────────────────────────────────────────────
+// Recordings play at twice their real speed, so a 40 s task fits a chapter.
+const SPEED = 2;
+const NAMED = { black: '#1e1e1e', red: '#ff8272', green: '#b4fa72', brown: '#fefdc2', yellow: '#fefdc2', blue: '#6aa9ff', magenta: '#ff8ffd', cyan: '#5fd7ff', white: '#e6e6e6' };
+const tone = c => (c === 'default' ? null : NAMED[c] ?? NAMED[c.replace(/^bright/, '')] ?? (/^[0-9a-f]{6}$/i.test(c) ? `#${c}` : null));
+export const hasRecording = agent => !!REC[agent];
+const phase = (rec, kind) => rec.frames.filter(f => f.kind === kind);
+
+function cellStyle([fg, bg, bold, italics, , reverse]) {
+  let f = tone(fg), b = tone(bg);
+  if (reverse) [f, b] = [b ?? '#000', f ?? '#e6e6e6'];
+  // Underline is left out: the capture reads some dim and colon-style colour sequences as underline.
+  return [f && `color:${f}`, b && `background:${b}`, bold && 'font-weight:700', italics && 'font-style:italic'].filter(Boolean).join(';');
+}
+function rowHTML(rec, li) {
+  return rec.lines[li].map(([t, si]) => { const st = cellStyle(rec.styles[si]); return st ? `<span style="${st}">${esc(t)}</span>` : esc(t); }).join('');
+}
+// The empty prompt row of the welcome screen, with what is being typed in place of the placeholder.
+function typedRow(rec, li, input, focused) {
+  const runs = rec.lines[li], col = rec.input.col;
+  let x = 0, head = '';
+  for (const [t, si] of runs) {
+    if (x >= col) break;
+    const part = t.slice(0, col - x);
+    const st = cellStyle(rec.styles[si]);
+    head += st ? `<span style="${st}">${esc(part)}</span>` : esc(part);
+    x += t.length;
+  }
+  const t = input?.text ?? '', at = input?.caret ?? t.length;
+  return `${head}${esc(t.slice(0, at))}${focused ? `<b class="cur">${esc(t[at] ?? ' ')}</b>` : ''}${esc(t.slice(at + 1))}`;
+}
+function frameFor(rec, b, clock) {
+  if (b.state === 'ocioso') return phase(rec, 'welcome')[0];
+  if (b.state === 'precisa de você') return phase(rec, 'ask')[0];
+  if (b.state === 'pronto' || b.state === 'interrompido') return phase(rec, 'done')[0] ?? rec.frames.at(-1);
+  const fs = phase(rec, b.phase ?? 'work');
+  if (!fs.length) return phase(rec, 'done')[0];
+  const at = fs[0].t + Math.max(0, clock - (b.started ?? clock)) * SPEED;
+  return fs.findLast(f => f.t <= at) ?? fs[0];
+}
+function recordingScreen(b, o) {
+  const rec = REC[b.agent], f = frameFor(rec, b, o.clock ?? 0);
+  const rows = f.rows.map((li, y) => (f.kind === 'welcome' && rec.input && y === rec.input.row && (o.input?.text || o.focused) ? typedRow(rec, li, o.input, o.focused) : rowHTML(rec, li)));
+  return `<div class="tui-rec tui-rec--${esc(b.agent)}">${rows.map(r => `<div>${r || ' '}</div>`).join('')}</div>`;
+}
+// One tick of time: the recording moves on, asks for permission where the real CLI asked, and finishes.
+export function recordingTick(b, S) {
+  const rec = REC[b.agent], clock = S?.clock ?? 0;
+  const fs = phase(rec, b.phase ?? 'work');
+  const end = fs.length ? (fs.at(-1).t - fs[0].t) / SPEED + 1 : 0;
+  if (clock - (b.started ?? clock) < end) return { ...b };
+  if ((b.phase ?? 'work') === 'work' && phase(rec, 'ask').length) return { ...b, state: 'precisa de você', out: [...b.out, { text: '? pede permissão · y permite · n nega', tone: 'warn' }] };
+  const spent = clock - (b.started0 ?? b.started ?? clock);
+  return { ...b, state: 'pronto', running: true, ok: true, ms: took(spent), out: [...b.out, { text: '✓ concluído', tone: 'ok' }] };
+}
+export function recordingAnswer(b, key, S) {
+  return { ...b, state: 'trabalhando', phase: 'after', started0: b.started0 ?? b.started, started: S?.clock ?? 0, out: [...b.out, key === 'n' ? '● seguindo sem isso' : '● trabalhando'] };
 }

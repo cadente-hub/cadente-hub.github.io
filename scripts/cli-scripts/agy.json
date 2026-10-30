@@ -1,0 +1,1 @@
+[["until", "trust the contents", 20], ["wait", 1], ["send", "<enter>"], ["wait", 6], ["snap", "welcome"], ["send", "explique em uma frase o que layout.rs faz"], ["wait", 1], ["snap", "typed"], ["send", "<enter>"], ["film", "work", 20, 0.7], ["wait", 8], ["snap", "end"], ["film", "tail", 4, 1], ["send", "<ctrl-c>"], ["send", "<ctrl-c>"], ["wait", 1]]

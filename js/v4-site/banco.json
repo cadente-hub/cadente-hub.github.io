@@ -1,40 +1,135 @@
 {
   "plugin": "banco",
   "views": [
-    { "id": "consultas", "label": "consultas", "list": "queries" },
-    { "id": "resultado", "label": "resultado" },
-    { "id": "tabelas", "label": "tabelas", "list": "dbTables" }
+    {
+      "id": "consultas",
+      "label": "consultas"
+    },
+    {
+      "id": "tabelas",
+      "label": "tabelas",
+      "list": "dbTables"
+    }
   ],
   "lists": {
     "queries": {
       "store": "queries",
       "view": "consultas",
-      "row": { "g": "▶", "text": "${name}", "meta": "${sql}" },
-      "enter": { "op": "fn", "name": "dbRun" },
+      "row": {
+        "g": "▶",
+        "text": "${name}",
+        "meta": "${sql}"
+      },
+      "enter": {
+        "op": "fn",
+        "name": "dbRun"
+      },
       "actions": [
-        { "key": "e", "label": "editar o SQL", "op": { "op": "edit", "field": "sql", "label": "sql" } },
-        { "key": "r", "label": "renomear", "op": { "op": "edit", "field": "name", "label": "nome" } },
-        { "key": "d", "label": "duplicar", "op": { "op": "dup" } }
+        {
+          "key": "e",
+          "label": "editar o SQL",
+          "op": {
+            "op": "edit",
+            "field": "sql",
+            "label": "sql"
+          }
+        },
+        {
+          "key": "r",
+          "label": "renomear",
+          "op": {
+            "op": "edit",
+            "field": "name",
+            "label": "nome"
+          }
+        },
+        {
+          "key": "d",
+          "label": "duplicar",
+          "op": {
+            "op": "dup"
+          }
+        }
       ]
     },
     "dbTables": {
       "store": "dbTables",
       "view": "tabelas",
-      "row": { "g": "▦", "text": "${name}", "meta": "${rows} linhas · ${size}" }
+      "row": {
+        "g": "▦",
+        "text": "${name}",
+        "meta": "${rows} linhas · ${size}"
+      }
     }
   },
   "seed": {
     "queries": [
-      { "id": "q1", "name": "usuários ativos hoje", "sql": "select count(*) from usuarios where visto_em > now() - interval '1 day'" },
-      { "id": "q2", "name": "projetos", "sql": "select id, nome, paineis from projetos order by id" },
-      { "id": "q3", "name": "sessões por agente", "sql": "select agente, count(*) from sessoes group by agente order by 2 desc" },
-      { "id": "q4", "name": "pedidos com erro", "sql": "select id, status, erro from pedidos where status = 'erro' limit 20" }
+      {
+        "id": "q1",
+        "name": "usuários ativos hoje",
+        "sql": "select count(*) from usuarios where visto_em > now() - interval '1 day'"
+      },
+      {
+        "id": "q2",
+        "name": "projetos",
+        "sql": "select id, nome, paineis from projetos order by id"
+      },
+      {
+        "id": "q3",
+        "name": "sessões por agente",
+        "sql": "select agente, count(*) as sessoes from sessoes group by agente order by 2 desc"
+      },
+      {
+        "id": "q4",
+        "name": "pedidos com erro",
+        "sql": "select id, status, erro from pedidos where status = 'erro' limit 20"
+      },
+      {
+        "id": "q5",
+        "name": "tokens por dia",
+        "sql": "select date(criado_em) as dia, sum(tokens) from turnos group by 1 order by 1"
+      },
+      {
+        "id": "q6",
+        "name": "maiores tabelas",
+        "sql": "select relname, pg_size_pretty(pg_total_relation_size(relid)) from pg_stat_user_tables order by 2 desc"
+      },
+      {
+        "id": "q7",
+        "name": "deploys da semana",
+        "sql": "select servico, count(*) as deploys from deploys where criado_em > now() - interval '7 days' group by 1"
+      },
+      {
+        "id": "q8",
+        "name": "locks abertos",
+        "sql": "select pid, relation::regclass, mode from pg_locks where not granted"
+      }
     ],
     "dbTables": [
-      { "id": "t1", "name": "projetos", "rows": "3", "size": "16 KB" },
-      { "id": "t2", "name": "usuarios", "rows": "1.284", "size": "312 KB" },
-      { "id": "t3", "name": "sessoes", "rows": "89", "size": "48 KB" },
-      { "id": "t4", "name": "pedidos", "rows": "5.402", "size": "1,1 MB" }
+      {
+        "id": "t1",
+        "name": "projetos",
+        "rows": "3",
+        "size": "16 KB"
+      },
+      {
+        "id": "t2",
+        "name": "usuarios",
+        "rows": "1.284",
+        "size": "312 KB"
+      },
+      {
+        "id": "t3",
+        "name": "sessoes",
+        "rows": "89",
+        "size": "48 KB"
+      },
+      {
+        "id": "t4",
+        "name": "pedidos",
+        "rows": "5.402",
+        "size": "1,1 MB"
+      }
     ]
   },
   "commands": []

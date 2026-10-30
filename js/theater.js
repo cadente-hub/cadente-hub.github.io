@@ -58,25 +58,53 @@ export const CHAPTERS = [
     async run(s, id) {
       await s.key('⌘O', id);
       await pick(s, id, 'term', 'abrir o Terminal');
-      await cli(s, id, 'claude', 'abrir o Claude Code', 'feche a folha sem perder o foco');
+      await cli(s, id, 'claude', 'abrir o Claude Code', 'adicione um teste para focus_neighbor no fim de layout.rs, sem rodar nada');
       await s.ticks(2, id);
     },
   },
   {
     step: 'Agentes',
     title: 'Todos os agentes juntos.',
-    text: '<kbd>⌘D</kbd> divide para o lado e <kbd>⌘⇧D</kbd> para baixo. Codex, agy e OpenCode trabalham ao lado do Claude, cada um com a cara de sempre.',
+    text: '<kbd>⌘D</kbd> divide para o lado e <kbd>⌘⇧D</kbd> para baixo. Codex e agy trabalham ao lado do Claude, cada um com a própria tela, e o Terminal de baixo segue sendo seu.',
     async run(s, id) {
       await s.key('⌘D', id);
       await pick(s, id, 'term', 'outro Terminal');
-      await cli(s, id, 'codex', 'abrir o Codex', 'migre a tabela de sessões');
+      await cli(s, id, 'codex', 'abrir o Codex', 'rode cargo test e me diga o resultado');
       await s.key('⌘⇧D', id);
       await pick(s, id, 'term', 'mais um');
-      await cli(s, id, 'agy', 'abrir o agy', 'escreva os testes do login');
+      await cli(s, id, 'agy', 'abrir o agy', 'explique em uma frase o que layout.rs faz');
       await s.key('⌘⌥←', id);
       await s.key('⌘⇧D', id);
-      await pick(s, id, 'term', 'e mais um');
-      await cli(s, id, 'opencode', 'abrir o OpenCode, com um modelo local', 'refatore o cache');
+      await pick(s, id, 'term', 'um Terminal para você');
+      await s.wait(300, id);
+      await s.type('git status', id, { speed: 1.4 });
+      await s.key('↵', id, { label: 'rodar' });
+      await s.wait(600, id);
+      await s.type('cargo test', id, { speed: 1.4 });
+      await s.key('↵', id, { label: 'rodar os testes' });
+      await s.ticks(2, id);
+    },
+  },
+  {
+    step: 'Workspaces',
+    title: 'Quatro workspaces, um olhar.',
+    text: 'Cada branch roda no seu worktree: uma com o CI quebrado, outra pronta para o merge, outra com o Claude trabalhando. Você abre a quebrada, <kbd>⌘J</kbd> abre o Chat dela e o diff abre do lado.',
+    async run(s, id) {
+      await s.key('⌘T', id);
+      await pick(s, id, 'work', 'abrir Workspaces');
+      await s.wait(900, id);
+      for (const label of ['login · o CI falhou', 'painéis · pronto para o merge', 'busca · o Claude trabalhando', 'tema · esperando revisão']) await s.key('↓', id, { hold: 650, label });
+      await s.key('Home', id, { label: 'voltar ao login' });
+      await s.key('↵', id, { label: 'abrir o workspace login' });
+      await s.key('⌘J', id, { label: 'Chat ao lado, ligado ao workspace' });
+      await s.wait(400, id);
+      await s.type('por que o CI falhou?', id, { speed: 1.6 });
+      await s.key('↵', id, { label: 'perguntar' });
+      await s.key('⌘D', id, { label: 'abrir o diff do lado' });
+      await pick(s, id, 'work', 'Workspaces, nas alterações');
+      await s.key('⇥', id, { label: 'alterações' });
+      await s.key('↓', id, { hold: 300, label: 'descer' });
+      await s.key('↵', id, { label: 'abrir o diff' });
       await s.ticks(2, id);
     },
   },
@@ -112,16 +140,29 @@ export const CHAPTERS = [
   {
     step: 'Banco',
     title: 'E o banco logo abaixo.',
-    text: 'O Postgres, instalado da loja, mostra as suas consultas salvas. Você passa por elas e roda só a que interessa. <kbd>⌘J</kbd> abre um Chat que já sabe de qual request você está falando.',
+    text: 'O Postgres, instalado da loja, guarda as suas consultas. Você desce por elas, reescreve um pedaço do SQL, roda só aquela e depois a de baixo. <kbd>⌘J</kbd> abre um Chat que já sabe de qual request você fala.',
     async run(s, id) {
       await s.key('⌘⇧D', id);
       await pick(s, id, 'post', 'abrir o Postgres');
-      await s.wait(500, id);
-      for (let i = 0; i < 3; i++) await s.key('↓', id, { hold: 420, label: 'próxima consulta' });
-      for (let i = 0; i < 2; i++) await s.key('↑', id, { hold: 360, label: 'voltar' });
+      await s.key('⌘⇧↵', id, { label: 'ampliar a folha' });
+      await s.wait(400, id);
+      for (let i = 0; i < 6; i++) await s.key('↓', id, { hold: 330, label: 'próxima consulta' });
+      for (let i = 0; i < 5; i++) await s.key('↑', id, { hold: 260, label: 'subir' });
+      await s.key('.', id, { label: 'ações da consulta' });
+      await s.wait(300, id);
+      await s.key('e', id, { label: 'reescrever o SQL' });
+      await s.wait(400, id);
+      await s.key('⌥⌫', id, { label: 'apagar a última palavra' });
+      await s.type('paineis desc', id, { speed: 1.3 });
+      await s.key('↵', id, { label: 'gravar o SQL' });
       await s.key('↵', id, { label: 'rodar só esta' });
       await s.ticks(1, id);
-      await s.wait(700, id);
+      await s.wait(900, id);
+      await s.key('↓', id, { label: 'a consulta de baixo' });
+      await s.key('↵', id, { label: 'rodar' });
+      await s.ticks(1, id);
+      await s.wait(1100, id);
+      await s.key('⌘⇧↵', id, { label: 'voltar às duas folhas' });
       await s.key('⌘⌥↑', id);
       await s.key('⌘J', id);
       await s.wait(400, id);
@@ -133,7 +174,7 @@ export const CHAPTERS = [
   {
     step: 'Seu dia',
     title: 'Uma página para o seu dia.',
-    text: 'Calendário, o pomodoro do Foco, o Sistema e quanto você já usou do Claude. <kbd>⌘1</kbd>, <kbd>⌘2</kbd> e <kbd>⌘3</kbd> pulam de uma página para outra.',
+    text: 'Calendário, o pomodoro do Foco, o Sistema e quanto você já usou do Claude. <kbd>⌘1</kbd> a <kbd>⌘4</kbd> pulam de uma página para outra.',
     async run(s, id) {
       await s.key('⌘T', id);
       await pick(s, id, 'cal', 'abrir o Calendário');
@@ -147,10 +188,12 @@ export const CHAPTERS = [
       await pick(s, id, 'uso', 'abrir o Uso');
       await s.wait(900, id);
       await s.key('⌘1', id, { label: 'página 1: os agentes' });
-      await s.wait(1300, id);
-      await s.key('⌘2', id, { label: 'página 2: a API e o banco' });
+      await s.wait(1200, id);
+      await s.key('⌘2', id, { label: 'página 2: os workspaces' });
       await s.wait(1100, id);
-      await s.key('⌘3', id, { label: 'página 3: o seu dia' });
+      await s.key('⌘3', id, { label: 'página 3: a API e o banco' });
+      await s.wait(1000, id);
+      await s.key('⌘4', id, { label: 'página 4: o seu dia' });
       await s.wait(500, id);
     },
   },
