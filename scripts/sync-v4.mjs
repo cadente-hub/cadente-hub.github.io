@@ -131,7 +131,8 @@ const communityPlugins = {
   ]),
   // ⌘J opens the Chat beside the pane whenever it is wider than tall, so the Chat lands in the middle of the page.
   model: text => swapAll('model.mjs', text, [["const axis = r.w * S.ui.vw >= 1.6 * r.h * S.ui.vh ? 'row' : 'col';", "const axis = r.w * S.ui.vw >= r.h * S.ui.vh ? 'row' : 'col';"]]),
-  view: text => swapAll('view.mjs', text, [["    case 'hr': return '<div class=\"hr\"></div>';", "    case 'hr': return '<div class=\"hr\"></div>';\n    case 'tui': return l.html;"]]),
+  // A plugin can draw a line as its own HTML; a line with an id still takes the cursor (the store's cards).
+  view: text => swapAll('view.mjs', text, [["    case 'hr': return '<div class=\"hr\"></div>';", "    case 'hr': return '<div class=\"hr\"></div>';\n    case 'tui': return cur ? l.html.replace(/^<([\\w-]+)/, `<$1${c}`) : l.html;"]]),
 };
 // Four workspaces running at once, each with the state of its pull request or its agent.
 function liveWorkspaces(m) {

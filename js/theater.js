@@ -141,21 +141,25 @@ export const CHAPTERS = [
   {
     step: 'Loja',
     title: 'Faltou algo? Tem na loja.',
-    text: '<kbd>⌘⇧D</kbd> abre uma folha nova com a Loja, onde ficam os plugins da comunidade. Você busca o Postgres, vê o que ele pede para acessar e instala com <kbd>↵</kbd>, de graça. A mesma folha já vira o Postgres.',
+    text: '<kbd>⌘⇧D</kbd> abre a Loja numa folha nova. Você busca o Postgres e abre a página dele, com fotos, o que ele faz, os atalhos e o que pede para acessar. <kbd>↵</kbd> instala, de graça, e a mesma folha já vira o Postgres.',
     async run(s, id) {
       await s.key('⌘⇧D', id);
       await pick(s, id, 'loja', 'abrir a Loja');
-      await s.wait(700, id);
+      await s.key('⌘⇧↵', id, { label: 'ampliar a folha' });
+      await s.wait(900, id);
       for (const label of ['Excalidraw', 'Kanban', 'Rádio lo-fi', 'Tema Neon', 'Kubernetes']) await s.key('↓', id, { hold: 380, label });
       await s.wait(300, id);
       await s.type('postgres', id, { speed: 1.4 });
-      await s.wait(300, id);
-      await s.key('↵', id, { label: 'ver o Postgres da @leo' });
-      await s.wait(1400, id);
+      await s.wait(400, id);
+      await s.key('↵', id, { label: 'abrir a página do Postgres' });
+      await s.wait(1000, id);
+      for (const label of ['próxima foto', 'mais uma']) await s.key('→', id, { hold: 1100, label });
+      for (const label of ['as fotos', 'sobre', 'o que ele faz', 'atalhos', 'novidades', 'o que ele pede']) await s.key('↓', id, { hold: 560, label });
+      await s.key('Home', id, { label: 'voltar ao topo' });
       await s.key('↵', id, { label: 'instalar, grátis' });
-      await s.wait(800, id);
+      await s.wait(700, id);
       await s.ticks(1, id);
-      await s.wait(900, id);
+      await s.wait(800, id);
       await s.ticks(1, id);
       await s.wait(900, id);
     },
@@ -165,7 +169,6 @@ export const CHAPTERS = [
     title: 'E o banco, como no DBeaver.',
     text: 'Navegador à esquerda, o script no meio, o resultado embaixo. Você desce pelos selects e <kbd>⌘↵</kbd> roda o que está no cursor. <kbd>End</kbd> edita a linha ali mesmo, sem barra de comando. <kbd>⇥</kbd> vai às tabelas e <kbd>↵</kbd> abre os dados.',
     async run(s, id) {
-      await s.key('⌘⇧↵', id, { label: 'ampliar a folha' });
       await s.wait(500, id);
       await s.key('⌘↵', id, { label: 'rodar o select do cursor' });
       await s.ticks(1, id);
@@ -274,15 +277,18 @@ export const CHAPTERS = [
   {
     step: 'Desenho',
     title: 'E o que mais você imaginar.',
-    text: 'Quer desenhar a arquitetura? <kbd>⌘D</kbd>, abra a Loja e instale o Excalidraw. A folha vira um quadro ao lado do site: <kbd>r</kbd> faz um retângulo, <kbd>o</kbd> uma elipse e <kbd>a</kbd> liga as duas com uma seta. Tudo pelo teclado.',
+    text: 'Quer desenhar a arquitetura? <kbd>⌘D</kbd>, abra a Loja e veja a página do Excalidraw, com as fotos. Instalado, a folha vira um quadro ao lado do site: <kbd>r</kbd> faz um retângulo, <kbd>o</kbd> uma elipse e <kbd>a</kbd> liga as duas com uma seta. Tudo pelo teclado.',
     async run(s, id) {
       await s.key('⌘D', id);
       await pick(s, id, 'loja', 'abrir a Loja');
       await s.wait(500, id);
       await s.type('excali', id, { speed: 1.4 });
       await s.wait(300, id);
-      await s.key('↵', id, { label: 'ver o Excalidraw' });
-      await s.wait(1100, id);
+      await s.key('↵', id, { label: 'abrir a página do Excalidraw' });
+      await s.wait(900, id);
+      await s.key('→', id, { hold: 1100, label: 'próxima foto' });
+      for (const label of ['as fotos', 'sobre', 'o que ele faz']) await s.key('↓', id, { hold: 520, label });
+      await s.key('Home', id, { label: 'voltar ao topo' });
       await s.key('↵', id, { label: 'instalar, grátis' });
       await s.ticks(2, id);
       await s.wait(600, id);

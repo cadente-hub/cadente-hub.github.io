@@ -1,34 +1,276 @@
 {
   "plugin": "loja",
   "views": [
-    { "id": "descobrir", "label": "descobrir", "list": "shop", "group": "cat", "status": "plugins da comunidade · instalar é grátis" },
-    { "id": "instalados", "label": "instalados", "list": "shop", "where": "installed", "empty": "nada da loja instalado ainda" }
+    {
+      "id": "descobrir",
+      "label": "descobrir",
+      "filter": true,
+      "status": "plugins da comunidade · instalar é grátis"
+    },
+    {
+      "id": "instalados",
+      "label": "instalados",
+      "filter": true
+    }
   ],
-  "detailViews": [{ "id": "plugin", "label": "plugin" }],
+  "detailViews": [
+    {
+      "id": "plugin",
+      "label": "página do plugin"
+    }
+  ],
   "lists": {
     "shop": {
       "store": "shop",
-      "row": { "g": "${glyph}", "text": "${name}", "meta": "@${author} · ${label}", "tone": "${installed?ok:}" },
-      "enter": { "op": "fn", "name": "lojaOpen" }
+      "enter": {
+        "op": "fn",
+        "name": "lojaOpen"
+      }
     }
   },
   "seed": {
     "shop": [
-      { "id": "s1", "cat": "em alta", "glyph": "⛁", "name": "Postgres", "author": "leo", "label": "grátis", "plugin": "banco", "version": "2.3.0", "size": "212 KB", "desc": "Consultas salvas, tabelas e o resultado logo abaixo, tudo pelo teclado.", "perms": ["conectar em localhost:5432", "ler e gravar as consultas no seu perfil"] },
-      { "id": "s15", "cat": "em alta", "glyph": "✎", "name": "Excalidraw", "author": "bitcraft", "label": "grátis", "plugin": "draw", "version": "0.17.0", "size": "1,1 MB", "desc": "Um quadro para diagramas com cara de feitos à mão, desenhados pelo teclado.", "perms": ["salvar os desenhos no seu perfil"] },
-      { "id": "s2", "cat": "em alta", "glyph": "▦", "name": "Kanban", "author": "ana", "label": "grátis", "version": "1.8.2", "size": "96 KB", "desc": "As issues do repositório em três colunas.", "perms": ["acessar api.github.com"] },
-      { "id": "s3", "cat": "em alta", "glyph": "♪", "name": "Rádio lo-fi", "author": "marina", "label": "grátis · doação", "version": "0.9.1", "size": "44 KB", "desc": "Música para o Foco, com o timer na tela.", "perms": ["tocar áudio"] },
-      { "id": "s4", "cat": "em alta", "glyph": "◑", "name": "Tema Neon", "author": "bitcraft", "label": "grátis", "version": "3.0.0", "size": "8 KB", "desc": "Roxo e rosa sobre o preto.", "perms": [] },
-      { "id": "s5", "cat": "dev", "glyph": "⎈", "name": "Kubernetes", "author": "nuvem", "label": "US$ 4/mês", "version": "1.2.0", "size": "380 KB", "desc": "Pods, logs e eventos do cluster.", "perms": ["ler ~/.kube/config", "rede"] },
-      { "id": "s6", "cat": "dev", "glyph": "▣", "name": "Docker Compose", "author": "devrafa", "label": "grátis", "version": "2.0.4", "size": "120 KB", "desc": "Suba, pare e acompanhe os serviços.", "perms": ["usar o socket do Docker"] },
-      { "id": "s7", "cat": "dev", "glyph": "◈", "name": "GraphQL", "author": "orbita", "label": "grátis", "version": "1.1.0", "size": "150 KB", "desc": "Explore schemas e rode queries.", "perms": ["rede"] },
-      { "id": "s8", "cat": "dev", "glyph": "≋", "name": "Logs", "author": "lumen", "label": "grátis", "version": "0.7.3", "size": "64 KB", "desc": "Siga arquivos de log com filtro e cores.", "perms": ["ler arquivos do workspace"] },
-      { "id": "s9", "cat": "ia", "glyph": "◆", "name": "Escritor de testes", "author": "ana", "label": "grátis · doação", "version": "1.0.2", "size": "52 KB", "desc": "Um agente que escreve testes para o diff atual.", "perms": ["provider de IA", "ler o diff"] },
-      { "id": "s10", "cat": "ia", "glyph": "⌕", "name": "RAG local", "author": "kenji", "label": "US$ 12 · uma vez", "version": "2.1.0", "size": "1,4 MB", "desc": "Pergunte sobre seus documentos, com um modelo no seu computador.", "perms": ["ler a pasta escolhida"] },
-      { "id": "s11", "cat": "produtividade", "glyph": "✓", "name": "Hábitos", "author": "devrafa", "label": "grátis", "version": "1.3.0", "size": "28 KB", "desc": "Marque os hábitos do dia e veja a sequência.", "perms": [] },
-      { "id": "s12", "cat": "produtividade", "glyph": "✉", "name": "E-mail", "author": "lumen", "label": "7 dias grátis", "version": "0.5.0", "size": "240 KB", "desc": "Caixa de entrada em linhas, com ações no teclado.", "perms": ["IMAP da sua conta"] },
-      { "id": "s13", "cat": "diversão", "glyph": "☄", "name": "Chuva de estrelas", "author": "orbita", "label": "grátis", "version": "1.0.0", "size": "12 KB", "desc": "Uma estrela cadente a cada build verde.", "perms": [] },
-      { "id": "s14", "cat": "diversão", "glyph": "♞", "name": "Xadrez", "author": "leo", "label": "grátis", "version": "0.4.2", "size": "70 KB", "desc": "Uma partida por dia contra o agente.", "perms": ["provider de IA"] }
+      {
+        "id": "s1",
+        "cat": "em alta",
+        "glyph": "⛁",
+        "name": "Postgres",
+        "author": "leo",
+        "label": "grátis",
+        "plugin": "banco",
+        "version": "2.3.0",
+        "size": "212 KB",
+        "desc": "Script, navegador e resultado como no DBeaver, tudo pelo teclado.",
+        "perms": [
+          "conectar em localhost:5432",
+          "ler e gravar as consultas no seu perfil"
+        ],
+        "readme": [
+          "Um cliente de banco do jeito do DBeaver, numa folha do Cadente. Suas consultas ficam num script .sql, e o resultado aparece logo abaixo, sem tirar a mão do teclado.",
+          "## O que ele faz",
+          "- navegador com conexões, schemas e tabelas",
+          "- um script com todas as suas consultas salvas",
+          "- `⌘↵` roda só o select onde está o cursor",
+          "- edite a linha ali mesmo, sem barra de comando",
+          "- grade de resultado com o tempo e o número de linhas",
+          "## Atalhos",
+          "| `⌘↵` | roda o select do cursor |",
+          "| `End` | edita a linha |",
+          "| `⇥` | vai para o navegador de tabelas |",
+          "| `↵` | abre os dados da tabela |",
+          "## Novidades da 2.3",
+          "- abrir os dados de uma tabela com `↵`",
+          "- o select atual fica destacado no script"
+        ]
+      },
+      {
+        "id": "s15",
+        "cat": "em alta",
+        "glyph": "✎",
+        "name": "Excalidraw",
+        "author": "bitcraft",
+        "label": "grátis",
+        "plugin": "draw",
+        "version": "0.17.0",
+        "size": "1,1 MB",
+        "desc": "Um quadro para diagramas com cara de feitos à mão, desenhados pelo teclado.",
+        "perms": [
+          "salvar os desenhos no seu perfil"
+        ],
+        "readme": [
+          "O quadro branco que todo mundo conhece, numa folha do Cadente. Os desenhos têm cara de feitos à mão e saem pelo teclado, com os atalhos de sempre.",
+          "## O que ele faz",
+          "- retângulos, elipses, losangos, setas e texto",
+          "- as formas se arrumam sozinhas em linhas",
+          "- o texto vai direto dentro da forma",
+          "- os desenhos ficam salvos no seu perfil",
+          "## Atalhos",
+          "| `r` | retângulo |",
+          "| `o` | elipse |",
+          "| `d` | losango |",
+          "| `a` | liga as duas formas com uma seta |",
+          "## Novidades da 0.17",
+          "- tema escuro igual ao do Cadente"
+        ]
+      },
+      {
+        "id": "s2",
+        "cat": "em alta",
+        "glyph": "▦",
+        "name": "Kanban",
+        "author": "ana",
+        "label": "grátis",
+        "version": "1.8.2",
+        "size": "96 KB",
+        "desc": "As issues do repositório em três colunas.",
+        "perms": [
+          "acessar api.github.com"
+        ]
+      },
+      {
+        "id": "s3",
+        "cat": "em alta",
+        "glyph": "♪",
+        "name": "Rádio lo-fi",
+        "author": "marina",
+        "label": "grátis · doação",
+        "version": "0.9.1",
+        "size": "44 KB",
+        "desc": "Música para o Foco, com o timer na tela.",
+        "perms": [
+          "tocar áudio"
+        ]
+      },
+      {
+        "id": "s4",
+        "cat": "em alta",
+        "glyph": "◑",
+        "name": "Tema Neon",
+        "author": "bitcraft",
+        "label": "grátis",
+        "version": "3.0.0",
+        "size": "8 KB",
+        "desc": "Roxo e rosa sobre o preto.",
+        "perms": []
+      },
+      {
+        "id": "s5",
+        "cat": "dev",
+        "glyph": "⎈",
+        "name": "Kubernetes",
+        "author": "nuvem",
+        "label": "US$ 4/mês",
+        "version": "1.2.0",
+        "size": "380 KB",
+        "desc": "Pods, logs e eventos do cluster.",
+        "perms": [
+          "ler ~/.kube/config",
+          "rede"
+        ]
+      },
+      {
+        "id": "s6",
+        "cat": "dev",
+        "glyph": "▣",
+        "name": "Docker Compose",
+        "author": "devrafa",
+        "label": "grátis",
+        "version": "2.0.4",
+        "size": "120 KB",
+        "desc": "Suba, pare e acompanhe os serviços.",
+        "perms": [
+          "usar o socket do Docker"
+        ]
+      },
+      {
+        "id": "s7",
+        "cat": "dev",
+        "glyph": "◈",
+        "name": "GraphQL",
+        "author": "orbita",
+        "label": "grátis",
+        "version": "1.1.0",
+        "size": "150 KB",
+        "desc": "Explore schemas e rode queries.",
+        "perms": [
+          "rede"
+        ]
+      },
+      {
+        "id": "s8",
+        "cat": "dev",
+        "glyph": "≋",
+        "name": "Logs",
+        "author": "lumen",
+        "label": "grátis",
+        "version": "0.7.3",
+        "size": "64 KB",
+        "desc": "Siga arquivos de log com filtro e cores.",
+        "perms": [
+          "ler arquivos do workspace"
+        ]
+      },
+      {
+        "id": "s9",
+        "cat": "ia",
+        "glyph": "◆",
+        "name": "Escritor de testes",
+        "author": "ana",
+        "label": "grátis · doação",
+        "version": "1.0.2",
+        "size": "52 KB",
+        "desc": "Um agente que escreve testes para o diff atual.",
+        "perms": [
+          "provider de IA",
+          "ler o diff"
+        ]
+      },
+      {
+        "id": "s10",
+        "cat": "ia",
+        "glyph": "⌕",
+        "name": "RAG local",
+        "author": "kenji",
+        "label": "US$ 12 · uma vez",
+        "version": "2.1.0",
+        "size": "1,4 MB",
+        "desc": "Pergunte sobre seus documentos, com um modelo no seu computador.",
+        "perms": [
+          "ler a pasta escolhida"
+        ]
+      },
+      {
+        "id": "s11",
+        "cat": "produtividade",
+        "glyph": "✓",
+        "name": "Hábitos",
+        "author": "devrafa",
+        "label": "grátis",
+        "version": "1.3.0",
+        "size": "28 KB",
+        "desc": "Marque os hábitos do dia e veja a sequência.",
+        "perms": []
+      },
+      {
+        "id": "s12",
+        "cat": "produtividade",
+        "glyph": "✉",
+        "name": "E-mail",
+        "author": "lumen",
+        "label": "7 dias grátis",
+        "version": "0.5.0",
+        "size": "240 KB",
+        "desc": "Caixa de entrada em linhas, com ações no teclado.",
+        "perms": [
+          "IMAP da sua conta"
+        ]
+      },
+      {
+        "id": "s13",
+        "cat": "diversão",
+        "glyph": "☄",
+        "name": "Chuva de estrelas",
+        "author": "orbita",
+        "label": "grátis",
+        "version": "1.0.0",
+        "size": "12 KB",
+        "desc": "Uma estrela cadente a cada build verde.",
+        "perms": []
+      },
+      {
+        "id": "s14",
+        "cat": "diversão",
+        "glyph": "♞",
+        "name": "Xadrez",
+        "author": "leo",
+        "label": "grátis",
+        "version": "0.4.2",
+        "size": "70 KB",
+        "desc": "Uma partida por dia contra o agente.",
+        "perms": [
+          "provider de IA"
+        ]
+      }
     ]
   },
   "commands": []
