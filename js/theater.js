@@ -38,16 +38,16 @@ async function cli(s, id, name, label, task) {
 
 // Pacing: every wait, keystroke and tick of the scripts below is played at TEMPO of its written length, so the
 // story moves like a cut film while each step stays on screen long enough to read. Each chapter opens with a title
-// card (CARD ms of script time) and ends on a wide shot held for PAUSE ms. `secs` is how long a chapter lasts on screen
+// interlude (CARD ms of script time) where the camera pulls back under its title, and leaves PAUSE ms at its end. `secs` is how long a chapter lasts on screen
 // with this pacing; the step bars above the window fill over it.
-export const TEMPO = 0.72, CARD = 1700, PAUSE = 1300;
+export const TEMPO = 0.72, CARD = 2400, PAUSE = 0;
 
 // How long each chapter lasts on screen, in ms, from its script alone: a stand-in for the Stage adds up the waits.
 export async function durations() {
   const out = [];
   for (const c of CHAPTERS) {
     let t = 0;
-    const s = { S: initial(), boot() {}, setState() {}, wide() {}, shot() {}, async fade() {}, async whenVisible() {}, async card() {},
+    const s = { S: initial(), boot() {}, setState() {}, wide() {}, shot() {}, async fade() {}, async whenVisible() {}, async interlude() {},
       async wait(ms) { t += ms; }, async key(k, id, { hold = 520 } = {}) { t += hold; },
       async type(text, id, { speed = 1 } = {}) { t += (text.length * 62.5) / speed; }, async ticks(n) { t += n * 1000 + 250; } };
     await c.run(s);
@@ -59,8 +59,8 @@ export async function durations() {
 export const CHAPTERS = [
   {
     step: 'Abrir',
-    title: 'Abra e comece.',
-    text: 'Começa com uma folha só e o seu dia nela: agenda, tarefas e o que ficou aberto ontem. <kbd>⇥</kbd> troca de vista.',
+    title: 'Bom dia. Seu dia já está aqui.',
+    text: 'Agenda, tarefas e o que ficou aberto ontem, numa folha só. <kbd>⇥</kbd> troca de vista.',
     async run(s, id) {
       s.boot();
       await s.wait(900, id);
@@ -74,8 +74,8 @@ export const CHAPTERS = [
   },
   {
     step: 'Escolher',
-    title: 'Chame quem você precisa.',
-    text: 'Aperte <kbd>⌘O</kbd>, digite três letras e a folha vira um Terminal. Daí é só abrir o Claude Code e pedir.',
+    title: 'Quatro letras e o Claude entra.',
+    text: '<kbd>⌘O</kbd>, digite “term” e a folha vira um Terminal. Daí é chamar o Claude Code e passar a tarefa.',
     async run(s, id) {
       await s.key('⌘O', id);
       await pick(s, id, 'term', 'abrir o Terminal');
@@ -85,8 +85,8 @@ export const CHAPTERS = [
   },
   {
     step: 'Agentes',
-    title: 'Todos os agentes juntos.',
-    text: '<kbd>⌘D</kbd> divide para o lado e <kbd>⌘⇧D</kbd> para baixo. Codex e agy trabalham ao lado do Claude, cada um com a própria tela, e o Terminal de baixo segue sendo seu.',
+    title: 'Claude, Codex e agy. Ao mesmo tempo.',
+    text: '<kbd>⌘D</kbd> divide para o lado, <kbd>⌘⇧D</kbd> para baixo. Cada agente na sua tela, todos trabalhando juntos, e ainda sobra um Terminal para você.',
     async run(s, id) {
       await s.key('⌘D', id);
       await pick(s, id, 'term', 'outro Terminal');
@@ -105,8 +105,8 @@ export const CHAPTERS = [
   },
   {
     step: 'Workspaces',
-    title: 'Quatro workspaces, um olhar.',
-    text: 'Cada branch roda no seu worktree: uma com o CI quebrado, outra pronta para o merge, outra com o Claude trabalhando. Você abre a quebrada, <kbd>⌘J</kbd> abre o Chat dela e o diff abre do lado.',
+    title: 'Quatro branches. Zero confusão.',
+    text: 'Uma com o CI quebrado, outra pronta para o merge, outra com o Claude no meio do trabalho. Você abre a quebrada, <kbd>⌘J</kbd> chama o Chat dela e o diff abre do lado.',
     async run(s, id) {
       await s.key('⌘T', id);
       await pick(s, id, 'work', 'abrir Workspaces');
@@ -128,8 +128,8 @@ export const CHAPTERS = [
   },
   {
     step: 'API',
-    title: 'Uma página para a API.',
-    text: '<kbd>⌘T</kbd> abre outra aba, e os agentes seguem trabalhando na primeira. No Requests você anda pela coleção, troca o <code>limit</code> e manda o GET sem tirar a mão do teclado.',
+    title: 'A API na aba ao lado.',
+    text: '<kbd>⌘T</kbd> abre outra aba e os agentes seguem trabalhando na primeira. Você troca o <code>limit</code>, manda o GET, depois o POST. Nenhum clique.',
     async run(s, id) {
       await s.key('⌘T', id);
       await pick(s, id, 'req', 'abrir o Requests');
@@ -158,7 +158,7 @@ export const CHAPTERS = [
   {
     step: 'Loja',
     title: 'Faltou algo? Tem na loja.',
-    text: '<kbd>⌘⇧D</kbd> abre a Loja numa folha nova. Você busca o Postgres e abre a página dele, com fotos, o que ele faz, os atalhos e o que pede para acessar. <kbd>↵</kbd> instala, de graça, e a mesma folha já vira o Postgres.',
+    text: 'Busque, passe as fotos, leia o que o plugin pede para acessar. <kbd>↵</kbd> e o Postgres está instalado, de graça, na mesma folha.',
     async run(s, id) {
       await s.key('⌘⇧D', id);
       await pick(s, id, 'loja', 'abrir a Loja');
@@ -183,8 +183,8 @@ export const CHAPTERS = [
   },
   {
     step: 'Banco',
-    title: 'O banco, sem barra de comando.',
-    text: 'Navegador à esquerda, o script no meio, o resultado embaixo. Você desce pelos selects e <kbd>⌘↵</kbd> roda o que está no cursor. <kbd>End</kbd> edita a linha ali mesmo, sem barra de comando. <kbd>⇥</kbd> vai às tabelas e <kbd>↵</kbd> abre os dados.',
+    title: 'SQL na ponta dos dedos.',
+    text: 'Desça pelos selects e <kbd>⌘↵</kbd> roda o do cursor. <kbd>End</kbd> edita a linha ali mesmo. <kbd>⇥</kbd> vai às tabelas e <kbd>↵</kbd> abre os dados.',
     async run(s, id) {
       await s.wait(500, id);
       await s.key('⌘↵', id, { label: 'rodar o select do cursor' });
@@ -215,8 +215,8 @@ export const CHAPTERS = [
   },
   {
     step: 'Seu dia',
-    title: 'Uma página para o seu dia.',
-    text: 'Calendário, o pomodoro do Foco, o Sistema e quanto você já usou do Claude. <kbd>⌘1</kbd> a <kbd>⌘4</kbd> pulam de uma página para outra.',
+    title: 'E uma página só para você.',
+    text: 'Agenda, um pomodoro rodando, a memória do computador e quanto você já gastou do Claude. <kbd>⌘1</kbd> a <kbd>⌘4</kbd> pulam entre as páginas.',
     async run(s, id) {
       await s.key('⌘T', id);
       await pick(s, id, 'cal', 'abrir o Calendário');
@@ -237,8 +237,8 @@ export const CHAPTERS = [
   },
   {
     step: 'Notas',
-    title: 'Notas que viram tarefas.',
-    text: 'O Documentos, da comunidade, guarda cada nota como um arquivo .md na sua pasta. Você abre a ata da reunião e escreve direto no texto: <kbd>↵</kbd> puxa a próxima tarefa e <kbd>espaço</kbd> marca como feita. Nada disso precisa de IA.',
+    title: 'A ata vira lista de tarefas.',
+    text: 'Cada nota é um .md na sua pasta. Você escreve direto no texto, <kbd>↵</kbd> puxa a próxima tarefa e <kbd>espaço</kbd> marca como feita. Sem IA nenhuma.',
     async run(s, id) {
       await s.key('⌘T', id);
       await pick(s, id, 'doc', 'abrir Documentos');
@@ -261,8 +261,8 @@ export const CHAPTERS = [
   },
   {
     step: 'Web',
-    title: 'Um site em outra aba.',
-    text: '<kbd>⌘T</kbd> e o Navegador abre o app que você está fazendo, em localhost. <kbd>⌘L</kbd> vai ao endereço, <kbd>↓</kbd> anda pelos links e <kbd>⌫</kbd> volta. O projeto vitrine, criado pelo POST lá atrás, já está na lista.',
+    title: 'Seu app rodando, ali do lado.',
+    text: '<kbd>⌘L</kbd>, <code>localhost:5173</code>, e o site abre numa folha. <kbd>↓</kbd> anda pelos links e <kbd>⌫</kbd> volta. O projeto criado pelo POST já está na lista.',
     async run(s, id) {
       await s.key('⌘T', id);
       await pick(s, id, 'naveg', 'abrir o Navegador');
@@ -284,8 +284,8 @@ export const CHAPTERS = [
   },
   {
     step: 'Desenho',
-    title: 'E o que mais você imaginar.',
-    text: 'Quer desenhar a arquitetura? <kbd>⌘D</kbd>, abra a Loja e veja a página do Quadro, com as fotos. Instalado, a folha vira um quadro ao lado do site: <kbd>r</kbd> faz um retângulo, <kbd>o</kbd> uma elipse e <kbd>a</kbd> liga as duas com uma seta. Tudo pelo teclado.',
+    title: 'A arquitetura, desenhada no teclado.',
+    text: 'Instale o Quadro e a folha vira um quadro branco. <kbd>r</kbd> faz um retângulo, <kbd>o</kbd> uma elipse e <kbd>a</kbd> liga os dois com uma seta.',
     async run(s, id) {
       await s.key('⌘D', id);
       await pick(s, id, 'loja', 'abrir a Loja');
@@ -313,8 +313,8 @@ export const CHAPTERS = [
   },
   {
     step: 'Contas',
-    title: 'Use a assinatura que você já tem.',
-    text: 'Claude Max, ChatGPT Plus, uma chave do Gemini ou um modelo rodando no seu notebook. Cada conversa escolhe a sua.',
+    title: 'Sua assinatura. Seu modelo.',
+    text: 'Claude Max, ChatGPT Plus, uma chave do Gemini ou um modelo rodando no notebook. Cada conversa escolhe a sua.',
     async run(s, id) {
       await s.key('⌘,', id);
       await s.wait(250, id);
@@ -327,8 +327,8 @@ export const CHAPTERS = [
   },
   {
     step: 'Você manda',
-    title: 'Quem manda aqui é você.',
-    text: 'Tudo é plugin, até o que vem de fábrica. Desligue o que não usa com <kbd>espaço</kbd>, inclusive a IA, se quiser o Cadente só para produtividade. Ou troque o provider de IA, vendo antes o que vai mudar.',
+    title: 'Não gostou? Desliga.',
+    text: 'Tudo é plugin, até o que vem de fábrica. <kbd>espaço</kbd> desliga, inclusive a IA. Ou troque o provider vendo antes o que muda.',
     async run(s, id) {
       await s.key('⌘O', id);
       await pick(s, id, 'plug', 'abrir Plugins');
@@ -352,8 +352,8 @@ export const CHAPTERS = [
   },
   {
     step: 'Atalhos',
-    title: 'Nada fica escondido.',
-    text: '<kbd>⌘⇧A</kbd> mostra os agentes de todas as páginas, quem precisa de você primeiro. <kbd>↵</kbd> leva até lá e <kbd>y</kbd> responde. <kbd>⌘;</kbd> põe uma letra em cada folha.',
+    title: 'Quem precisa de você, primeiro.',
+    text: '<kbd>⌘⇧A</kbd> lista os agentes de todas as páginas, os que esperam no topo. <kbd>↵</kbd> leva até lá e <kbd>y</kbd> responde. <kbd>⌘;</kbd> salta para qualquer folha.',
     async run(s, id) {
       await s.key('⌘⇧A', id);
       await s.wait(1200, id);

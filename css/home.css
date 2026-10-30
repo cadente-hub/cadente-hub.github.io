@@ -63,19 +63,31 @@
 .stage__cam { position: absolute; inset: 0; transform-origin: 0 0; transition: transform 1.15s cubic-bezier(.65, 0, .35, 1); }
 .stage__vig { position: absolute; inset: 0; z-index: 3; border-radius: 14px; pointer-events: none; opacity: 0; transition: opacity .9s ease; background: radial-gradient(75% 70% at 50% 50%, transparent 55%, rgba(0, 0, 0, .72)); }
 .stage.is-close .stage__vig { opacity: 1; }
-/* Chapter title card over the window (Stage.card): letterbox, a shooting star and the title rising word by word */
-.stage__card { position: absolute; inset: 0; z-index: 4; display: grid; place-items: center; padding: 24px; border-radius: 14px; overflow: hidden; pointer-events: none; opacity: 0; background: radial-gradient(60% 55% at 50% 58%, rgba(88, 28, 135, .34), transparent 70%), radial-gradient(90% 80% at 50% 50%, rgba(0, 0, 0, .94), rgba(0, 0, 0, .84)); }
-.stage__lb { position: absolute; left: 0; right: 0; z-index: 5; height: 9%; background: #000; transform: scaleY(0); pointer-events: none; }
-.stage__lb--t { top: 0; transform-origin: 50% 0; border-radius: 14px 14px 0 0; }
-.stage__lb--b { bottom: 0; transform-origin: 50% 100%; border-radius: 0 0 14px 14px; }
-.stage__star { position: absolute; left: 0; top: 46%; width: 100%; height: 2px; opacity: 0; background: linear-gradient(90deg, transparent 20%, rgba(216, 180, 254, .0) 30%, rgba(216, 180, 254, .55) 62%, #fff 66%, transparent 67%); filter: drop-shadow(0 0 6px rgba(216, 180, 254, .9)); }
-.stage__card-in { position: relative; text-align: center; }
-.stage__card-n { display: inline-flex; align-items: center; gap: 14px; font-family: var(--mono); font-size: 12px; letter-spacing: .22em; text-transform: uppercase; color: var(--violet-hi); }
-.stage__card-n i { display: block; width: 36px; height: 1px; background: linear-gradient(90deg, transparent, var(--violet-hi)); }
-.stage__card-n i:last-child { background: linear-gradient(90deg, var(--violet-hi), transparent); }
-.stage__card-in b { display: block; margin-top: 16px; font-size: clamp(30px, 5vw, 72px); line-height: 1.02; font-weight: 600; letter-spacing: -0.05em; color: #fff; text-wrap: balance; }
-.stage__card-in .w { display: inline-block; overflow: hidden; padding-bottom: .08em; margin-bottom: -.08em; vertical-align: top; }
-.stage__card-in .w > span { display: inline-block; background: linear-gradient(180deg, #fff 30%, #e9d5ff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+/* Between chapters (Stage.interlude): the window floats back in the dark, a meteor crosses and the title rises */
+.stage__viewport { background: radial-gradient(70% 60% at 50% 62%, rgba(88, 28, 135, .42), #000 72%); }
+.stage__app { border-radius: 12px; box-shadow: 0 0 0 1px rgba(255, 255, 255, .12), 0 40px 90px rgba(0, 0, 0, .7), 0 0 80px rgba(168, 85, 247, .28); }
+.stage__title { position: absolute; inset: 0; z-index: 4; display: grid; place-items: center; padding: 24px; border-radius: 14px; overflow: hidden; pointer-events: none; opacity: 0; background: radial-gradient(52% 42% at 50% 50%, rgba(0, 0, 0, .78), rgba(0, 0, 0, .25) 70%, transparent); }
+.stage__title-in { position: relative; max-width: 88%; text-align: center; }
+.stage__kicker { display: block; font-family: var(--mono); font-size: 12px; letter-spacing: .24em; text-transform: uppercase; color: var(--violet-hi); }
+.stage__title-in b { display: block; margin-top: 14px; font-size: clamp(32px, 5.6vw, 80px); line-height: 1; font-weight: 650; letter-spacing: -0.055em; color: #fff; text-wrap: balance; filter: drop-shadow(0 10px 40px rgba(0, 0, 0, .9)); }
+.stage__title-in .w { display: inline-block; overflow: hidden; padding: 0 .02em .1em; margin-bottom: -.1em; vertical-align: top; }
+.stage__title-in .w > span { display: inline-block; transform-origin: 0 100%; background: linear-gradient(180deg, #fff 35%, #e9d5ff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.stage__meteor { position: absolute; left: 30%; top: 30%; width: 44%; height: 2px; opacity: 0; transform-origin: 100% 50%; border-radius: 2px; background: linear-gradient(90deg, transparent, rgba(216, 180, 254, .25) 45%, rgba(233, 213, 255, .9) 92%, #fff); box-shadow: 0 0 12px 1px rgba(216, 180, 254, .7); }
+.stage__meteor::after { content: ''; position: absolute; right: -3px; top: 50%; width: 7px; height: 7px; margin-top: -3.5px; border-radius: 50%; background: #fff; box-shadow: 0 0 10px 3px #fff, 0 0 30px 8px rgba(196, 140, 255, .9); }
+/* The window tilts back when the camera pulls away, and a light runs across its glass */
+.stage__tilt { position: absolute; inset: 0; transform-origin: 50% 55%; transition: transform 1s cubic-bezier(.65, 0, .35, 1); }
+.stage.is-far .stage__tilt { transform: perspective(1700px) rotateX(13deg) rotateY(-9deg) rotateZ(1.2deg); }
+.stage.is-tilting .stage__tilt { will-change: transform; }
+/* The window dims under the title, so the title reads over it */
+.stage__tilt::before { content: ''; position: absolute; inset: 0; z-index: 25; border-radius: 12px; pointer-events: none; opacity: 0; background: rgba(0, 0, 0, .62); transition: opacity .7s ease; }
+.stage.is-far .stage__tilt::before { opacity: 1; }
+.stage__tilt::after { content: ''; position: absolute; top: -10%; bottom: -10%; left: 0; width: 38%; z-index: 30; pointer-events: none; opacity: 0; background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .07) 45%, rgba(233, 213, 255, .16) 50%, rgba(255, 255, 255, .07) 55%, transparent); transform: translateX(-120%) skewX(-12deg); }
+.stage.is-far .stage__tilt::after { animation: sheen 1.5s cubic-bezier(.45, 0, .2, 1) .25s both; }
+@keyframes sheen { 0% { opacity: 0; transform: translateX(-120%) skewX(-12deg); } 20% { opacity: 1; } 100% { opacity: 0; transform: translateX(330%) skewX(-12deg); } }
+/* Focus beam (Stage.beam): glides from pane to pane with the focus, in the wide shots */
+.v4 .stage__beam { position: absolute; left: 0; top: 0; z-index: 20; border-radius: 7px; pointer-events: none; opacity: 0; box-shadow: 0 0 0 1px rgba(216, 180, 254, .7), 0 0 26px 2px rgba(180, 107, 255, .42); transition: transform .6s cubic-bezier(.34, 1.25, .5, 1), width .6s cubic-bezier(.34, 1.25, .5, 1), height .6s cubic-bezier(.34, 1.25, .5, 1), opacity .35s ease; }
+.v4 .stage__beam.is-on { opacity: .7; }
+.stage.is-close .v4 .stage__beam, .stage.is-far .v4 .stage__beam { opacity: 0; }
 .hud__caps { display: flex; gap: 6px; }
 .hud__caps kbd { min-width: 34px; height: 34px; display: grid; place-items: center; padding: 0 9px; border-radius: 9px; border: 1px solid rgba(216, 180, 254, .55); border-bottom-width: 3px; background: linear-gradient(180deg, #2a1745, #120a20 60%); color: #fff; font-size: 15px; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .22), 0 6px 18px rgba(0, 0, 0, .5), 0 0 22px rgba(168, 85, 247, .35); }
 .hud__label { color: var(--fg); font-family: var(--sans, Geist, system-ui, sans-serif); font-size: 15px; letter-spacing: -0.01em; }

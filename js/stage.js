@@ -9,6 +9,8 @@ import { plugin } from './v4/plugins.mjs';
 export const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const EASE = 'cubic-bezier(.2,.8,.2,1)';
 const CANCEL = Symbol('cancel');
+// The camera holds each shot at least this long (ms of real time) before it reframes on its own.
+const DWELL = 1500;
 const NAMED = { '↵': 'Enter', esc: 'Escape', '⇥': 'Tab', '↑': 'ArrowUp', '↓': 'ArrowDown', '←': 'ArrowLeft', '→': 'ArrowRight', '⌫': 'Backspace', espaço: ' ', End: 'End', Home: 'Home' };
 const MODS = { '⌘': 'meta', '⇧': 'shift', '⌥': 'alt', '⌃': 'ctrl' };
 
@@ -45,20 +47,21 @@ export class Stage {
     this.tempo = tempo;
     this.camera = camera && !REDUCED;
     this.framed = 'wide'; // the shot the camera holds now
+    this.framedAt = 0;
+    this.view = { x: 0, y: 0, z: 1 };
     this.S = state;
     this.run_ = 0;
     this.fast = false;
     this.tpl = document.createElement('template');
 
     host.classList.add('stage');
-    host.innerHTML = `<div class="stage__viewport"><div class="stage__cam"><div class="v4 stage__app" aria-hidden="true"></div></div></div>`
-      + (hud ? '<i class="stage__vig" aria-hidden="true"></i><div class="stage__card" aria-hidden="true"></div><i class="stage__lb stage__lb--t" aria-hidden="true"></i><i class="stage__lb stage__lb--b" aria-hidden="true"></i><div class="stage__hud" aria-hidden="true"></div>' : '');
+    host.innerHTML = `<div class="stage__viewport"><div class="stage__cam"><div class="stage__tilt"><div class="v4 stage__app" aria-hidden="true"></div></div></div></div>`
+      + (hud ? '<i class="stage__vig" aria-hidden="true"></i><div class="stage__title" aria-hidden="true"></div><div class="stage__hud" aria-hidden="true"></div>' : '');
     this.viewport = host.querySelector('.stage__viewport');
     this.cam = host.querySelector('.stage__cam');
     this.root = host.querySelector('.stage__app');
     this.hud = host.querySelector('.stage__hud');
-    this.cardEl = host.querySelector('.stage__card');
-    this.bars = [...host.querySelectorAll('.stage__lb')];
+    this.titleEl = host.querySelector('.stage__title');
     Object.assign(this.root.style, { width: `${width}px`, height: `${height}px` });
 
     this.fit();
@@ -66,6 +69,8 @@ export class Stage {
     new ResizeObserver(() => { const w = this.fitTo.clientWidth; if (w !== lastW) { lastW = w; this.fit(); } }).observe(this.fitTo);
     this.draw();
     this.measure();
+    // The focus beam lives inside the window, after it, so the redraw never touches it and the camera carries it.
+    if (this.camera) { this.beamEl = document.createElement('i'); this.beamEl.className = 'stage__beam'; this.root.append(this.beamEl); }
     this.visible = false;
     this.waiters = [];
     new IntersectionObserver(([e]) => {
@@ -128,7 +133,7 @@ export class Stage {
   }
 
   // ── State ───────────────────────────────────────────────────────────────
-  setState(S) { this.S = S; this.draw(); this.measure(); this.cut(); }
+  setState(S) { this.S = S; this.draw(); this.measure(); this.cut(); this.beam(); }
   dispatch(action, { quiet = false } = {}) {
     const before = this.S, next = reduce(before, action);
     if (next === before) return false;
@@ -136,68 +141,128 @@ export class Stage {
     if (this.fast) return true;
     this.draw();
     if (!quiet && !REDUCED) this.animate(before, next);
-    if (!quiet) this.follow(before);
+    if (!quiet) { this.follow(before); this.beam(); }
     return true;
   }
-  flush() { this.draw(); this.measure(); this.cut(); }
+  flush() { this.draw(); this.measure(); this.cut(); this.beam(); }
 
   // ── Camera ──────────────────────────────────────────────────────────────
-  // A directed camera over the window, as in a product film: it pushes in on the pane where the action is when that
-  // pane is a small part of the window, and pulls back to the whole window when the page changes, a window-wide
-  // overlay opens or the chapter ends. It frames the pane's final place in the layout (from the split tree), so it
-  // never chases a split while it is still opening. Only the transform of one layer moves.
+  // A camera operator over the window. It frames one subject at a time: the whole window, the pane where the action
+  // is, or a part the script points at (Stage.shot). Panes are framed at their final place in the layout, so the
+  // camera never chases a split while it opens. Each shot is held for at least DWELL ms and a new subject has to stay
+  // put for SETTLE ms before the camera goes, so quick focus changes do not make it swing back and forth. A move
+  // between two far close-ups pulls back on the way, like a reframe. Only one layer's transform moves.
+  paneBox(id) {
+    const S = this.S, tab = activeTab(S), r = rects(tab.tree)[id], tree = this.root.querySelector('.tree');
+    if (!r || !tree) return null;
+    const a = this.root.getBoundingClientRect(), t = tree.getBoundingClientRect(), k = a.width / this.width;
+    const x = (t.left - a.left) / k, y = (t.top - a.top) / k, w = t.width / k, h = t.height / k;
+    return { x: x + r.x * w, y: y + r.y * h, w: r.w * w, h: r.h * h };
+  }
+  // What the camera should frame now, if the script points at nothing.
+  subject() {
+    const S = this.S, tab = activeTab(S), ls = leaves(tab.tree);
+    if (S.zoom || S.ui.side || ['palette', 'help', 'agents', 'jump', 'notice'].includes(S.overlay?.kind) || ls.length < 3 || this.hold) return { key: 'wide' };
+    const r = rects(tab.tree)[tab.focus];
+    if (!r || r.w * r.h > 0.4) return { key: 'wide' };
+    return { key: `${tab.id}:${tab.focus}:${ls.length}`, box: this.paneBox(tab.focus) };
+  }
   follow(before) {
     if (!this.camera) return;
-    const S = this.S, tab = activeTab(S), ls = leaves(tab.tree);
-    if (before && before.active !== S.active) { this.hold = true; this.pin = false; return this.go('wide'); }
-    // A directed shot (Stage.shot) holds until the layout changes or an overlay opens.
-    if (this.pin && before && leaves(activeTab(before).tree).length === ls.length && before.zoom === S.zoom && !S.overlay) return;
-    this.pin = false;
-    if (this.hold && before && activeTab(before).focus === tab.focus && leaves(activeTab(before).tree).length === ls.length) return;
+    const S = this.S;
+    const layout = st => st && `${st.active}|${st.zoom}|${leaves(activeTab(st).tree).length}|${['palette', 'help', 'agents', 'jump', 'notice'].includes(st.overlay?.kind)}`;
+    const changed = layout(before) !== layout(S);
+    // A new page opens on the whole window and stays there until something happens on it.
+    if (before && before.active !== S.active) { this.pin = null; this.hold = true; return this.go('wide', null, null, true); }
+    if (this.pin && !changed) return;
+    if (changed) this.pin = null;
+    if (this.hold && before && activeTab(before).focus === activeTab(S).focus && !changed) return;
     this.hold = false;
-    const wide = S.zoom || S.ui.side || ['palette', 'help', 'agents', 'jump', 'notice'].includes(S.overlay?.kind) || ls.length < 3;
-    if (wide) return this.go('wide');
-    const r = rects(tab.tree)[tab.focus], tree = this.root.querySelector('.tree');
-    if (!r || !tree || r.w * r.h > 0.4) return this.go('wide');
-    this.go(`${tab.id}:${tab.focus}:${ls.length}`, { x: tree.offsetLeft + r.x * tree.clientWidth, y: tree.offsetTop + r.y * tree.clientHeight, w: r.w * tree.clientWidth, h: r.h * tree.clientHeight });
+    const want = this.subject();
+    clearTimeout(this.pending);
+    if (want.key === this.framed) return;
+    // The shot is held for DWELL, unless the focused pane has left it: then the camera goes as soon as it settles.
+    const v = this.view, hw = this.width / (2 * v.z), hh = this.height / (2 * v.z), f = this.paneBox(activeTab(S).focus);
+    const seen = !f ? 1 : (Math.max(0, Math.min(f.x + f.w, v.x + hw) - Math.max(f.x, v.x - hw)) * Math.max(0, Math.min(f.y + f.h, v.y + hh) - Math.max(f.y, v.y - hh))) / (f.w * f.h);
+    const wait = seen < 0.6 ? 120 : Math.max(260, DWELL - (performance.now() - this.framedAt));
+    this.pending = setTimeout(() => { if (this.pin) return; const w = this.subject(); this.go(w.key, w.box); }, wait);
   }
-  // A directed close-up on one part of the window, by selector (the note being written, the result grid…).
+  // A close-up the script asks for, on one part of the window (the note being written, the result grid…). It is
+  // measured once the window's own animations end, and held until the layout changes or Stage.wide().
   // `z` forces the zoom when the part is too wide to be framed on its own.
   shot(sel, z) {
     if (!this.camera || this.fast) return;
-    const el = this.root.querySelector(sel);
-    if (!el) return;
-    const a = this.root.getBoundingClientRect(), b = el.getBoundingClientRect(), k = a.width / this.width;
-    this.pin = true; this.hold = false;
-    this.go(`shot:${sel}`, { x: (b.left - a.left) / k, y: (b.top - a.top) / k, w: b.width / k, h: b.height / k }, z);
+    this.pin = sel; this.hold = false;
+    clearTimeout(this.pending);
+    const id = this.run_, running = this.root.getAnimations({ subtree: true }).filter(an => an.effect?.getKeyframes?.().some(k => 'flexGrow' in k));
+    Promise.all(running.map(an => an.finished.catch(() => {}))).then(() => requestAnimationFrame(() => {
+      if (this.pin !== sel || id !== this.run_) return;
+      const el = this.root.querySelector(sel);
+      if (!el) return;
+      const a = this.root.getBoundingClientRect(), b = el.getBoundingClientRect(), k = a.width / this.width;
+      this.go(`shot:${sel}`, { x: (b.left - a.left) / k, y: (b.top - a.top) / k, w: b.width / k, h: b.height / k }, z, true);
+    }));
   }
-  // Frames a box given in the window's own pixels.
-  go(shot, box, force) {
-    if (shot === this.framed) return;
-    this.framed = shot;
-    if (!box) return this.move(0, 0, 1);
-    const s = this.scale, W = this.width * s, H = this.height * s;
-    const x = box.x * s, y = box.y * s, w = box.w * s, h = box.h * s;
-    const z = force ? Math.min(1.6, Math.max(1, force)) : Math.min(1.5, (W * 0.9) / w, (H * 0.9) / h);
-    if (z < 1.12) return this.move(0, 0, 1);
-    const clamp = (v, lo) => Math.min(0, Math.max(lo, v));
+  wide() { this.pin = null; this.hold = true; clearTimeout(this.pending); this.go('wide', null, null, true); }
+  // Frames a box given in the window's own pixels; `force` sets the zoom.
+  go(key, box, force, now) {
+    if (key === this.framed && !now) return;
+    this.framed = key; this.framedAt = performance.now();
+    if (!box) return this.move({ x: this.width / 2, y: this.height / 2, z: 1 });
+    let z = force ? Math.min(1.6, Math.max(1, force)) : Math.min(1.5, (this.width * 0.88) / box.w, (this.height * 0.88) / box.h);
+    if (z < 1.12) return this.move({ x: this.width / 2, y: this.height / 2, z: 1 });
     // A part taller than the shot is framed from its top, where a note or a page starts.
-    const top = h * z > H * 0.95 ? H * 0.04 - z * y : H / 2 - z * (y + h / 2);
-    this.move(clamp(W / 2 - z * (x + w / 2), W - z * W), clamp(top, H - z * H), z);
+    const y = box.h * z > this.height * 0.95 ? box.y + (0.46 * this.height) / z : box.y + box.h / 2;
+    this.move({ x: box.x + box.w / 2, y, z });
   }
-  move(x, y, z) {
-    this.cam.style.transform = z === 1 ? '' : `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) scale(${z.toFixed(3)})`;
-    this.host.classList.toggle('is-close', z !== 1);
+  // Moves the view (its centre in the window's pixels, and its zoom). A long move between two close-ups goes through
+  // a wider midpoint first.
+  move(to, { ms = 1150, ease = 'cubic-bezier(.65,0,.35,1)' } = {}) {
+    clearTimeout(this.leg);
+    const from = this.view, far = Math.hypot(to.x - from.x, to.y - from.y) / (this.width / Math.max(from.z, to.z));
+    if (from.z > 1.05 && to.z > 1.05 && far > 0.45) {
+      const mid = { x: (from.x + to.x) / 2, y: (from.y + to.y) / 2, z: Math.max(1, Math.min(from.z, to.z) * 0.78) };
+      this.place(mid, 620, 'cubic-bezier(.45,0,.55,1)');
+      this.leg = setTimeout(() => this.place(to, 900, 'cubic-bezier(.22,1,.36,1)'), 600);
+      return;
+    }
+    this.place(to, ms, ease);
   }
-  wide() { this.hold = true; this.pin = false; this.go('wide'); }
+  place(v, ms, ease) {
+    this.view = v;
+    const s = this.scale, W = this.width * s, H = this.height * s, z = v.z;
+    let tx = W / 2 - z * s * v.x, ty = H / 2 - z * s * v.y;
+    if (z >= 1) { tx = Math.min(0, Math.max(W - z * W, tx)); ty = Math.min(0, Math.max(H - z * H, ty)); }
+    else { tx = (W - z * W) / 2; ty = (H - z * H) / 2; }
+    this.cam.style.transition = ms ? `transform ${ms}ms ${ease}` : 'none';
+    this.cam.style.transform = Math.abs(z - 1) < 1e-3 ? '' : `translate(${tx.toFixed(1)}px, ${ty.toFixed(1)}px) scale(${z.toFixed(3)})`;
+    this.host.classList.toggle('is-close', z > 1.05);
+    this.host.classList.toggle('is-far', z < 0.98);
+  }
   // A hard cut back to the whole window, without the move (new state, resize, jump between chapters).
   cut() {
     if (!this.cam) return;
-    this.cam.style.transition = 'none';
-    this.framed = 'wide'; this.hold = false; this.pin = false;
-    this.move(0, 0, 1);
+    clearTimeout(this.leg); clearTimeout(this.pending);
+    this.framed = 'wide'; this.hold = false; this.pin = null;
+    this.place({ x: this.width / 2, y: this.height / 2, z: 1 }, 0);
     void this.cam.offsetWidth;
-    this.cam.style.transition = '';
+  }
+  // The focus beam: a thin light around the focused pane that glides to the next one when the focus moves, so the
+  // eye always knows where the action went. Hidden with one pane, on a zoomed pane or under a window-wide overlay.
+  beam() {
+    const el = this.beamEl;
+    if (!el || this.fast) return;
+    const S = this.S, tab = activeTab(S), box = this.paneBox(tab.focus);
+    const off = !box || leaves(tab.tree).length < 2 || S.zoom || S.ui.side || ['palette', 'help', 'agents', 'jump', 'notice'].includes(S.overlay?.kind);
+    el.classList.toggle('is-on', !off);
+    if (off) { this.beamKey = null; return; }
+    const key = `${tab.id}:${tab.focus}:${Math.round(box.x)}:${Math.round(box.y)}:${Math.round(box.w)}:${Math.round(box.h)}`;
+    if (key === this.beamKey) return;
+    const jumped = !this.beamKey || !this.beamKey.startsWith(`${tab.id}:`);
+    this.beamKey = key;
+    el.style.transition = jumped ? 'none' : '';
+    Object.assign(el.style, { transform: `translate(${box.x + 2}px, ${box.y + 2}px)`, width: `${box.w - 4}px`, height: `${box.h - 4}px` });
+    if (!jumped) el.animate([{ opacity: 1, boxShadow: '0 0 0 1px rgba(216,180,254,.9), 0 0 40px 6px rgba(180,107,255,.75)' }, { opacity: 0.7 }], { duration: 900, delay: 380, easing: 'ease-out' });
   }
 
   tick() {
@@ -258,12 +323,12 @@ export class Stage {
   // Every step checks its run id, so starting another script cancels the one in progress.
   async play(script) {
     const id = ++this.run_;
-    this.hideCard();
+    this.hideTitle();
     try { await script(this, id); return true; } catch (e) { if (e !== CANCEL) throw e; return false; }
   }
-  stop() { this.run_++; this.hideHud(); this.hideCard(); }
-  // A new run takes the title card and the letterbox down at once, even while the old run is still holding them.
-  hideCard() { for (const el of [this.cardEl, ...(this.bars ?? [])]) el?.getAnimations({ subtree: true }).forEach(a => a.cancel()); }
+  stop() { this.run_++; this.hideHud(); this.hideTitle(); }
+  // A new run takes the chapter title down at once, even while the old run is still holding it.
+  hideTitle() { if (this.titleEl) { this.titleEl.getAnimations({ subtree: true }).forEach(a => a.cancel()); this.titleEl.innerHTML = ''; } }
   check(id) { if (id !== undefined && id !== this.run_) throw CANCEL; }
   wait(ms, id) {
     this.check(id);
@@ -300,27 +365,32 @@ export class Stage {
     if (this.fast) { for (let i = 0; i < n; i++) this.dispatch({ type: 'TICK' }); return; }
     await this.wait(n * 1000 + 250, id);
   }
-  // A chapter's title card over the window, like a cut in a film: the letterbox closes in, a shooting star crosses,
-  // the words rise one by one, and the card lets go while the chapter already starts underneath.
-  // Only opacity and transform move.
-  async card({ kicker, title }, ms, id) {
+  // Between chapters the camera pulls back until the window floats in the dark, tilted like a product shot, a light
+  // runs across its glass, a shooting star crosses, and the next chapter's title rises word by word over it. Then the title lifts away while the camera pushes back in and
+  // the chapter already starts. Nothing stops: the window keeps living under the title.
+  async interlude({ kicker, title }, ms, id) {
     this.check(id);
-    if (!this.cardEl || this.fast || REDUCED) return;
-    this.hideCard();
-    const el = this.cardEl, inn = 240, E2 = 'cubic-bezier(.16,1,.3,1)';
+    if (!this.titleEl || this.fast || REDUCED) return;
+    this.hideTitle();
+    const el = this.titleEl, E2 = 'cubic-bezier(.16,1,.3,1)';
+    clearTimeout(this.untilt);
+    this.host.classList.add('is-tilting');
+    if (this.camera) { this.pin = null; this.hold = true; clearTimeout(this.pending); this.framed = 'far'; this.move({ x: this.width / 2, y: this.height / 2, z: 0.8 }, { ms: 950, ease: 'cubic-bezier(.65,0,.35,1)' }); }
     const words = title.split(' ').map(w => `<span class="w"><span>${w}</span></span>`).join(' ');
-    el.innerHTML = `<i class="stage__star"></i><div class="stage__card-in"><span class="stage__card-n"><i></i>${kicker}<i></i></span><b>${words}</b></div>`;
-    el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: inn, easing: 'ease-out', fill: 'forwards' });
-    for (const b of this.bars) b.animate([{ transform: 'scaleY(0)' }, { transform: 'none' }], { duration: 520, easing: E2, fill: 'forwards' });
-    el.querySelector('.stage__star').animate([{ opacity: 0, transform: 'translate(-70%, 0) rotate(-14deg)' }, { opacity: 1, offset: 0.25 }, { opacity: 0, transform: 'translate(70%, 0) rotate(-14deg)' }], { duration: 1000, easing: 'cubic-bezier(.3,.1,.2,1)', fill: 'forwards' });
-    el.querySelector('.stage__card-n').animate([{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }], { duration: 600, easing: E2, fill: 'forwards' });
-    for (const n of el.querySelectorAll('.stage__card-n i')) n.animate([{ transform: 'scaleX(0)' }, { transform: 'none' }], { duration: 700, delay: 120, easing: E2, fill: 'forwards' });
-    [...el.querySelectorAll('.w > span')].forEach((w, i) => w.animate([{ transform: 'translateY(105%)' }, { transform: 'none' }], { duration: 760, delay: 90 + i * 55, easing: E2, fill: 'backwards' }));
-    try { await this.wait(ms - inn / this.tempo, id); } finally {
-      // Only the run that showed the card takes it down; a newer run already cleared it.
+    el.innerHTML = `<i class="stage__meteor"></i><div class="stage__title-in"><span class="stage__kicker">${kicker}</span><b>${words}</b></div>`;
+    const inn = el.querySelector('.stage__title-in');
+    el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 500, easing: 'ease-out', fill: 'forwards' });
+    inn.animate([{ transform: 'translateY(10px)' }, { transform: 'translateY(-6px)' }], { duration: ms * this.tempo + 600, easing: 'linear', fill: 'forwards' });
+    el.querySelector('.stage__meteor').animate([{ opacity: 0, transform: 'translate(-30vw, -40px) rotate(-16deg) scaleX(.4)' }, { opacity: 1, offset: 0.3 }, { opacity: 0, transform: 'translate(40vw, 60px) rotate(-16deg) scaleX(1)' }], { duration: 1300, delay: 150, easing: 'cubic-bezier(.3,.1,.2,1)', fill: 'both' });
+    el.querySelector('.stage__kicker').animate([{ opacity: 0, transform: 'translateY(10px)', letterSpacing: '.5em' }, { opacity: 1, transform: 'none', letterSpacing: '.24em' }], { duration: 900, delay: 120, easing: E2, fill: 'both' });
+    [...el.querySelectorAll('.w > span')].forEach((w, i) => w.animate([{ transform: 'translateY(110%) rotate(4deg)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 900, delay: 220 + i * 70, easing: E2, fill: 'both' }));
+    try { await this.wait(ms, id); } finally {
       if (id === undefined || id === this.run_) {
-        el.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'scale(1.03)' }], { duration: 420, easing: 'ease-in', fill: 'forwards' });
-        for (const b of this.bars) b.animate([{ transform: 'none' }, { transform: 'scaleY(0)' }], { duration: 620, delay: 80, easing: E2, fill: 'forwards' });
+        [...el.querySelectorAll('.w > span')].forEach((w, i) => w.animate([{ transform: 'none', opacity: 1 }, { transform: 'translateY(-70%)', opacity: 0 }], { duration: 520, delay: i * 35, easing: 'cubic-bezier(.55,0,.75,.2)', fill: 'forwards' }));
+        el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 650, delay: 200, easing: 'ease-in', fill: 'forwards' });
+        if (this.camera) { this.hold = true; this.framed = 'wide'; this.framedAt = performance.now(); this.move({ x: this.width / 2, y: this.height / 2, z: 1 }, { ms: 1100, ease: 'cubic-bezier(.22,1,.36,1)' }); }
+        // The tilted layer is promoted only while it moves, so the window is sharp again once it is back.
+        this.untilt = setTimeout(() => this.host.classList.remove('is-tilting'), 1300);
       }
     }
   }

@@ -53,9 +53,9 @@ function showCaption(i) {
   caption.innerHTML = `<h3 class="caption__title"><span class="n">${pad(i + 1)} / ${pad(CHAPTERS.length)}</span>${c.title}</h3><p class="caption__text">${c.text}</p>`;
   markSteps(i);
 }
-const card = i => ({ kicker: `capítulo ${pad(i + 1)} · ${CHAPTERS[i].step}`, title: CHAPTERS[i].title });
-// One run plays from chapter `from` to the end, then starts over from a fresh window. Each chapter opens on its
-// title card and ends on a wide shot of what it built, held for a beat before the next card.
+const card = i => ({ kicker: `${pad(i + 1)} / ${pad(CHAPTERS.length)} · ${CHAPTERS[i].step}`, title: CHAPTERS[i].title });
+// One run plays from chapter `from` to the end, then starts over from a fresh window. Between two chapters the
+// camera pulls back with the next title over the window and pushes in again as the chapter starts, with no stop.
 function story(from = 0) {
   stage.play(async (s, id) => {
     let i = from;
@@ -68,9 +68,8 @@ function story(from = 0) {
     for (;;) {
       await s.whenVisible(id);
       showCaption(i);
-      await s.card(card(i), CARD, id);
+      await s.interlude(card(i), CARD, id);
       await CHAPTERS[i].run(s, id);
-      s.wide();
       await s.wait(i === CHAPTERS.length - 1 ? 2400 : PAUSE, id);
       i = (i + 1) % CHAPTERS.length;
       if (i === 0) {
