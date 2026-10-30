@@ -1,0 +1,295 @@
+{
+ "plugin": "automacoes",
+ "views": [
+  {
+   "id": "lista",
+   "label": "lista",
+   "list": "automations"
+  },
+  {
+   "id": "histórico",
+   "label": "histórico",
+   "list": "runs"
+  },
+  {
+   "id": "insights",
+   "label": "insights"
+  }
+ ],
+ "lists": {
+  "automations": {
+   "store": "automations",
+   "view": "lista",
+   "row": {
+    "g": "${on?●:○}",
+    "text": "${name}",
+    "meta": "${times} · próxima ${next}",
+    "tone": "${on?:dim}"
+   },
+   "space": {
+    "op": "toggle",
+    "path": "item.on",
+    "toast": "${name} ${on?ativa:pausada}"
+   },
+   "enter": {
+    "op": "form",
+    "form": "automation",
+    "label": "automação"
+   },
+   "actions": [
+    {
+     "key": "r",
+     "label": "executar agora",
+     "op": {
+      "op": "async",
+      "label": "executando ${name}",
+      "then": {
+       "op": "fn",
+       "name": "autoRun"
+      }
+     }
+    },
+    {
+     "key": "e",
+     "label": "editar",
+     "op": {
+      "op": "form",
+      "form": "automation",
+      "label": "automação"
+     }
+    },
+    {
+     "key": "h",
+     "label": "histórico",
+     "op": {
+      "op": "view",
+      "view": "histórico"
+     }
+    },
+    {
+     "key": "x",
+     "label": "excluir",
+     "op": {
+      "op": "remove",
+      "toast": "${name} excluída"
+     }
+    }
+   ]
+  },
+  "runs": {
+   "store": "runs",
+   "view": "histórico",
+   "row": {
+    "g": "${ok?●:✕}",
+    "text": "${automation}",
+    "meta": "${when} · ${dur}${error? · :}${error}",
+    "tone": "${ok?:err}"
+   },
+   "enter": {
+    "op": "fn",
+    "name": "runLog",
+    "what": "transcript"
+   },
+   "actions": [
+    {
+     "key": "d",
+     "label": "ver diff",
+     "op": {
+      "op": "fn",
+      "name": "runLog",
+      "what": "diff"
+     }
+    },
+    {
+     "key": "r",
+     "label": "replay",
+     "op": {
+      "op": "async",
+      "label": "replay de ${automation}",
+      "then": {
+       "op": "toast",
+       "text": "replay concluído"
+      }
+     }
+    }
+   ]
+  }
+ },
+ "forms": {
+  "automation": [
+   {
+    "field": "name",
+    "label": "nome",
+    "type": "text"
+   },
+   {
+    "field": "prompt",
+    "label": "prompt",
+    "type": "long"
+   },
+   {
+    "field": "times",
+    "label": "horários",
+    "type": "list"
+   },
+   {
+    "field": "dir",
+    "label": "diretório",
+    "type": "text"
+   },
+   {
+    "field": "model",
+    "label": "modelo",
+    "type": "choice",
+    "values": [
+     "opus 4.6",
+     "sonnet 4.6",
+     "haiku 4.5"
+    ]
+   },
+   {
+    "field": "system",
+    "label": "system prompt",
+    "type": "long"
+   },
+   {
+    "field": "destructive",
+    "label": "destrutivos permitidos",
+    "type": "list"
+   }
+  ]
+ },
+ "commands": [
+  {
+   "name": "new",
+   "desc": "nova automação",
+   "op": {
+    "op": "new",
+    "list": "automations",
+    "item": {
+     "name": "${$args}",
+     "times": [
+      "sex 18:00"
+     ],
+     "next": "sex 18:00",
+     "on": true,
+     "prompt": "",
+     "dir": "~/dev/cadente",
+     "model": "sonnet 4.6",
+     "system": "",
+     "destructive": []
+    },
+    "form": "automation",
+    "label": "automação"
+   }
+  }
+ ],
+ "seed": {
+  "automations": [
+   {
+    "id": "a1",
+    "name": "revisão-noturna",
+    "times": [
+     "02:00"
+    ],
+    "next": "amanhã 02:00",
+    "on": true,
+    "prompt": "Revise os PRs abertos e sugira comentários",
+    "dir": "~/dev/cadente",
+    "model": "opus 4.6",
+    "system": "",
+    "destructive": []
+   },
+   {
+    "id": "a2",
+    "name": "sync-worktrees",
+    "times": [
+     "a cada 30 min"
+    ],
+    "next": "em 18 min",
+    "on": true,
+    "prompt": "Sincronize as worktrees",
+    "dir": "~/dev",
+    "model": "haiku 4.5",
+    "system": "",
+    "destructive": [
+     "git fetch"
+    ]
+   },
+   {
+    "id": "a3",
+    "name": "relatório-uso",
+    "times": [
+     "seg 08:00"
+    ],
+    "next": "seg 08:00",
+    "on": true,
+    "prompt": "Resuma o uso da semana",
+    "dir": "~",
+    "model": "sonnet 4.6",
+    "system": "",
+    "destructive": []
+   },
+   {
+    "id": "a4",
+    "name": "limpar-sessões",
+    "times": [
+     "dom 23:00"
+    ],
+    "next": "pausada",
+    "on": false,
+    "prompt": "Arquive sessões antigas",
+    "dir": "~",
+    "model": "haiku 4.5",
+    "system": "",
+    "destructive": [
+     "arquivar"
+    ]
+   }
+  ],
+  "runs": [
+   {
+    "id": "r1",
+    "automation": "revisão-noturna",
+    "when": "há 9 h",
+    "ok": true,
+    "dur": "1 min 12 s",
+    "transcript": [
+     "leu 3 PRs abertos",
+     "1 comentário sugerido em #248"
+    ],
+    "diff": [
+     "+ comentário em pane.rs:44"
+    ]
+   },
+   {
+    "id": "r2",
+    "automation": "sync-worktrees",
+    "when": "há 12 min",
+    "ok": true,
+    "dur": "6 s",
+    "transcript": [
+     "cadente: 1 à frente",
+     "warp: 3 atrás"
+    ],
+    "diff": []
+   },
+   {
+    "id": "r3",
+    "automation": "relatório-uso",
+    "when": "há 4 d",
+    "ok": false,
+    "dur": "2 s",
+    "error": "limite de taxa do provider"
+   },
+   {
+    "id": "r4",
+    "automation": "relatório-uso",
+    "when": "há 11 d",
+    "ok": false,
+    "dur": "2 s",
+    "error": "limite de taxa do provider"
+   }
+  ]
+ }
+}

@@ -1,0 +1,524 @@
+{
+ "plugin": "requests",
+ "views": [
+  {
+   "id": "resposta",
+   "label": "resposta",
+   "sub": [
+    {
+     "label": "body"
+    },
+    {
+     "label": "headers"
+    }
+   ]
+  },
+  {
+   "id": "requisição",
+   "label": "requisição"
+  },
+  {
+   "id": "coleções",
+   "label": "coleções",
+   "list": "collections"
+  },
+  {
+   "id": "ambientes",
+   "label": "ambientes",
+   "list": "environments"
+  },
+  {
+   "id": "histórico",
+   "label": "histórico",
+   "list": "reqHistory"
+  },
+  {
+   "id": "descoberta",
+   "label": "descoberta"
+  },
+  {
+   "id": "abertas",
+   "label": "abertas",
+   "list": "openRequests"
+  }
+ ],
+ "lists": {
+  "collections": {
+   "store": "collections",
+   "view": "coleções",
+   "row": {
+    "g": "${g}",
+    "text": "${name}",
+    "meta": "${kind}"
+   },
+   "enter": {
+    "op": "seq",
+    "ops": [
+     {
+      "op": "set",
+      "path": "store.reqDraft.url",
+      "value": "https://api.example.test${path}"
+     },
+     {
+      "op": "view",
+      "view": "requisição"
+     }
+    ]
+   },
+   "actions": [
+    {
+     "key": "r",
+     "label": "renomear",
+     "op": {
+      "op": "edit",
+      "field": "name",
+      "label": "nome"
+     }
+    },
+    {
+     "key": "d",
+     "label": "duplicar",
+     "op": {
+      "op": "dup"
+     }
+    },
+    {
+     "key": "x",
+     "label": "excluir",
+     "op": {
+      "op": "remove",
+      "toast": "${name} excluída"
+     }
+    }
+   ]
+  },
+  "environments": {
+   "store": "environments",
+   "view": "ambientes",
+   "row": {
+    "g": "${active?●:○}",
+    "text": "${name}",
+    "meta": "${vars}"
+   },
+   "enter": {
+    "op": "set",
+    "path": "item.active",
+    "value": true,
+    "exclusive": true,
+    "toast": "ambiente ${name} ativo"
+   },
+   "actions": [
+    {
+     "key": "e",
+     "label": "editar variáveis",
+     "op": {
+      "op": "form",
+      "form": "env",
+      "label": "ambiente"
+     }
+    },
+    {
+     "key": "x",
+     "label": "excluir",
+     "op": {
+      "op": "remove",
+      "toast": "ambiente ${name} excluído"
+     }
+    }
+   ]
+  },
+  "reqHistory": {
+   "store": "reqHistory",
+   "view": "histórico",
+   "row": {
+    "g": "↺",
+    "text": "${line}",
+    "meta": "${status}"
+   },
+   "enter": {
+    "op": "log",
+    "cmd": "${line} · body anterior",
+    "out": [
+     "{ \"access_token\": \"••••\", \"expires_in\": 3600 }"
+    ]
+   },
+   "actions": [
+    {
+     "key": "o",
+     "label": "reabrir",
+     "op": {
+      "op": "fn",
+      "name": "reopen"
+     }
+    }
+   ]
+  },
+  "openRequests": {
+   "store": "openRequests",
+   "view": "abertas",
+   "row": {
+    "g": "·",
+    "text": "${line}"
+   },
+   "enter": {
+    "op": "fn",
+    "name": "reopen"
+   },
+   "actions": [
+    {
+     "key": "x",
+     "label": "fechar",
+     "op": {
+      "op": "remove",
+      "toast": "aba fechada"
+     }
+    }
+   ]
+  }
+ },
+ "itemActions": {
+  "param": [
+   {
+    "key": "x",
+    "label": "remover",
+    "op": {
+     "op": "fn",
+     "name": "reqDrop"
+    }
+   }
+  ],
+  "res": [
+   {
+    "key": "c",
+    "label": "copiar resultado",
+    "op": {
+     "op": "toast",
+     "text": "resposta copiada"
+    }
+   }
+  ],
+  "conflict": [
+   {
+    "key": "a",
+    "label": "aceitar o remoto",
+    "op": {
+     "op": "fn",
+     "name": "conflict",
+     "choice": "aceitar remoto"
+    }
+   },
+   {
+    "key": "m",
+    "label": "manter o local",
+    "op": {
+     "op": "fn",
+     "name": "conflict",
+     "choice": "manter local"
+    }
+   }
+  ]
+ },
+ "forms": {
+  "env": [
+   {
+    "field": "name",
+    "label": "nome",
+    "type": "text"
+   },
+   {
+    "field": "vars",
+    "label": "variáveis",
+    "type": "long"
+   }
+  ]
+ },
+ "commands": [
+  {
+   "name": "new-collection",
+   "desc": "nova coleção",
+   "op": {
+    "op": "push",
+    "path": "store.collections",
+    "value": {
+     "kind": "coleção",
+     "g": "▾",
+     "name": "${$args}"
+    },
+    "toast": "coleção ${$args} criada"
+   }
+  },
+  {
+   "name": "new-folder",
+   "desc": "nova pasta",
+   "op": {
+    "op": "push",
+    "path": "store.collections",
+    "value": {
+     "kind": "pasta",
+     "g": " ▸",
+     "name": "${$args}"
+    },
+    "toast": "pasta ${$args} criada"
+   }
+  },
+  {
+   "name": "new-request",
+   "desc": "nova request",
+   "op": {
+    "op": "push",
+    "path": "store.collections",
+    "value": {
+     "kind": "request",
+     "g": "  ·",
+     "name": "${$args}"
+    },
+    "toast": "request ${$args} criada"
+   }
+  },
+  {
+   "name": "new-tab",
+   "desc": "abrir outra request",
+   "op": {
+    "op": "push",
+    "path": "store.openRequests",
+    "value": {
+     "line": "${$args}"
+    },
+    "toast": "aba ${$args}"
+   }
+  },
+  {
+   "name": "param",
+   "desc": "param k=v",
+   "op": {
+    "op": "fn",
+    "name": "reqParam",
+    "list": "params"
+   }
+  },
+  {
+   "name": "header",
+   "desc": "header k: v",
+   "op": {
+    "op": "fn",
+    "name": "reqParam",
+    "list": "headers"
+   }
+  },
+  {
+   "name": "format",
+   "desc": "bruto ou formatado",
+   "op": {
+    "op": "toggle",
+    "path": "data.raw"
+   }
+  },
+  {
+   "name": "new-environment",
+   "desc": "novo ambiente",
+   "op": {
+    "op": "new",
+    "list": "environments",
+    "item": {
+     "name": "novo",
+     "vars": "base=",
+     "active": false
+    },
+    "form": "env",
+    "label": "ambiente",
+    "back": "ambientes"
+   }
+  },
+  {
+   "name": "import",
+   "desc": "curl · postman · insomnia",
+   "op": {
+    "op": "fn",
+    "name": "importStart"
+   }
+  },
+  {
+   "name": "export",
+   "desc": "curl · postman · insomnia",
+   "op": {
+    "op": "log",
+    "cmd": "exportar ${$args}",
+    "out": [
+     "cadente.${$args}_collection.json salvo em ~/Downloads"
+    ]
+   }
+  },
+  {
+   "name": "detect",
+   "desc": "detectar configuração",
+   "op": {
+    "op": "fn",
+    "name": "detect"
+   }
+  },
+  {
+   "name": "scan",
+   "desc": "scan estático",
+   "op": {
+    "op": "seq",
+    "ops": [
+     {
+      "op": "view",
+      "view": "descoberta"
+     },
+     {
+      "op": "async",
+      "label": "escaneando",
+      "then": {
+       "op": "fn",
+       "name": "scanDone"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "name": "sync",
+   "desc": "sync incremental",
+   "op": {
+    "op": "fn",
+    "name": "sync"
+   }
+  },
+  {
+   "name": "apply",
+   "desc": "aplicar alterações",
+   "op": {
+    "op": "fn",
+    "name": "apply"
+   }
+  },
+  {
+   "name": "clear-history",
+   "desc": "limpar histórico",
+   "op": {
+    "op": "confirm",
+    "text": "limpar todo o histórico?",
+    "then": {
+     "op": "set",
+     "path": "store.reqHistory",
+     "value": []
+    }
+   }
+  }
+ ],
+ "seed": {
+  "reqDraft": {
+   "method": "GET",
+   "url": "{{base}}/v1/projects",
+   "params": [
+    {
+     "k": "limit",
+     "v": "20",
+     "on": true
+    },
+    {
+     "k": "sort",
+     "v": "updated_at",
+     "on": true
+    }
+   ],
+   "headers": [
+    {
+     "k": "accept",
+     "v": "application/json",
+     "on": true
+    }
+   ],
+   "bodyType": "json",
+   "body": "",
+   "auth": "none",
+   "token": "••••"
+  },
+  "environments": [
+   {
+    "id": "e1",
+    "name": "local",
+    "vars": "base=http://localhost:8080",
+    "active": true
+   },
+   {
+    "id": "e2",
+    "name": "staging",
+    "vars": "base=https://staging.api.example.test",
+    "active": false
+   },
+   {
+    "id": "e3",
+    "name": "produção",
+    "vars": "base=https://api.example.test",
+    "active": false
+   }
+  ],
+  "collections": [
+   {
+    "id": "c1",
+    "kind": "coleção",
+    "g": "▾",
+    "name": "projetos"
+   },
+   {
+    "id": "c2",
+    "kind": "request",
+    "g": "  ·",
+    "name": "GET /v1/projects",
+    "path": "/v1/projects"
+   },
+   {
+    "id": "c3",
+    "kind": "request",
+    "g": "  ·",
+    "name": "POST /v1/projects",
+    "path": "/v1/projects"
+   },
+   {
+    "id": "c4",
+    "kind": "pasta",
+    "g": " ▸",
+    "name": "admin-legado"
+   },
+   {
+    "id": "c5",
+    "kind": "coleção",
+    "g": "▾",
+    "name": "auth"
+   },
+   {
+    "id": "c6",
+    "kind": "request",
+    "g": "  ·",
+    "name": "POST /oauth/token",
+    "path": "/oauth/token"
+   }
+  ],
+  "reqHistory": [
+   {
+    "id": "h1",
+    "line": "POST /oauth/token",
+    "status": 200,
+    "url": "https://api.example.test/oauth/token"
+   },
+   {
+    "id": "h2",
+    "line": "GET /v1/projects",
+    "status": 200,
+    "url": "https://api.example.test/v1/projects"
+   }
+  ],
+  "openRequests": [
+   {
+    "id": "o1",
+    "line": "GET /v1/projects"
+   },
+   {
+    "id": "o2",
+    "line": "GET /v1/health"
+   }
+  ]
+ }
+}

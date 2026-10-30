@@ -1,0 +1,834 @@
+{
+ "plugin": "pr",
+ "views": [
+  {
+   "id": "todos",
+   "label": "todos"
+  },
+  {
+   "id": "favoritos",
+   "label": "favoritos"
+  },
+  {
+   "id": "time",
+   "label": "time"
+  },
+  {
+   "id": "descobertos",
+   "label": "descobertos"
+  },
+  {
+   "id": "templates",
+   "label": "templates",
+   "list": "templates"
+  }
+ ],
+ "detailViews": [
+  {
+   "id": "resumo",
+   "label": "resumo"
+  },
+  {
+   "id": "diff",
+   "label": "diff"
+  },
+  {
+   "id": "arquivos",
+   "label": "arquivos"
+  },
+  {
+   "id": "checks",
+   "label": "checks"
+  },
+  {
+   "id": "threads",
+   "label": "threads",
+   "sub": [
+    {
+     "label": "não resolvidos"
+    },
+    {
+     "label": "resolvidos"
+    },
+    {
+     "label": "todos"
+    }
+   ]
+  },
+  {
+   "id": "revisão",
+   "label": "revisão"
+  },
+  {
+   "id": "rascunho",
+   "label": "rascunho"
+  }
+ ],
+ "lists": {
+  "prs": {
+   "store": "prs",
+   "row": {
+    "text": "#${n} ${title}"
+   },
+   "enter": {
+    "op": "fn",
+    "name": "openPr"
+   },
+   "actions": [
+    {
+     "key": "f",
+     "label": "favoritar",
+     "op": {
+      "op": "toggle",
+      "path": "item.fav",
+      "toast": "#${n} ${fav?nos favoritos:fora dos favoritos}"
+     }
+    },
+    {
+     "key": "l",
+     "label": "curtir · revisado por mim",
+     "op": {
+      "op": "fn",
+      "name": "like"
+     }
+    },
+    {
+     "key": "u",
+     "label": "atualizar",
+     "op": {
+      "op": "async",
+      "label": "atualizando #${n}",
+      "then": {
+       "op": "toast",
+       "text": "#${n} atualizado"
+      }
+     }
+    },
+    {
+     "key": "g",
+     "label": "abrir no GitHub",
+     "op": {
+      "op": "toast",
+      "text": "abrindo github.com/${repo}/pull/${n} no navegador"
+     }
+    },
+    {
+     "key": "x",
+     "label": "deixar de acompanhar",
+     "op": {
+      "op": "remove",
+      "toast": "#${n} fora da lista"
+     }
+    }
+   ]
+  },
+  "discovered": {
+   "store": "discovered",
+   "row": {
+    "text": "#${n} ${title}"
+   },
+   "enter": {
+    "op": "fn",
+    "name": "track"
+   },
+   "actions": [
+    {
+     "key": "t",
+     "label": "acompanhar",
+     "op": {
+      "op": "fn",
+      "name": "track"
+     },
+     "view": "descobertos"
+    }
+   ]
+  },
+  "templates": {
+   "store": "templates",
+   "view": "templates",
+   "row": {
+    "g": "${selected?●:·}",
+    "text": "${name}",
+    "meta": "${description}"
+   },
+   "enter": {
+    "op": "seq",
+    "ops": [
+     {
+      "op": "set",
+      "path": "item.selected",
+      "value": true,
+      "exclusive": true
+     },
+     {
+      "op": "set",
+      "path": "store.prSettings.template",
+      "value": "${id}"
+     },
+     {
+      "op": "toast",
+      "text": "template ${name} selecionado"
+     }
+    ]
+   },
+   "actions": [
+    {
+     "key": "e",
+     "label": "editar",
+     "op": {
+      "op": "form",
+      "form": "template",
+      "label": "template"
+     }
+    },
+    {
+     "key": "d",
+     "label": "duplicar",
+     "op": {
+      "op": "dup"
+     }
+    },
+    {
+     "key": "x",
+     "label": "excluir",
+     "op": {
+      "op": "remove",
+      "toast": "template ${name} excluído"
+     }
+    }
+   ]
+  }
+ },
+ "itemActions": {
+  "member": [
+   {
+    "key": "x",
+    "label": "remover do time",
+    "op": {
+     "op": "confirm",
+     "text": "remover @${login} do time?",
+     "then": {
+      "op": "fn",
+      "name": "removeMember"
+     }
+    }
+   }
+  ],
+  "file": [
+   {
+    "key": "f",
+    "label": "focar a revisão neste arquivo",
+    "op": {
+     "op": "fn",
+     "name": "focusFile"
+    }
+   }
+  ],
+  "th": [
+   {
+    "key": "g",
+    "label": "ir para a linha",
+    "op": {
+     "op": "fn",
+     "name": "gotoLine"
+    }
+   },
+   {
+    "key": "r",
+    "label": "responder",
+    "op": {
+     "op": "fn",
+     "name": "reply"
+    }
+   },
+   {
+    "key": "s",
+    "label": "resolver ou reabrir",
+    "op": {
+     "op": "fn",
+     "name": "resolve"
+    }
+   }
+  ],
+  "dc": [
+   {
+    "key": "x",
+    "label": "remover do rascunho",
+    "op": {
+     "op": "fn",
+     "name": "removeDraft"
+    }
+   },
+   {
+    "key": "c",
+    "label": "corrigir entrada inválida",
+    "op": {
+     "op": "fn",
+     "name": "fixDraft"
+    }
+   }
+  ]
+ },
+ "forms": {
+  "template": [
+   {
+    "field": "name",
+    "label": "nome",
+    "type": "text"
+   },
+   {
+    "field": "description",
+    "label": "descrição",
+    "type": "text"
+   },
+   {
+    "field": "icon",
+    "label": "ícone",
+    "type": "choice",
+    "values": [
+     "search",
+     "shield",
+     "activity",
+     "layers",
+     "alert",
+     "sparkle",
+     "code",
+     "wrench"
+    ]
+   },
+   {
+    "field": "instructions",
+    "label": "instruções",
+    "type": "long"
+   },
+   {
+    "field": "format",
+    "label": "formato",
+    "type": "long"
+   }
+  ]
+ },
+ "commands": [
+  {
+   "name": "sync",
+   "desc": "sincronizar todos os PRs",
+   "op": {
+    "op": "async",
+    "label": "sincronizando",
+    "then": {
+     "op": "toast",
+     "text": "4 PRs sincronizados"
+    }
+   }
+  },
+  {
+   "name": "track",
+   "desc": "acompanhar PR pela URL",
+   "op": {
+    "op": "fn",
+    "name": "track"
+   }
+  },
+  {
+   "name": "search",
+   "desc": "buscar PR nos repositórios",
+   "op": {
+    "op": "fn",
+    "name": "search"
+   }
+  },
+  {
+   "name": "team-add",
+   "desc": "adicionar membro",
+   "op": {
+    "op": "fn",
+    "name": "addMember"
+   }
+  },
+  {
+   "name": "group",
+   "desc": "status · projeto · autor",
+   "op": {
+    "op": "fn",
+    "name": "group"
+   }
+  },
+  {
+   "name": "new-template",
+   "desc": "novo template de revisão",
+   "op": {
+    "op": "seq",
+    "ops": [
+     {
+      "op": "view",
+      "view": "templates"
+     },
+     {
+      "op": "new",
+      "list": "templates",
+      "item": {
+       "name": "",
+       "description": "",
+       "icon": "search",
+       "instructions": "",
+       "format": "## Bloqueadores\n## Sugestões"
+      },
+      "form": "template",
+      "label": "template",
+      "back": "templates"
+     }
+    ]
+   }
+  },
+  {
+   "name": "simulate-commit",
+   "desc": "demonstração: novo commit no PR",
+   "op": {
+    "op": "fn",
+    "name": "newCommit"
+   }
+  },
+  {
+   "name": "disconnect-github",
+   "desc": "demonstração: GitHub desconectado",
+   "op": {
+    "op": "set",
+    "path": "store.prSettings.github",
+    "value": false,
+    "toast": "GitHub desconectado"
+   }
+  },
+  {
+   "name": "connect-github",
+   "desc": "conectar GitHub",
+   "op": {
+    "op": "set",
+    "path": "store.prSettings.github",
+    "value": true,
+    "toast": "GitHub conectado"
+   }
+  },
+  {
+   "name": "language",
+   "desc": "pt · en · es",
+   "op": {
+    "op": "fn",
+    "name": "setting",
+    "field": "language",
+    "label": "idioma"
+   }
+  },
+  {
+   "name": "model",
+   "desc": "modelo da revisão",
+   "op": {
+    "op": "fn",
+    "name": "setting",
+    "field": "model",
+    "label": "modelo"
+   }
+  },
+  {
+   "name": "effort",
+   "desc": "low · medium · high",
+   "op": {
+    "op": "fn",
+    "name": "setting",
+    "field": "effort",
+    "label": "esforço"
+   }
+  },
+  {
+   "name": "review",
+   "desc": "iniciar revisão com IA",
+   "op": {
+    "op": "fn",
+    "name": "review"
+   }
+  },
+  {
+   "name": "comment",
+   "desc": "comentário na conversa geral",
+   "op": {
+    "op": "fn",
+    "name": "comment"
+   }
+  },
+  {
+   "name": "preview",
+   "desc": "prévia como no GitHub",
+   "op": {
+    "op": "toggle",
+    "path": "data.preview"
+   }
+  }
+ ],
+ "seed": {
+  "prs": [
+   {
+    "id": "pr248",
+    "n": 248,
+    "title": "Painéis universais de plugins",
+    "repo": "cadente/cadente",
+    "author": "ana",
+    "branch": "feature/universal-panes",
+    "updated": "há 1 h",
+    "checks": "ok",
+    "ci": "3/3",
+    "approvals": 1,
+    "pending": [
+     "leo"
+    ],
+    "conflicts": false,
+    "rev": "r3",
+    "like": null,
+    "fav": false,
+    "files": [
+     {
+      "path": "crates/cadente-ui/src/pane.rs",
+      "add": 4,
+      "del": 2,
+      "lines": [
+       [
+        40,
+        40,
+        " ",
+        "use std::collections::HashMap;"
+       ],
+       [
+        41,
+        41,
+        " ",
+        "use crate::context::{PaneContext, SplitAxis};"
+       ],
+       [
+        43,
+        null,
+        "-",
+        "pub plugin: PluginKind,"
+       ],
+       [
+        44,
+        null,
+        "-",
+        "pub reserved_terminal: bool,"
+       ],
+       [
+        null,
+        43,
+        "+",
+        "pub plugin: Option<PluginInstance>,"
+       ],
+       [
+        null,
+        44,
+        "+",
+        "pub context: PaneContext,"
+       ],
+       [
+        null,
+        45,
+        "+",
+        "pub focus_memory: Option<FocusTarget>,"
+       ],
+       [
+        null,
+        46,
+        "+",
+        "pub isolated_state: PaneStateStore,"
+       ],
+       [
+        45,
+        47,
+        " ",
+        "pub draft: String,"
+       ],
+       [
+        46,
+        48,
+        " ",
+        "pub undo_stack: Vec<ClosedLeafSnapshot>,"
+       ]
+      ]
+     },
+     {
+      "path": "crates/cadente-ui/src/layout.rs",
+      "add": 11,
+      "del": 5,
+      "lines": [
+       [
+        12,
+        12,
+        " ",
+        "pub fn focus_neighbor(tree: &SplitTree, dir: Direction) -> Option<PaneId> {"
+       ],
+       [
+        13,
+        null,
+        "-",
+        "    tree.leaves().next()"
+       ],
+       [
+        null,
+        13,
+        "+",
+        "    let origin = tree.rect(tree.focused())?;"
+       ],
+       [
+        null,
+        14,
+        "+",
+        "    tree.nearest(origin, dir)"
+       ],
+       [
+        14,
+        15,
+        " ",
+        "}"
+       ]
+      ]
+     }
+    ],
+    "threads": [
+     {
+      "path": "crates/cadente-ui/src/pane.rs",
+      "line": 44,
+      "who": "ana",
+      "text": "O contexto deve acompanhar a folha depois da divisão.",
+      "replies": [
+       "leo: concordo, copiar e não vincular"
+      ]
+     },
+     {
+      "path": "crates/cadente-ui/src/layout.rs",
+      "line": 13,
+      "who": "leo",
+      "text": "origin pode ser None em folha zoom.",
+      "resolved": true,
+      "replies": [
+       "ana: tratado com ?"
+      ]
+     }
+    ],
+    "conversation": [
+     "ana: pronto para revisão",
+     "bot: CI verde em 3/3"
+    ],
+    "checkList": [
+     [
+      "cargo test",
+      "ok"
+     ],
+     [
+      "clippy",
+      "ok"
+     ],
+     [
+      "slint build",
+      "ok"
+     ]
+    ]
+   },
+   {
+    "id": "pr249",
+    "n": 249,
+    "title": "Restaurar foco depois de alternar painéis",
+    "repo": "cadente/cadente",
+    "author": "leo",
+    "branch": "fix/focus-restore",
+    "updated": "há 3 h",
+    "checks": "rodando",
+    "ci": "2/3",
+    "approvals": 0,
+    "pending": [
+     "ana"
+    ],
+    "conflicts": false,
+    "rev": "r1",
+    "like": null,
+    "fav": false,
+    "files": [
+     {
+      "path": "crates/cadente-ui/src/focus.rs",
+      "add": 6,
+      "del": 1,
+      "lines": [
+       [
+        8,
+        8,
+        " ",
+        "impl FocusMemory {"
+       ],
+       [
+        9,
+        null,
+        "-",
+        "    pub fn restore(&self) {}"
+       ],
+       [
+        null,
+        9,
+        "+",
+        "    pub fn restore(&self, tab: TabId) -> Option<PaneId> {"
+       ],
+       [
+        null,
+        10,
+        "+",
+        "        self.by_tab.get(&tab).copied()"
+       ],
+       [
+        null,
+        11,
+        "+",
+        "    }"
+       ],
+       [
+        10,
+        12,
+        " ",
+        "}"
+       ]
+      ]
+     }
+    ],
+    "threads": [],
+    "conversation": [],
+    "checkList": [
+     [
+      "cargo test",
+      "ok"
+     ],
+     [
+      "clippy",
+      "rodando"
+     ],
+     [
+      "slint build",
+      "ok"
+     ]
+    ]
+   },
+   {
+    "id": "pr241",
+    "n": 241,
+    "title": "Hotfix do OAuth no login",
+    "repo": "cadente/cadente",
+    "author": "você",
+    "mine": true,
+    "branch": "hotfix/oauth",
+    "updated": "ontem",
+    "checks": "falhou",
+    "ci": "1/3",
+    "approvals": 0,
+    "pending": [
+     "ana",
+     "leo"
+    ],
+    "conflicts": true,
+    "rev": "r2",
+    "like": null,
+    "fav": false,
+    "files": [],
+    "threads": [],
+    "conversation": [],
+    "checkList": [
+     [
+      "cargo test",
+      "falhou"
+     ],
+     [
+      "clippy",
+      "ok"
+     ],
+     [
+      "slint build",
+      "falhou"
+     ]
+    ]
+   },
+   {
+    "id": "pr87",
+    "n": 87,
+    "title": "Atualizar dependências do terminal",
+    "repo": "cadente/warp-fork",
+    "author": "bot",
+    "branch": "deps/terminal",
+    "updated": "há 2 d",
+    "checks": "ok",
+    "ci": "3/3",
+    "approvals": 2,
+    "pending": [],
+    "conflicts": false,
+    "rev": "r1",
+    "like": null,
+    "fav": false,
+    "files": [],
+    "threads": [],
+    "conversation": [],
+    "checkList": [
+     [
+      "cargo test",
+      "ok"
+     ],
+     [
+      "clippy",
+      "ok"
+     ],
+     [
+      "slint build",
+      "ok"
+     ]
+    ]
+   }
+  ],
+  "discovered": [
+   {
+    "id": "d250",
+    "n": 250,
+    "title": "Ajustar tema claro",
+    "repo": "cadente/cadente",
+    "author": "mia"
+   },
+   {
+    "id": "d12",
+    "n": 12,
+    "title": "Página de download",
+    "repo": "cadente/hub",
+    "author": "leo"
+   }
+  ],
+  "team": [
+   "ana"
+  ],
+  "templates": [
+   {
+    "id": "tpl-geral",
+    "name": "Geral",
+    "description": "revisão equilibrada",
+    "icon": "search",
+    "instructions": "Contexto do projeto e convenções.",
+    "format": "## Bloqueadores\n## Sugestões",
+    "selected": true
+   },
+   {
+    "id": "tpl-perf",
+    "name": "Performance",
+    "description": "memória e alocações",
+    "icon": "activity",
+    "instructions": "Procure cópias e alocações redundantes.",
+    "format": "## Custos\n## Sugestões"
+   }
+  ],
+  "prSettings": {
+   "groups": [
+    "status"
+   ],
+   "template": "tpl-geral",
+   "language": "pt",
+   "model": "opus 4.6",
+   "effort": "high",
+   "github": true
+  }
+ }
+}

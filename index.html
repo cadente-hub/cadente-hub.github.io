@@ -1,750 +1,301 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cadente — the AI harness you control</title>
-  <meta name="description" content="Cadente — the AI harness you control. Use any model, including your Claude or ChatGPT subscription; see exactly what the model sees; undo any step; replace any part of the agent with a plugin." />
+  <meta name="color-scheme" content="dark" />
+  <meta name="theme-color" content="#000000" />
+  <title>Cadente — divida a tela, escolha o plugin</title>
+  <meta name="description" content="Cadente é um app de desktop para trabalhar com IA no teclado. Chat, Terminal, PRs, Requests, Calendário e outros plugins lado a lado, numa janela só. Grátis para macOS, Windows e Linux." />
   <meta property="og:title" content="Cadente" />
-  <meta property="og:description" content="The AI harness you control: any model, every step visible, every edit undoable, every part replaceable." />
+  <meta property="og:description" content="Divida a tela, escolha o plugin. Tudo no Cadente é plugin, e o dono é você." />
   <meta property="og:image" content="https://cadente-hub.github.io/assets/og-image.png" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://cadente-hub.github.io" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Cadente" />
-  <meta name="twitter:description" content="The AI harness you control: any model, every step visible, every edit undoable, every part replaceable." />
+  <meta name="twitter:description" content="Divida a tela, escolha o plugin. Tudo no Cadente é plugin, e o dono é você." />
   <meta name="twitter:image" content="https://cadente-hub.github.io/assets/og-image.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="./css/style.css" />
-  <link rel="stylesheet" href="./css/sky.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./css/site.css" />
+  <link rel="stylesheet" href="./css/v4-theme.css" />
+  <link rel="stylesheet" href="./css/v4.css" />
   <link rel="stylesheet" href="./css/home.css" />
-  <script>if (!matchMedia("(prefers-reduced-motion: reduce)").matches) document.documentElement.classList.add("js-motion");</script>
+  <script>if (!matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('js-motion');</script>
   <link rel="icon" type="image/png" sizes="32x32" href="./assets/favicon-32.png" />
   <link rel="icon" type="image/x-icon" href="./assets/favicon.ico" />
   <link rel="apple-touch-icon" sizes="180x180" href="./assets/apple-touch-icon.png" />
   <meta name="google-site-verification" content="HGFZHpKEZzOsP2slAus8nx0z4HrCyMUmFyTK2WrWpVA" />
 </head>
 <body class="home">
-  <canvas id="sky" class="sky" aria-hidden="true"></canvas>
-  <!-- Navigation -->
-  <header class="navbar" id="navbar">
-    <nav class="navbar__inner container">
-      <a href="./" class="navbar__logo">
-        <svg class="navbar__logo-icon" width="24" height="24" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="c-grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#d4a87a"/><stop offset="50%" stop-color="#c4956a"/><stop offset="100%" stop-color="#b08050"/></linearGradient><linearGradient id="c-spark" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#f0dcc8"/><stop offset="100%" stop-color="#dbb896"/></linearGradient></defs><path d="M 379 153 A 160 160 0 1 0 379 359" fill="none" stroke="url(#c-grad)" stroke-width="56" stroke-linecap="round"/><path d="M 356 188 A 118 118 0 1 0 356 324" fill="none" stroke="url(#c-grad)" stroke-width="4" stroke-linecap="round" opacity="0.25"/><path d="M 424 240 L 429 252 L 442 256 L 429 260 L 424 272 L 419 260 L 406 256 L 419 252 Z" fill="url(#c-spark)"/></svg>
-        Cadente
+  <a class="skip" href="#conteudo">Pular para o conteúdo</a>
+
+  <header class="nav" id="nav">
+    <nav class="nav__inner wrap" aria-label="Navegação principal">
+      <a href="./" class="brand" aria-label="Cadente, início">
+        <svg class="brand__mark" viewBox="0 0 512 512" aria-hidden="true"><path d="M 379 153 A 160 160 0 1 0 379 359" fill="none" stroke="currentColor" stroke-width="56" stroke-linecap="round"/><path class="brand__spark" d="M 424 240 L 429 252 L 442 256 L 429 260 L 424 272 L 419 260 L 406 256 L 419 252 Z"/></svg>
+        <span>Cadente</span>
       </a>
-      <ul class="navbar__links">
-        <li><a href="#models">Models</a></li>
-        <li><a href="#inside">See inside</a></li>
+      <ul class="nav__links">
+        <li><a href="#abrir">Como funciona</a></li>
         <li><a href="#plugins">Plugins</a></li>
-        <li><a href="#pricing">Pricing</a></li>
-        <li><a href="./downloads.html">Downloads</a></li>
+        <li><a href="#dono">Arquitetura</a></li>
+        <li><a href="#loja">Loja</a></li>
+        <li><a href="#creator">Creator mode</a></li>
         <li><a href="./blog/">Blog</a></li>
       </ul>
-      <div class="navbar__actions">
-        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
-          <span class="theme-toggle__icon theme-toggle__icon--sun">&#9788;</span>
-          <span class="theme-toggle__icon theme-toggle__icon--moon">&#9790;</span>
-        </button>
-        <a href="./downloads.html" class="btn btn--sm btn--primary navbar__cta">Download</a>
-      </div>
-      <button class="navbar__hamburger" id="hamburger" aria-label="Toggle menu">
-        <span></span>
-        <span></span>
-        <span></span>
-      </button>
+      <a href="./downloads.html" class="btn btn--light btn--sm nav__cta">Baixar grátis</a>
+      <button class="nav__menu" id="nav-menu" aria-label="Abrir menu" aria-expanded="false" aria-controls="nav-sheet"><span></span><span></span></button>
     </nav>
+    <div class="nav__sheet" id="nav-sheet" hidden>
+      <a href="#abrir">Como funciona</a>
+      <a href="#plugins">Plugins</a>
+      <a href="#dono">Arquitetura</a>
+      <a href="#loja">Loja</a>
+      <a href="#creator">Creator mode</a>
+      <a href="./blog/">Blog</a>
+      <a href="./downloads.html" class="btn btn--light">Baixar grátis</a>
+    </div>
   </header>
 
-  <!-- Mobile Menu -->
-  <div class="mobile-menu" id="mobile-menu">
-    <ul class="mobile-menu__links">
-      <li><a href="#models">Models</a></li>
-      <li><a href="#inside">See inside</a></li>
-      <li><a href="#plugins">Plugins</a></li>
-      <li><a href="#features">Features</a></li>
-      <li><a href="#pricing">Pricing</a></li>
-      <li><a href="./downloads.html">Downloads</a></li>
-      <li><a href="./release-notes.html">Release Notes</a></li>
-      <li><a href="./blog/">Blog</a></li>
-      <li><a href="./downloads.html" class="btn btn--primary">Download Now</a></li>
-    </ul>
-  </div>
-
-  <main>
+  <main id="conteudo">
     <!-- Hero -->
-    <section class="hero hero--sky" id="top">
-      <div class="hero__aurora" aria-hidden="true"></div>
-      <div class="container hero__inner">
-        <p class="hero__eyebrow reveal"><span class="hero__eyebrow-dot"></span>make a wish &middot; for macOS, Windows and Linux</p>
-        <h1 class="hero__title hero__title--manifesto" data-split>
-          <span class="hero__line">The AI harness</span>
-          <span class="hero__line"><em class="wish-word">you control.</em></span>
+    <section class="hero" id="topo">
+      <div class="hero__glow" aria-hidden="true"></div>
+      <div class="wrap hero__inner">
+        <p class="eyebrow eyebrow--plain reveal"><span class="dot" aria-hidden="true"></span>Grátis para macOS, Windows e Linux</p>
+        <h1 class="hero__title">
+          <span class="line"><span>Divida a tela.</span></span>
+          <span class="line"><span>Escolha o plugin.</span></span>
+          <span class="line"><span class="violet-text">O Cadente é seu.</span></span>
         </h1>
-        <p class="hero__tagline reveal">
-          There are a thousand AI coding tools. Most hand you one company&rsquo;s models, a context you cannot see, edits you cannot take back and an agent you cannot change. Cadente gives all four back.
-        </p>
+        <p class="hero__lede reveal">Um app de desktop para trabalhar com IA pelo teclado. Chat, Terminal, PRs, Requests, Calendário e mais 13 plugins lado a lado, numa janela só. Sem plano pago, e com cada parte trocável.</p>
         <div class="hero__actions reveal">
-          <a href="./downloads.html" class="btn btn--primary btn--lg">
+          <a href="./downloads.html" class="btn btn--light btn--lg">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19h14"/></svg>
-            Download free
+            Baixar grátis
           </a>
-          <a href="https://github.com/cadente-hub/cadente-hub.github.io" target="_blank" rel="noopener noreferrer" class="btn btn--ghost btn--lg">
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.58 2 12.23c0 4.52 2.87 8.35 6.84 9.7.5.1.68-.22.68-.49l-.01-1.7c-2.78.62-3.37-1.37-3.37-1.37-.46-1.18-1.11-1.5-1.11-1.5-.91-.64.07-.62.07-.62 1 .07 1.53 1.06 1.53 1.06.9 1.57 2.35 1.12 2.92.85.09-.66.35-1.12.63-1.37-2.22-.26-4.56-1.14-4.56-5.07 0-1.12.39-2.04 1.03-2.76-.1-.26-.45-1.3.1-2.71 0 0 .84-.28 2.75 1.05A9.4 9.4 0 0 1 12 6.96c.85 0 1.71.12 2.51.34 1.91-1.33 2.75-1.05 2.75-1.05.55 1.41.2 2.45.1 2.71.64.72 1.03 1.64 1.03 2.76 0 3.94-2.34 4.8-4.57 5.06.36.32.68.94.68 1.9l-.01 2.82c0 .27.18.6.69.49A10.24 10.24 0 0 0 22 12.23C22 6.58 17.52 2 12 2z"/></svg>
-            View on GitHub
-          </a>
+          <a href="#abrir" class="btn btn--ghost btn--lg">Ver o Cadente abrir <span aria-hidden="true">↓</span></a>
         </div>
-
-        <ol class="reasons reveal" aria-label="Why Cadente">
-          <li><a href="#models"><span class="reasons__n">01</span><b>Any model</b><span>Your Claude or ChatGPT subscription, any API key, or a model on your machine.</span></a></li>
-          <li><a href="#inside"><span class="reasons__n">02</span><b>See inside</b><span>Read exactly what the model receives each turn, token by token.</span></a></li>
-          <li><a href="#inside"><span class="reasons__n">03</span><b>Rewind</b><span>Undo any turn, or branch from any step to try another way.</span></a></li>
-          <li><a href="#plugins"><span class="reasons__n">04</span><b>Rewire</b><span>Replace any part of the agent with a plugin &mdash; including one you write.</span></a></li>
-        </ol>
+        <p class="hero__models reveal"><span>Claude</span><span>ChatGPT</span><span>Gemini</span><span>DeepSeek</span><span>OpenRouter</span><span>Ollama</span><span>LM Studio</span></p>
       </div>
     </section>
 
-    <!-- Any model -->
-    <section class="models" id="models">
-      <div class="container">
-        <header class="sh sh--split reveal">
-          <div>
-            <p class="sh__index"><span>01</span>Any model</p>
-            <h2 class="sh__title">Bring the AI<br /><span class="sh__muted">you already pay for.</span></h2>
+    <!-- Theater: the real v4 prototype, driven by scroll -->
+    <section class="theater" id="abrir" aria-label="O Cadente em uso">
+      <div class="theater__pin">
+        <div class="wrap theater__head">
+          <ol class="steps" id="steps" aria-label="Capítulos"></ol>
+          <div class="caption" id="caption" aria-live="polite"></div>
+        </div>
+        <div class="wrap theater__body">
+          <div class="frame" id="theater-frame">
+            <div class="frame__stage" id="theater-stage"></div>
           </div>
-          <p class="sh__lede">Cadente is not tied to one company. Sign in with the Claude or ChatGPT plan you already have &mdash; no second AI bill &mdash; or paste an API key, or point it at a model on your machine. Switch per conversation.</p>
+          <div class="controls" id="controls" role="toolbar" aria-label="Atalhos do Cadente">
+            <button data-stage-control data-key="⌘D"><kbd>⌘D</kbd>Dividir à direita</button>
+            <button data-stage-control data-key="⌘⇧D"><kbd>⌘⇧D</kbd>Dividir abaixo</button>
+            <button data-stage-control data-key="⌘O"><kbd>⌘O</kbd>Trocar plugin</button>
+            <button data-stage-control data-key="⌘J"><kbd>⌘J</kbd>Chat ao lado</button>
+            <button data-stage-control data-key="⌘P"><kbd>⌘P</kbd>Paleta</button>
+            <button data-stage-control data-key="⌘;"><kbd>⌘;</kbd>Saltar</button>
+            <button data-stage-control data-key="⌘W"><kbd>⌘W</kbd>Fechar folha</button>
+            <button data-stage-control data-key="⌘Z"><kbd>⌘Z</kbd>Desfazer</button>
+          </div>
+        </div>
+      </div>
+      <div class="theater__track" id="track" aria-hidden="true"></div>
+    </section>
+
+    <!-- First-party plugins -->
+    <section class="section plugins" id="plugins">
+      <div class="wrap">
+        <header class="head reveal">
+          <p class="eyebrow"><span class="num">18</span> plugins de fábrica</p>
+          <h2 class="title">Cada folha,<br /><span class="muted">um plugin.</span></h2>
+          <p class="lede">Todos seguem a mesma gramática: <kbd>↵</kbd> abre, <kbd>.</kbd> mostra as ações, <kbd>/</kbd> lista os comandos e <kbd>⇥</kbd> troca de vista. Aprendeu um, sabe usar todos. Clique em qualquer um para abrir na janela.</p>
         </header>
-        <div class="models__grid">
-          <article class="models__col reveal">
-            <p class="models__kind">Subscriptions</p>
-            <h3 class="models__title">Use the plan you pay for</h3>
-            <ul class="models__list">
-              <li><b>Claude</b><span>Pro, Max or Team, through the official Claude CLI</span></li>
-              <li><b>ChatGPT</b><span>Plus, Team or Pro, through the official Codex CLI</span></li>
-            </ul>
-          </article>
-          <article class="models__col reveal">
-            <p class="models__kind">API keys</p>
-            <h3 class="models__title">Any provider, your key</h3>
-            <ul class="models__chips">
-              <li>Anthropic</li><li>OpenAI</li><li>Google Gemini</li><li>DeepSeek</li><li>OpenRouter</li><li>Groq</li><li>Together AI</li><li>Fireworks AI</li><li>Any OpenAI-compatible URL</li>
-            </ul>
-          </article>
-          <article class="models__col reveal">
-            <p class="models__kind">On your machine</p>
-            <h3 class="models__title">Fully local, if you want</h3>
-            <ul class="models__list">
-              <li><b>Ollama</b><span>Detected automatically, with recommended models to pull</span></li>
-              <li><b>LM Studio</b><span>Or any local server that speaks the OpenAI API</span></li>
-            </ul>
-          </article>
+        <div class="plugins__layout">
+          <ul class="plugins__grid" id="plugin-grid" aria-label="Plugins de fábrica"></ul>
+          <div class="plugins__preview">
+            <div class="frame frame--small">
+              <div class="frame__stage" id="plugin-stage"></div>
+            </div>
+            <p class="plugins__note" id="plugin-note" aria-live="polite"></p>
+          </div>
         </div>
-        <p class="models__foot reveal"><span class="models__badge">18.2k tok &middot; $0.21</span> Every turn shows its tokens and cost &mdash; or &ldquo;included in plan&rdquo; when it runs on a subscription.</p>
       </div>
     </section>
 
-    <!-- See inside -->
-    <section class="inside" id="inside">
-      <div class="container">
-        <header class="sh sh--split reveal">
-          <div>
-            <p class="sh__index"><span>02</span>See inside</p>
-            <h2 class="sh__title">No black box.<br /><span class="sh__muted">Every step open, every step undoable.</span></h2>
-          </div>
-          <p class="sh__lede">Most agents hide what they send and what they did. Cadente shows the exact context each turn sends to the model, keeps a durable journal of every step, and lets you go back to any of them.</p>
+    <!-- Plugin architecture: you own it -->
+    <section class="section owner" id="dono">
+      <div class="wrap">
+        <header class="head head--center reveal">
+          <p class="eyebrow">Arquitetura de plugins</p>
+          <h2 class="title">Tudo é plugin.<br /><span class="violet-text">O dono é você.</span></h2>
+          <p class="lede">No Cadente, nenhum recurso é especial. Chat, Terminal, a barra lateral, a barra do sistema, o provider de IA e até o tema passam pelo mesmo registro, com o mesmo ciclo de vida para o que vem de fábrica e o que vem da comunidade. Adicione, desligue, troque e remova o que quiser.</p>
         </header>
-
-        <div class="inside__grid">
-          <article class="inside__panel reveal">
-            <div class="surface" data-cursor="what the model receives">
-              <div class="surface__head"><b>Model surface</b><span>turn 14 &middot; 23.5k of 200k &middot; sha256 9f2c&hellip;</span></div>
-              <div class="surface__bar" role="img" aria-label="23.5 thousand of 200 thousand tokens used">
-                <i style="--w:13.6%;--c:#a99bff"></i><i style="--w:8.9%;--c:#86b4ff"></i><i style="--w:48.5%;--c:#6fd3a8"></i><i style="--w:28.9%;--c:#f0b47e"></i>
-              </div>
-              <ul class="surface__legend">
-                <li><i style="--c:#a99bff"></i>Instructions<b>3.2k</b></li>
-                <li><i style="--c:#86b4ff"></i>Tools<b>2.1k</b></li>
-                <li><i style="--c:#6fd3a8"></i>Files<b>11.4k</b></li>
-                <li><i style="--c:#f0b47e"></i>History<b>6.8k</b></li>
-                <li class="surface__free">Free<b>176.5k</b></li>
-              </ul>
-              <div class="surface__diff">
-                <p class="surface__diff-head">Compared with turn 13</p>
-                <p class="d-add">+ src/theme.ts <span>2.4k</span></p>
-                <p class="d-del">&minus; test output, moved to a persisted result <span>5.1k</span></p>
-              </div>
+        <div class="rack reveal" id="rack">
+          <div class="rack__col">
+            <h3 class="rack__title">Plugins <span id="rack-count"></span></h3>
+            <ul class="rack__list" id="rack-plugins"></ul>
+            <button class="rack__add" id="rack-add"><span aria-hidden="true">+</span> instalar Kanban da comunidade</button>
+          </div>
+          <svg class="rack__wires" id="rack-wires" aria-hidden="true"></svg>
+          <div class="rack__col">
+            <h3 class="rack__title">Serviços <span>clique para trocar o provider</span></h3>
+            <ul class="rack__list" id="rack-services"></ul>
+            <div class="rack__base">
+              <h3 class="rack__title">Base fixa <span>por segurança</span></h3>
+              <p><span class="lock" aria-hidden="true">◆</span> gerenciador de plugins · shell · seletor</p>
             </div>
-            <h3>See what the model sees</h3>
-            <p>The exact projection sent each turn, its token budget by fragment, and a semantic diff against the previous turn. Every turn shows its cost, too.</p>
-          </article>
-
-          <article class="inside__panel reveal">
-            <div class="journal" data-cursor="every step, recorded">
-              <div class="surface__head"><b>Trajectory</b><span>branch: main</span></div>
-              <ol class="journal__list">
-                <li style="--i:0"><span class="journal__n">11</span>Read <code>src/theme.ts</code></li>
-                <li style="--i:1"><span class="journal__n">12</span>Edit <code>src/theme.ts</code><em class="t-ok">+18</em><em class="t-bad">&minus;4</em></li>
-                <li style="--i:2" class="is-target"><span class="journal__n">13</span>Edit <code>src/nav.tsx</code><button type="button" tabindex="-1" aria-hidden="true">Undo to here</button></li>
-                <li style="--i:3"><span class="journal__n">14</span>Run <code>npm test</code><em class="t-ok">42 passed</em></li>
-              </ol>
-              <p class="journal__branch"><span></span>Branch <b>try-css-vars</b> from step 12</p>
-            </div>
-            <h3>Rewind anything, branch anywhere</h3>
-            <p>A durable journal records every step. Roll file changes back to any turn, or fork the conversation from any event to try another approach.</p>
-          </article>
+          </div>
+          <p class="rack__log" id="rack-log" aria-live="polite"></p>
         </div>
+        <ul class="facts reveal">
+          <li><b>Adicione</b><span>Instale da loja, de uma URL ou de uma pasta, sem reiniciar o app.</span></li>
+          <li><b>Remova</b><span>Desligue ou desinstale qualquer plugin, inclusive os de fábrica.</span></li>
+          <li><b>Troque</b><span>Cada serviço aceita outro provider, com prévia do que muda antes de aplicar.</span></li>
+          <li><b>Com segurança</b><span>As permissões aparecem antes de instalar e de novo se uma atualização pedir mais.</span></li>
+        </ul>
       </div>
     </section>
 
-    <!-- Plugins -->
-    <section class="plugins" id="plugins">
-      <div class="container">
-        <header class="sh sh--split reveal">
-          <div>
-            <p class="sh__index"><span>03</span>Rewire</p>
-            <h2 class="sh__title">Don&rsquo;t like how the agent works?<br /><span class="sh__muted">Replace that part.</span></h2>
-          </div>
-          <p class="sh__lede">Other tools ship one agent loop and ask you to live with it. In Cadente the agent is a graph of plugins around a tiny Rust microkernel &mdash; models, context, compaction and tools are contracts that any plugin can provide, including one you write.</p>
+    <!-- Store -->
+    <section class="section store" id="loja">
+      <div class="store__wall" id="store-wall" aria-hidden="true"></div>
+      <div class="wrap store__inner">
+        <header class="head head--center reveal">
+          <p class="eyebrow">Loja de plugins <span class="soon">em breve</span></p>
+          <h2 class="title title--xl">Milhões de plugins<br /><span class="violet-text">cabem aqui.</span></h2>
+          <p class="lede">E tudo de graça para você: o Cadente não tem plano pago, a loja não cobra para instalar e os plugins grátis entram com um clique, sem reiniciar.</p>
         </header>
-
-        <div class="pl-stage reveal" id="plugin-stage" data-cursor="live plugin graph" aria-label="Animated diagram of Cadente's plugin graph">
-          <svg class="pl-wires" aria-hidden="true"></svg>
-          <div class="pl-world" aria-hidden="true"></div>
-          <p class="pl-toast" role="status">Collision &middot; <code>cadente.compaction@1</code> already has a provider</p>
-        </div>
-
-        <div class="pl-controls reveal">
-          <div class="pl-steps" role="group" aria-label="Plugin graph steps">
-            <button class="pl-step" type="button"><span>01</span>Kernel</button>
-            <button class="pl-step" type="button"><span>02</span>Contracts</button>
-            <button class="pl-step" type="button"><span>03</span>Consumers</button>
-            <button class="pl-step" type="button"><span>04</span>Providers</button>
-            <button class="pl-step" type="button"><span>05</span>Your plugin</button>
-            <button class="pl-step" type="button"><span>06</span>No guessing</button>
+        <div class="shop reveal" id="shop">
+          <div class="shop__bar">
+            <label class="shop__search">
+              <span class="shop__prompt" aria-hidden="true">›</span>
+              <span class="sr-only">Buscar plugins</span>
+              <input id="shop-q" type="search" autocomplete="off" spellcheck="false" placeholder="buscar plugins" />
+            </label>
+            <div class="shop__cats" id="shop-cats" role="tablist" aria-label="Categorias"></div>
           </div>
-          <p class="pl-caption" aria-live="polite">A small Rust microkernel owns only what must never be swapped: trust, permissions, integrity, isolation, persistence, resolution and recovery.</p>
+          <ul class="shop__grid" id="shop-grid"></ul>
+          <p class="shop__empty" id="shop-empty" hidden>Nenhum plugin com esse nome ainda. Que tal criar o seu?</p>
         </div>
-
-        <div class="pl-more">
-          <ul class="pl-facts reveal">
-            <li><b>One path for every plugin.</b> Built-in packages and yours go through the same graph, lifecycle and contracts.</li>
-            <li><b>Checked before it runs.</b> Artifacts are pinned by hash, locked, and granted only the permissions they declare. External code never runs inside the privileged process.</li>
-            <li><b>Code goes, data stays.</b> Turning a plugin off never deletes its configuration or data.</li>
-          </ul>
-          <figure class="pl-code reveal">
-            <figcaption><span>acme.compaction</span><span>host/index.js</span></figcaption>
-<pre><code><span class="k">export const</span> inject = [<span class="s">"cadenteServices"</span>];
-
-<span class="k">export function</span> <span class="f">apply</span>(ctx) {
-  ctx.cadenteServices.<span class="f">register</span>(
-    <span class="s">"cadente.compaction"</span>, <span class="n">1</span>, <span class="s">"cadente.compaction.v1"</span>,
-    <span class="k">async</span> (request) =&gt; <span class="f">summarize</span>(request),
-  );
-}</code></pre>
-          </figure>
-        </div>
+        <ul class="facts facts--store reveal">
+          <li><b>Um clique</b><span>Baixa, confere o sha256, mostra as permissões e instala sem reiniciar.</span></li>
+          <li><b>Aberta</b><span>Todo repositório com o topic <code>cadente-plugin</code> e um release válido entra no índice.</span></li>
+          <li><b>Vigiada</b><span>O índice é assinado e tem lista de bloqueio. Uma versão revogada desliga em todas as máquinas.</span></li>
+        </ul>
       </div>
     </section>
 
-    <!-- Safety -->
-    <section class="safety" id="safety">
-      <div class="container">
-        <header class="sh sh--split reveal">
-          <div>
-            <p class="sh__index"><span>04</span>Unattended</p>
-            <h2 class="sh__title">Let it work while you&rsquo;re away.<br /><span class="sh__muted">With the brakes on.</span></h2>
-          </div>
-          <p class="sh__lede">Automations run on a schedule, and agents keep working from the tray after the window closes. Permissions, a guard on destructive steps and a sandbox decide what they may do when nobody is watching.</p>
+    <!-- Creator mode -->
+    <section class="section creator" id="creator">
+      <div class="wrap">
+        <header class="head reveal">
+          <p class="eyebrow">Creator mode <span class="soon">em breve</span></p>
+          <h2 class="title">Crie o seu plugin.<br /><span class="violet-text">Ganhe dinheiro com ele.</span></h2>
+          <p class="lede">Descreva o que você quer e o agente do Cadente escreve o plugin com o SDK, numa folha ao lado. Teste na hora, publique com um comando e escolha como ganhar.</p>
         </header>
-        <div class="safety__grid">
-          <article class="safety__item reveal">
-            <div class="safety__ui safety__ui--modes"><span>Strict</span><span class="is-on">Approve</span><span>Trust</span></div>
-            <h3>You set the permissions</h3>
-            <p>Run only listed tools, confirm each call, or trust a workspace. Read-only tools can pass automatically.</p>
-          </article>
-          <article class="safety__item reveal">
-            <div class="safety__ui safety__ui--warn"><b>Irreversible action</b><span>git push --force &middot; denied if nobody responds</span></div>
-            <h3>Destructive steps wait for you</h3>
-            <p>Dropped tables, recursive deletes, force-pushes and cloud deletions are caught and held for a person.</p>
-          </article>
-          <article class="safety__item reveal">
-            <div class="safety__ui safety__ui--undo"><span>4 files changed</span><b>Undo to here</b></div>
-            <h3>Every edit can be rewound</h3>
-            <p>File changes are captured before and after, so a conversation can roll back to any turn.</p>
-          </article>
-          <article class="safety__item reveal">
-            <div class="safety__ui safety__ui--box"><span>bash</span><b>sandboxed</b><span>private HOME &middot; no secrets</span></div>
-            <h3>Commands run in a sandbox</h3>
-            <p>Shell and Python run in a supervised process tree with a private home and scrubbed credentials.</p>
-          </article>
-        </div>
-        <div class="unattended">
-        <div class="memory reveal" id="ledger">
-          <div class="memory__state">
-            <p class="memory__label">Window open</p>
-            <div class="memory__bar"><span class="memory__core">Rust core</span><span class="memory__ui">Interface</span></div>
+        <div class="maker reveal" id="maker">
+          <div class="frame frame--maker">
+            <div class="v4 maker__win" id="maker-win" aria-hidden="true"></div>
           </div>
-          <div class="memory__state memory__state--closed">
-            <p class="memory__label">Window closed</p>
-            <div class="memory__bar"><span class="memory__core">Rust core</span><span class="memory__gone">released</span></div>
+          <ol class="maker__steps" id="maker-steps">
+            <li data-step="0"><b>Descreva</b><span>O Creator mode abre um Chat com o pedido. Nada é enviado sem você.</span></li>
+            <li data-step="1"><b>O agente escreve</b><span>Manifesto, vistas e código no SDK, com testes.</span></li>
+            <li data-step="2"><b>Teste numa folha</b><span>O plugin roda ao lado, como “em desenvolvimento”.</span></li>
+            <li data-step="3"><b>Publique</b><span><code>/publish</code> cria o release e o plugin entra na loja.</span></li>
+          </ol>
+        </div>
+
+        <div class="money">
+          <div class="money__models reveal">
+            <article class="model" data-model="donation">
+              <p class="model__cut">90%<span>para você</span></p>
+              <h3>Doações</h3>
+              <p>Plugin grátis com um botão de apoiar o autor.</p>
+            </article>
+            <article class="model" data-model="subscription">
+              <p class="model__cut">70%<span>para você</span></p>
+              <h3>Assinatura</h3>
+              <p>Mensal ou anual. Os 70% valem em cada renovação, não só na primeira.</p>
+            </article>
+            <article class="model" data-model="once">
+              <p class="model__cut">70%<span>para você</span></p>
+              <h3>Compra única</h3>
+              <p>Paga uma vez e usa em até 5 dispositivos.</p>
+            </article>
+            <article class="model" data-model="trial">
+              <p class="model__cut">7 dias<span>por exemplo</span></p>
+              <h3>Teste grátis</h3>
+              <p>Alguns dias de teste antes da primeira cobrança.</p>
+            </article>
           </div>
-          <p class="memory__note"><span class="memory__pulse"></span>Agents, automations and terminals keep running from the tray.</p>
-        </div>
 
-          <ul class="unattended__facts reveal">
-            <li><b>Close the window, keep the work.</b> The interface is released from memory; a small Rust core keeps agents, automations and terminals running from the tray.</li>
-            <li><b>Stays on your machine.</b> Workspaces, history and keys live locally.</li>
-            <li><b>Updates you can undo.</b> Updates are signed, and the launcher can roll back to an earlier version.</li>
-          </ul>
-        </div>
-      </div>
-    </section>
-
-    <!-- Features -->
-    <section class="bento-section" id="features">
-      <div class="container">
-        <header class="sh sh--split reveal">
-          <div>
-            <p class="sh__index"><span>05</span>Everything else</p>
-            <h2 class="sh__title">And the rest of your day,<br /><span class="sh__muted">in the same window.</span></h2>
-          </div>
-          <p class="sh__lede">A wish becomes a reviewed pull request without leaving the app &mdash; and the terminals, reviews, requests and small tools around it live right next to it.</p>
-        </header>
-
-        <div class="flow reveal">
-          <p class="flow__steps"><span>Wish</span><span>Plan</span><span>Worktree</span><span>Tests</span><span>Pull request</span></p>
-        </div>
-        <div class="demo reveal reveal--rise" id="wish-demo" data-cursor="live demo · plays on its own">
-          <div class="demo__glow" aria-hidden="true"></div>
-          <div class="demo__window">
-            <div class="demo__titlebar">
-              <span class="demo__dots"><i></i><i></i><i></i></span>
-              <span class="demo__path">acme/web <b>&#8250;</b> worktree <b>wish/dark-mode</b></span>
-              <span class="demo__cost">18.2k tok &middot; included in plan</span>
-              <span class="demo__model">Claude Opus</span>
-            </div>
-            <div class="demo__body">
-              <aside class="demo__side">
-                <p class="demo__side-title">Workspaces</p>
-                <div class="demo__ws demo__ws--active"><span class="demo__ws-dot"></span>wish/dark-mode</div>
-                <div class="demo__ws"><span class="demo__ws-dot demo__ws-dot--ok"></span>fix/rate-limit</div>
-                <div class="demo__ws"><span class="demo__ws-dot demo__ws-dot--idle"></span>docs/onboarding</div>
-                <p class="demo__side-title">Focus</p>
-                <div class="demo__pomo">
-                  <svg viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="15.5" class="demo__pomo-track"/><circle cx="18" cy="18" r="15.5" class="demo__pomo-ring"/></svg>
-                  <span>18:42</span>
-                </div>
-              </aside>
-              <div class="demo__main">
-                <div class="demo__msg demo__msg--user" data-step="1">
-                  <span class="demo__avatar">you</span>
-                  <p class="demo__wish"><span class="demo__type" data-type="Add a dark mode toggle that remembers the user’s choice.">Add a dark mode toggle that remembers the user’s choice.</span></p>
-                </div>
-                <div class="demo__msg demo__msg--ai" data-step="2">
-                  <span class="demo__avatar demo__avatar--ai" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3l1.6 6.4L20 11l-6.4 1.6L12 19l-1.6-6.4L4 11l6.4-1.6z" fill="currentColor"/></svg></span>
-                  <div class="demo__plan">
-                    <p class="demo__plan-head">Plan <span class="demo__pill">plan mode</span></p>
-                    <ol>
-                      <li data-step="3">Add <code>ThemeToggle</code> to the navbar</li>
-                      <li data-step="4">Persist choice in <code>localStorage</code></li>
-                      <li data-step="5">Respect <code>prefers-color-scheme</code> on first load</li>
-                    </ol>
-                    <span class="demo__approve" data-step="6">You approved the plan</span>
-                  </div>
-                </div>
-                <div class="demo__split">
-                  <div class="demo__term" data-step="7">
-                    <p class="demo__term-head">terminal &middot; zsh</p>
-                    <p><span class="t-dim">$</span> npm test</p>
-                    <p class="t-ok">pass  ThemeToggle persists choice</p>
-                    <p class="t-ok">pass  respects system preference</p>
-                    <p><span class="t-acc">42 passed</span> <span class="t-dim">in 1.8s</span></p>
-                  </div>
-                  <div class="demo__pr" data-step="8">
-                    <p class="demo__pr-num">#128</p>
-                    <p class="demo__pr-title">Add persistent dark mode</p>
-                    <p class="demo__pr-diff"><span class="t-ok">+84</span> <span class="t-bad">&minus;12</span> &middot; 4 files</p>
-                    <p class="demo__pr-ci"><span class="demo__ci-dot"></span>CI passing &middot; archives on merge</p>
-                  </div>
-                </div>
+          <div class="calc reveal" id="calc">
+            <div class="calc__inputs">
+              <div class="calc__tabs" role="radiogroup" aria-label="Modelo de preço">
+                <button role="radio" aria-checked="true" data-calc="subscription">Assinatura</button>
+                <button role="radio" aria-checked="false" data-calc="once">Compra única</button>
+                <button role="radio" aria-checked="false" data-calc="donation">Doações</button>
               </div>
+              <label class="calc__range">
+                <span class="calc__label"><span id="calc-price-label">Preço por mês</span><output id="calc-price-out"></output></span>
+                <input type="range" id="calc-price" min="1" max="50" step="1" value="5" />
+              </label>
+              <label class="calc__range">
+                <span class="calc__label"><span id="calc-people-label">Assinantes</span><output id="calc-people-out"></output></span>
+                <input type="range" id="calc-people" min="0" max="100" step="1" value="58" />
+              </label>
             </div>
-          </div>
-        </div>
-
-        <div class="bento">
-          <!-- Chat -->
-          <article class="tile tile--wide reveal">
-            <header class="tile__head">
-              <span class="tile__tag">Chat</span>
-              <h3 class="tile__title">Conversations that know your project</h3>
-              <p class="tile__desc">Point a chat at a folder and the model works with your files. Queue the next message while one runs, fork a conversation to try another path, or rewind to any earlier turn.</p>
-            </header>
-            <div class="mini mini--chat">
-              <div class="mini__models"><span class="is-on">Claude Opus</span><span>GPT</span><span>Gemini</span><span>Ollama</span><span class="mini__think">Thinking mode</span></div>
-              <div class="mini__stream">
-                <p class="mini__q">Why does checkout double-charge on retry?</p>
-                <p class="mini__a"><span class="mini__caret">Reading <code>payments/retry.rs</code>, <code>webhooks.ts</code>&hellip; The idempotency key is regenerated per attempt. Reuse the order&nbsp;ID instead.</span></p>
-              </div>
+            <div class="calc__result">
+              <p class="calc__kicker">Você recebe até</p>
+              <p class="calc__value"><span id="calc-value">US$ 0</span><span class="calc__per" id="calc-per">por mês</span></p>
+              <p class="calc__note">Estimativa antes de impostos e das taxas do processador de pagamento. Os percentuais valem sobre o valor líquido, e a venda acontece só pelo checkout do Cadente.</p>
             </div>
-            <ul class="tile__chips"><li>Plan mode</li><li>Message queue</li><li>Branch a conversation</li><li>Undo to here</li></ul>
-          </article>
-
-          <!-- Terminal -->
-          <article class="tile reveal">
-            <header class="tile__head">
-              <span class="tile__tag">Terminals</span>
-              <h3 class="tile__title">A terminal the AI can read</h3>
-              <p class="tile__desc">Real shells in tabs or their own window. Ask why a command failed; it suggests, you decide what runs.</p>
-            </header>
-            <div class="mini mini--term">
-              <p><span class="t-dim">~/acme</span> <span class="t-acc">cargo build</span></p>
-              <p class="t-bad">error[E0382]: borrow of moved value</p>
-              <p class="mini__ask">Why did the last command fail?</p>
-              <p><span class="t-dim">~/acme</span> <span class="mini__cursor"></span></p>
-            </div>
-          </article>
-
-          <!-- Automations -->
-          <article class="tile reveal">
-            <header class="tile__head">
-              <span class="tile__tag">Automations</span>
-              <h3 class="tile__title">Work that runs on a schedule</h3>
-              <p class="tile__desc">Recurring AI tasks with a full run history. Destructive steps are denied when nobody is watching.</p>
-            </header>
-            <ul class="mini mini--prs">
-              <li><span class="pr-dot pr-dot--ok"></span>Triage new issues<em>daily 09:00</em></li>
-              <li><span class="pr-dot pr-dot--ok"></span>Dependency report<em>Mondays</em></li>
-              <li><span class="pr-dot pr-dot--run"></span>Summarize yesterday&rsquo;s PRs<em>running</em></li>
-            </ul>
-          </article>
-
-          <!-- Git review -->
-          <article class="tile tile--wide reveal">
-            <header class="tile__head">
-              <span class="tile__tag">Workspaces &amp; PR reviews</span>
-              <h3 class="tile__title">Review like a teammate</h3>
-              <p class="tile__desc">Comment on any line of a diff and hand the notes back to the AI. Track pull requests across your repositories and review them with AI beside the code.</p>
-            </header>
-            <div class="mini mini--diff">
-              <p class="d-meta">src/theme.ts</p>
-              <p class="d-del">- const theme = 'dark';</p>
-              <p class="d-add">+ const theme = stored ?? system();</p>
-              <p class="mini__note"><span>line 14</span>Also handle a corrupted stored value.</p>
-              <div class="mini__checks"><span class="ok">build</span><span class="ok">test</span><span class="run">e2e</span></div>
-            </div>
-          </article>
-
-          <!-- Prompts -->
-          <article class="tile reveal">
-            <header class="tile__head">
-              <span class="tile__tag">Prompts</span>
-              <h3 class="tile__title">From rough notes to a sharp prompt</h3>
-              <p class="tile__desc">Paste raw context, pick the techniques, get a prompt that is clearer and smaller.</p>
-            </header>
-            <div class="mini mini--prompt">
-              <div class="mini__techs"><span class="is-on">Think step by step</span><span class="is-on">Lock the format</span><span>Give AI a role</span></div>
-              <p class="mini__ratio"><b>2,140 tokens</b><span>was 5,380 &middot; 60% smaller</span></p>
-            </div>
-          </article>
-
-          <!-- Requests -->
-          <article class="tile reveal">
-            <header class="tile__head">
-              <span class="tile__tag">Requests</span>
-              <h3 class="tile__title">An API client that reads your code</h3>
-              <p class="tile__desc">Collections, environments and secrets, with endpoints discovered from your project.</p>
-            </header>
-            <div class="mini mini--api">
-              <div class="mini__envs"><span>Dev</span><span class="is-on">Staging</span><span>Prod</span></div>
-              <p class="mini__req"><b>GET</b> {{base_url}}/users</p>
-              <p class="mini__hdr">Authorization: Bearer <span class="mini__secret">&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;</span></p>
-              <p class="mini__res"><span class="t-ok">200 OK</span> <span class="t-dim">&middot; 84 ms</span></p>
-            </div>
-          </article>
-
-          <!-- AI resources -->
-          <article class="tile reveal">
-            <header class="tile__head">
-              <span class="tile__tag">AI resources</span>
-              <h3 class="tile__title">MCP servers, Skills and memory</h3>
-              <p class="tile__desc">Add local or remote MCP servers, write Skills and keep memories, per project or everywhere.</p>
-            </header>
-            <ul class="mini mini--prs">
-              <li><span class="pr-dot pr-dot--ok"></span>github<em>MCP &middot; ready</em></li>
-              <li><span class="pr-dot pr-dot--ok"></span>postgres<em>project MCP</em></li>
-              <li><span class="pr-dot pr-dot--merged"></span>release-notes<em>Skill</em></li>
-            </ul>
-          </article>
-
-          <!-- Focus -->
-          <article class="tile tile--wide reveal">
-            <header class="tile__head">
-              <span class="tile__tag">Focus &amp; everyday tools</span>
-              <h3 class="tile__title">The small things, next to the code</h3>
-              <p class="tile__desc">Pomodoro, day planner, quick notes and a calendar synced with Google or Outlook. Plus a link board, Excalidraw diagrams, Markdown-to-Word and a JSON fixer.</p>
-            </header>
-            <div class="mini mini--focus">
-              <div class="mini__timer">
-                <svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="52" class="mini__timer-track"/><circle cx="60" cy="60" r="52" class="mini__timer-ring"/></svg>
-                <span class="mini__timer-time">25:00</span>
-              </div>
-              <ul class="mini__tasks">
-                <li class="done">Review PR #128</li>
-                <li class="done">Sketch auth flow</li>
-                <li>Ship dark mode</li>
-                <li>Standup at 10:30</li>
-              </ul>
-            </div>
-          </article>
-
-          <!-- Profiles -->
-          <article class="tile reveal">
-            <header class="tile__head">
-              <span class="tile__tag">Profiles</span>
-              <h3 class="tile__title">Work and personal, apart</h3>
-              <p class="tile__desc">Separate profiles keep accounts, projects and history from mixing.</p>
-            </header>
-            <ul class="mini mini--profiles">
-              <li class="is-on"><i>W</i>Work<em>3 accounts</em></li>
-              <li><i>P</i>Personal<em>Ollama</em></li>
-              <li><i>S</i>Study<em>1 account</em></li>
-            </ul>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <!-- Languages -->
-    <section class="tongues" aria-label="Supported languages">
-      <p class="tongues__label">The interface speaks fifteen languages</p>
-      <div class="tongues__marquee">
-        <div class="tongues__track">
-          <span>English</span><span>Español</span><span>Português</span><span>Français</span><span>Deutsch</span><span>Italiano</span><span>Русский</span><span>日本語</span><span>한국어</span><span>中文</span><span>Türkçe</span><span lang="ar">العربية</span><span lang="hi">हिन्दी</span><span>Bahasa Indonesia</span><span>Tiếng Việt</span>
-          <span aria-hidden="true">English</span><span aria-hidden="true">Español</span><span aria-hidden="true">Português</span><span aria-hidden="true">Français</span><span aria-hidden="true">Deutsch</span><span aria-hidden="true">Italiano</span><span aria-hidden="true">Русский</span><span aria-hidden="true">日本語</span><span aria-hidden="true">한국어</span><span aria-hidden="true">中文</span><span aria-hidden="true">Türkçe</span><span aria-hidden="true" lang="ar">العربية</span><span aria-hidden="true" lang="hi">हिन्दी</span><span aria-hidden="true">Bahasa Indonesia</span><span aria-hidden="true">Tiếng Việt</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- Pricing -->
-    <section class="pricing" id="pricing">
-      <div class="container">
-        <header class="sh sh--split reveal">
-          <div>
-            <p class="sh__index"><span>06</span>Pricing</p>
-            <h2 class="sh__title">All of it.<br /><span class="sh__muted">Free to start.</span></h2>
-          </div>
-          <p class="sh__lede">Every feature is in the free plan. You bring the model, so there is no markup on AI usage &mdash; limits apply only to how many items are active at once.</p>
-        </header>
-        <div class="pricing__grid">
-          <div class="card card--pricing reveal">
-            <div class="card__pricing-header">
-              <h3 class="card__pricing-name">Free</h3>
-              <div class="card__pricing-price">
-                <span class="card__pricing-amount">$0</span>
-                <span class="card__pricing-period">/ forever</span>
-              </div>
-              <p class="card__pricing-desc">The whole app. Limits apply only to how many items are active at once.</p>
-            </div>
-            <ul class="card__pricing-features">
-              <li><span class="check">&#10003;</span> Every feature and every model provider</li>
-              <li><span class="check">&#10003;</span> Your subscriptions, API keys or local models</li>
-              <li><span class="check">&#10003;</span> 5 workspaces, 5 terminals, 5 PR reviews</li>
-              <li><span class="check">&#10003;</span> 3 automations, 3 request collections</li>
-              <li><span class="check">&#10003;</span> 5 prompt sessions, 5 diagrams</li>
-              <li><span class="check">&#10003;</span> macOS, Windows and Linux</li>
-            </ul>
-            <a href="./downloads.html" class="btn btn--ghost btn--full">Download free</a>
-          </div>
-          <div class="card card--pricing card--pricing-pro reveal">
-            <div class="card__pricing-badge" id="pro-trial-badge">7-day free trial</div>
-            <div class="card__pricing-header">
-              <h3 class="card__pricing-name">Pro</h3>
-              <div class="pricing__toggle" id="pricing-toggle">
-                <button class="pricing__toggle-btn pricing__toggle-btn--active" data-cycle="yearly" onclick="switchBilling('yearly')">Annual</button>
-                <button class="pricing__toggle-btn" data-cycle="monthly" onclick="switchBilling('monthly')">Monthly</button>
-              </div>
-              <div class="card__pricing-price">
-                <span class="card__pricing-amount" id="pro-price-amount"><span class="pricing-skeleton" style="width:90px"></span></span>
-                <span class="card__pricing-period" id="pro-price-period">/ mo</span>
-              </div>
-              <p class="card__pricing-note" id="pro-price-yearly"><span class="pricing-skeleton" style="width:180px"></span></p>
-              <p class="card__pricing-desc">No caps on anything, and your setup synced between machines.</p>
-            </div>
-            <ul class="card__pricing-features">
-              <li><span class="check">&#10003;</span> Everything in Free</li>
-              <li><span class="check">&#10003;</span> Unlimited workspaces, terminals, automations and more</li>
-              <li><span class="check">&#10003;</span> Cloud sync between your devices</li>
-              <li><span class="check">&#10003;</span> 30-day version history</li>
-            </ul>
-            <a href="./downloads.html" class="btn btn--primary btn--full" id="pro-cta">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19h14"/></svg>
-              Download &amp; start free trial
-            </a>
-            <p class="card__pricing-trial-note">Download the app, then sign in with Google, GitHub or email to start the trial.</p>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- CTA -->
-    <section class="finale" id="finale">
-      <div class="container finale__inner reveal">
-        <svg class="finale__comet" viewBox="0 0 512 512" aria-hidden="true"><path d="M 379 153 A 160 160 0 1 0 379 359" fill="none" stroke="url(#c-grad)" stroke-width="40" stroke-linecap="round"/><path d="M 424 240 L 429 252 L 442 256 L 429 260 L 424 272 L 419 260 L 406 256 L 419 252 Z" fill="url(#c-spark)"/></svg>
-        <h2 class="cta__title finale__title">Make a <span class="gradient-text">wish.</span><br />Keep the controls.</h2>
-        <p class="finale__sub">Any model, every step visible, every edit undoable, every part replaceable. Free to start on macOS, Windows and Linux.</p>
+    <!-- Download -->
+    <section class="section finale" id="baixar">
+      <div class="finale__glow" aria-hidden="true"></div>
+      <div class="wrap finale__inner reveal">
+        <svg class="finale__mark" viewBox="0 0 512 512" aria-hidden="true"><path d="M 379 153 A 160 160 0 1 0 379 359" fill="none" stroke="currentColor" stroke-width="40" stroke-linecap="round"/><path class="brand__spark" d="M 424 240 L 429 252 L 442 256 L 429 260 L 424 272 L 419 260 L 406 256 L 419 252 Z"/></svg>
+        <h2 class="title title--xl">Baixe o Cadente.<br /><span class="muted">É grátis.</span></h2>
+        <p class="lede">macOS com Apple Silicon ou Intel, Windows e Linux. Sem plano pago e sem cartão.</p>
         <div class="hero__actions">
-          <a href="./downloads.html" class="btn btn--primary btn--lg">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19h14"/></svg>
-            Download for free
-          </a>
-          <a href="https://github.com/cadente-hub/cadente-hub.github.io" target="_blank" rel="noopener noreferrer" class="btn btn--ghost btn--lg">
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.58 2 12.23c0 4.52 2.87 8.35 6.84 9.7.5.1.68-.22.68-.49l-.01-1.7c-2.78.62-3.37-1.37-3.37-1.37-.46-1.18-1.11-1.5-1.11-1.5-.91-.64.07-.62.07-.62 1 .07 1.53 1.06 1.53 1.06.9 1.57 2.35 1.12 2.92.85.09-.66.35-1.12.63-1.37-2.22-.26-4.56-1.14-4.56-5.07 0-1.12.39-2.04 1.03-2.76-.1-.26-.45-1.3.1-2.71 0 0 .84-.28 2.75 1.05A9.4 9.4 0 0 1 12 6.96c.85 0 1.71.12 2.51.34 1.91-1.33 2.75-1.05 2.75-1.05.55 1.41.2 2.45.1 2.71.64.72 1.03 1.64 1.03 2.76 0 3.94-2.34 4.8-4.57 5.06.36.32.68.94.68 1.9l-.01 2.82c0 .27.18.6.69.49A10.24 10.24 0 0 0 22 12.23C22 6.58 17.52 2 12 2z"/></svg>
-            Star on GitHub
-          </a>
+          <a href="./downloads.html" class="btn btn--light btn--lg">Baixar grátis</a>
+          <a href="https://github.com/cadente-hub/cadente-hub.github.io" target="_blank" rel="noopener noreferrer" class="btn btn--ghost btn--lg">GitHub</a>
+        </div>
+        <div class="oneliner">
+          <code id="oneliner">curl -fsSL https://cadente-hub.github.io/install.sh | bash</code>
+          <button class="oneliner__copy" id="oneliner-copy" aria-label="Copiar comando de instalação">copiar</button>
         </div>
       </div>
     </section>
   </main>
-  <!-- Footer -->
-  <footer class="footer">
-    <div class="container footer__inner">
-      <div class="footer__brand">
-        <a href="./" class="footer__logo">
-          <svg class="navbar__logo-icon" width="24" height="24" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="c-grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#d4a87a"/><stop offset="50%" stop-color="#c4956a"/><stop offset="100%" stop-color="#b08050"/></linearGradient><linearGradient id="c-spark" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#f0dcc8"/><stop offset="100%" stop-color="#dbb896"/></linearGradient></defs><path d="M 379 153 A 160 160 0 1 0 379 359" fill="none" stroke="url(#c-grad)" stroke-width="56" stroke-linecap="round"/><path d="M 356 188 A 118 118 0 1 0 356 324" fill="none" stroke="url(#c-grad)" stroke-width="4" stroke-linecap="round" opacity="0.25"/><path d="M 424 240 L 429 252 L 442 256 L 429 260 L 424 272 L 419 260 L 406 256 L 419 252 Z" fill="url(#c-spark)"/></svg>
-          Cadente
-        </a>
-        <p class="footer__tagline">make a wish</p>
+
+  <footer class="foot">
+    <div class="wrap foot__inner">
+      <div class="foot__brand">
+        <a href="./" class="brand"><svg class="brand__mark" viewBox="0 0 512 512" aria-hidden="true"><path d="M 379 153 A 160 160 0 1 0 379 359" fill="none" stroke="currentColor" stroke-width="56" stroke-linecap="round"/><path class="brand__spark" d="M 424 240 L 429 252 L 442 256 L 429 260 L 424 272 L 419 260 L 406 256 L 419 252 Z"/></svg><span>Cadente</span></a>
+        <p>Divida a tela. Escolha o plugin.</p>
       </div>
-      <div class="footer__links">
-        <div class="footer__col">
-          <h4 class="footer__col-title">Product</h4>
-          <a href="#features">Features</a>
-          <a href="./downloads.html">Downloads</a>
-          <a href="./release-notes.html">Release Notes</a>
-          <a href="./blog/">Blog</a>
-        </div>
-        <div class="footer__col">
-          <h4 class="footer__col-title">Resources</h4>
-          <a href="https://github.com/cadente-hub/cadente-hub.github.io" target="_blank" rel="noopener noreferrer">GitHub</a>
-          <a href="https://github.com/cadente-hub/cadente-hub.github.io/issues" target="_blank" rel="noopener noreferrer">Issues</a>
-          <a href="https://github.com/cadente-hub/cadente-hub.github.io/releases" target="_blank" rel="noopener noreferrer">Releases</a>
-        </div>
-        <div class="footer__col">
-          <h4 class="footer__col-title">Legal</h4>
-          <a href="./terms-and-conditions.html">Terms &amp; Conditions</a>
-        </div>
-      </div>
-      <div class="footer__bottom">
-        <p class="footer__copy">&copy; 2026 Cadente. All rights reserved.</p>
-        <p class="footer__tech">Built with Rust. Privacy first.</p>
-      </div>
+      <nav class="foot__cols" aria-label="Rodapé">
+        <div><h4>Produto</h4><a href="#abrir">Como funciona</a><a href="#plugins">Plugins</a><a href="#loja">Loja</a><a href="#creator">Creator mode</a><a href="./downloads.html">Downloads</a></div>
+        <div><h4>Recursos</h4><a href="./blog/">Blog</a><a href="./release-notes.html">Release notes</a><a href="https://github.com/cadente-hub/cadente-hub.github.io" target="_blank" rel="noopener noreferrer">GitHub</a><a href="https://github.com/cadente-hub/cadente-hub.github.io/issues" target="_blank" rel="noopener noreferrer">Issues</a></div>
+        <div><h4>Legal</h4><a href="./terms-and-conditions.html">Termos e condições</a></div>
+      </nav>
+      <p class="foot__copy">© 2026 Cadente. Feito em Rust.</p>
     </div>
   </footer>
 
-  <script type="module" src="./js/main.js"></script>
-  <script type="module" src="./js/sky.js"></script>
-  <script type="module" src="./js/cursor.js"></script>
-  <script type="module" src="./js/animations.js"></script>
-  <script type="module" src="./js/plugins-demo.js"></script>
-  <script>
-    // Pricing state
-    var priceData = null;
-    var currentCycle = "yearly";
-
-    function switchBilling(cycle) {
-      currentCycle = cycle;
-      // Update toggle buttons
-      document.querySelectorAll(".pricing__toggle-btn").forEach(function(btn) {
-        btn.classList.toggle("pricing__toggle-btn--active", btn.dataset.cycle === cycle);
-      });
-      renderPrice();
-    }
-
-    function renderPrice() {
-      if (!priceData) return;
-      var amountEl = document.getElementById("pro-price-amount");
-      var yearlyNote = document.getElementById("pro-price-yearly");
-      if (currentCycle === "yearly") {
-        amountEl.textContent = priceData.yearlyPerMonth ? priceData.yearlyPerMonth.amount : priceData.monthly.amount;
-        yearlyNote.textContent = "Billed as " + priceData.yearly.amount + "/year" + (priceData.discount > 0 ? " — save " + priceData.discount + "%" : "");
-        yearlyNote.style.display = "";
-      } else {
-        amountEl.textContent = priceData.monthly.amount;
-        yearlyNote.style.display = "none";
-      }
-    }
-
-    // Timezone → country mapping (instant, no network)
-    var TZ_MAP = {
-      "America/Sao_Paulo":"BR","America/Fortaleza":"BR","America/Recife":"BR",
-      "America/Bahia":"BR","America/Belem":"BR","America/Manaus":"BR",
-      "America/Cuiaba":"BR","America/Campo_Grande":"BR",
-      "Europe/London":"GB","Europe/Paris":"FR","Europe/Berlin":"DE",
-      "Europe/Madrid":"ES","Europe/Rome":"IT","Europe/Lisbon":"PT",
-      "Asia/Tokyo":"JP","Asia/Seoul":"KR","Asia/Shanghai":"CN",
-      "Asia/Kolkata":"IN","Australia/Sydney":"AU",
-      "America/Mexico_City":"MX","America/Argentina/Buenos_Aires":"AR",
-      "America/Bogota":"CO","America/Santiago":"CL","America/Lima":"PE",
-      "America/Toronto":"CA","America/Vancouver":"CA"
-    };
-
-    var PRICES_URL = "https://awglxdeqzkursbmotjpm.supabase.co/functions/v1/get-prices";
-
-    // Country from the visitor's own settings only: no third-party IP lookup.
-    function guessCountry() {
-      try {
-        var tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        if (tz && TZ_MAP[tz]) return TZ_MAP[tz];
-      } catch (e) {}
-      var langs = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || ""];
-      for (var i = 0; i < langs.length; i++) {
-        var parts = String(langs[i]).split("-");
-        var region = parts.length > 1 ? parts[parts.length - 1].toUpperCase() : "";
-        if (/^[A-Z]{2}$/.test(region)) return region;
-      }
-      return "US";
-    }
-
-    function isPriceData(d) {
-      return d && d.monthly && typeof d.monthly.amount === "string" && d.yearly && typeof d.yearly.amount === "string";
-    }
-
-    // If prices cannot be loaded, say so plainly instead of leaving a skeleton forever.
-    function showPriceUnavailable() {
-      var amountEl = document.getElementById("pro-price-amount");
-      var period = document.getElementById("pro-price-period");
-      var note = document.getElementById("pro-price-yearly");
-      if (amountEl) amountEl.textContent = "Pro";
-      if (period) period.textContent = "";
-      if (note) { note.textContent = "Price shown in your local currency at checkout."; note.style.display = ""; }
-    }
-
-    (async function loadPrices() {
-      var controller = typeof AbortController === "function" ? new AbortController() : null;
-      var timer = controller ? setTimeout(function () { controller.abort(); }, 6000) : null;
-      try {
-        var res = await fetch(PRICES_URL + "?country=" + encodeURIComponent(guessCountry()), {
-          signal: controller ? controller.signal : undefined,
-          credentials: "omit",
-          referrerPolicy: "no-referrer",
-        });
-        if (!res.ok) throw new Error("get-prices " + res.status);
-        var data = await res.json();
-        if (!isPriceData(data)) throw new Error("get-prices: unexpected payload");
-        priceData = data;
-        renderPrice();
-        var badge = document.getElementById("pro-trial-badge");
-        var days = parseInt(data.trialDays, 10);
-        if (badge && days > 0 && days < 100) badge.textContent = days + "-day free trial";
-      } catch (e) {
-        showPriceUnavailable();
-      } finally {
-        if (timer) clearTimeout(timer);
-      }
-    })();
-  </script>
+  <script type="module" src="./js/home.js"></script>
 </body>
 </html>

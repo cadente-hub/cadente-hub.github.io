@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="dark" style="background:#000">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Download Cadente — make a wish</title>
+  <meta name="theme-color" content="#000000" />
+  <title>Download Cadente</title>
   <meta name="description" content="Download Cadente for your platform. Available for macOS (Apple Silicon & Intel), Windows, and Linux." />
   <meta property="og:title" content="Download Cadente" />
   <meta property="og:description" content="Available for macOS, Windows, and Linux." />
@@ -13,33 +14,27 @@
   <meta name="twitter:image" content="https://cadente-hub.github.io/assets/og-image.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="./css/style.css" />
-  <link rel="stylesheet" href="./css/sky.css" />
   <link rel="icon" type="image/png" sizes="32x32" href="./assets/favicon-32.png" />
   <link rel="icon" type="image/x-icon" href="./assets/favicon.ico" />
   <link rel="apple-touch-icon" sizes="180x180" href="./assets/apple-touch-icon.png" />
 </head>
 <body>
-  <canvas id="sky" class="sky" aria-hidden="true"></canvas>
   <!-- Navigation -->
   <header class="navbar" id="navbar">
     <nav class="navbar__inner container">
       <a href="./" class="navbar__logo">
-        <svg class="navbar__logo-icon" width="24" height="24" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="c-grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#d4a87a"/><stop offset="50%" stop-color="#c4956a"/><stop offset="100%" stop-color="#b08050"/></linearGradient><linearGradient id="c-spark" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#f0dcc8"/><stop offset="100%" stop-color="#dbb896"/></linearGradient></defs><path d="M 379 153 A 160 160 0 1 0 379 359" fill="none" stroke="url(#c-grad)" stroke-width="56" stroke-linecap="round"/><path d="M 356 188 A 118 118 0 1 0 356 324" fill="none" stroke="url(#c-grad)" stroke-width="4" stroke-linecap="round" opacity="0.25"/><path d="M 424 240 L 429 252 L 442 256 L 429 260 L 424 272 L 419 260 L 406 256 L 419 252 Z" fill="url(#c-spark)"/></svg>
+        <svg class="navbar__logo-icon" width="24" height="24" viewBox="0 0 512 512" aria-hidden="true"><path d="M 379 153 A 160 160 0 1 0 379 359" fill="none" stroke="currentColor" stroke-width="56" stroke-linecap="round"/><path class="brand__spark" d="M 424 240 L 429 252 L 442 256 L 429 260 L 424 272 L 419 260 L 406 256 L 419 252 Z"/></svg>
         Cadente
       </a>
       <ul class="navbar__links">
-        <li><a href="./#features">Features</a></li>
+        <li><a href="./#plugins">Plugins</a></li>
         <li><a href="./downloads.html" class="active">Downloads</a></li>
         <li><a href="./release-notes.html">Release Notes</a></li>
         <li><a href="./blog/">Blog</a></li>
       </ul>
       <div class="navbar__actions">
-        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
-          <span class="theme-toggle__icon theme-toggle__icon--sun">&#9788;</span>
-          <span class="theme-toggle__icon theme-toggle__icon--moon">&#9790;</span>
-        </button>
         <a href="./downloads.html" class="btn btn--sm btn--primary navbar__cta">Download</a>
       </div>
       <button class="navbar__hamburger" id="hamburger" aria-label="Toggle menu">
@@ -53,7 +48,7 @@
   <!-- Mobile Menu -->
   <div class="mobile-menu" id="mobile-menu">
     <ul class="mobile-menu__links">
-      <li><a href="./#features">Features</a></li>
+      <li><a href="./#plugins">Plugins</a></li>
       <li><a href="./downloads.html">Downloads</a></li>
       <li><a href="./release-notes.html">Release Notes</a></li>
       <li><a href="./blog/">Blog</a></li>
@@ -197,15 +192,15 @@
     <div class="container footer__inner">
       <div class="footer__brand">
         <a href="/" class="footer__logo">
-          <svg class="navbar__logo-icon" width="24" height="24" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="c-grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#d4a87a"/><stop offset="50%" stop-color="#c4956a"/><stop offset="100%" stop-color="#b08050"/></linearGradient><linearGradient id="c-spark" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#f0dcc8"/><stop offset="100%" stop-color="#dbb896"/></linearGradient></defs><path d="M 379 153 A 160 160 0 1 0 379 359" fill="none" stroke="url(#c-grad)" stroke-width="56" stroke-linecap="round"/><path d="M 356 188 A 118 118 0 1 0 356 324" fill="none" stroke="url(#c-grad)" stroke-width="4" stroke-linecap="round" opacity="0.25"/><path d="M 424 240 L 429 252 L 442 256 L 429 260 L 424 272 L 419 260 L 406 256 L 419 252 Z" fill="url(#c-spark)"/></svg>
+          <svg class="navbar__logo-icon" width="24" height="24" viewBox="0 0 512 512" aria-hidden="true"><path d="M 379 153 A 160 160 0 1 0 379 359" fill="none" stroke="currentColor" stroke-width="56" stroke-linecap="round"/><path class="brand__spark" d="M 424 240 L 429 252 L 442 256 L 429 260 L 424 272 L 419 260 L 406 256 L 419 252 Z"/></svg>
           Cadente
         </a>
-        <p class="footer__tagline">make a wish</p>
+        <p class="footer__tagline">Split the screen. Pick the plugin.</p>
       </div>
       <div class="footer__links">
         <div class="footer__col">
           <h4 class="footer__col-title">Product</h4>
-          <a href="./#features">Features</a>
+          <a href="./#plugins">Plugins</a>
           <a href="./downloads.html">Downloads</a>
           <a href="./release-notes.html">Release Notes</a>
           <a href="./blog/">Blog</a>
@@ -229,7 +224,5 @@
   </footer>
 
   <script type="module" src="./js/downloads.js"></script>
-  <script type="module" src="./js/sky.js"></script>
-  <script type="module" src="./js/cursor.js"></script>
 </body>
 </html>

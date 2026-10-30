@@ -1,0 +1,426 @@
+{
+ "plugin": "workspaces",
+ "views": [
+  {
+   "id": "repositórios",
+   "label": "repositórios",
+   "list": "workspaces",
+   "where": "!archived"
+  },
+  {
+   "id": "alterações",
+   "label": "alterações"
+  },
+  {
+   "id": "arquivos",
+   "label": "arquivos"
+  },
+  {
+   "id": "arquivados",
+   "label": "arquivados",
+   "list": "workspaces",
+   "where": "archived",
+   "empty": "nada arquivado"
+  },
+  {
+   "id": "sessões",
+   "label": "sessões",
+   "list": "wsSessions"
+  }
+ ],
+ "lists": {
+  "workspaces": {
+   "store": "workspaces",
+   "view": "repositórios",
+   "row": {
+    "g": "${archived?○:●}",
+    "text": "${name}",
+    "meta": "${branch} · ${path}"
+   },
+   "enter": {
+    "op": "fn",
+    "name": "selectWs"
+   },
+   "actions": [
+    {
+     "key": "c",
+     "label": "copiar contexto",
+     "op": {
+      "op": "toast",
+      "text": "copiado: ${path} · ${branch}"
+     }
+    },
+    {
+     "key": "b",
+     "label": "nova branch",
+     "op": {
+      "op": "edit",
+      "field": "branch",
+      "label": "nova branch"
+     }
+    },
+    {
+     "key": "a",
+     "label": "arquivar",
+     "op": {
+      "op": "set",
+      "path": "item.archived",
+      "value": true,
+      "toast": "${name} arquivado"
+     }
+    },
+    {
+     "key": "u",
+     "label": "restaurar",
+     "op": {
+      "op": "set",
+      "path": "item.archived",
+      "value": false,
+      "toast": "${name} restaurado"
+     },
+     "view": "arquivados"
+    },
+    {
+     "key": "x",
+     "label": "excluir",
+     "op": {
+      "op": "remove",
+      "confirm": "excluir ${name} e a worktree?"
+     }
+    },
+    {
+     "key": "o",
+     "label": "abrir no editor",
+     "op": {
+      "op": "toast",
+      "text": "abrindo ${path} no editor"
+     }
+    },
+    {
+     "key": "v",
+     "label": "ver conteúdo arquivado",
+     "op": {
+      "op": "log",
+      "cmd": "arquivado: ${name}",
+      "out": [
+       "notas: 2 · anexos: 1 · chat: 6 turnos · planos: 1"
+      ]
+     },
+     "view": "arquivados"
+    }
+   ]
+  },
+  "changes": {
+   "store": "changes",
+   "view": "alterações",
+   "row": {
+    "text": "${path}"
+   },
+   "space": {
+    "op": "cycle",
+    "path": "item.state",
+    "values": [
+     "staged",
+     "unstaged"
+    ]
+   },
+   "enter": {
+    "op": "set",
+    "path": "data.diff",
+    "value": "${id}"
+   },
+   "actions": [
+    {
+     "key": "m",
+     "label": "comentar (problema, sugestão, pergunta)",
+     "op": {
+      "op": "edit",
+      "field": "note",
+      "label": "comentário local"
+     }
+    },
+    {
+     "key": "k",
+     "label": "tipo: problema · sugestão · pergunta",
+     "op": {
+      "op": "cycle",
+      "path": "item.kind",
+      "values": [
+       "problema",
+       "sugestão",
+       "pergunta"
+      ]
+     }
+    },
+    {
+     "key": "d",
+     "label": "ver diff",
+     "op": {
+      "op": "set",
+      "path": "data.diff",
+      "value": "${id}"
+     }
+    }
+   ]
+  },
+  "files": {
+   "store": "files",
+   "view": "arquivos",
+   "row": {
+    "text": "${path}"
+   },
+   "enter": {
+    "op": "fn",
+    "name": "preview"
+   },
+   "actions": [
+    {
+     "key": "d",
+     "label": "diff do arquivo",
+     "op": {
+      "op": "seq",
+      "ops": [
+       {
+        "op": "view",
+        "view": "alterações"
+       },
+       {
+        "op": "set",
+        "path": "data.diff",
+        "value": "ch1"
+       }
+      ]
+     }
+    },
+    {
+     "key": "r",
+     "label": "copiar referência",
+     "op": {
+      "op": "fn",
+      "name": "refLine"
+     }
+    },
+    {
+     "key": "p",
+     "label": "abrir em outra folha",
+     "op": {
+      "op": "fn",
+      "name": "otherPane"
+     }
+    }
+   ]
+  },
+  "wsSessions": {
+   "store": "wsSessions",
+   "row": {
+    "text": "${name}",
+    "meta": "${when}"
+   },
+   "enter": {
+    "op": "goto",
+    "plugin": "chat",
+    "beside": true
+   }
+  }
+ },
+ "commands": [
+  {
+   "name": "new",
+   "desc": "novo workspace (worktree + branch)",
+   "op": {
+    "op": "push",
+    "path": "store.workspaces",
+    "value": {
+     "name": "${$args}",
+     "branch": "feature/${$args}",
+     "path": "~/dev/cadente/.worktrees/${$args}",
+     "archived": false
+    },
+    "toast": "workspace ${$args} criado"
+   }
+  },
+  {
+   "name": "commit",
+   "desc": "commitar o stage",
+   "op": {
+    "op": "fn",
+    "name": "commit"
+   }
+  },
+  {
+   "name": "push",
+   "desc": "enviar ao remoto",
+   "op": {
+    "op": "async",
+    "label": "enviando",
+    "then": {
+     "op": "toast",
+     "text": "enviado para origin"
+    }
+   }
+  },
+  {
+   "name": "pr",
+   "desc": "criar PR",
+   "op": {
+    "op": "fn",
+    "name": "openPrFromWs"
+   }
+  },
+  {
+   "name": "sync-pr",
+   "desc": "sincronizar PR",
+   "op": {
+    "op": "async",
+    "label": "sincronizando PR",
+    "then": {
+     "op": "toast",
+     "text": "PR sincronizado"
+    }
+   }
+  },
+  {
+   "name": "fix-ci",
+   "desc": "Chat ao lado com a falha de CI",
+   "op": {
+    "op": "goto",
+    "plugin": "chat",
+    "beside": true,
+    "input": "Corrija a falha de CI em slint build"
+   }
+  },
+  {
+   "name": "split",
+   "desc": "diff unificado ou split",
+   "op": {
+    "op": "seq",
+    "ops": [
+     {
+      "op": "view",
+      "view": "alterações"
+     },
+     {
+      "op": "toggle",
+      "path": "data.split"
+     }
+    ]
+   }
+  },
+  {
+   "name": "export",
+   "desc": "md · word",
+   "op": {
+    "op": "log",
+    "cmd": "exportar ${$args}",
+    "out": [
+     "revisão-local.${$args} salvo em ~/Downloads"
+    ]
+   }
+  }
+ ],
+ "seed": {
+  "workspaces": [
+   {
+    "id": "ws1",
+    "name": "cadente",
+    "branch": "main",
+    "path": "~/dev/cadente",
+    "archived": false,
+    "ctxName": "cadente"
+   },
+   {
+    "id": "ws2",
+    "name": "cadente · painéis",
+    "branch": "feature/universal-panes",
+    "path": "~/dev/cadente/.worktrees/panes",
+    "archived": false
+   },
+   {
+    "id": "ws3",
+    "name": "warp",
+    "branch": "main",
+    "path": "~/dev/warp",
+    "archived": false
+   },
+   {
+    "id": "ws4",
+    "name": "spike-gpu",
+    "branch": "spike/gpu",
+    "path": "~/dev/cadente/.worktrees/gpu",
+    "archived": true
+   }
+  ],
+  "changes": [
+   {
+    "id": "ch1",
+    "path": "crates/cadente-ui/src/pane.rs",
+    "add": 18,
+    "del": 4,
+    "state": "unstaged",
+    "kind": "sugestão"
+   },
+   {
+    "id": "ch2",
+    "path": "crates/cadente-ui/src/layout.rs",
+    "add": 11,
+    "del": 5,
+    "state": "staged",
+    "kind": "problema"
+   },
+   {
+    "id": "ch3",
+    "path": "crates/cadente-ui/src/focus.rs",
+    "add": 3,
+    "del": 1,
+    "state": "committed",
+    "commit": "separar memória de foco"
+   }
+  ],
+  "commits": [
+   {
+    "id": "c1",
+    "msg": "separar memória de foco"
+   }
+  ],
+  "files": [
+   {
+    "id": "f1",
+    "path": "crates/cadente-ui/src/pane.rs",
+    "lines": [
+     "use crate::context::PaneContext;",
+     "",
+     "pub struct PaneHost {",
+     "    pub context: PaneContext,",
+     "}"
+    ]
+   },
+   {
+    "id": "f2",
+    "path": "crates/cadente-ui/src/layout.rs",
+    "lines": [
+     "pub fn focus_neighbor(tree: &SplitTree) {}"
+    ]
+   },
+   {
+    "id": "f3",
+    "path": "crates/cadente-ui/Cargo.toml",
+    "lines": [
+     "[package]",
+     "name = \"cadente-ui\""
+    ]
+   }
+  ],
+  "wsSessions": [
+   {
+    "id": "s1",
+    "name": "Planejar contexto de painel",
+    "when": "ontem"
+   },
+   {
+    "id": "s2",
+    "name": "Revisar foco espacial",
+    "when": "há 3 d"
+   }
+  ]
+ }
+}

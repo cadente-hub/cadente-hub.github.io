@@ -1,0 +1,44 @@
+/* Tokens of the Cadente v4 prototype (design/prototypes/cadente-warp-slint/v4/tokens.css), with the site's two changes:
+   absolute black canvas and the purple that replaces the cyan accent in the app. */
+@font-face { font-family: Hack; font-display: swap; src: url('../assets/fonts/hack-regular.woff2') format('woff2'); }
+@font-face { font-family: Hack; font-weight: 700; font-display: swap; src: url('../assets/fonts/hack-bold.woff2') format('woff2'); }
+
+.v4 {
+  --canvas: #000;
+  --surface-1: #121212;
+  --surface-2: #1e1e1e;
+  --surface-3: #2b2b2b;
+  --fg-90: rgba(255, 255, 255, 0.9);
+  --fg-60: rgba(255, 255, 255, 0.6);
+  --fg-40: rgba(255, 255, 255, 0.4);
+  --fg-20: rgba(255, 255, 255, 0.2);
+  --line: rgba(255, 255, 255, 0.1);
+  --split: rgba(255, 255, 255, 0.15);
+  --veil: rgba(0, 0, 0, 0.5);
+  --accent: #b46bff;
+  --sel: #2a1050;
+  --gold: #f6c343;
+  --ansi-green: #b4fa72;
+  --ansi-red: #ff8272;
+  --ansi-yellow: #fefdc2;
+  --ui-yellow: #e5a01a;
+  --ansi-magenta: #ff8ffd;
+  --add-bg: rgba(180, 250, 114, 0.22);
+  --del-bg: rgba(255, 130, 114, 0.22);
+  --fail-bg: #1e1210;
+  --traffic-red: #ff5f57;
+  --traffic-yellow: #febc2e;
+  --traffic-green: #28c840;
+
+  --font: Hack, ui-monospace, SFMono-Regular, Menlo, monospace;
+  --fs: 13px;
+  --fs-ui: 12px;
+  --lh: 16px;
+  --header: 34px;
+  --sidebar: 200px;
+  --pad: 12px;
+  --radius: 4px;
+  --radius-menu: 8px;
+  -webkit-font-smoothing: antialiased;
+  text-align: left;
+}

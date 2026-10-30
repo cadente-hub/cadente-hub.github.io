@@ -1,0 +1,1411 @@
+{
+ "plugin": "config",
+ "views": [
+  {
+   "id": "geral",
+   "label": "geral",
+   "list": "settings",
+   "group": "sec"
+  },
+  {
+   "id": "chat",
+   "label": "chat",
+   "list": "settings",
+   "where": {
+    "sec": "chat"
+   }
+  },
+  {
+   "id": "aparência",
+   "label": "aparência",
+   "list": "settings",
+   "where": {
+    "sec": "aparência"
+   }
+  },
+  {
+   "id": "git",
+   "label": "git",
+   "list": "settings",
+   "where": {
+    "sec": "git"
+   }
+  },
+  {
+   "id": "contas",
+   "label": "contas",
+   "blocks": [
+    {
+     "list": "accounts",
+     "label": "contas"
+    },
+    {
+     "list": "settings",
+     "label": "opções",
+     "where": {
+      "sec": "contas"
+     }
+    }
+   ]
+  },
+  {
+   "id": "integrações",
+   "label": "integrações",
+   "list": "integrations"
+  },
+  {
+   "id": "ferramentas",
+   "label": "ferramentas",
+   "blocks": [
+    {
+     "list": "settings",
+     "label": "política",
+     "where": {
+      "sec": "ferramentas"
+     }
+    },
+    {
+     "list": "tools",
+     "label": "ferramentas"
+    },
+    {
+     "list": "bashPatterns",
+     "label": "padrões bash"
+    },
+    {
+     "list": "approvals",
+     "label": "aprovações pendentes"
+    }
+   ]
+  },
+  {
+   "id": "acesso",
+   "label": "acesso",
+   "blocks": [
+    {
+     "list": "settings",
+     "label": "modo",
+     "where": {
+      "sec": "acesso"
+     }
+    },
+    {
+     "list": "roots",
+     "label": "raízes"
+    }
+   ]
+  },
+  {
+   "id": "avançado",
+   "label": "avançado",
+   "blocks": [
+    {
+     "list": "envVars",
+     "label": "variáveis de ambiente"
+    },
+    {
+     "list": "settings",
+     "label": "timeouts",
+     "where": {
+      "sec": "avançado"
+     }
+    }
+   ]
+  },
+  {
+   "id": "perfil",
+   "label": "perfil",
+   "blocks": [
+    {
+     "list": "profiles",
+     "label": "perfis"
+    },
+    {
+     "list": "settings",
+     "label": "sessão",
+     "where": {
+      "sec": "perfil"
+     }
+    }
+   ]
+  },
+  {
+   "id": "atualizações",
+   "label": "atualizações",
+   "blocks": [
+    {
+     "list": "settings",
+     "label": "preferências",
+     "where": {
+      "sec": "atualizações"
+     }
+    },
+    {
+     "list": "versions",
+     "label": "versões"
+    }
+   ]
+  },
+  {
+   "id": "atalhos",
+   "label": "atalhos",
+   "filter": true
+  },
+  {
+   "id": "experimentais",
+   "label": "experimentais",
+   "list": "settings",
+   "where": {
+    "sec": "experimentais"
+   }
+  }
+ ],
+ "lists": {
+  "settings": {
+   "store": "settings",
+   "view": "geral",
+   "row": {
+    "g": "${ro?◦:·}",
+    "text": "${key}",
+    "meta": "${value}"
+   },
+   "enter": {
+    "op": "fn",
+    "name": "cfgSetting",
+    "edit": true
+   },
+   "space": {
+    "op": "fn",
+    "name": "cfgSetting"
+   }
+  },
+  "accounts": {
+   "store": "accounts",
+   "view": "contas",
+   "row": {
+    "g": "${active?●:○}",
+    "text": "${name}",
+    "meta": "${provider} · ${model} · ${status}${disabled? · desabilitada:}",
+    "tone": "${disabled?dim:}"
+   },
+   "enter": {
+    "op": "form",
+    "form": "account",
+    "label": "conta"
+   },
+   "actions": [
+    {
+     "key": "v",
+     "label": "revalidar",
+     "op": {
+      "op": "async",
+      "label": "validando ${name}",
+      "then": {
+       "op": "set",
+       "path": "item.status",
+       "value": "válida",
+       "toast": "${name} válida"
+      }
+     }
+    },
+    {
+     "key": "a",
+     "label": "tornar ativa",
+     "op": {
+      "op": "set",
+      "path": "item.active",
+      "value": true,
+      "exclusive": true,
+      "toast": "${name} é a conta ativa"
+     }
+    },
+    {
+     "key": "r",
+     "label": "renomear",
+     "op": {
+      "op": "edit",
+      "field": "name",
+      "label": "nome da conta"
+     }
+    },
+    {
+     "key": "d",
+     "label": "desabilitar ou habilitar",
+     "op": {
+      "op": "toggle",
+      "path": "item.disabled",
+      "toast": "${name} ${disabled?desabilitada:habilitada}"
+     }
+    },
+    {
+     "key": "e",
+     "label": "editar",
+     "op": {
+      "op": "form",
+      "form": "account",
+      "label": "conta"
+     }
+    },
+    {
+     "key": "x",
+     "label": "excluir",
+     "op": {
+      "op": "remove",
+      "confirm": "excluir a conta ${name}?"
+     }
+    }
+   ]
+  },
+  "integrations": {
+   "store": "integrations",
+   "view": "integrações",
+   "row": {
+    "g": "${ok?●:○}",
+    "text": "${name}",
+    "meta": "${status}",
+    "tone": "${ok?:warn}"
+   },
+   "enter": {
+    "op": "log",
+    "cmd": "${name}",
+    "out": [
+     "${detail}"
+    ]
+   },
+   "actions": [
+    {
+     "key": "l",
+     "label": "entrar",
+     "op": {
+      "op": "seq",
+      "ops": [
+       {
+        "op": "set",
+        "path": "item.status",
+        "value": "conectado"
+       },
+       {
+        "op": "set",
+        "path": "item.ok",
+        "value": true,
+        "toast": "${name} conectado"
+       }
+      ]
+     }
+    },
+    {
+     "key": "f",
+     "label": "ver permissões e falhas",
+     "op": {
+      "op": "log",
+      "cmd": "${name} · falhas",
+      "out": [
+       "${detail}"
+      ]
+     }
+    },
+    {
+     "key": "m",
+     "label": "MCPs",
+     "op": {
+      "op": "goto",
+      "plugin": "recursos"
+     }
+    },
+    {
+     "key": "c",
+     "label": "configurar",
+     "op": {
+      "op": "form",
+      "form": "integration",
+      "label": "integração"
+     }
+    }
+   ]
+  },
+  "tools": {
+   "store": "tools",
+   "view": "ferramentas",
+   "row": {
+    "g": "·",
+    "text": "${name}",
+    "meta": "${policy}${override? · override:}"
+   },
+   "space": {
+    "op": "seq",
+    "ops": [
+     {
+      "op": "cycle",
+      "path": "item.policy",
+      "values": [
+       "perguntar",
+       "permitir",
+       "negar"
+      ]
+     },
+     {
+      "op": "set",
+      "path": "item.override",
+      "value": true,
+      "toast": "${name}: ${policy} · override"
+     }
+    ]
+   },
+   "actions": [
+    {
+     "key": "x",
+     "label": "remover override",
+     "when": "override",
+     "op": {
+      "op": "seq",
+      "ops": [
+       {
+        "op": "set",
+        "path": "item.policy",
+        "value": "perguntar"
+       },
+       {
+        "op": "set",
+        "path": "item.override",
+        "value": false,
+        "toast": "override de ${name} removido"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  "bashPatterns": {
+   "store": "bashPatterns",
+   "view": "ferramentas",
+   "row": {
+    "g": "$",
+    "text": "${pattern}",
+    "meta": "permitido"
+   },
+   "actions": [
+    {
+     "key": "x",
+     "label": "remover",
+     "op": {
+      "op": "remove",
+      "toast": "padrão removido"
+     }
+    }
+   ]
+  },
+  "approvals": {
+   "store": "approvals",
+   "view": "ferramentas",
+   "row": {
+    "g": "?",
+    "text": "${what}",
+    "meta": "${from}",
+    "tone": "warn"
+   },
+   "actions": [
+    {
+     "key": "a",
+     "label": "aprovar",
+     "op": {
+      "op": "remove",
+      "toast": "aprovado: ${what}"
+     }
+    },
+    {
+     "key": "n",
+     "label": "negar",
+     "op": {
+      "op": "remove",
+      "toast": "negado: ${what}"
+     }
+    }
+   ]
+  },
+  "roots": {
+   "store": "roots",
+   "view": "acesso",
+   "row": {
+    "g": "${warn?!:·}",
+    "text": "${path}",
+    "meta": "${warn}",
+    "tone": "${warn?warn:}"
+   },
+   "actions": [
+    {
+     "key": "x",
+     "label": "revogar",
+     "op": {
+      "op": "remove",
+      "toast": "acesso a ${path} revogado"
+     }
+    }
+   ]
+  },
+  "envVars": {
+   "store": "envVars",
+   "view": "avançado",
+   "row": {
+    "g": "$",
+    "text": "${k}",
+    "meta": "${v}"
+   },
+   "actions": [
+    {
+     "key": "e",
+     "label": "editar valor",
+     "op": {
+      "op": "edit",
+      "field": "v",
+      "label": "valor"
+     }
+    },
+    {
+     "key": "x",
+     "label": "remover",
+     "op": {
+      "op": "remove",
+      "toast": "${k} removida"
+     }
+    }
+   ],
+   "enter": {
+    "op": "edit",
+    "field": "v",
+    "label": "valor"
+   }
+  },
+  "profiles": {
+   "store": "profiles",
+   "view": "perfil",
+   "row": {
+    "g": "${active?●:○}",
+    "text": "${name}",
+    "meta": "${email} · ${plan}"
+   },
+   "enter": {
+    "op": "seq",
+    "ops": [
+     {
+      "op": "set",
+      "path": "item.active",
+      "value": true,
+      "exclusive": true
+     },
+     {
+      "op": "set",
+      "path": "store.profile.name",
+      "value": "${name}",
+      "toast": "perfil ${name}"
+     }
+    ]
+   },
+   "actions": [
+    {
+     "key": "r",
+     "label": "renomear",
+     "op": {
+      "op": "edit",
+      "field": "name",
+      "label": "nome do perfil"
+     }
+    },
+    {
+     "key": "x",
+     "label": "excluir",
+     "op": {
+      "op": "remove",
+      "confirm": "excluir o perfil ${name}?"
+     }
+    }
+   ]
+  },
+  "versions": {
+   "store": "versions",
+   "view": "atualizações",
+   "row": {
+    "g": "${failed?!:·}",
+    "text": "${v}",
+    "meta": "${channel} · ${state}",
+    "tone": "${failed?warn:}"
+   },
+   "actions": [
+    {
+     "key": "i",
+     "label": "baixar e instalar",
+     "op": {
+      "op": "async",
+      "label": "baixando ${v}",
+      "then": {
+       "op": "set",
+       "path": "item.state",
+       "value": "pronta · /restart",
+       "toast": "${v} pronta"
+      }
+     }
+    },
+    {
+     "key": "t",
+     "label": "retomar download",
+     "when": "failed",
+     "op": {
+      "op": "async",
+      "label": "retomando ${v} de 62%",
+      "then": {
+       "op": "seq",
+       "ops": [
+        {
+         "op": "set",
+         "path": "item.failed",
+         "value": false
+        },
+        {
+         "op": "set",
+         "path": "item.state",
+         "value": "pronta · /restart",
+         "toast": "${v} pronta"
+        }
+       ]
+      }
+     }
+    }
+   ]
+  }
+ },
+ "itemActions": {
+  "key": [
+   {
+    "key": "r",
+    "label": "restaurar padrão",
+    "op": {
+     "op": "fn",
+     "name": "keyReset"
+    }
+   }
+  ]
+ },
+ "forms": {
+  "account": [
+   {
+    "field": "name",
+    "label": "nome",
+    "type": "text"
+   },
+   {
+    "field": "provider",
+    "label": "provider",
+    "type": "choice",
+    "values": [
+     "anthropic",
+     "openai",
+     "claude-cli",
+     "ollama",
+     "gateway"
+    ]
+   },
+   {
+    "field": "model",
+    "label": "modelo padrão",
+    "type": "choice",
+    "values": [
+     "opus 4.6",
+     "sonnet 4.6",
+     "haiku 4.5",
+     "gpt-5",
+     "llama3.2"
+    ]
+   },
+   {
+    "field": "key",
+    "label": "chave",
+    "type": "text"
+   },
+   {
+    "field": "limit",
+    "label": "limite",
+    "type": "text"
+   }
+  ],
+  "integration": [
+   {
+    "field": "clientId",
+    "label": "client id",
+    "type": "text"
+   },
+   {
+    "field": "guide",
+    "label": "guia",
+    "type": "display",
+    "value": "console.cloud.google.com › APIs › Calendar › OAuth"
+   }
+  ]
+ },
+ "commands": [
+  {
+   "name": "new-account",
+   "desc": "conta de provider",
+   "op": {
+    "op": "new",
+    "list": "accounts",
+    "item": {
+     "name": "nova conta",
+     "provider": "anthropic",
+     "model": "sonnet 4.6",
+     "status": "não validada",
+     "active": false
+    },
+    "form": "account",
+    "label": "conta",
+    "back": "contas"
+   }
+  },
+  {
+   "name": "oauth-openai",
+   "desc": "entrar na OpenAI pelo navegador",
+   "op": {
+    "op": "async",
+    "label": "abrindo o login da OpenAI no navegador",
+    "then": {
+     "op": "toast",
+     "text": "OpenAI conectada por OAuth"
+    }
+   }
+  },
+  {
+   "name": "import-cli",
+   "desc": "importar login do Claude CLI",
+   "op": {
+    "op": "push",
+    "path": "store.accounts",
+    "value": {
+     "name": "Claude CLI",
+     "provider": "claude-cli",
+     "model": "opus 4.6",
+     "status": "válida",
+     "active": false
+    },
+    "toast": "login do Claude CLI importado"
+   }
+  },
+  {
+   "name": "ollama",
+   "desc": "modelos locais",
+   "op": {
+    "op": "log",
+    "cmd": "ollama",
+    "out": [
+     "llama3.2 · 2,0 GB",
+     "qwen2.5-coder · 4,7 GB",
+     "/ollama-pull nome · /ollama-remove nome"
+    ]
+   }
+  },
+  {
+   "name": "ollama-pull",
+   "desc": "baixar modelo",
+   "op": {
+    "op": "async",
+    "label": "baixando ${$args}",
+    "then": {
+     "op": "toast",
+     "text": "${$args} pronto"
+    }
+   }
+  },
+  {
+   "name": "ollama-remove",
+   "desc": "remover modelo",
+   "op": {
+    "op": "confirm",
+    "text": "remover ${$args} do Ollama?",
+    "then": {
+     "op": "toast",
+     "text": "${$args} removido"
+    }
+   }
+  },
+  {
+   "name": "allow",
+   "desc": "permitir padrão bash",
+   "op": {
+    "op": "push",
+    "path": "store.bashPatterns",
+    "value": {
+     "pattern": "${$args}"
+    },
+    "toast": "padrão ${$args} permitido"
+   }
+  },
+  {
+   "name": "root",
+   "desc": "dar acesso a uma pasta",
+   "op": {
+    "op": "push",
+    "path": "store.roots",
+    "value": {
+     "path": "${$args}",
+     "warn": ""
+    },
+    "toast": "acesso a ${$args}"
+   }
+  },
+  {
+   "name": "env",
+   "desc": "CHAVE=valor",
+   "op": {
+    "op": "fn",
+    "name": "envAdd"
+   }
+  },
+  {
+   "name": "diagnose",
+   "desc": "diagnóstico",
+   "op": {
+    "op": "log",
+    "cmd": "diagnóstico",
+    "out": [
+     "core ok · 16 plugins ativos",
+     "anthropic ok · 182 ms",
+     "sem erros nas últimas 24 h"
+    ]
+   }
+  },
+  {
+   "name": "export",
+   "desc": "exportar configurações",
+   "op": {
+    "op": "log",
+    "cmd": "exportar",
+    "out": [
+     "cadente-config.json salvo em ~/Downloads"
+    ]
+   }
+  },
+  {
+   "name": "import-config",
+   "desc": "importar configurações",
+   "op": {
+    "op": "confirm",
+    "text": "substituir as configurações por cadente-config.json?",
+    "then": {
+     "op": "toast",
+     "text": "configurações importadas"
+    }
+   }
+  },
+  {
+   "name": "new-profile",
+   "desc": "novo perfil",
+   "op": {
+    "op": "push",
+    "path": "store.profiles",
+    "value": {
+     "name": "${$args}",
+     "email": "—",
+     "plan": "grátis",
+     "active": false
+    },
+    "toast": "perfil ${$args} criado"
+   }
+  },
+  {
+   "name": "login",
+   "desc": "e-mail, Google ou GitHub",
+   "op": {
+    "op": "async",
+    "label": "enviando link de acesso para ${$args}",
+    "then": {
+     "op": "toast",
+     "text": "link enviado · confira o e-mail"
+    }
+   }
+  },
+  {
+   "name": "logout",
+   "desc": "sair desta conta",
+   "op": {
+    "op": "confirm",
+    "text": "sair da conta deste perfil?",
+    "then": {
+     "op": "toast",
+     "text": "sessão encerrada"
+    }
+   }
+  },
+  {
+   "name": "setup",
+   "desc": "refazer a configuração inicial",
+   "op": {
+    "op": "log",
+    "cmd": "configuração inicial",
+    "out": [
+     "1 conta de IA · 2 perfil · 3 pastas com acesso · 4 atalhos",
+     "↵ em cada passo · esc volta"
+    ]
+   }
+  },
+  {
+   "name": "recover",
+   "desc": "recuperar o Core",
+   "op": {
+    "op": "async",
+    "label": "recuperando o Core",
+    "then": {
+     "op": "toast",
+     "text": "Core ativo de novo"
+    }
+   }
+  },
+  {
+   "name": "check-updates",
+   "desc": "checar atualizações",
+   "op": {
+    "op": "async",
+    "label": "checando atualizações",
+    "then": {
+     "op": "toast",
+     "text": "2 versões disponíveis"
+    }
+   }
+  },
+  {
+   "name": "restart",
+   "desc": "reiniciar para atualizar",
+   "op": {
+    "op": "confirm",
+    "text": "reiniciar o Cadente agora? as sessões ficam salvas",
+    "then": {
+     "op": "toast",
+     "text": "reiniciando"
+    }
+   }
+  }
+ ],
+ "seed": {
+  "settings": [
+   {
+    "id": "s1",
+    "sec": "geral",
+    "key": "escurecer-inativos",
+    "values": [
+     "sim",
+     "não"
+    ],
+    "value": "sim"
+   },
+   {
+    "id": "s2",
+    "sec": "geral",
+    "key": "barra-lateral",
+    "values": [
+     "visível",
+     "oculta"
+    ],
+    "value": "visível"
+   },
+   {
+    "id": "s3",
+    "sec": "chat",
+    "key": "modelo-padrão",
+    "values": [
+     "opus 4.6",
+     "sonnet 4.6",
+     "haiku 4.5"
+    ],
+    "value": "opus 4.6"
+   },
+   {
+    "id": "s4",
+    "sec": "chat",
+    "key": "modelo-de-review",
+    "values": [
+     "sonnet 4.6",
+     "opus 4.6"
+    ],
+    "value": "sonnet 4.6"
+   },
+   {
+    "id": "s5",
+    "sec": "chat",
+    "key": "thinking",
+    "values": [
+     "high",
+     "médio",
+     "off"
+    ],
+    "value": "high"
+   },
+   {
+    "id": "s6",
+    "sec": "chat",
+    "key": "idioma-do-review",
+    "values": [
+     "português",
+     "english"
+    ],
+    "value": "português"
+   },
+   {
+    "id": "s7",
+    "sec": "chat",
+    "key": "modo-plano",
+    "values": [
+     "não",
+     "sim"
+    ],
+    "value": "não"
+   },
+   {
+    "id": "s8",
+    "sec": "chat",
+    "key": "notificações",
+    "values": [
+     "som e banner",
+     "só banner",
+     "nenhuma"
+    ],
+    "value": "som e banner"
+   },
+   {
+    "id": "s9",
+    "sec": "chat",
+    "key": "enviar-com",
+    "values": [
+     "↵",
+     "⌘↵"
+    ],
+    "value": "↵"
+   },
+   {
+    "id": "s10",
+    "sec": "chat",
+    "key": "texto-longo",
+    "values": [
+     "vira anexo acima de 2000",
+     "nunca"
+    ],
+    "value": "vira anexo acima de 2000"
+   },
+   {
+    "id": "s11",
+    "sec": "chat",
+    "key": "mostrar",
+    "values": [
+     "tokens · custo · contexto",
+     "só contexto",
+     "nada"
+    ],
+    "value": "tokens · custo · contexto"
+   },
+   {
+    "id": "s12",
+    "sec": "chat",
+    "key": "compactação",
+    "values": [
+     "automática em 80%",
+     "manual"
+    ],
+    "value": "automática em 80%"
+   },
+   {
+    "id": "s13",
+    "sec": "chat",
+    "key": "auto-continue",
+    "values": [
+     "sim",
+     "não"
+    ],
+    "value": "sim"
+   },
+   {
+    "id": "s14",
+    "sec": "aparência",
+    "key": "idioma",
+    "values": [
+     "português",
+     "english",
+     "español"
+    ],
+    "value": "português"
+   },
+   {
+    "id": "s15",
+    "sec": "aparência",
+    "key": "fonte",
+    "values": [
+     "Hack 13",
+     "Hack 12",
+     "Hack 14"
+    ],
+    "value": "Hack 13"
+   },
+   {
+    "id": "s16",
+    "sec": "aparência",
+    "key": "tema",
+    "values": [
+     "Escuro (Warp)",
+     "Claro (Warp)",
+     "Dracula",
+     "personalizado"
+    ],
+    "value": "Escuro (Warp)"
+   },
+   {
+    "id": "s17",
+    "sec": "aparência",
+    "key": "efeitos",
+    "values": [
+     "nenhum",
+     "brilho do cursor"
+    ],
+    "value": "nenhum"
+   },
+   {
+    "id": "s18",
+    "sec": "aparência",
+    "key": "transparência",
+    "values": [
+     "0%",
+     "10%",
+     "20%"
+    ],
+    "value": "0%"
+   },
+   {
+    "id": "s19",
+    "sec": "aparência",
+    "key": "navegação",
+    "values": [
+     "abas à esquerda",
+     "abas no topo"
+    ],
+    "value": "abas à esquerda"
+   },
+   {
+    "id": "s20",
+    "sec": "git",
+    "key": "prefixo-de-branch",
+    "values": [
+     "usuário",
+     "nenhum",
+     "personalizado"
+    ],
+    "value": "usuário"
+   },
+   {
+    "id": "s21",
+    "sec": "git",
+    "key": "prefixo-personalizado",
+    "value": "voce/"
+   },
+   {
+    "id": "s22",
+    "sec": "git",
+    "key": "excluir-branch-ao-arquivar",
+    "values": [
+     "sim",
+     "não"
+    ],
+    "value": "sim"
+   },
+   {
+    "id": "s23",
+    "sec": "git",
+    "key": "arquivar-após-merge",
+    "values": [
+     "não",
+     "sim"
+    ],
+    "value": "não"
+   },
+   {
+    "id": "s24",
+    "sec": "contas",
+    "key": "air-gapped",
+    "values": [
+     "não",
+     "sim"
+    ],
+    "value": "não"
+   },
+   {
+    "id": "s25",
+    "sec": "contas",
+    "key": "descoberta-local",
+    "values": [
+     "Ollama e LM Studio",
+     "desligada"
+    ],
+    "value": "Ollama e LM Studio"
+   },
+   {
+    "id": "s26",
+    "sec": "contas",
+    "key": "gateway",
+    "values": [
+     "nenhum",
+     "LiteLLM local · opus→gateway"
+    ],
+    "value": "nenhum"
+   },
+   {
+    "id": "s27",
+    "sec": "contas",
+    "key": "limite-mensal",
+    "value": "US$ 100"
+   },
+   {
+    "id": "s28",
+    "sec": "ferramentas",
+    "key": "modo-de-política",
+    "values": [
+     "perguntar",
+     "permitir leituras",
+     "permitir tudo"
+    ],
+    "value": "perguntar"
+   },
+   {
+    "id": "s29",
+    "sec": "acesso",
+    "key": "modo-de-acesso",
+    "values": [
+     "só raízes",
+     "disco completo"
+    ],
+    "value": "só raízes"
+   },
+   {
+    "id": "s30",
+    "sec": "acesso",
+    "key": "escopo",
+    "values": [
+     "por workspace",
+     "global"
+    ],
+    "value": "por workspace"
+   },
+   {
+    "id": "s31",
+    "sec": "avançado",
+    "key": "timeout-de-streaming",
+    "values": [
+     "60 s",
+     "120 s",
+     "30 s"
+    ],
+    "value": "60 s"
+   },
+   {
+    "id": "s32",
+    "sec": "avançado",
+    "key": "timeout-do-provider",
+    "values": [
+     "30 s",
+     "60 s",
+     "10 s"
+    ],
+    "value": "30 s"
+   },
+   {
+    "id": "s33",
+    "sec": "perfil",
+    "key": "plano",
+    "value": "Max 5x · 58% da janela",
+    "ro": true,
+    "help": "uso detalhado em Uso › contas"
+   },
+   {
+    "id": "s34",
+    "sec": "perfil",
+    "key": "manter-ativo",
+    "values": [
+     "sim",
+     "não"
+    ],
+    "value": "sim"
+   },
+   {
+    "id": "s35",
+    "sec": "perfil",
+    "key": "estado-do-core",
+    "value": "desejado ativo · efetivo ativo",
+    "ro": true,
+    "help": "fica degradado se o provider cai · /recover"
+   },
+   {
+    "id": "s36",
+    "sec": "atualizações",
+    "key": "canal",
+    "values": [
+     "estável",
+     "beta"
+    ],
+    "value": "estável"
+   },
+   {
+    "id": "s37",
+    "sec": "atualizações",
+    "key": "instalar",
+    "values": [
+     "ao reiniciar",
+     "perguntar antes"
+    ],
+    "value": "ao reiniciar"
+   },
+   {
+    "id": "s38",
+    "sec": "experimentais",
+    "key": "recursos-experimentais",
+    "values": [
+     "desligados",
+     "ligados"
+    ],
+    "value": "desligados"
+   },
+   {
+    "id": "s39",
+    "sec": "experimentais",
+    "key": "ordem-da-navegação",
+    "value": "abas, cemitério, widgets"
+   },
+   {
+    "id": "s40",
+    "sec": "experimentais",
+    "key": "repositórios",
+    "value": "~/dev/cadente, ~/dev/warp"
+   }
+  ],
+  "integrations": [
+   {
+    "id": "in1",
+    "name": "Claude Code",
+    "ok": true,
+    "status": "conectado",
+    "detail": "~/.claude/settings.json · 3 MCPs · hooks ativos"
+   },
+   {
+    "id": "in2",
+    "name": "GitHub",
+    "ok": true,
+    "status": "conectado",
+    "detail": "voce · repo, read:org"
+   },
+   {
+    "id": "in3",
+    "name": "Google Calendar",
+    "ok": false,
+    "status": "não configurado",
+    "detail": "precisa de client id · . c configura"
+   },
+   {
+    "id": "in4",
+    "name": "Slack",
+    "ok": false,
+    "status": "falhou: token expirado",
+    "detail": "token expirado em 12 out · . l entra de novo"
+   }
+  ],
+  "tools": [
+   {
+    "id": "tl1",
+    "name": "bash",
+    "policy": "perguntar"
+   },
+   {
+    "id": "tl2",
+    "name": "read_file",
+    "policy": "permitir"
+   },
+   {
+    "id": "tl3",
+    "name": "write_file",
+    "policy": "perguntar"
+   },
+   {
+    "id": "tl4",
+    "name": "web_fetch",
+    "policy": "negar",
+    "override": true
+   }
+  ],
+  "bashPatterns": [
+   {
+    "id": "bp1",
+    "pattern": "git status*"
+   },
+   {
+    "id": "bp2",
+    "pattern": "cargo test*"
+   }
+  ],
+  "approvals": [
+   {
+    "id": "ap1",
+    "what": "rm -rf target/",
+    "from": "Chat · PR #248"
+   }
+  ],
+  "roots": [
+   {
+    "id": "rt1",
+    "path": "~/dev",
+    "warn": ""
+   },
+   {
+    "id": "rt2",
+    "path": "~/Documents/notas",
+    "warn": ""
+   },
+   {
+    "id": "rt3",
+    "path": "/Volumes/backup",
+    "warn": "indisponível: disco desconectado"
+   }
+  ],
+  "envVars": [
+   {
+    "id": "ev1",
+    "k": "RUST_LOG",
+    "v": "info"
+   },
+   {
+    "id": "ev2",
+    "k": "HTTPS_PROXY",
+    "v": ""
+   }
+  ],
+  "profiles": [
+   {
+    "id": "pf1",
+    "name": "pessoal",
+    "email": "voce@exemplo.dev",
+    "plan": "Max 5x",
+    "active": true
+   },
+   {
+    "id": "pf2",
+    "name": "trabalho",
+    "email": "voce@empresa.dev",
+    "plan": "Team",
+    "active": false
+   }
+  ],
+  "versions": [
+   {
+    "id": "vs1",
+    "v": "0.4.1",
+    "channel": "estável",
+    "state": "disponível"
+   },
+   {
+    "id": "vs2",
+    "v": "0.5.0-beta.2",
+    "channel": "beta",
+    "state": "download falhou em 62% · . t retoma",
+    "failed": true
+   }
+  ]
+ }
+}

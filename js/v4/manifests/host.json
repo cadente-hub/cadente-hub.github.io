@@ -1,0 +1,179 @@
+{
+ "plugin": "host",
+ "palette": [
+  [
+   "Dividir à direita",
+   {
+    "type": "SPLIT",
+    "axis": "row"
+   }
+  ],
+  [
+   "Dividir abaixo",
+   {
+    "type": "SPLIT",
+    "axis": "col"
+   }
+  ],
+  [
+   "Nova aba",
+   {
+    "type": "NEW_TAB"
+   }
+  ],
+  [
+   "Abrir plugin nesta folha",
+   {
+    "type": "PICK"
+   }
+  ],
+  [
+   "Chat ao lado",
+   {
+    "type": "CHAT_BESIDE"
+   }
+  ],
+  [
+   "Saltar para folha ou aba",
+   {
+    "type": "JUMP"
+   }
+  ],
+  [
+   "Ampliar folha",
+   {
+    "type": "ZOOM"
+   }
+  ],
+  [
+   "Folha seguinte",
+   {
+    "type": "CYCLE",
+    "d": 1
+   }
+  ],
+  [
+   "Fechar folha",
+   {
+    "type": "CLOSE_PANE"
+   }
+  ],
+  [
+   "Fechar aba",
+   {
+    "type": "CLOSE_TAB"
+   }
+  ],
+  [
+   "Restaurar do Cemitério",
+   {
+    "type": "RESTORE"
+   }
+  ],
+  [
+   "Esvaziar Cemitério",
+   {
+    "type": "PURGE_ALL"
+   }
+  ],
+  [
+   "Mostrar ou ocultar abas",
+   {
+    "type": "SIDEBAR"
+   }
+  ],
+  [
+   "Focar abas",
+   {
+    "type": "SIDE_FOCUS"
+   }
+  ],
+  [
+   "Nova pasta",
+   {
+    "type": "NAME",
+    "purpose": "group"
+   }
+  ],
+  [
+   "Limpar folha",
+   {
+    "type": "CLEAR"
+   }
+  ],
+  [
+   "Desanexar folha em janela",
+   {
+    "type": "DETACH"
+   }
+  ],
+  [
+   "Focar janela",
+   {
+    "type": "FOCUS_WINDOW"
+   }
+  ],
+  [
+   "Reanexar janela",
+   {
+    "type": "REDOCK"
+   }
+  ],
+  [
+   "Salvar layout",
+   {
+    "type": "SAVE_LAYOUT"
+   }
+  ],
+  [
+   "Abrir layout salvo",
+   {
+    "type": "OPEN_LAYOUT"
+   }
+  ],
+  [
+   "Notas",
+   {
+    "type": "GOTO",
+    "plugin": "foco",
+    "view": "notas"
+   }
+  ]
+ ],
+ "seed": {
+  "profile": {
+   "name": "pessoal"
+  },
+  "weather": {
+   "city": "São Paulo",
+   "temp": 23,
+   "cond": "nublado",
+   "rain": 40
+  },
+  "activities": [
+   {
+    "id": "act-1",
+    "label": "revisão-noturna",
+    "state": "rodando"
+   }
+  ],
+  "accounts": [
+   {
+    "id": "acc-1",
+    "name": "Claude Max",
+    "provider": "anthropic",
+    "status": "válida",
+    "active": true,
+    "model": "opus 4.6"
+   },
+   {
+    "id": "acc-2",
+    "name": "OpenAI",
+    "provider": "openai",
+    "status": "válida",
+    "active": false,
+    "model": "gpt-5"
+   }
+  ]
+ }
+}

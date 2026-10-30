@@ -1,0 +1,377 @@
+{
+ "plugin": "chat",
+ "views": [
+  {
+   "id": "conversa",
+   "label": "conversa"
+  },
+  {
+   "id": "trajetória",
+   "label": "trajetória"
+  },
+  {
+   "id": "modelo",
+   "label": "modelo"
+  },
+  {
+   "id": "fila",
+   "label": "fila"
+  },
+  {
+   "id": "sessões",
+   "label": "sessões",
+   "list": "chatSessions"
+  },
+  {
+   "id": "contexto",
+   "label": "contexto"
+  }
+ ],
+ "lists": {
+  "chatSessions": {
+   "store": "chatSessions",
+   "view": "sessões",
+   "row": {
+    "g": "${archived?○:»}",
+    "text": "${name}",
+    "meta": "${when} · ${cwd}",
+    "tone": "${archived?dim:}"
+   },
+   "enter": {
+    "op": "fn",
+    "name": "switchSession"
+   },
+   "actions": [
+    {
+     "key": "r",
+     "label": "renomear",
+     "op": {
+      "op": "edit",
+      "field": "name",
+      "label": "nome"
+     }
+    },
+    {
+     "key": "d",
+     "label": "diretório",
+     "op": {
+      "op": "edit",
+      "field": "cwd",
+      "label": "diretório"
+     }
+    },
+    {
+     "key": "f",
+     "label": "fork com contexto",
+     "op": {
+      "op": "fn",
+      "name": "fork"
+     }
+    },
+    {
+     "key": "a",
+     "label": "arquivar ou desarquivar",
+     "op": {
+      "op": "toggle",
+      "path": "item.archived",
+      "toast": "${name} ${archived?arquivada:de volta}"
+     }
+    },
+    {
+     "key": "x",
+     "label": "excluir",
+     "op": {
+      "op": "remove",
+      "toast": "conversa ${name} excluída"
+     }
+    }
+   ]
+  }
+ },
+ "itemActions": {
+  "msg": [
+   {
+    "key": "c",
+    "label": "copiar",
+    "op": {
+     "op": "toast",
+     "text": "mensagem copiada"
+    }
+   },
+   {
+    "key": "r",
+    "label": "reexecutar",
+    "op": {
+     "op": "fn",
+     "name": "rerunTurn"
+    }
+   },
+   {
+    "key": "f",
+    "label": "fork daqui",
+    "op": {
+     "op": "fn",
+     "name": "fork"
+    }
+   },
+   {
+    "key": "b",
+    "label": "branch daqui",
+    "op": {
+     "op": "fn",
+     "name": "branch"
+    }
+   }
+  ],
+  "turn": [
+   {
+    "key": "f",
+    "label": "fork daqui",
+    "op": {
+     "op": "fn",
+     "name": "fork"
+    }
+   },
+   {
+    "key": "b",
+    "label": "branch neste turno",
+    "op": {
+     "op": "fn",
+     "name": "branch"
+    }
+   },
+   {
+    "key": "u",
+    "label": "desfazer depois deste turno",
+    "op": {
+     "op": "fn",
+     "name": "undo"
+    }
+   }
+  ],
+  "q": [
+   {
+    "key": "e",
+    "label": "enviar agora",
+    "op": {
+     "op": "fn",
+     "name": "queueNow"
+    }
+   },
+   {
+    "key": "k",
+    "label": "subir",
+    "op": {
+     "op": "fn",
+     "name": "queueUp"
+    }
+   },
+   {
+    "key": "j",
+    "label": "descer",
+    "op": {
+     "op": "fn",
+     "name": "queueDown"
+    }
+   },
+   {
+    "key": "m",
+    "label": "mudar modelo",
+    "op": {
+     "op": "fn",
+     "name": "queueModel"
+    }
+   },
+   {
+    "key": "x",
+    "label": "remover",
+    "op": {
+     "op": "fn",
+     "name": "queueDrop"
+    }
+   }
+  ]
+ },
+ "commands": [
+  {
+   "name": "new",
+   "desc": "conversa nova",
+   "op": {
+    "op": "fn",
+    "name": "newSession"
+   }
+  },
+  {
+   "name": "sort",
+   "desc": "recentes · nome",
+   "op": {
+    "op": "seq",
+    "ops": [
+     {
+      "op": "view",
+      "view": "sessões"
+     },
+     {
+      "op": "cycle",
+      "path": "data.sort",
+      "values": [
+       "recentes",
+       "nome"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "name": "model",
+   "desc": "modelo, provider e conta",
+   "op": {
+    "op": "fn",
+    "name": "cycleModel"
+   }
+  },
+  {
+   "name": "effort",
+   "desc": "low · medium · high",
+   "op": {
+    "op": "cycle",
+    "path": "data.effort",
+    "values": [
+     "low",
+     "medium",
+     "high"
+    ]
+   }
+  },
+  {
+   "name": "thinking",
+   "desc": "liga ou desliga o thinking",
+   "op": {
+    "op": "toggle",
+    "path": "data.noThinking",
+    "toast": "thinking ${noThinking?desligado:ligado}"
+   }
+  },
+  {
+   "name": "plan",
+   "desc": "modo plano",
+   "op": {
+    "op": "cycle",
+    "path": "data.mode",
+    "values": [
+     "plan",
+     "code"
+    ]
+   }
+  },
+  {
+   "name": "system",
+   "desc": "system prompt",
+   "op": {
+    "op": "set",
+    "path": "data.system",
+    "value": "${$args}",
+    "toast": "system prompt atualizado"
+   }
+  },
+  {
+   "name": "resources",
+   "desc": "recursos e MCPs",
+   "op": {
+    "op": "view",
+    "view": "contexto"
+   }
+  },
+  {
+   "name": "context",
+   "desc": "uso de contexto",
+   "op": {
+    "op": "view",
+    "view": "contexto"
+   }
+  },
+  {
+   "name": "improve",
+   "desc": "reescrever a mensagem",
+   "op": {
+    "op": "fn",
+    "name": "improve"
+   }
+  },
+  {
+   "name": "compact",
+   "desc": "compactar o contexto",
+   "op": {
+    "op": "async",
+    "label": "compactando",
+    "then": {
+     "op": "fn",
+     "name": "compactDone"
+    }
+   }
+  },
+  {
+   "name": "export",
+   "desc": "exportar conversa",
+   "op": {
+    "op": "log",
+    "cmd": "exportar",
+    "out": [
+     "conversa.md salva em ~/Downloads"
+    ]
+   }
+  }
+ ],
+ "seed": {
+  "chatSessions": [
+   {
+    "id": "cs1",
+    "name": "Revisão de composição",
+    "cwd": "~/dev/cadente",
+    "when": "agora"
+   },
+   {
+    "id": "cs2",
+    "name": "Planejar contexto de painel",
+    "cwd": "~/dev/cadente",
+    "when": "ontem"
+   },
+   {
+    "id": "cs3",
+    "name": "benchmarks sql",
+    "cwd": "~/dev/nora",
+    "when": "há 4 d",
+    "archived": true
+   }
+  ],
+  "attachments": [
+   {
+    "id": "a1",
+    "slug": "diagrama-paineis.png",
+    "type": "imagens",
+    "recent": true
+   },
+   {
+    "id": "a2",
+    "slug": "spec-v4.pdf",
+    "type": "pdf",
+    "recent": true
+   },
+   {
+    "id": "a3",
+    "slug": "notas.md",
+    "type": "texto"
+   },
+   {
+    "id": "a4",
+    "slug": "pane.rs",
+    "type": "código"
+   },
+   {
+    "id": "a5",
+    "slug": "gravacao.mov",
+    "type": "outros"
+   }
+  ]
+ }
+}

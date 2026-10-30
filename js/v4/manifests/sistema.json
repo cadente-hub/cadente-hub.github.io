@@ -1,0 +1,218 @@
+{
+ "plugin": "sistema",
+ "views": [
+  {
+   "id": "memória",
+   "label": "memória"
+  },
+  {
+   "id": "portas",
+   "label": "portas",
+   "list": "ports"
+  },
+  {
+   "id": "docker",
+   "label": "docker",
+   "list": "containers"
+  },
+  {
+   "id": "agentes",
+   "label": "agentes",
+   "list": "agents"
+  },
+  {
+   "id": "runtime",
+   "label": "runtime",
+   "list": "runtime"
+  }
+ ],
+ "lists": {
+  "ports": {
+   "store": "ports",
+   "view": "portas",
+   "row": {
+    "g": "·",
+    "text": "${port}  ${proc}",
+    "meta": "pid ${pid}"
+   },
+   "enter": {
+    "op": "log",
+    "cmd": "${port} · ${proc}",
+    "out": [
+     "pid ${pid} · ${cmd}",
+     "aberto por ${owner}"
+    ]
+   },
+   "actions": [
+    {
+     "key": "k",
+     "label": "encerrar processo",
+     "op": {
+      "op": "remove",
+      "confirm": "encerrar ${proc} na ${port}?",
+      "toast": "${proc} encerrado"
+     }
+    }
+   ]
+  },
+  "containers": {
+   "store": "containers",
+   "view": "docker",
+   "row": {
+    "g": "${state?●:○}",
+    "text": "${name}",
+    "meta": "${image} · ${state}"
+   },
+   "actions": [
+    {
+     "key": "s",
+     "label": "parar contêiner",
+     "op": {
+      "op": "confirm",
+      "text": "parar ${name}?",
+      "then": {
+       "op": "set",
+       "path": "item.state",
+       "value": "parado",
+       "toast": "${name} parado"
+      }
+     }
+    }
+   ],
+   "enter": {
+    "op": "log",
+    "cmd": "${name}",
+    "out": [
+     "${image} · ${state}",
+     "${ports}"
+    ]
+   }
+  },
+  "agents": {
+   "store": "agents",
+   "view": "agentes",
+   "row": {
+    "g": "·",
+    "text": "${name}",
+    "meta": "${state}"
+   },
+   "enter": {
+    "op": "goto",
+    "plugin": "${plugin}"
+   }
+  },
+  "runtime": {
+   "store": "runtime",
+   "view": "runtime",
+   "row": {
+    "g": "·",
+    "text": "${label}",
+    "meta": "${value}"
+   },
+   "enter": {
+    "op": "log",
+    "cmd": "${label}",
+    "out": [
+     "${help}"
+    ]
+   }
+  }
+ },
+ "commands": [
+  {
+   "name": "free",
+   "desc": "descartar caches",
+   "op": {
+    "op": "log",
+    "cmd": "liberar",
+    "out": [
+     "3,1 GB de caches descartados"
+    ]
+   }
+  }
+ ],
+ "seed": {
+  "ports": [
+   {
+    "id": "pt1",
+    "port": ":5174",
+    "proc": "node (vite)",
+    "pid": 4211,
+    "cmd": "npm run client",
+    "owner": "Terminal · cadente"
+   },
+   {
+    "id": "pt2",
+    "port": ":8080",
+    "proc": "cadente-core",
+    "pid": 311,
+    "cmd": "cadente-core --serve",
+    "owner": "Cadente"
+   },
+   {
+    "id": "pt3",
+    "port": ":5432",
+    "proc": "postgres",
+    "pid": 902,
+    "cmd": "docker-proxy",
+    "owner": "Docker"
+   }
+  ],
+  "containers": [
+   {
+    "id": "ct1",
+    "name": "postgres",
+    "image": "postgres:16",
+    "state": "rodando",
+    "ports": "porta 5432 → :5432"
+   },
+   {
+    "id": "ct2",
+    "name": "redis",
+    "image": "redis:7",
+    "state": "rodando",
+    "ports": "porta 6379 → :6379"
+   }
+  ],
+  "agents": [
+   {
+    "id": "ag1",
+    "name": "Chat · PR #248",
+    "state": "aguardando aprovação",
+    "plugin": "chat"
+   },
+   {
+    "id": "ag2",
+    "name": "revisão-noturna",
+    "state": "ocioso · próxima amanhã 02:00",
+    "plugin": "automacoes"
+   },
+   {
+    "id": "ag3",
+    "name": "Chat · benchmarks sql",
+    "state": "no cemitério",
+    "plugin": "chat"
+   }
+  ],
+  "runtime": [
+   {
+    "id": "rt1",
+    "label": "resumo",
+    "value": "core 0.3.2 · 4 h no ar · 16 plugins",
+    "help": "core 0.3.2 · SQLite WAL 38 MB · 16 plugins ativos, 2 desligados"
+   },
+   {
+    "id": "rt2",
+    "label": "acesso completo ao disco",
+    "value": "não concedido",
+    "help": "Ajustes do Sistema › Privacidade › Acesso Total ao Disco › ative Cadente"
+   },
+   {
+    "id": "rt3",
+    "label": "aparência",
+    "value": "Hack 13 · Escuro (Warp)",
+    "help": "render Metal · 120 Hz · fonte Hack carregada · sem fallback"
+   }
+  ]
+ }
+}

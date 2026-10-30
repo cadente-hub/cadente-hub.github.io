@@ -1,0 +1,181 @@
+{
+ "plugin": "plugins",
+ "views": [
+  {
+   "id": "catálogo",
+   "label": "catálogo",
+   "filter": true
+  },
+  {
+   "id": "grafo",
+   "label": "grafo"
+  },
+  {
+   "id": "operações",
+   "label": "operações",
+   "list": "pluginOps"
+  }
+ ],
+ "lists": {
+  "providers": {
+   "store": "providers",
+   "view": "catálogo",
+   "row": {
+    "text": "${service}"
+   },
+   "actions": [
+    {
+     "key": "p",
+     "label": "trocar provider",
+     "op": {
+      "op": "fn",
+      "name": "providerPick"
+     }
+    }
+   ],
+   "enter": {
+    "op": "fn",
+    "name": "providerPick"
+   }
+  },
+  "pluginOps": {
+   "store": "pluginOps",
+   "view": "operações",
+   "row": {
+    "g": "${ok?●:✕}",
+    "text": "${what}",
+    "meta": "${when}${error? · :}${error}",
+    "tone": "${ok?:err}"
+   },
+   "actions": [
+    {
+     "key": "r",
+     "label": "repetir",
+     "when": "!ok",
+     "op": {
+      "op": "async",
+      "label": "repetindo ${what}",
+      "then": {
+       "op": "seq",
+       "ops": [
+        {
+         "op": "set",
+         "path": "item.ok",
+         "value": true
+        },
+        {
+         "op": "set",
+         "path": "item.error",
+         "value": "",
+         "toast": "${what} concluído"
+        }
+       ]
+      }
+     }
+    }
+   ],
+   "enter": {
+    "op": "log",
+    "cmd": "${what}",
+    "out": [
+     "${when}${ok? · concluída: · falhou}",
+     "${error}"
+    ]
+   }
+  }
+ },
+ "commands": [
+  {
+   "name": "install",
+   "desc": "inspecionar e instalar bundle",
+   "op": {
+    "op": "seq",
+    "ops": [
+     {
+      "op": "log",
+      "cmd": "inspecionar ${$args}",
+      "out": [
+       "assinatura ok · autor cadente-community",
+       "requires: core.storage · permissões: rede (api.notes.dev)"
+      ]
+     },
+     {
+      "op": "confirm",
+      "text": "instalar ${$args}?",
+      "then": {
+       "op": "push",
+       "path": "store.pluginOps",
+       "value": {
+        "what": "instalar ${$args}",
+        "ok": true,
+        "when": "agora"
+       },
+       "toast": "${$args} instalado"
+      }
+     }
+    ]
+   }
+  }
+ ],
+ "seed": {
+  "providers": [
+   {
+    "id": "pv1",
+    "service": "compactação",
+    "provider": "cadente.compaction.default",
+    "options": [
+     "cadente.compaction.default",
+     "cadente.compaction.manual",
+     "custom.compaction"
+    ],
+    "consumers": [
+     "chat",
+     "automações"
+    ]
+   },
+   {
+    "id": "pv2",
+    "service": "provider de IA",
+    "provider": "cadente.ai.anthropic",
+    "options": [
+     "cadente.ai.anthropic",
+     "cadente.ai.openai",
+     "cadente.ai.ollama"
+    ],
+    "consumers": [
+     "chat",
+     "pr",
+     "automações"
+    ]
+   },
+   {
+    "id": "pv3",
+    "service": "terminal",
+    "provider": "cadente.pty.default",
+    "options": [
+     "cadente.pty.default",
+     "custom.pty"
+    ],
+    "consumers": [
+     "terminal",
+     "workspaces"
+    ]
+   }
+  ],
+  "pluginOps": [
+   {
+    "id": "po1",
+    "what": "ativar requests",
+    "ok": true,
+    "when": "ontem"
+   },
+   {
+    "id": "po2",
+    "what": "instalar notes-sync",
+    "ok": false,
+    "when": "há 2 d",
+    "error": "assinatura inválida"
+   }
+  ]
+ }
+}

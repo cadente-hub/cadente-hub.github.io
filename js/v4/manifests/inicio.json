@@ -1,0 +1,297 @@
+{
+ "plugin": "inicio",
+ "views": [
+  {
+   "id": "hoje",
+   "label": "hoje"
+  },
+  {
+   "id": "recentes",
+   "label": "recentes"
+  },
+  {
+   "id": "tarefas",
+   "label": "tarefas",
+   "list": "tasks",
+   "sub": [
+    {
+     "label": "ativas",
+     "where": "!done"
+    },
+    {
+     "label": "concluídas",
+     "where": "done"
+    }
+   ]
+  },
+  {
+   "id": "notas",
+   "label": "notas",
+   "list": "notes",
+   "sub": [
+    {
+     "label": "ativas",
+     "where": "!done"
+    },
+    {
+     "label": "concluídas",
+     "where": "done"
+    }
+   ]
+  },
+  {
+   "id": "atividade",
+   "label": "atividade",
+   "list": "activity"
+  },
+  {
+   "id": "clima",
+   "label": "clima"
+  },
+  {
+   "id": "ações",
+   "label": "ações",
+   "list": "quick"
+  }
+ ],
+ "lists": {
+  "notes": {
+   "store": "notes",
+   "view": "notas",
+   "row": {
+    "g": "${pinned?◆:·}",
+    "text": "${text}",
+    "meta": "${when}"
+   },
+   "sort": "fixadas",
+   "sorts": {
+    "fixadas": "!pinned"
+   },
+   "actions": [
+    {
+     "key": "p",
+     "label": "fixar ou desafixar",
+     "op": {
+      "op": "toggle",
+      "path": "item.pinned",
+      "toast": "nota ${pinned?fixada:desafixada}"
+     }
+    },
+    {
+     "key": "c",
+     "label": "concluir ou reabrir",
+     "op": {
+      "op": "toggle",
+      "path": "item.done",
+      "toast": "nota ${done?concluída:reaberta}"
+     }
+    },
+    {
+     "key": "e",
+     "label": "editar",
+     "op": {
+      "op": "edit",
+      "field": "text",
+      "label": "nota"
+     }
+    },
+    {
+     "key": "x",
+     "label": "excluir",
+     "op": {
+      "op": "remove",
+      "toast": "nota excluída"
+     }
+    }
+   ],
+   "enter": {
+    "op": "edit",
+    "field": "text",
+    "label": "nota"
+   }
+  },
+  "activity": {
+   "store": "activity",
+   "view": "atividade",
+   "row": {
+    "g": "·",
+    "text": "${what}",
+    "meta": "${when}"
+   },
+   "enter": {
+    "op": "goto",
+    "plugin": "${plugin}"
+   }
+  },
+  "quick": {
+   "store": "quick",
+   "view": "ações",
+   "row": {
+    "g": "${g}",
+    "text": "${label}",
+    "meta": "${hint}"
+   },
+   "enter": {
+    "op": "goto",
+    "plugin": "${plugin}",
+    "input": "${input}"
+   }
+  }
+ },
+ "commands": [
+  {
+   "name": "new-note",
+   "desc": "nova nota",
+   "op": {
+    "op": "push",
+    "path": "store.notes",
+    "value": {
+     "text": "${$args}",
+     "pinned": false,
+     "done": false,
+     "when": "agora"
+    },
+    "toast": "nota criada"
+   }
+  },
+  {
+   "name": "city",
+   "desc": "cidade do clima",
+   "op": {
+    "op": "set",
+    "path": "store.weather.city",
+    "value": "${$args}",
+    "toast": "clima de ${$args}"
+   }
+  }
+ ],
+ "seed": {
+  "notes": [
+   {
+    "id": "n1",
+    "text": "ligar para o contador",
+    "pinned": true,
+    "done": false,
+    "when": "ontem"
+   },
+   {
+    "id": "n2",
+    "text": "trocar a senha do provider",
+    "pinned": false,
+    "done": false,
+    "when": "há 2 d"
+   },
+   {
+    "id": "n3",
+    "text": "comprar presente da Ana",
+    "pinned": false,
+    "done": true,
+    "when": "há 3 d"
+   }
+  ],
+  "activity": [
+   {
+    "id": "at1",
+    "what": "PR #248 aprovado por ana",
+    "when": "há 20 min",
+    "plugin": "pr"
+   },
+   {
+    "id": "at2",
+    "what": "revisão-noturna rodou · 1 comentário",
+    "when": "há 9 h",
+    "plugin": "automacoes"
+   },
+   {
+    "id": "at3",
+    "what": "cadente · 2 commits enviados",
+    "when": "ontem",
+    "plugin": "workspaces"
+   },
+   {
+    "id": "at4",
+    "what": "relatório-uso falhou",
+    "when": "há 4 d",
+    "plugin": "automacoes"
+   }
+  ],
+  "quick": [
+   {
+    "id": "q1",
+    "g": "◷",
+    "label": "novo evento",
+    "hint": "/new",
+    "plugin": "calendario",
+    "input": "/new "
+   },
+   {
+    "id": "q2",
+    "g": "·",
+    "label": "nova nota",
+    "hint": "/new-note",
+    "plugin": "inicio",
+    "input": "/new-note "
+   },
+   {
+    "id": "q3",
+    "g": "◉",
+    "label": "iniciar foco",
+    "hint": "espaço",
+    "plugin": "foco",
+    "input": ""
+   },
+   {
+    "id": "q4",
+    "g": "»",
+    "label": "novo chat",
+    "hint": "⌘J ao lado",
+    "plugin": "chat",
+    "input": ""
+   }
+  ],
+  "forecast": [
+   {
+    "day": "sáb",
+    "max": 24,
+    "min": 16,
+    "rain": 40
+   },
+   {
+    "day": "dom",
+    "max": 26,
+    "min": 17,
+    "rain": 10
+   },
+   {
+    "day": "seg",
+    "max": 27,
+    "min": 18,
+    "rain": 20
+   },
+   {
+    "day": "ter",
+    "max": 22,
+    "min": 15,
+    "rain": 60
+   },
+   {
+    "day": "qua",
+    "max": 19,
+    "min": 14,
+    "rain": 80
+   },
+   {
+    "day": "qui",
+    "max": 21,
+    "min": 14,
+    "rain": 30
+   },
+   {
+    "day": "sex",
+    "max": 25,
+    "min": 16,
+    "rain": 10
+   }
+  ]
+ }
+}

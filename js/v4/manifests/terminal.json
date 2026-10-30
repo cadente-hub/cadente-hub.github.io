@@ -1,0 +1,66 @@
+{
+ "plugin": "terminal",
+ "itemActions": {
+  "blk": [
+   {
+    "key": "b",
+    "label": "copiar bloco",
+    "op": {
+     "op": "toast",
+     "text": "bloco copiado: ${cmd}"
+    }
+   },
+   {
+    "key": "c",
+    "label": "copiar comando",
+    "op": {
+     "op": "toast",
+     "text": "comando copiado: ${cmd}"
+    }
+   },
+   {
+    "key": "o",
+    "label": "copiar saída",
+    "op": {
+     "op": "toast",
+     "text": "saída copiada"
+    }
+   },
+   {
+    "key": "r",
+    "label": "reexecutar",
+    "op": {
+     "op": "fn",
+     "name": "rerun"
+    }
+   },
+   {
+    "key": "d",
+    "label": "pedir à IA para depurar",
+    "op": {
+     "op": "goto",
+     "plugin": "chat",
+     "beside": true,
+     "input": "Depure o bloco: ${cmd}"
+    }
+   },
+   {
+    "key": "e",
+    "label": "enviar Enter ao processo",
+    "op": {
+     "op": "fn",
+     "name": "sendEnter"
+    }
+   },
+   {
+    "key": "t",
+    "label": "tentar de novo sem o .zshrc",
+    "op": {
+     "op": "fn",
+     "name": "retryBoot"
+    }
+   }
+  ]
+ },
+ "commands": []
+}

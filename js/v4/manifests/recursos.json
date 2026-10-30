@@ -1,0 +1,654 @@
+{
+ "plugin": "recursos",
+ "views": [
+  {
+   "id": "todos",
+   "label": "todos",
+   "list": "resources",
+   "where": {
+    "origin": "data.origin"
+   }
+  },
+  {
+   "id": "skills",
+   "label": "skills",
+   "list": "resources",
+   "where": {
+    "type": "skill"
+   }
+  },
+  {
+   "id": "memória",
+   "label": "memória",
+   "list": "resources",
+   "where": {
+    "type": "memória"
+   }
+  },
+  {
+   "id": "agents",
+   "label": "agents",
+   "list": "resources",
+   "where": {
+    "type": "agent"
+   }
+  },
+  {
+   "id": "mcps",
+   "label": "mcps"
+  },
+  {
+   "id": "instruções",
+   "label": "instruções",
+   "list": "resources",
+   "where": {
+    "type": "instrução"
+   }
+  },
+  {
+   "id": "diagramas",
+   "label": "diagramas",
+   "list": "resources",
+   "where": {
+    "type": "diagrama"
+   }
+  },
+  {
+   "id": "auditoria",
+   "label": "auditoria",
+   "list": "audit"
+  }
+ ],
+ "lists": {
+  "resources": {
+   "store": "resources",
+   "view": "todos",
+   "row": {
+    "g": "${active?●:○}",
+    "text": "${name}",
+    "meta": "${type} · rev ${revs} · ${origin}",
+    "tone": "${archived?dim:}"
+   },
+   "space": {
+    "op": "toggle",
+    "path": "item.active",
+    "toast": "${name} ${active?ativo:inativo}"
+   },
+   "enter": {
+    "op": "form",
+    "form": "resource",
+    "label": "recurso"
+   },
+   "actions": [
+    {
+     "key": "e",
+     "label": "editar",
+     "op": {
+      "op": "form",
+      "form": "resource",
+      "label": "recurso"
+     }
+    },
+    {
+     "key": "v",
+     "label": "nova revisão",
+     "op": {
+      "op": "fn",
+      "name": "newRevision"
+     }
+    },
+    {
+     "key": "f",
+     "label": "fork",
+     "op": {
+      "op": "dup"
+     }
+    },
+    {
+     "key": "a",
+     "label": "arquivar",
+     "op": {
+      "op": "toggle",
+      "path": "item.archived",
+      "toast": "${name} ${archived?arquivado:de volta}"
+     }
+    },
+    {
+     "key": "x",
+     "label": "excluir",
+     "op": {
+      "op": "remove",
+      "toast": "${name} excluído"
+     }
+    },
+    {
+     "key": "b",
+     "label": "bindings e camadas",
+     "op": {
+      "op": "form",
+      "form": "bindings",
+      "label": "bindings"
+     }
+    },
+    {
+     "key": "h",
+     "label": "revisões anteriores",
+     "op": {
+      "op": "view",
+      "view": "auditoria"
+     }
+    },
+    {
+     "key": "p",
+     "label": "promover para global",
+     "op": {
+      "op": "set",
+      "path": "item.origin",
+      "value": "global",
+      "toast": "${name} promovido para global"
+     }
+    },
+    {
+     "key": "t",
+     "label": "testar",
+     "op": {
+      "op": "log",
+      "cmd": "testar ${name}",
+      "out": [
+       "3 casos · 3 ok"
+      ]
+     }
+    },
+    {
+     "key": "l",
+     "label": "validar",
+     "op": {
+      "op": "log",
+      "cmd": "validar ${name}",
+      "out": [
+       "formato válido · sem segredos"
+      ]
+     }
+    }
+   ]
+  },
+  "mcps": {
+   "store": "mcps",
+   "view": "mcps",
+   "row": {
+    "text": "${name}"
+   },
+   "space": {
+    "op": "cycle",
+    "path": "item.policy",
+    "values": [
+     "perguntar",
+     "permitir",
+     "negar"
+    ],
+    "toast": "uso pela IA de ${name}: ${policy}"
+   },
+   "actions": [
+    {
+     "key": "l",
+     "label": "fazer login",
+     "op": {
+      "op": "set",
+      "path": "item.state",
+      "value": "conectado",
+      "toast": "${name} conectado"
+     }
+    },
+    {
+     "key": "e",
+     "label": "configurar transporte e env",
+     "op": {
+      "op": "form",
+      "form": "mcp",
+      "label": "mcp"
+     }
+    },
+    {
+     "key": "r",
+     "label": "tentar de novo",
+     "op": {
+      "op": "async",
+      "label": "reconectando ${name}",
+      "then": {
+       "op": "set",
+       "path": "item.state",
+       "value": "conectado"
+      }
+     }
+    },
+    {
+     "key": "z",
+     "label": "resetar autenticação",
+     "op": {
+      "op": "set",
+      "path": "item.state",
+      "value": "aguardando login",
+      "toast": "auth de ${name} resetada"
+     }
+    },
+    {
+     "key": "u",
+     "label": "atualizar",
+     "op": {
+      "op": "async",
+      "label": "atualizando ${name} para ${update}",
+      "then": {
+       "op": "seq",
+       "ops": [
+        {
+         "op": "set",
+         "path": "item.update",
+         "value": ""
+        },
+        {
+         "op": "toast",
+         "text": "${name} atualizado"
+        }
+       ]
+      }
+     },
+     "when": "update"
+    },
+    {
+     "key": "p",
+     "label": "promover de contextual para permanente",
+     "op": {
+      "op": "set",
+      "path": "item.contextual",
+      "value": false,
+      "toast": "${name} agora é permanente"
+     }
+    }
+   ]
+  },
+  "audit": {
+   "store": "audit",
+   "view": "auditoria",
+   "row": {
+    "g": "·",
+    "text": "${what}",
+    "meta": "${who} · ${when}"
+   },
+   "enter": {
+    "op": "log",
+    "cmd": "${what}",
+    "out": [
+     "origem: ${who} · ação registrada no Core"
+    ]
+   }
+  }
+ },
+ "forms": {
+  "resource": [
+   {
+    "field": "name",
+    "label": "nome",
+    "type": "text"
+   },
+   {
+    "field": "content",
+    "label": "conteúdo",
+    "type": "long"
+   },
+   {
+    "field": "sensitivity",
+    "label": "sensibilidade",
+    "type": "choice",
+    "values": [
+     "normal",
+     "sensível",
+     "segredo"
+    ]
+   },
+   {
+    "field": "files",
+    "label": "arquivos",
+    "type": "list"
+   },
+   {
+    "field": "ext",
+    "label": "extensão",
+    "type": "text"
+   },
+   {
+    "field": "state",
+    "label": "estado",
+    "type": "display",
+    "value": "${active?ativo:inativo} · rev ${revs}"
+   }
+  ],
+  "bindings": [
+   {
+    "field": "bindings",
+    "label": "global",
+    "type": "member",
+    "value": "global"
+   },
+   {
+    "field": "bindings",
+    "label": "perfil",
+    "type": "member",
+    "value": "perfil"
+   },
+   {
+    "field": "bindings",
+    "label": "repo",
+    "type": "member",
+    "value": "repo"
+   },
+   {
+    "field": "bindings",
+    "label": "workspace",
+    "type": "member",
+    "value": "workspace"
+   },
+   {
+    "field": "bindings",
+    "label": "sessão",
+    "type": "member",
+    "value": "sessão"
+   },
+   {
+    "field": "mode",
+    "label": "modo de camada",
+    "type": "choice",
+    "values": [
+     "somar",
+     "substituir"
+    ]
+   },
+   {
+    "field": "effective",
+    "label": "prévia efetiva",
+    "type": "display",
+    "value": "${bindings}"
+   },
+   {
+    "field": "conflicts",
+    "label": "conflitos",
+    "type": "display",
+    "value": "repo sobrescreve global em 1 chave"
+   }
+  ],
+  "mcp": [
+   {
+    "field": "transport",
+    "label": "transporte",
+    "type": "choice",
+    "values": [
+     "stdio",
+     "http"
+    ]
+   },
+   {
+    "field": "command",
+    "label": "comando/url",
+    "type": "text"
+   },
+   {
+    "field": "env",
+    "label": "env",
+    "type": "list"
+   }
+  ]
+ },
+ "commands": [
+  {
+   "name": "new",
+   "desc": "novo recurso",
+   "op": {
+    "op": "push",
+    "path": "store.resources",
+    "value": {
+     "name": "${$args}",
+     "type": "skill",
+     "revs": 1,
+     "origin": "local",
+     "active": true,
+     "bindings": []
+    },
+    "toast": "${$args} criado"
+   }
+  },
+  {
+   "name": "import",
+   "desc": "importar recursos locais",
+   "op": {
+    "op": "async",
+    "label": "procurando recursos locais",
+    "then": {
+     "op": "push",
+     "path": "store.resources",
+     "value": {
+      "name": "CLAUDE.md",
+      "type": "instrução",
+      "revs": 1,
+      "origin": "local",
+      "active": true,
+      "bindings": []
+     },
+     "toast": "1 recurso importado"
+    }
+   }
+  },
+  {
+   "name": "backup",
+   "desc": "backup",
+   "op": {
+    "op": "log",
+    "cmd": "backup",
+    "out": [
+     "recursos.tar salvo · 14 itens"
+    ]
+   }
+  },
+  {
+   "name": "restore",
+   "desc": "restaurar backup",
+   "op": {
+    "op": "confirm",
+    "text": "restaurar o backup de ontem?",
+    "then": {
+     "op": "toast",
+     "text": "backup restaurado"
+    }
+   }
+  },
+  {
+   "name": "health",
+   "desc": "saúde do conjunto",
+   "op": {
+    "op": "log",
+    "cmd": "saúde",
+    "out": [
+     "12 ok · 1 aviso: memória do projeto sem dono"
+    ]
+   }
+  },
+  {
+   "name": "sort",
+   "desc": "nome · recente",
+   "op": {
+    "op": "cycle",
+    "path": "data.sort",
+    "values": [
+     "nome",
+     "recente"
+    ]
+   }
+  },
+  {
+   "name": "source",
+   "desc": "local · compartilhado · global",
+   "op": {
+    "op": "cycle",
+    "path": "data.origin",
+    "values": [
+     "local",
+     "compartilhado",
+     "global"
+    ]
+   }
+  },
+  {
+   "name": "catalog",
+   "desc": "pesquisar MCPs",
+   "op": {
+    "op": "fn",
+    "name": "catalog"
+   }
+  },
+  {
+   "name": "install",
+   "desc": "instalar o MCP do plano",
+   "op": {
+    "op": "fn",
+    "name": "install"
+   }
+  },
+  {
+   "name": "probe",
+   "desc": "listar ferramentas do MCP",
+   "op": {
+    "op": "fn",
+    "name": "probe"
+   }
+  },
+  {
+   "name": "new-diagram",
+   "desc": "novo diagrama",
+   "op": {
+    "op": "push",
+    "path": "store.resources",
+    "value": {
+     "name": "${$args}",
+     "type": "diagrama",
+     "revs": 1,
+     "origin": "local",
+     "active": true,
+     "bindings": []
+    },
+    "toast": "diagrama ${$args} criado"
+   }
+  }
+ ],
+ "seed": {
+  "resources": [
+   {
+    "id": "r1",
+    "name": "revisor-pr",
+    "type": "skill",
+    "revs": 3,
+    "origin": "local",
+    "active": true,
+    "bindings": [
+     "global"
+    ],
+    "files": [
+     "SKILL.md"
+    ],
+    "ext": "",
+    "content": "Revise PRs com foco em contexto por folha.",
+    "mode": "somar"
+   },
+   {
+    "id": "r2",
+    "name": "memória do projeto",
+    "type": "memória",
+    "revs": 5,
+    "origin": "compartilhado",
+    "active": true,
+    "bindings": [
+     "repo"
+    ],
+    "sensitivity": "normal",
+    "content": "Use rtk. SDD obrigatório."
+   },
+   {
+    "id": "r3",
+    "name": "agente de testes",
+    "type": "agent",
+    "revs": 2,
+    "origin": "local",
+    "active": false,
+    "bindings": []
+   },
+   {
+    "id": "r4",
+    "name": "guia de estilo",
+    "type": "instrução",
+    "revs": 1,
+    "origin": "global",
+    "active": true,
+    "bindings": [
+     "global"
+    ]
+   },
+   {
+    "id": "r5",
+    "name": "diagrama de painéis",
+    "type": "diagrama",
+    "revs": 1,
+    "origin": "local",
+    "active": true,
+    "bindings": []
+   }
+  ],
+  "mcps": [
+   {
+    "id": "m1",
+    "name": "filesystem",
+    "state": "conectado",
+    "policy": "perguntar",
+    "transport": "stdio",
+    "env": []
+   },
+   {
+    "id": "m2",
+    "name": "postgres",
+    "state": "falhou",
+    "policy": "negar",
+    "transport": "http",
+    "env": [
+     "PGURL"
+    ],
+    "update": "0.6.1"
+   }
+  ],
+  "mcpCatalog": [
+   {
+    "name": "github-mcp",
+    "desc": "issues, PRs e comentários"
+   },
+   {
+    "name": "github-actions-mcp",
+    "desc": "CI e workflows"
+   }
+  ],
+  "audit": [
+   {
+    "id": "au1",
+    "what": "memória do projeto revisão 6",
+    "who": "você",
+    "when": "há 1 h"
+   },
+   {
+    "id": "au2",
+    "what": "postgres falhou ao conectar: tempo esgotado",
+    "who": "Core",
+    "when": "ontem"
+   },
+   {
+    "id": "au3",
+    "what": "github-mcp instalado",
+    "who": "ana",
+    "when": "há 3 d"
+   }
+  ]
+ }
+}

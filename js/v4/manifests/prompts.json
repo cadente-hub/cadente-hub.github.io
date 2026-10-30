@@ -1,0 +1,189 @@
+{
+ "plugin": "prompts",
+ "views": [
+  {
+   "id": "sessões",
+   "label": "sessões",
+   "list": "promptSessions"
+  },
+  {
+   "id": "técnicas",
+   "label": "técnicas"
+  },
+  {
+   "id": "biblioteca",
+   "label": "biblioteca",
+   "list": "prompts"
+  }
+ ],
+ "lists": {
+  "promptSessions": {
+   "store": "promptSessions",
+   "view": "sessões",
+   "row": {
+    "g": "›",
+    "text": "${name}",
+    "meta": "${techniques} · ${model}"
+   },
+   "enter": {
+    "op": "fn",
+    "name": "promptOpen"
+   },
+   "actions": [
+    {
+     "key": "r",
+     "label": "renomear",
+     "op": {
+      "op": "edit",
+      "field": "name",
+      "label": "sessão"
+     }
+    },
+    {
+     "key": "x",
+     "label": "excluir",
+     "op": {
+      "op": "remove",
+      "toast": "sessão ${name} excluída"
+     }
+    }
+   ]
+  },
+  "prompts": {
+   "store": "prompts",
+   "view": "biblioteca",
+   "row": {
+    "g": "·",
+    "text": "${name}",
+    "meta": "${uses} usos"
+   },
+   "enter": {
+    "op": "goto",
+    "plugin": "chat",
+    "beside": true,
+    "input": "${text}"
+   },
+   "actions": [
+    {
+     "key": "e",
+     "label": "editar",
+     "op": {
+      "op": "edit",
+      "field": "text",
+      "label": "prompt"
+     }
+    }
+   ]
+  }
+ },
+ "commands": [
+  {
+   "name": "new-session",
+   "desc": "nova sessão de prompt",
+   "op": {
+    "op": "fn",
+    "name": "newPromptSession"
+   }
+  },
+  {
+   "name": "context",
+   "desc": "anexar contexto grande",
+   "op": {
+    "op": "toast",
+    "text": "contexto grande anexado: ${$args}"
+   }
+  },
+  {
+   "name": "model",
+   "desc": "modelo da sessão",
+   "op": {
+    "op": "toast",
+    "text": "modelo da sessão: ${$args}"
+   }
+  }
+ ],
+ "seed": {
+  "promptSessions": [
+   {
+    "id": "ps1",
+    "name": "revisão de PR",
+    "techniques": [
+     "xml-tags"
+    ],
+    "model": "opus 4.6"
+   },
+   {
+    "id": "ps2",
+    "name": "resumos",
+    "techniques": [],
+    "model": "sonnet 4.6"
+   },
+   {
+    "id": "ps3",
+    "name": "onboarding",
+    "techniques": [
+     "role-play"
+    ],
+    "model": "haiku 4.5"
+   }
+  ],
+  "techniques": [
+   {
+    "id": "chain-of-thought",
+    "name": "Chain of thought",
+    "desc": "raciocinar passo a passo"
+   },
+   {
+    "id": "few-shot",
+    "name": "Few-shot",
+    "desc": "exemplos antes da tarefa"
+   },
+   {
+    "id": "xml-tags",
+    "name": "Tags XML",
+    "desc": "estruturar o contexto em tags"
+   },
+   {
+    "id": "structured-output",
+    "name": "Saída estruturada",
+    "desc": "resposta em JSON ou tópicos fixos"
+   },
+   {
+    "id": "role-play",
+    "name": "Role play",
+    "desc": "assumir um papel definido"
+   },
+   {
+    "id": "system-user-split",
+    "name": "Separar system e user",
+    "desc": "instruções fixas no system"
+   }
+  ],
+  "prompts": [
+   {
+    "id": "pp1",
+    "name": "revisar-pr",
+    "text": "Revise este PR focando em regressões de foco e contexto por folha.",
+    "uses": 42
+   },
+   {
+    "id": "pp2",
+    "name": "explicar-diff",
+    "text": "Explique o diff selecionado em linguagem simples.",
+    "uses": 31
+   },
+   {
+    "id": "pp3",
+    "name": "gerar-testes",
+    "text": "Escreva testes de regressão para a mudança atual.",
+    "uses": 18
+   },
+   {
+    "id": "pp4",
+    "name": "resumir-sessão",
+    "text": "Resuma esta sessão em cinco tópicos objetivos.",
+    "uses": 9
+   }
+  ]
+ }
+}

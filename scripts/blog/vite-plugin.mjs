@@ -30,7 +30,7 @@ function pageShell({ title, description, canonical, body, rootClass = 'blog-page
   const safeDescription = escapeHtml(description);
   const safeCanonical = escapeHtml(canonical);
   return `<!doctype html>
-<html lang="pt-BR" data-theme="dark">
+<html lang="pt-BR" data-theme="dark" style="background:#000">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -43,7 +43,7 @@ function pageShell({ title, description, canonical, body, rootClass = 'blog-page
   <meta property="og:url" content="${safeCanonical}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/assets/blog-base.css">
   <link rel="stylesheet" href="/assets/blog.css">
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
@@ -56,20 +56,21 @@ function pageShell({ title, description, canonical, body, rootClass = 'blog-page
         Cadente
       </a>
       <ul class="navbar__links">
-        <li><a href="/#features">Recursos</a></li>
+        <li><a href="/#plugins">Plugins</a></li>
+        <li><a href="/#loja">Loja</a></li>
         <li><a href="/downloads.html">Downloads</a></li>
         <li><a href="/release-notes.html">Release notes</a></li>
         <li><a href="/blog/" class="active" aria-current="page">Blog</a></li>
       </ul>
-      <a href="/downloads.html" class="btn btn--sm btn--primary navbar__cta">Baixar</a>
+      <a href="/downloads.html" class="btn btn--sm btn--primary navbar__cta">Baixar grátis</a>
     </nav>
   </header>
   <main>${body}</main>
   <footer class="footer blog-footer">
     <div class="container footer__inner">
-      <div class="footer__brand"><a href="/" class="footer__logo">Cadente</a><p class="footer__tagline">make a wish</p></div>
+      <div class="footer__brand"><a href="/" class="footer__logo">Cadente</a><p class="footer__tagline">Divida a tela. Escolha o plugin.</p></div>
       <div class="footer__links">
-        <div class="footer__col"><h4 class="footer__col-title">Produto</h4><a href="/#features">Recursos</a><a href="/downloads.html">Downloads</a><a href="/release-notes.html">Release notes</a></div>
+        <div class="footer__col"><h4 class="footer__col-title">Produto</h4><a href="/#plugins">Plugins</a><a href="/#loja">Loja</a><a href="/downloads.html">Downloads</a><a href="/release-notes.html">Release notes</a></div>
         <div class="footer__col"><h4 class="footer__col-title">Recursos</h4><a href="/blog/">Blog</a><a href="https://github.com/cadente-hub/cadente-hub.github.io" rel="noopener noreferrer">GitHub</a></div>
       </div>
       <div class="footer__bottom"><p class="footer__copy">© 2026 Cadente. Todos os direitos reservados.</p><p class="footer__tech">Construído com Rust. Privacidade em primeiro lugar.</p></div>

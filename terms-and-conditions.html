@@ -1,15 +1,15 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="dark" style="background:#000">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#000000" />
   <title>Terms, Privacy &amp; Refund Policy — Cadente</title>
   <meta name="description" content="Terms and Conditions, Privacy Policy, and Refund Policy for Cadente, the desktop AI workspace for developers." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="./css/style.css" />
-  <link rel="stylesheet" href="./css/sky.css" />
   <link rel="icon" type="image/png" sizes="32x32" href="./assets/favicon-32.png" />
   <link rel="icon" type="image/x-icon" href="./assets/favicon.ico" />
   <link rel="apple-touch-icon" sizes="180x180" href="./assets/apple-touch-icon.png" />
@@ -70,25 +70,19 @@
   </style>
 </head>
 <body>
-  <canvas id="sky" class="sky" aria-hidden="true"></canvas>
   <!-- Navigation -->
   <header class="navbar" id="navbar">
     <nav class="navbar__inner container">
       <a href="./" class="navbar__logo">
-        <svg class="navbar__logo-icon" width="24" height="24" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="c-grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#d4a87a"/><stop offset="50%" stop-color="#c4956a"/><stop offset="100%" stop-color="#b08050"/></linearGradient><linearGradient id="c-spark" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#f0dcc8"/><stop offset="100%" stop-color="#dbb896"/></linearGradient></defs><path d="M 379 153 A 160 160 0 1 0 379 359" fill="none" stroke="url(#c-grad)" stroke-width="56" stroke-linecap="round"/><path d="M 356 188 A 118 118 0 1 0 356 324" fill="none" stroke="url(#c-grad)" stroke-width="4" stroke-linecap="round" opacity="0.25"/><path d="M 424 240 L 429 252 L 442 256 L 429 260 L 424 272 L 419 260 L 406 256 L 419 252 Z" fill="url(#c-spark)"/></svg>
+        <svg class="navbar__logo-icon" width="24" height="24" viewBox="0 0 512 512" aria-hidden="true"><path d="M 379 153 A 160 160 0 1 0 379 359" fill="none" stroke="currentColor" stroke-width="56" stroke-linecap="round"/><path class="brand__spark" d="M 424 240 L 429 252 L 442 256 L 429 260 L 424 272 L 419 260 L 406 256 L 419 252 Z"/></svg>
         Cadente
       </a>
       <ul class="navbar__links">
-        <li><a href="./#features">Features</a></li>
+        <li><a href="./#plugins">Plugins</a></li>
         <li><a href="./downloads.html">Downloads</a></li>
-        <li><a href="./#pricing">Pricing</a></li>
         <li><a href="./blog/">Blog</a></li>
       </ul>
       <div class="navbar__actions">
-        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
-          <span class="theme-toggle__icon theme-toggle__icon--sun">&#9788;</span>
-          <span class="theme-toggle__icon theme-toggle__icon--moon">&#9790;</span>
-        </button>
         <a href="./downloads.html" class="btn btn--sm btn--primary navbar__cta">Download</a>
       </div>
       <button class="navbar__hamburger" id="hamburger" aria-label="Toggle menu">
@@ -102,9 +96,8 @@
   <!-- Mobile Menu -->
   <div class="mobile-menu" id="mobile-menu">
     <ul class="mobile-menu__links">
-      <li><a href="./#features">Features</a></li>
+      <li><a href="./#plugins">Plugins</a></li>
       <li><a href="./downloads.html">Downloads</a></li>
-      <li><a href="./#pricing">Pricing</a></li>
       <li><a href="./blog/">Blog</a></li>
       <li><a href="./downloads.html" class="btn btn--primary">Download Now</a></li>
     </ul>
@@ -116,7 +109,7 @@
         <div class="legal-content">
           <div class="legal-page__header">
             <h1 class="legal-page__title">Terms, Privacy &amp; Refund Policy</h1>
-            <p class="legal-page__meta">Last updated: March 27, 2026</p>
+            <p class="legal-page__meta">Last updated: October 30, 2026</p>
           </div>
 
           <p>Please read these Terms carefully before downloading, installing, or using Cadente ("the App", "the Service"). <strong>By downloading, installing, or using the App in any way, you unconditionally accept and agree to be bound by these Terms.</strong> If you do not agree, you must not download, install, or use the App.</p>
@@ -140,15 +133,8 @@
           </ul>
           <p>Any breach of these license restrictions will result in immediate, automatic termination of your license without notice.</p>
 
-          <h2>4. Subscription Plans and Payments</h2>
-          <p>Cadente offers a free tier and paid subscription plans. Paid plans are billed through our payment processor (Polar). By subscribing, you agree to:</p>
-          <ul>
-            <li>Provide accurate, current, and complete billing information</li>
-            <li>Pay all fees associated with your chosen plan when due</li>
-            <li>Subscriptions renew automatically unless cancelled before the renewal date</li>
-            <li>Pay any applicable taxes, levies, or duties</li>
-          </ul>
-          <p>We reserve the right to change pricing at any time with at least 30 days' notice to active subscribers. Continued use after a price change constitutes acceptance of the new price.</p>
+          <h2>4. Price</h2>
+          <p>Cadente is free. There is no paid plan and no subscription for the App. Plugins offered in the Cadente plugin store may be free or paid; a paid plugin is sold only through the Cadente checkout, with its price, billing model and terms shown before you buy.</p>
 
           <h2>5. Your API Keys and Data</h2>
           <p>Cadente operates locally on your machine. Your Anthropic API key is stored only on your device and is never transmitted to our servers. All AI requests are made directly from your device to Anthropic's API. <strong>You are solely and exclusively responsible for your API key's security, confidentiality, and all usage costs incurred through Anthropic's platform, including any unauthorized use.</strong> We are not liable for any costs, damages, or losses arising from your API key being compromised.</p>
@@ -175,7 +161,7 @@
           <p>We reserve the right to terminate your access immediately and without notice for any violation of this section.</p>
 
           <h2>8. Third-Party Services</h2>
-          <p>The App integrates with third-party services including Anthropic's Claude API, GitHub, Supabase, Polar, and others. <strong>Your use of those services is governed solely by their respective terms of service and privacy policies. We have no control over, and expressly disclaim all liability for, the availability, accuracy, security, content, or conduct of any third-party service.</strong> We are not responsible for any loss or damage caused by your use of, or reliance on, any third-party service.</p>
+          <p>The App integrates with third-party services including Anthropic's Claude API, GitHub, Supabase, and others. <strong>Your use of those services is governed solely by their respective terms of service and privacy policies. We have no control over, and expressly disclaim all liability for, the availability, accuracy, security, content, or conduct of any third-party service.</strong> We are not responsible for any loss or damage caused by your use of, or reliance on, any third-party service.</p>
 
           <h2>9. Intellectual Property</h2>
           <p>All rights, title, and interest in and to the App, including all intellectual property rights (patents, copyrights, trademarks, trade secrets), remain exclusively with Cadente and its contributors. Nothing in these Terms grants you any ownership of or rights in any intellectual property. All feedback, suggestions, or ideas you provide regarding the App may be used by us freely without any obligation to you.</p>
@@ -219,8 +205,7 @@
           <h2>Data We Collect</h2>
           <p>Cadente is a local-first application. The following data may be collected:</p>
           <ul>
-            <li><strong>Account data:</strong> When you create an account, we collect your email address to manage your subscription and authenticate you via Supabase.</li>
-            <li><strong>Payment data:</strong> Payments are processed by Polar. We do not store your credit card or banking details on our servers.</li>
+            <li><strong>Account data:</strong> When you create an account, we collect your email address to authenticate you via Supabase.</li>
             <li><strong>Usage data:</strong> We do not collect telemetry, usage analytics, or behavioral data. Zero tracking — no exceptions.</li>
             <li><strong>API keys:</strong> Your Anthropic API key is stored only on your local device and is never transmitted to our servers.</li>
           </ul>
@@ -228,9 +213,8 @@
           <h2>How We Use Your Data</h2>
           <p>The data we collect is used solely to:</p>
           <ul>
-            <li>Authenticate your account and validate your license</li>
-            <li>Process and manage your subscription</li>
-            <li>Send transactional emails (e.g., receipts, license confirmations)</li>
+            <li>Authenticate your account</li>
+            <li>Send transactional emails about your account</li>
           </ul>
           <p>We do not sell, rent, or share your personal data with third parties for marketing purposes.</p>
 
@@ -238,7 +222,6 @@
           <p>We use the following services to operate the App:</p>
           <ul>
             <li><strong>Supabase</strong> — authentication and account management (<a href="https://supabase.com/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>)</li>
-            <li><strong>Polar</strong> — payment processing and license management (<a href="https://polar.sh/legal/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>)</li>
             <li><strong>Anthropic</strong> — AI API, used directly from your device (<a href="https://www.anthropic.com/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>)</li>
           </ul>
 
@@ -251,9 +234,8 @@
           <hr class="legal-divider" />
 
           <h2>Refund Policy</h2>
-          <p><strong>All purchases are final and non-refundable.</strong> We do not offer refunds, credits, or exchanges for any subscription plan, regardless of usage. By completing a purchase, you acknowledge and agree to this no-refund policy.</p>
+          <p>Cadente is free, so the App itself has nothing to refund. Refunds for paid plugins follow the consumer policy of the payment processor, shown at checkout; a refund ends the plugin license.</p>
           <p>If you believe a charge was made in error (e.g., duplicate billing), please contact us within 7 days by opening an issue on our <a href="https://github.com/cadente-hub/cadente-hub.github.io/issues" target="_blank" rel="noopener noreferrer">GitHub repository</a> and we will review it on a case-by-case basis.</p>
-          <p>You may cancel your subscription at any time to prevent future charges. Cancellation takes effect at the end of the current billing period — no partial refunds are issued for unused time.</p>
 
           <hr class="legal-divider" />
 
@@ -268,17 +250,16 @@
     <div class="container footer__inner">
       <div class="footer__brand">
         <a href="./" class="footer__logo">
-          <svg class="navbar__logo-icon" width="24" height="24" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="c-grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#d4a87a"/><stop offset="50%" stop-color="#c4956a"/><stop offset="100%" stop-color="#b08050"/></linearGradient><linearGradient id="c-spark" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#f0dcc8"/><stop offset="100%" stop-color="#dbb896"/></linearGradient></defs><path d="M 379 153 A 160 160 0 1 0 379 359" fill="none" stroke="url(#c-grad)" stroke-width="56" stroke-linecap="round"/><path d="M 356 188 A 118 118 0 1 0 356 324" fill="none" stroke="url(#c-grad)" stroke-width="4" stroke-linecap="round" opacity="0.25"/><path d="M 424 240 L 429 252 L 442 256 L 429 260 L 424 272 L 419 260 L 406 256 L 419 252 Z" fill="url(#c-spark)"/></svg>
+          <svg class="navbar__logo-icon" width="24" height="24" viewBox="0 0 512 512" aria-hidden="true"><path d="M 379 153 A 160 160 0 1 0 379 359" fill="none" stroke="currentColor" stroke-width="56" stroke-linecap="round"/><path class="brand__spark" d="M 424 240 L 429 252 L 442 256 L 429 260 L 424 272 L 419 260 L 406 256 L 419 252 Z"/></svg>
           Cadente
         </a>
-        <p class="footer__tagline">make a wish</p>
+        <p class="footer__tagline">Split the screen. Pick the plugin.</p>
       </div>
       <div class="footer__links">
         <div class="footer__col">
           <h4 class="footer__col-title">Product</h4>
-          <a href="./#features">Features</a>
+          <a href="./#plugins">Plugins</a>
           <a href="./downloads.html">Downloads</a>
-          <a href="./#pricing">Pricing</a>
           <a href="./blog/">Blog</a>
         </div>
         <div class="footer__col">
@@ -300,7 +281,5 @@
   </footer>
 
   <script src="./js/main.js"></script>
-  <script type="module" src="./js/sky.js"></script>
-  <script type="module" src="./js/cursor.js"></script>
 </body>
 </html>

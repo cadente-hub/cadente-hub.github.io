@@ -1,0 +1,249 @@
+{
+ "plugin": "links",
+ "views": [
+  {
+   "id": "links",
+   "label": "links",
+   "list": "links",
+   "where": {
+    "tags": "data.tag"
+   },
+   "status": "tag #${tag} · esc limpa",
+   "statusIf": "tag",
+   "empty": "nenhum link — cole uma URL e ↵"
+  },
+  {
+   "id": "tags",
+   "label": "tags",
+   "list": "tags",
+   "empty": "nenhuma tag — /new-tag nome"
+  }
+ ],
+ "lists": {
+  "links": {
+   "store": "links",
+   "view": "links",
+   "row": {
+    "g": "${pinned?▲:·}",
+    "text": "${title}",
+    "meta": "${url}"
+   },
+   "sorts": {
+    "recentes": "-added",
+    "nome": "title",
+    "fixados": "!pinned"
+   },
+   "enter": {
+    "op": "act",
+    "key": "o"
+   },
+   "actions": [
+    {
+     "key": "e",
+     "label": "editar",
+     "op": {
+      "op": "form",
+      "form": "link",
+      "label": "link"
+     }
+    },
+    {
+     "key": "p",
+     "label": "fixar ou soltar",
+     "op": {
+      "op": "toggle",
+      "path": "item.pinned",
+      "toast": "${title} ${pinned?fixado:solto}"
+     }
+    },
+    {
+     "key": "o",
+     "label": "abrir",
+     "op": {
+      "op": "toast",
+      "text": "abrindo ${url} no navegador"
+     }
+    },
+    {
+     "key": "x",
+     "label": "excluir",
+     "op": {
+      "op": "remove",
+      "toast": "“${title}” excluído"
+     }
+    }
+   ]
+  },
+  "tags": {
+   "store": "tags",
+   "view": "tags",
+   "row": {
+    "g": "#",
+    "text": "${name}"
+   },
+   "enter": {
+    "op": "seq",
+    "ops": [
+     {
+      "op": "set",
+      "path": "data.tag",
+      "value": "${name}"
+     },
+     {
+      "op": "view",
+      "view": "links"
+     }
+    ]
+   },
+   "actions": [
+    {
+     "key": "r",
+     "label": "renomear",
+     "op": {
+      "op": "edit",
+      "field": "name",
+      "label": "tag"
+     }
+    },
+    {
+     "key": "x",
+     "label": "excluir",
+     "op": {
+      "op": "remove",
+      "toast": "tag #${name} excluída"
+     }
+    }
+   ]
+  }
+ },
+ "forms": {
+  "link": [
+   {
+    "field": "title",
+    "label": "título",
+    "type": "text"
+   },
+   {
+    "field": "url",
+    "label": "url",
+    "type": "text"
+   },
+   {
+    "field": "tags",
+    "label": "tags",
+    "type": "list"
+   },
+   {
+    "field": "pinned",
+    "label": "fixado",
+    "type": "bool"
+   }
+  ]
+ },
+ "submit": {
+  "op": "fn",
+  "name": "linkSubmit"
+ },
+ "commands": [
+  {
+   "name": "new",
+   "desc": "novo link na ficha",
+   "op": {
+    "op": "new",
+    "list": "links",
+    "item": {
+     "title": "",
+     "url": "",
+     "tags": [],
+     "pinned": false,
+     "added": 99
+    },
+    "form": "link",
+    "label": "link"
+   }
+  },
+  {
+   "name": "new-tag",
+   "desc": "criar tag",
+   "op": {
+    "op": "push",
+    "path": "store.tags",
+    "value": {
+     "name": "${$args}"
+    },
+    "toast": "tag #${$args} criada"
+   }
+  },
+  {
+   "name": "sort",
+   "desc": "recentes · nome · fixados",
+   "op": {
+    "op": "cycle",
+    "path": "data.sort",
+    "values": [
+     "recentes",
+     "nome",
+     "fixados"
+    ]
+   }
+  }
+ ],
+ "seed": {
+  "links": [
+   {
+    "id": "links-1",
+    "title": "Warp — temas",
+    "url": "docs.warp.dev/appearance/themes",
+    "tags": [
+     "design"
+    ],
+    "pinned": false,
+    "added": 4
+   },
+   {
+    "id": "links-2",
+    "title": "Slint — Text",
+    "url": "docs.slint.dev/latest/docs/slint/reference/elements/text",
+    "tags": [
+     "slint"
+    ],
+    "pinned": false,
+    "added": 3
+   },
+   {
+    "id": "links-3",
+    "title": "Zed — UI density",
+    "url": "zed.dev/docs/configuring-zed#ui-density",
+    "tags": [
+     "design"
+    ],
+    "pinned": false,
+    "added": 2
+   },
+   {
+    "id": "links-4",
+    "title": "Hack font",
+    "url": "sourcefoundry.org/hack",
+    "tags": [
+     "fonte"
+    ],
+    "pinned": false,
+    "added": 1
+   }
+  ],
+  "tags": [
+   {
+    "id": "t1",
+    "name": "design"
+   },
+   {
+    "id": "t2",
+    "name": "slint"
+   },
+   {
+    "id": "t3",
+    "name": "fonte"
+   }
+  ]
+ }
+}

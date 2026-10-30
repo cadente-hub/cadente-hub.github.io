@@ -1,0 +1,174 @@
+{
+ "plugin": "projetos",
+ "views": [
+  {
+   "id": "projetos",
+   "label": "projetos",
+   "list": "projects"
+  },
+  {
+   "id": "sessões",
+   "label": "sessões",
+   "list": "sessions",
+   "where": {
+    "project": "data.project"
+   }
+  }
+ ],
+ "lists": {
+  "projects": {
+   "store": "projects",
+   "view": "projetos",
+   "row": {
+    "g": "${fav?●:○}",
+    "text": "${name}",
+    "meta": "${sessions} sessões · ${branch}",
+    "tone": "${fav?warn:}"
+   },
+   "enter": {
+    "op": "seq",
+    "ops": [
+     {
+      "op": "set",
+      "path": "data.project",
+      "value": "${name}"
+     },
+     {
+      "op": "set",
+      "path": "ctx.cwd",
+      "value": "${path}"
+     },
+     {
+      "op": "set",
+      "path": "ctx.subject",
+      "value": "${name}"
+     },
+     {
+      "op": "toast",
+      "text": "contexto → ${name}"
+     }
+    ]
+   },
+   "actions": [
+    {
+     "key": "f",
+     "label": "favoritar",
+     "op": {
+      "op": "toggle",
+      "path": "item.fav",
+      "toast": "${name} ${fav?favoritado:fora dos favoritos}"
+     }
+    },
+    {
+     "key": "x",
+     "label": "excluir",
+     "op": {
+      "op": "remove",
+      "toast": "projeto ${name} excluído"
+     }
+    }
+   ]
+  },
+  "sessions": {
+   "store": "sessions",
+   "row": {
+    "text": "${name}",
+    "meta": "${when}"
+   },
+   "enter": {
+    "op": "goto",
+    "plugin": "chat",
+    "beside": true
+   }
+  }
+ },
+ "commands": [
+  {
+   "name": "add",
+   "desc": "adicionar pasta local",
+   "op": {
+    "op": "fn",
+    "name": "addProject"
+   }
+  },
+  {
+   "name": "clone",
+   "desc": "clonar URL",
+   "op": {
+    "op": "async",
+    "label": "clonando ${$args}",
+    "then": {
+     "op": "fn",
+     "name": "addProject"
+    }
+   }
+  },
+  {
+   "name": "quickstart",
+   "desc": "projeto de exemplo",
+   "op": {
+    "op": "push",
+    "path": "store.projects",
+    "value": {
+     "name": "quickstart",
+     "path": "~/dev/quickstart",
+     "branch": "main",
+     "sessions": 0
+    },
+    "toast": "quickstart criado"
+   }
+  }
+ ],
+ "seed": {
+  "projects": [
+   {
+    "id": "pj1",
+    "name": "cadente",
+    "path": "~/dev/cadente",
+    "sessions": 12,
+    "branch": "main"
+   },
+   {
+    "id": "pj2",
+    "name": "cadente-hub.github.io",
+    "path": "~/dev/cadente-hub.github.io",
+    "sessions": 3,
+    "branch": "main"
+   },
+   {
+    "id": "pj3",
+    "name": "nora",
+    "path": "~/dev/nora",
+    "sessions": 5,
+    "branch": "dev"
+   },
+   {
+    "id": "pj4",
+    "name": "gamedev",
+    "path": "~/dev/gamedev",
+    "sessions": 1,
+    "branch": "main"
+   }
+  ],
+  "sessions": [
+   {
+    "id": "ss1",
+    "project": "cadente",
+    "name": "Daily de produto",
+    "when": "hoje"
+   },
+   {
+    "id": "ss2",
+    "project": "cadente",
+    "name": "Planejar contexto de painel",
+    "when": "ontem"
+   },
+   {
+    "id": "ss3",
+    "project": "nora",
+    "name": "Nora: onboarding",
+    "when": "há 2 d"
+   }
+  ]
+ }
+}

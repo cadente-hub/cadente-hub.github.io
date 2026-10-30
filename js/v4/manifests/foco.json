@@ -1,0 +1,208 @@
+{
+ "plugin": "foco",
+ "views": [
+  {
+   "id": "timer",
+   "label": "timer"
+  },
+  {
+   "id": "tarefas",
+   "label": "tarefas",
+   "list": "tasks",
+   "sub": [
+    {
+     "label": "ativas",
+     "where": "!done"
+    },
+    {
+     "label": "concluídas",
+     "where": "done"
+    }
+   ]
+  },
+  {
+   "id": "histórico",
+   "label": "histórico"
+  },
+  {
+   "id": "notas",
+   "label": "notas",
+   "list": "notes",
+   "sub": [
+    {
+     "label": "ativas",
+     "where": "!done"
+    },
+    {
+     "label": "concluídas",
+     "where": "done"
+    }
+   ]
+  },
+  {
+   "id": "ajustes",
+   "label": "ajustes"
+  }
+ ],
+ "lists": {
+  "tasks": {
+   "store": "tasks",
+   "view": "tarefas",
+   "row": {
+    "g": "${done?●:○}",
+    "text": "${text}",
+    "meta": "${focus?em foco:}",
+    "tone": "${done?dim:}"
+   },
+   "actions": [
+    {
+     "key": "f",
+     "label": "focar nesta tarefa",
+     "op": {
+      "op": "set",
+      "path": "item.focus",
+      "value": true,
+      "exclusive": true,
+      "toast": "em foco: ${text}"
+     }
+    },
+    {
+     "key": "c",
+     "label": "concluir ou reabrir",
+     "op": {
+      "op": "toggle",
+      "path": "item.done",
+      "toast": "${text} ${done?concluída:reaberta}"
+     }
+    },
+    {
+     "key": "e",
+     "label": "editar",
+     "op": {
+      "op": "edit",
+      "field": "text",
+      "label": "tarefa"
+     }
+    },
+    {
+     "key": "x",
+     "label": "excluir",
+     "op": {
+      "op": "remove",
+      "toast": "tarefa excluída"
+     }
+    }
+   ],
+   "enter": {
+    "op": "set",
+    "path": "item.focus",
+    "value": true,
+    "exclusive": true,
+    "toast": "em foco: ${text}"
+   }
+  }
+ },
+ "itemActions": {
+  "timer": [
+   {
+    "key": "r",
+    "label": "zerar",
+    "op": {
+     "op": "fn",
+     "name": "focusReset"
+    }
+   },
+   {
+    "key": "p",
+    "label": "pular fase",
+    "op": {
+     "op": "fn",
+     "name": "focusSkip"
+    }
+   }
+  ]
+ },
+ "commands": [
+  {
+   "name": "reset",
+   "desc": "zerar o timer",
+   "op": {
+    "op": "fn",
+    "name": "focusReset"
+   }
+  },
+  {
+   "name": "skip",
+   "desc": "pular a fase",
+   "op": {
+    "op": "fn",
+    "name": "focusSkip"
+   }
+  }
+ ],
+ "seed": {
+  "tasks": [
+   {
+    "id": "t1",
+    "text": "Revisar PR #248",
+    "done": false
+   },
+   {
+    "id": "t2",
+    "text": "Responder thread da Ana",
+    "done": true
+   },
+   {
+    "id": "t3",
+    "text": "Fechar design do v4",
+    "done": false
+   }
+  ],
+  "focusSettings": {
+   "work": 25,
+   "short": 5,
+   "long": 15,
+   "every": 4,
+   "autoBreak": true,
+   "autoWork": false,
+   "sound": "sino"
+  },
+  "focusToday": [
+   {
+    "at": "08:10",
+    "phase": "trabalho",
+    "min": 25,
+    "task": "Fechar design do v4"
+   },
+   {
+    "at": "08:40",
+    "phase": "trabalho",
+    "min": 25,
+    "task": "Fechar design do v4"
+   },
+   {
+    "at": "09:40",
+    "phase": "trabalho",
+    "min": 25,
+    "task": ""
+   }
+  ],
+  "focusDays": [
+   {
+    "day": "ontem",
+    "sessions": 6,
+    "total": "2 h 30 min"
+   },
+   {
+    "day": "qui 15",
+    "sessions": 4,
+    "total": "1 h 40 min"
+   },
+   {
+    "day": "qua 14",
+    "sessions": 2,
+    "total": "50 min"
+   }
+  ]
+ }
+}

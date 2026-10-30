@@ -1,0 +1,93 @@
+{
+ "plugin": "ferramentas",
+ "views": [
+  {
+   "id": "json",
+   "label": "json"
+  },
+  {
+   "id": "markdown",
+   "label": "markdown"
+  }
+ ],
+ "itemActions": {
+  "json": [
+   {
+    "key": "c",
+    "label": "copiar",
+    "op": {
+     "op": "toast",
+     "text": "JSON copiado"
+    }
+   }
+  ]
+ },
+ "commands": [
+  {
+   "name": "repair",
+   "desc": "reparar JSON",
+   "op": {
+    "op": "toast",
+    "text": "reparo automático ao colar"
+   }
+  },
+  {
+   "name": "indent",
+   "desc": "2 ou 4 espaços",
+   "op": {
+    "op": "set",
+    "path": "data.indent",
+    "value": "${$args}"
+   }
+  },
+  {
+   "name": "minify",
+   "desc": "minificar",
+   "op": {
+    "op": "toggle",
+    "path": "data.min"
+   }
+  },
+  {
+   "name": "template",
+   "desc": "template DOCX",
+   "op": {
+    "op": "set",
+    "path": "data.tpl",
+    "value": "${$args}",
+    "toast": "template ${$args}"
+   }
+  },
+  {
+   "name": "remove-template",
+   "desc": "remover template",
+   "op": {
+    "op": "set",
+    "path": "data.tpl",
+    "value": "",
+    "toast": "sem template"
+   }
+  },
+  {
+   "name": "convert",
+   "desc": "converter em DOCX",
+   "op": {
+    "op": "async",
+    "label": "convertendo",
+    "then": {
+     "op": "set",
+     "path": "data.doc",
+     "value": "${data.md?documento.docx pronto · /download:erro · nada para converter}"
+    }
+   }
+  },
+  {
+   "name": "download",
+   "desc": "baixar o DOCX",
+   "op": {
+    "op": "toast",
+    "text": "salvo em ~/Downloads/documento.docx"
+   }
+  }
+ ]
+}

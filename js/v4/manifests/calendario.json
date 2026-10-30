@@ -1,0 +1,434 @@
+{
+ "plugin": "calendario",
+ "views": [
+  {
+   "id": "dia",
+   "label": "dia"
+  },
+  {
+   "id": "mês",
+   "label": "mês"
+  },
+  {
+   "id": "próximos",
+   "label": "próximos"
+  },
+  {
+   "id": "datas",
+   "label": "datas",
+   "list": "dates"
+  }
+ ],
+ "lists": {
+  "events": {
+   "store": "events",
+   "view": "dia",
+   "row": {
+    "text": "${title}"
+   },
+   "enter": {
+    "op": "fn",
+    "name": "evOpen"
+   },
+   "actions": [
+    {
+     "key": "e",
+     "label": "editar",
+     "op": {
+      "op": "form",
+      "form": "event",
+      "label": "evento"
+     }
+    },
+    {
+     "key": "j",
+     "label": "entrar na reunião",
+     "when": "meet",
+     "op": {
+      "op": "toast",
+      "text": "abrindo ${meet}"
+     }
+    },
+    {
+     "key": "x",
+     "label": "excluir",
+     "op": {
+      "op": "remove",
+      "confirm": "excluir ${title} da agenda?"
+     }
+    }
+   ]
+  },
+  "dates": {
+   "store": "dates",
+   "view": "datas",
+   "row": {
+    "g": "${kind?◆:·}",
+    "text": "${day}  ${name}",
+    "meta": "${kind}${reminder? · lembrete :}${reminder}"
+   },
+   "actions": [
+    {
+     "key": "e",
+     "label": "editar",
+     "op": {
+      "op": "form",
+      "form": "date",
+      "label": "data especial"
+     }
+    },
+    {
+     "key": "x",
+     "label": "excluir",
+     "op": {
+      "op": "remove",
+      "toast": "data excluída"
+     }
+    }
+   ],
+   "enter": {
+    "op": "form",
+    "form": "date",
+    "label": "data especial"
+   }
+  }
+ },
+ "forms": {
+  "event": [
+   {
+    "field": "title",
+    "label": "título",
+    "type": "text"
+   },
+   {
+    "field": "date",
+    "label": "data",
+    "type": "text"
+   },
+   {
+    "field": "time",
+    "label": "hora",
+    "type": "text"
+   },
+   {
+    "field": "dur",
+    "label": "duração",
+    "type": "text"
+   },
+   {
+    "field": "allDay",
+    "label": "dia inteiro",
+    "type": "bool"
+   },
+   {
+    "field": "place",
+    "label": "local",
+    "type": "text"
+   },
+   {
+    "field": "meet",
+    "label": "link do Meet",
+    "type": "text"
+   },
+   {
+    "field": "people",
+    "label": "participantes",
+    "type": "list"
+   },
+   {
+    "field": "reminder",
+    "label": "lembrete",
+    "type": "choice",
+    "values": [
+     "nenhum",
+     "10 min",
+     "1 h",
+     "1 dia"
+    ]
+   },
+   {
+    "field": "present",
+    "label": "presentes",
+    "type": "display",
+    "value": "${present} confirmados"
+   },
+   {
+    "field": "desc",
+    "label": "descrição",
+    "type": "long"
+   }
+  ],
+  "date": [
+   {
+    "field": "name",
+    "label": "nome",
+    "type": "text"
+   },
+   {
+    "field": "day",
+    "label": "dia",
+    "type": "text"
+   },
+   {
+    "field": "kind",
+    "label": "tipo",
+    "type": "choice",
+    "values": [
+     "aniversário",
+     "feriado",
+     "especial"
+    ]
+   },
+   {
+    "field": "reminder",
+    "label": "lembrete",
+    "type": "choice",
+    "values": [
+     "nenhum",
+     "no dia",
+     "1 dia antes",
+     "1 semana antes"
+    ]
+   }
+  ]
+ },
+ "commands": [
+  {
+   "name": "new",
+   "desc": "novo evento",
+   "op": {
+    "op": "new",
+    "list": "events",
+    "item": {
+     "title": "${$args}",
+     "date": "${data.day}",
+     "time": "09:00",
+     "dur": "30",
+     "kind": "meet",
+     "people": [],
+     "present": 0
+    },
+    "form": "event",
+    "label": "evento"
+   }
+  },
+  {
+   "name": "today",
+   "desc": "voltar para hoje",
+   "op": {
+    "op": "seq",
+    "ops": [
+     {
+      "op": "set",
+      "path": "data.day",
+      "value": 17
+     },
+     {
+      "op": "view",
+      "view": "dia"
+     }
+    ]
+   }
+  },
+  {
+   "name": "connect",
+   "desc": "google · microsoft",
+   "op": {
+    "op": "fn",
+    "name": "connect"
+   }
+  },
+  {
+   "name": "disconnect",
+   "desc": "voltar à agenda local",
+   "op": {
+    "op": "seq",
+    "ops": [
+     {
+      "op": "set",
+      "path": "store.calendarProvider",
+      "value": "local"
+     },
+     {
+      "op": "toast",
+      "text": "agenda local · Google desconectado"
+     }
+    ]
+   }
+  },
+  {
+   "name": "import-holidays",
+   "desc": "feriados do país",
+   "op": {
+    "op": "async",
+    "label": "importando feriados ${$args}",
+    "then": {
+     "op": "seq",
+     "ops": [
+      {
+       "op": "push",
+       "path": "store.dates",
+       "value": {
+        "day": "2 nov",
+        "name": "Finados",
+        "kind": "feriado"
+       }
+      },
+      {
+       "op": "push",
+       "path": "store.dates",
+       "value": {
+        "day": "15 nov",
+        "name": "Proclamação da República",
+        "kind": "feriado"
+       }
+      },
+      {
+       "op": "toast",
+       "text": "2 feriados importados"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "name": "new-date",
+   "desc": "aniversário ou data especial",
+   "op": {
+    "op": "new",
+    "list": "dates",
+    "item": {
+     "name": "${$args}",
+     "day": "30 out",
+     "kind": "aniversário",
+     "reminder": "1 dia antes"
+    },
+    "form": "date",
+    "label": "data especial",
+    "back": "datas"
+   }
+  }
+ ],
+ "seed": {
+  "calendarProvider": "local",
+  "events": [
+   {
+    "id": "e1",
+    "date": 16,
+    "time": "10:00",
+    "dur": 60,
+    "title": "Planejamento da sprint",
+    "kind": "meet",
+    "people": [
+     "ana",
+     "leo"
+    ],
+    "present": 3,
+    "meet": "meet.google.com/plj-sprt-001"
+   },
+   {
+    "id": "e2",
+    "date": 17,
+    "time": "09:30",
+    "dur": 15,
+    "title": "Daily",
+    "kind": "meet",
+    "meet": "meet.google.com/abc-defg-hij",
+    "people": [
+     "ana",
+     "leo"
+    ],
+    "present": 3,
+    "reminder": "10 min"
+   },
+   {
+    "id": "e3",
+    "date": 17,
+    "time": "11:00",
+    "dur": 45,
+    "title": "Revisão do PR #248",
+    "kind": "foco",
+    "people": [],
+    "present": 1
+   },
+   {
+    "id": "e4",
+    "date": 17,
+    "time": "14:00",
+    "dur": 60,
+    "title": "Design do Cadente v4",
+    "kind": "meet",
+    "place": "Sala 3",
+    "meet": "meet.google.com/xyz-uvwx-rst",
+    "people": [
+     "ana",
+     "bia",
+     "leo"
+    ],
+    "present": 2
+   },
+   {
+    "id": "e5",
+    "date": 17,
+    "time": "17:30",
+    "dur": 30,
+    "title": "Retro",
+    "kind": "meet",
+    "people": [
+     "ana",
+     "bia",
+     "leo",
+     "rui"
+    ],
+    "present": 0
+   },
+   {
+    "id": "e6",
+    "date": 18,
+    "time": "10:00",
+    "dur": 120,
+    "title": "Bloco de foco",
+    "kind": "foco",
+    "people": [],
+    "present": 1
+   },
+   {
+    "id": "e7",
+    "date": 19,
+    "time": "00:00",
+    "dur": 0,
+    "allDay": true,
+    "title": "Offsite de design",
+    "kind": "meet",
+    "place": "Pinheiros",
+    "people": [
+     "ana",
+     "bia"
+    ],
+    "present": 0
+   }
+  ],
+  "dates": [
+   {
+    "id": "d1",
+    "day": "12 out",
+    "name": "Nossa Senhora Aparecida",
+    "kind": "feriado"
+   },
+   {
+    "id": "d2",
+    "day": "20 out",
+    "name": "aniversário da Ana",
+    "kind": "aniversário",
+    "reminder": "1 dia antes"
+   },
+   {
+    "id": "d3",
+    "day": "28 out",
+    "name": "1 ano do Cadente",
+    "kind": "especial",
+    "reminder": "no dia"
+   }
+  ]
+ }
+}

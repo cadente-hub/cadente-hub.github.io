@@ -1,0 +1,91 @@
+{
+ "plugin": "uso",
+ "views": [
+  {
+   "id": "limites",
+   "label": "limites"
+  },
+  {
+   "id": "contas",
+   "label": "contas"
+  },
+  {
+   "id": "modelos",
+   "label": "modelos"
+  },
+  {
+   "id": "previsão",
+   "label": "previsão"
+  }
+ ],
+ "commands": [
+  {
+   "name": "refresh",
+   "desc": "buscar uso agora",
+   "op": {
+    "op": "async",
+    "label": "atualizando uso",
+    "then": {
+     "op": "set",
+     "path": "data.updated",
+     "value": "agora",
+     "toast": "uso atualizado"
+    }
+   }
+  }
+ ],
+ "seed": {
+  "usage": {
+   "session": {
+    "pct": 58,
+    "resets": "14:00"
+   },
+   "week": {
+    "pct": 31,
+    "resets": "seg"
+   },
+   "today": {
+    "tokens": "412k",
+    "cost": "US$ 3,12",
+    "cache": "71%"
+   },
+   "updated": "há 3 min",
+   "byProvider": {
+    "anthropic": 58,
+    "openai": 12
+   },
+   "models": [
+    [
+     "opus 4.6",
+     "318k",
+     77
+    ],
+    [
+     "sonnet 4.6",
+     "86k",
+     21
+    ],
+    [
+     "haiku 4.5",
+     "8k",
+     2
+    ]
+   ],
+   "hours": [
+    2,
+    4,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    3,
+    9,
+    14,
+    11,
+    6
+   ]
+  }
+ }
+}

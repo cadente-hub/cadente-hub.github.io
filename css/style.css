@@ -5,30 +5,30 @@
 /* ---------- CSS Custom Properties ---------- */
 :root {
   /* Dark theme (default) */
-  --color-bg: #0c0c0e;
-  --color-bg-elevated: #111113;
+  --color-bg: #000;
+  --color-bg-elevated: #0a0a0a;
   --color-bg-card: rgba(255, 255, 255, 0.06);
   --color-bg-card-hover: rgba(255, 255, 255, 0.1);
-  --color-surface: #161618;
+  --color-surface: #121212;
   --color-border: rgba(255, 255, 255, 0.15);
   --color-border-hover: rgba(255, 255, 255, 0.22);
   --color-text-primary: #e8e8ed;
   --color-text-secondary: #a0a0ab;
   --color-text-tertiary: #6b6b78;
-  --color-accent-start: #c4956a;
-  --color-accent-end: #d4a574;
-  --color-accent: #c4956a;
-  --color-accent-hover: #a06830;
-  --color-accent-subtle: rgba(196, 149, 106, 0.1);
+  --color-accent-start: #a855f7;
+  --color-accent-end: #c084fc;
+  --color-accent: #a855f7;
+  --color-accent-hover: #7e22ce;
+  --color-accent-subtle: rgba(168, 85, 247, 0.1);
   --color-success: #4ade80;
-  --color-glow: rgba(196, 149, 106, 0.15);
-  --color-accent-bg: #2a1f16;
-  --color-accent-border: #3d2c1e;
+  --color-glow: rgba(168, 85, 247, 0.15);
+  --color-accent-bg: #1a0f2b;
+  --color-accent-border: #3b1d63;
 
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
-  --shadow-glow: 0 0 60px rgba(196, 149, 106, 0.12);
+  --shadow-glow: 0 0 60px rgba(168, 85, 247, 0.12);
 
   --radius-sm: 6px;
   --radius-md: 8px;
@@ -69,13 +69,13 @@
   --color-text-primary: #1a1a1e;
   --color-text-secondary: #555560;
   --color-text-tertiary: #8a8a96;
-  --color-accent-subtle: rgba(196, 149, 106, 0.08);
-  --color-glow: rgba(196, 149, 106, 0.08);
+  --color-accent-subtle: rgba(168, 85, 247, 0.08);
+  --color-glow: rgba(168, 85, 247, 0.08);
 
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.1);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.14);
-  --shadow-glow: 0 0 60px rgba(196, 149, 106, 0.1);
+  --shadow-glow: 0 0 60px rgba(168, 85, 247, 0.1);
 }
 
 /* ---------- Reset & Base ---------- */
@@ -201,11 +201,11 @@ code {
 .btn--primary {
   background: linear-gradient(135deg, var(--color-accent-start), var(--color-accent-end));
   color: #ffffff;
-  box-shadow: 0 2px 12px rgba(196, 149, 106, 0.3);
+  box-shadow: 0 2px 12px rgba(168, 85, 247, 0.3);
 }
 
 .btn--primary:hover {
-  box-shadow: 0 4px 20px rgba(196, 149, 106, 0.45);
+  box-shadow: 0 4px 20px rgba(168, 85, 247, 0.45);
 }
 
 .btn--ghost {
@@ -648,7 +648,7 @@ code {
 
 .card--pricing-pro {
   border-color: var(--color-accent-start);
-  box-shadow: 0 0 40px rgba(196, 149, 106, 0.08);
+  box-shadow: 0 0 40px rgba(168, 85, 247, 0.08);
 }
 
 .card__pricing-badge {
@@ -794,7 +794,7 @@ code {
 
 .cta__inner {
   text-align: center;
-  background: linear-gradient(135deg, rgba(196, 149, 106, 0.08), rgba(212, 165, 116, 0.08));
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.08), rgba(212, 165, 116, 0.08));
   border: 1px solid var(--color-border);
   border-radius: var(--radius-xl);
   padding: 64px 40px;
@@ -930,7 +930,7 @@ code {
   border-radius: var(--radius-xl);
   padding: 40px;
   margin-bottom: 48px;
-  box-shadow: 0 0 60px rgba(196, 149, 106, 0.08), var(--shadow-lg);
+  box-shadow: 0 0 60px rgba(168, 85, 247, 0.08), var(--shadow-lg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   overflow: hidden;
@@ -946,13 +946,13 @@ code {
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: linear-gradient(135deg, rgba(196, 149, 106, 0.06) 0%, transparent 50%);
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.06) 0%, transparent 50%);
   pointer-events: none;
 }
 
 .download-hero-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 0 80px rgba(196, 149, 106, 0.12), var(--shadow-lg);
+  box-shadow: 0 0 80px rgba(168, 85, 247, 0.12), var(--shadow-lg);
 }
 
 .download-hero-card__badge {
@@ -1293,7 +1293,7 @@ code {
 }
 
 .download-alt-card__swap:focus-visible {
-  outline: 2px solid var(--color-accent, #b08050);
+  outline: 2px solid var(--color-accent, #7e22ce);
   outline-offset: 2px;
   border-radius: 6px;
 }
@@ -2343,7 +2343,7 @@ code {
 
 .ram-bar--catarina .ram-bar__track {
   height: 12px;
-  background: rgba(196, 149, 106, 0.08);
+  background: rgba(168, 85, 247, 0.08);
 }
 
 /* Stagger the bar animations */
@@ -2444,7 +2444,7 @@ code {
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(196, 149, 106, 0.15), transparent);
+  background: linear-gradient(90deg, transparent, rgba(168, 85, 247, 0.15), transparent);
   animation: shimmer 3s ease-in-out infinite;
 }
 
@@ -2509,7 +2509,7 @@ code {
 
 .btn--primary:hover {
   transform: translateY(-2px) scale(1.03);
-  box-shadow: 0 8px 30px rgba(196, 149, 106, 0.5);
+  box-shadow: 0 8px 30px rgba(168, 85, 247, 0.5);
 }
 
 .btn--ghost {
@@ -2548,7 +2548,7 @@ code {
 
 .feature-visual-card:hover {
   transform: translateY(-8px) scale(1.02);
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2), 0 0 60px rgba(196, 149, 106, 0.1);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2), 0 0 60px rgba(168, 85, 247, 0.1);
 }
 
 .feature-visual-card__line {
@@ -2641,7 +2641,7 @@ code {
   width: 600px;
   height: 600px;
   transform: translate(-50%, -50%);
-  background: radial-gradient(circle, rgba(196, 149, 106, 0.08), transparent 70%);
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.08), transparent 70%);
   animation: cta-pulse 4s ease-in-out infinite;
   pointer-events: none;
 }
@@ -2703,7 +2703,7 @@ code {
 .marquee__item:hover {
   transform: scale(1.08);
   border-color: var(--color-accent-start);
-  box-shadow: 0 4px 20px rgba(196, 149, 106, 0.2);
+  box-shadow: 0 4px 20px rgba(168, 85, 247, 0.2);
   z-index: 2;
 }
 
@@ -3081,54 +3081,52 @@ code {
 }
 
 /* ============================================
-   BRAND LAYER — "Midnight & Ember"
-   A real night sky (blue-black, lighter toward the horizon) and one
-   rare warm accent taken from the logo. Loaded last so every page
-   that shares this sheet inherits it.
+   BRAND LAYER — "Black & Violet" (site v4)
+   Absolute black, white type and one vivid purple, the same as the home
+   page (css/site.css). Loaded last so every page that shares this sheet
+   inherits it.
    ============================================ */
 :root {
-  /* Midnight scale */
-  --ink-1000: #04060c;
-  --ink-950: #070a12;
-  --ink-900: #0b1019;
-  --ink-850: #0f1522;
-  --ink-800: #141b2b;
-  --ink-700: #1c2538;
+  --ink-1000: #000;
+  --ink-950: #000;
+  --ink-900: #0a0a0a;
+  --ink-850: #121212;
+  --ink-800: #1a1a1a;
+  --ink-700: #262626;
 
-  /* Neutrals (cool, slightly blue) */
-  --color-bg: var(--ink-950);
-  --color-bg-elevated: var(--ink-900);
-  --color-surface: var(--ink-850);
-  --color-bg-card: rgba(160, 180, 230, 0.035);
-  --color-bg-card-hover: rgba(160, 180, 230, 0.06);
-  --color-border: rgba(160, 180, 230, 0.1);
-  --color-border-hover: rgba(160, 180, 230, 0.2);
-  --color-text-primary: #eef1f7;
-  --color-text-secondary: #a1aabd;
-  --color-text-tertiary: #646e84;
+  --color-bg: #000;
+  --color-bg-elevated: #0a0a0a;
+  --color-surface: #121212;
+  --color-bg-card: rgba(255, 255, 255, 0.035);
+  --color-bg-card-hover: rgba(255, 255, 255, 0.06);
+  --color-border: rgba(255, 255, 255, 0.1);
+  --color-border-hover: rgba(255, 255, 255, 0.2);
+  --color-text-primary: #fff;
+  --color-text-secondary: rgba(255, 255, 255, 0.64);
+  --color-text-tertiary: rgba(255, 255, 255, 0.42);
 
-  /* Ember — the only warm colour, used sparingly */
-  --color-accent: #f0b47e;
-  --color-accent-start: #f3c08f;
-  --color-accent-end: #e2a067;
-  --color-accent-hover: #f8cda2;
-  --color-accent-strong: #c9864d;
-  --color-accent-subtle: rgba(240, 180, 126, 0.1);
-  --color-on-accent: #1c1206;
-  --color-glow: rgba(240, 180, 126, 0.16);
-  --color-star: #f7f3ea;
+  /* Violet: the only colour, used for details */
+  --color-accent: #c084fc;
+  --color-accent-start: #d8b4fe;
+  --color-accent-end: #a855f7;
+  --color-accent-hover: #d8b4fe;
+  --color-accent-strong: #a855f7;
+  --color-accent-subtle: rgba(168, 85, 247, 0.12);
+  --color-accent-bg: #1a0f2b;
+  --color-accent-border: #3b1d63;
+  --color-on-accent: #000;
+  --color-glow: rgba(168, 85, 247, 0.2);
+  --color-star: #fff;
 
-  /* Semantic, tuned to one lightness so they sit together */
-  --color-success: #6fd3a8;
-  --color-danger: #ff8b7b;
-  --color-info: #86b4ff;
-  --color-merged: #ab9dff;
+  --color-success: #b4fa72;
+  --color-danger: #ff8272;
+  --color-info: #c084fc;
+  --color-merged: #c084fc;
 
   --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-display: 'Instrument Serif', 'Iowan Old Style', Georgia, serif;
+  --font-display: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-mono: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
 
-  /* One radius scale, one motion system */
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
@@ -3139,35 +3137,9 @@ code {
   --dur-2: 320ms;
   --dur-3: 700ms;
 
-  --focus-ring: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-accent);
+  --focus-ring: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-accent-end);
 }
 
-[data-theme="light"] {
-  --color-bg: #f5f4f0;
-  --color-bg-elevated: #fbfaf7;
-  --color-surface: #eeece6;
-  --color-bg-card: rgba(14, 20, 36, 0.03);
-  --color-bg-card-hover: rgba(14, 20, 36, 0.05);
-  --color-border: rgba(14, 20, 36, 0.1);
-  --color-border-hover: rgba(14, 20, 36, 0.2);
-  --color-text-primary: #0e1424;
-  --color-text-secondary: #4a5368;
-  --color-text-tertiary: #7c8496;
-  --color-accent: #b8692f;
-  --color-accent-start: #c47838;
-  --color-accent-end: #a65a24;
-  --color-accent-hover: #9a521f;
-  --color-accent-strong: #8a481a;
-  --color-accent-subtle: rgba(184, 105, 47, 0.08);
-  --color-on-accent: #fffaf4;
-  --color-glow: rgba(184, 105, 47, 0.12);
-  --color-star: #2a3350;
-  --color-success: #1f9d6b;
-  --color-danger: #d4543f;
-  --color-info: #3f78d9;
-  --color-merged: #6f5ad6;
-  --focus-ring: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-accent);
-}
 
 body {
   letter-spacing: -0.006em;
@@ -3186,14 +3158,16 @@ code, kbd, pre { font-family: var(--font-mono); }
   border-radius: 6px;
 }
 
-/* Accent text: italic serif in ember, used only where it earns it */
+/* Accent text: white to purple, as on the home page */
 .gradient-text {
-  font-family: var(--font-display);
-  font-style: italic;
-  font-weight: 400;
-  background: none;
-  -webkit-text-fill-color: currentColor;
-  color: var(--color-accent);
+  font-family: inherit;
+  font-style: normal;
+  font-weight: inherit;
+  background: linear-gradient(100deg, #fff 0%, #c084fc 45%, #a855f7 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
   animation: none;
   padding-right: 0.04em;
 }
@@ -3210,9 +3184,9 @@ code, kbd, pre { font-family: var(--font-mono); }
 .hero__title,
 .cta__title {
   font-family: var(--font-display);
-  font-weight: 400;
-  letter-spacing: -0.012em;
-  line-height: 1.04;
+  font-weight: 600;
+  letter-spacing: -0.045em;
+  line-height: 1;
 }
 
 .section-title { font-size: clamp(2.4rem, 5.4vw, 3.75rem); }
@@ -3227,7 +3201,7 @@ code, kbd, pre { font-family: var(--font-mono); }
 
 .navbar--scrolled { border-bottom-color: var(--color-border); }
 
-.navbar__logo { font-family: var(--font-display); font-size: 1.45rem; font-weight: 400; letter-spacing: 0; }
+.navbar__logo { font-family: var(--font-sans); font-size: 1.05rem; font-weight: 600; letter-spacing: -0.01em; }
 
 .navbar__links a {
   font-size: 0.875rem;
@@ -3280,12 +3254,12 @@ code, kbd, pre { font-family: var(--font-mono); }
 
 .btn--primary,
 .btn--primary:hover {
-  background: var(--color-accent);
-  color: var(--color-on-accent);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 1px 2px rgba(0, 0, 0, 0.3);
+  background: #fff;
+  color: #000;
+  box-shadow: none;
 }
 
-.btn--primary:hover { background: var(--color-accent-hover); }
+.btn--primary:hover { background: #fff; box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.35), 0 10px 40px -8px rgba(168, 85, 247, 0.45); }
 .btn--primary::after { display: none; }
 
 .btn--ghost {
@@ -3310,11 +3284,17 @@ code, kbd, pre { font-family: var(--font-mono); }
 
 /* Footer */
 .footer { border-top: 1px solid var(--color-border); }
-.footer__logo { font-family: var(--font-display); font-size: 1.6rem; font-weight: 400; }
-.footer__tagline { font-family: var(--font-display); font-style: italic; font-size: 1.1rem; color: var(--color-text-secondary); }
+.footer__logo { font-family: var(--font-sans); font-size: 1.1rem; font-weight: 600; }
+.footer__tagline { font-size: 0.95rem; color: var(--color-text-secondary); }
 .footer__col-title { font-family: var(--font-mono); font-weight: 400; font-size: 0.72rem; letter-spacing: 0.12em; }
 .footer__col a { transition: color var(--dur-1) var(--ease-out); }
 
-::selection { background: var(--color-accent); color: var(--color-on-accent); }
+::selection { background: #a855f7; color: #fff; }
+
+/* One theme: absolute black. */
+.theme-toggle { display: none; }
+html, body { background: #000; }
+.navbar__logo-icon { color: #fff; }
+.brand__spark { fill: #a855f7; filter: drop-shadow(0 0 6px #a855f7); }
 
 .tabular { font-variant-numeric: tabular-nums; }

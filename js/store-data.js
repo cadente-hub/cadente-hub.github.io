@@ -1,0 +1,67 @@
+// Example plugins for the store mock-up. The store opens with the plugin platform; these names show its shape.
+export const CATEGORIES = ['Todos', 'Dev', 'IA', 'Produtividade', 'Dados', 'Temas', 'Diversão'];
+
+// glyph, name, author, description, category
+export const APPS = [
+  ['▦', 'Kanban', 'ana', 'Quadro com as issues do repositório, em três colunas.', 'Produtividade'],
+  ['⛁', 'Postgres', 'leo', 'Consultas, tabelas e planos de execução numa folha.', 'Dados'],
+  ['◆', 'Escritor de testes', 'ana', 'Um agente que escreve testes para o diff atual.', 'IA'],
+  ['◑', 'Tema Neon', 'bitcraft', 'Detalhes em roxo e rosa sobre o preto.', 'Temas'],
+  ['⎈', 'Kubernetes', 'nuvem', 'Pods, logs e eventos do cluster sem sair do teclado.', 'Dev'],
+  ['✳', 'Resumo de reunião', 'lumen', 'Transcreve a reunião e devolve as tarefas.', 'IA'],
+  ['♪', 'Rádio lo-fi', 'marina', 'Música para o Foco, com o timer na tela.', 'Diversão'],
+  ['.*', 'Regex', 'sofia', 'Teste expressões regulares com destaque ao vivo.', 'Dev'],
+  ['▤', 'Planilhas', 'leo', 'Abra CSV e XLSX com filtro e soma.', 'Dados'],
+  ['⌕', 'RAG local', 'kenji', 'Pergunte sobre seus documentos com um modelo no seu computador.', 'IA'],
+  ['✓', 'Hábitos', 'devrafa', 'Marque os hábitos do dia e veja a sequência.', 'Produtividade'],
+  ['◇', 'SQLite', 'kenji', 'Abra qualquer .db e navegue pelas tabelas.', 'Dados'],
+  ['⟳', 'Cron', 'marina', 'Monte expressões cron e veja as próximas execuções.', 'Dev'],
+  ['◐', 'Tema Alto contraste', 'lumen', 'Preto e branco puros, para ler melhor.', 'Temas'],
+  ['⚖', 'Avaliador de prompts', 'marina', 'Compare respostas de modelos lado a lado.', 'IA'],
+  ['▣', 'Docker Compose', 'devrafa', 'Suba, pare e acompanhe os serviços do compose.', 'Dev'],
+  ['✐', 'Diário', 'ana', 'Uma nota por dia, com busca.', 'Produtividade'],
+  ['♞', 'Xadrez', 'leo', 'Uma partida por dia contra o agente.', 'Diversão'],
+  ['{}', 'JSON Schema', 'bitcraft', 'Valide JSON contra um schema e veja os erros por linha.', 'Dev'],
+  ['✎', 'Escritor de commits', 'leo', 'Mensagens de commit a partir do que está no stage.', 'IA'],
+  ['¤', 'Câmbio', 'devrafa', 'Cotações do dia e conversão rápida.', 'Dados'],
+  ['◒', 'Tema Sépia', 'nuvem', 'Tons quentes para sessões longas.', 'Temas'],
+  ['≋', 'Logs', 'lumen', 'Siga arquivos de log com filtro e cores.', 'Dev'],
+  ['$', 'Finanças', 'bitcraft', 'Gastos do mês por categoria, a partir de um CSV.', 'Produtividade'],
+  ['◈', 'GraphQL', 'orbita', 'Explore schemas e rode queries com variáveis.', 'Dev'],
+  ['⟡', 'Explicador', 'sofia', 'Explica o arquivo aberto, função por função.', 'IA'],
+  ['☄', 'Chuva de estrelas', 'orbita', 'Uma estrela cadente a cada build verde.', 'Diversão'],
+  ['⑂', 'Git graph', 'kenji', 'O grafo de branches e commits, em texto.', 'Dev'],
+  ['☷', 'Leitor RSS', 'kenji', 'Feeds em lista, com leitura na própria folha.', 'Produtividade'],
+  ['▁', 'Gráficos', 'orbita', 'Gráficos de texto a partir de CSV ou SQL.', 'Dados'],
+  ['◓', 'Tema Terminal retrô', 'kenji', 'Verde fósforo e cursor em bloco.', 'Temas'],
+  ['⚑', 'Feature flags', 'marina', 'Ligue e desligue flags em vários ambientes.', 'Dev'],
+  ['◎', 'Tradutor', 'orbita', 'Traduza textos e arquivos de i18n.', 'IA'],
+  ['⌚', 'Timesheet', 'nuvem', 'Horas por projeto, a partir das folhas que você usou.', 'Produtividade'],
+  ['⇅', 'Migrations', 'devrafa', 'Rode e desfaça migrations com prévia do SQL.', 'Dados'],
+  ['◕', 'Mascote', 'sofia', 'Um companheiro que reage aos seus testes.', 'Diversão'],
+  ['◔', 'Cobertura', 'leo', 'Cobertura de testes por arquivo, com o que falta.', 'Dev'],
+  ['✉', 'E-mail', 'lumen', 'Caixa de entrada em linhas, com ações no teclado.', 'Produtividade'],
+  ['☁', 'Clima', 'ana', 'Previsão da semana para as suas cidades.', 'Dados'],
+  ['⚿', 'Segredos', 'nuvem', 'Encontra segredos esquecidos antes do commit.', 'Dev'],
+  ['◫', 'Mapa mental', 'sofia', 'Ideias em árvore, só com o teclado.', 'Produtividade'],
+  ['⌨', 'Digitação', 'devrafa', 'Treine velocidade com trechos do seu código.', 'Diversão'],
+  ['↯', 'Uptime', 'orbita', 'Status dos seus serviços, com alerta no cabeçalho da folha.', 'Dev'],
+  ['⏱', 'Benchmarks', 'bitcraft', 'Compare execuções e veja regressões.', 'Dev'],
+  ['≡', 'Changelog', 'sofia', 'Gera o changelog a partir dos commits.', 'Dev'],
+  ['⌘', 'Snippets', 'marina', 'Trechos de texto e código a um atalho.', 'Produtividade'],
+];
+
+// Most plugins are free; the author picks the model. The labels follow the pricing models of the plugin platform.
+const PRICES = [
+  ['free', 'grátis'], ['free', 'grátis'], ['donation', 'grátis · doação'], ['free', 'grátis'], ['subscription', 'US$ 4/mês'],
+  ['free', 'grátis'], ['trial', '7 dias grátis'], ['free', 'grátis'], ['once', 'US$ 12 · uma vez'], ['donation', 'grátis · doação'],
+];
+export const priceOf = i => PRICES[(i * 7 + 3) % PRICES.length];
+
+export const WALL = [...APPS.map(a => a[1]), 'Pomodoro+', 'Notas rápidas', 'Webhooks', 'Mock server', 'WebSocket', 'gRPC', 'MQTT', 'OpenAPI',
+  'Licenças', 'Dependências', 'Vulnerabilidades', '.env', 'SSH', 'Servidores', 'Custos de nuvem', 'Seeds', 'Fixtures', 'Bundle size',
+  'Web vitals', 'Acessibilidade', 'i18n', 'Semver', 'Releases', 'Status page', 'Métricas', 'Flamegraph', 'Profiler', 'Testes instáveis',
+  'Conflitos', 'Blame', 'Dicionário', 'Ícones', 'Cores', 'Fontes', 'Slides', 'Leitor de PDF', 'Transcrição', 'Embeddings', 'Agentes',
+  'Orçamento', 'Faturas', 'Contatos', 'Agenda do time', 'Viagens', 'Receitas', 'Livros', 'Filmes', 'Podcasts', 'Placar', 'Sudoku',
+  'Palavras', 'Quiz', 'Arte ASCII', 'Kanban do time', 'Scrum', 'Retro', 'OKRs', 'Pull requests do dia', 'Revisor de SQL', 'Lint',
+  'Formatador', 'Diff de imagens', 'Paleta de cores', 'Calculadora', 'Conversor de unidades', 'Fuso horário', 'QR code', 'UUID', 'Base64', 'JWT'];
