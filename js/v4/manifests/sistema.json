@@ -210,7 +210,7 @@
    {
     "id": "rt3",
     "label": "aparência",
-    "value": "Hack 13 · Escuro (Warp)",
+    "value": "Hack 13 · Escuro",
     "help": "render Metal · 120 Hz · fonte Hack carregada · sem fallback"
    }
   ]

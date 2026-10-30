@@ -5,7 +5,7 @@
 import { fromManifest, registerFn } from '../v4/engine.mjs';
 
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
-const PROJECTS = [['proj_01', 'cadente', 4], ['proj_02', 'warp', 1], ['proj_03', 'nora', 0]];
+const PROJECTS = [['proj_01', 'cadente', 4], ['proj_02', 'mapa', 1], ['proj_03', 'vitrine', 0]];
 // Each saved query answers from its SQL, so a rewritten query gives a different result.
 const RESULTS = {
   q1: () => ({ cols: ['count'], rows: [['128']] }),
@@ -23,7 +23,7 @@ const RESULTS = {
 const DATA = {
   projetos: PROJECTS.map(([id, n, p], i) => [id, n, String(p), `2026-0${7 + i}-1${i} 09:3${i}`]),
   usuarios: [['1', 'ana@exemplo.com', '2026-10-30 10:41'], ['2', 'leo@exemplo.com', '2026-10-30 09:12'], ['3', 'kenji@exemplo.com', '2026-10-29 22:05'], ['4', 'sofia@exemplo.com', '2026-10-29 18:30']],
-  sessoes: [['901', 'claude', 'cadente', '2026-10-30 10:02'], ['902', 'codex', 'cadente', '2026-10-30 10:03'], ['903', 'agy', 'warp', '2026-10-30 10:05'], ['904', 'claude', 'nora', '2026-10-30 10:11'], ['905', 'opencode', 'cadente', '2026-10-30 10:20']],
+  sessoes: [['901', 'claude', 'cadente', '2026-10-30 10:02'], ['902', 'codex', 'cadente', '2026-10-30 10:03'], ['903', 'agy', 'mapa', '2026-10-30 10:05'], ['904', 'claude', 'vitrine', '2026-10-30 10:11'], ['905', 'opencode', 'cadente', '2026-10-30 10:20']],
   pedidos: [['7001', 'pago', '', '129,90'], ['7002', 'pago', '', '49,00'], ['7003', 'enviado', '', '310,00'], ['7004', 'pago', '', '18,50']],
   turnos: [['1', '901', '1840', '2026-10-30 10:02'], ['2', '901', '2210', '2026-10-30 10:04'], ['3', '902', '960', '2026-10-30 10:05']],
 };

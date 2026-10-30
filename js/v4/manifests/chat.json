@@ -339,7 +339,7 @@
    {
     "id": "cs3",
     "name": "benchmarks sql",
-    "cwd": "~/dev/nora",
+    "cwd": "~/dev/vitrine",
     "when": "há 4 d",
     "archived": true
    }

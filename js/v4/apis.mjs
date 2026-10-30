@@ -3,7 +3,7 @@
 import { fromManifest, registerFn, h, row, note } from './engine.mjs';
 
 const kv = s => Object.fromEntries(String(s).split(/[,\n]/).map(x => x.trim().split('=')).filter(x => x[0]));
-const BODY = ['{', '  "status": "ok",', '  "data": [', '    { "id": "proj_01", "name": "cadente", "panes": 4 },', '    { "id": "proj_02", "name": "warp", "panes": 1 }', '  ],', '  "has_more": false', '}'];
+const BODY = ['{', '  "status": "ok",', '  "data": [', '    { "id": "proj_01", "name": "cadente", "panes": 4 },', '    { "id": "proj_02", "name": "mapa", "panes": 1 }', '  ],', '  "has_more": false', '}'];
 
 // ── Requests ──────────────────────────────────────────────────────────────
 function resolve(S, d) {
@@ -34,7 +34,7 @@ export const requests = fromManifest({
     if (!last) return { lines: [note('nenhuma resposta ainda', 'dim'), note('digite MÉTODO url e ↵', 'dim'), note(`ambiente ${S.store.environments.find(e => e.active)?.name}`, 'dim')] };
     if (last.error) return { subject: `${last.method} ${last.path}`, lines: [{ t: 'blk', id: 'res', kind: 'res', cmd: `${last.method} ${last.url}`, out: [{ text: last.error, tone: 'err' }], ok: false }] };
     const sub = leaf.data.sub ? 'headers' : 'body';
-    const out = sub === 'headers' ? ['content-type: application/json', ...last.headers] : leaf.data.raw ? [BODY.join('').replace(/\s+/g, ' ')] : { POST: ['{ "id": "proj_03", "name": "nora", "panes": 0 }'], DELETE: [] }[last.method] ?? BODY;
+    const out = sub === 'headers' ? ['content-type: application/json', ...last.headers] : leaf.data.raw ? [BODY.join('').replace(/\s+/g, ' ')] : { POST: ['{ "id": "proj_03", "name": "vitrine", "panes": 0 }'], DELETE: [] }[last.method] ?? BODY;
     return { subject: `${last.method} ${last.path}`, status: `← body · headers → · ${sub} · ${leaf.data.raw ? 'bruto' : 'formatado'}`, lines: [{ t: 'blk', id: 'res', kind: 'res', cmd: `${last.method} ${last.url}`, meta: S.store.environments.find(e => e.active)?.name, ok: true,
       out: [{ text: `${last.status} ${{ 201: 'Created', 204: 'No Content' }[last.status] ?? 'OK'} · ${last.ms} ms · ${last.size} · resposta local`, tone: 'ok' }, ...out] }] };
   },

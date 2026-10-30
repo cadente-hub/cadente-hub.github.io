@@ -1044,12 +1044,12 @@
     "sec": "aparência",
     "key": "tema",
     "values": [
-     "Escuro (Warp)",
-     "Claro (Warp)",
+     "Escuro",
+     "Claro",
      "Dracula",
      "personalizado"
     ],
-    "value": "Escuro (Warp)"
+    "value": "Escuro"
    },
    {
     "id": "s17",
@@ -1274,7 +1274,7 @@
     "id": "s40",
     "sec": "experimentais",
     "key": "repositórios",
-    "value": "~/dev/cadente, ~/dev/warp"
+    "value": "~/dev/cadente, ~/dev/mapa"
    }
   ],
   "integrations": [

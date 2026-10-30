@@ -4,11 +4,11 @@
 import { fromManifest, registerFn } from '../v4/engine.mjs';
 
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
-const PROJECTS = [['cadente', 4, 'o hub de tudo'], ['warp', 1, 'terminal com blocos'], ['nora', 0, 'criado agora pelo POST']];
+const PROJECTS = [['cadente', 4, 'o hub de tudo'], ['mapa', 1, 'mapa de calor dos cliques'], ['vitrine', 0, 'criado agora pelo POST']];
 const PAGES = {
   '': { title: 'Nova página', blocks: [{ t: 'h1', text: 'Para onde?' }, { t: 'p', text: '⌘L e digite um endereço, ou escolha um daqui.' },
     { t: 'a', text: 'localhost:5173', href: 'localhost:5173', meta: 'o app que você está fazendo' }, { t: 'a', text: 'cadente-hub.github.io/blog', href: 'cadente-hub.github.io/blog', meta: 'blog do Cadente' }] },
-  'localhost:5173': { title: 'nora · projetos', brand: 'nora', blocks: [{ t: 'h1', text: 'Projetos' }, { t: 'p', text: '3 projetos · lidos de GET /v1/projects' },
+  'localhost:5173': { title: 'painel · projetos', brand: 'painel', blocks: [{ t: 'h1', text: 'Projetos' }, { t: 'p', text: '3 projetos · lidos de GET /v1/projects' },
     ...PROJECTS.map(([n, p, d]) => ({ t: 'card', text: n, href: `localhost:5173/projetos/${n}`, meta: `${p} ${p === 1 ? 'painel' : 'painéis'} · ${d}` }))] },
   'cadente-hub.github.io/blog': { title: 'Blog do Cadente', brand: 'cadente', blocks: [{ t: 'h1', text: 'Blog' }, { t: 'p', text: 'Notas de produto, engenharia e ideias para trabalhar melhor.' },
     { t: 'card', text: 'Bem-vindo ao blog do Cadente', href: 'cadente-hub.github.io/blog/bem-vindo', meta: '12 de setembro de 2026 · Equipe Cadente' }] },
@@ -16,7 +16,7 @@ const PAGES = {
     { t: 'p', text: 'Este é o espaço onde vamos registrar o que estamos construindo e as decisões que orientam o produto.' },
     { t: 'p', text: 'O Cadente reúne conversas, código, terminal, Git e ferramentas de foco numa experiência nativa.' }, { t: 'a', text: '← voltar ao blog', href: 'cadente-hub.github.io/blog' }] },
 };
-for (const [n, p, d] of PROJECTS) PAGES[`localhost:5173/projetos/${n}`] = { title: `projeto ${n}`, brand: 'nora', blocks: [{ t: 'h1', text: n }, { t: 'p', text: d },
+for (const [n, p, d] of PROJECTS) PAGES[`localhost:5173/projetos/${n}`] = { title: `projeto ${n}`, brand: 'painel', blocks: [{ t: 'h1', text: n }, { t: 'p', text: d },
   { t: 'p', text: `${p} ${p === 1 ? 'painel' : 'painéis'} · id proj_0${PROJECTS.findIndex(x => x[0] === n) + 1}` }, { t: 'a', text: '← todos os projetos', href: 'localhost:5173' }] };
 const page = url => PAGES[url] ?? { title: 'não encontrado', blocks: [{ t: 'h1', text: '404' }, { t: 'p', text: `Nada em ${url}.` }, { t: 'a', text: '← voltar', href: '' }] };
 const linksOf = url => page(url).blocks.filter(b => b.href !== undefined);

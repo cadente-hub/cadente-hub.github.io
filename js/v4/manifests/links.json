@@ -192,8 +192,8 @@
   "links": [
    {
     "id": "links-1",
-    "title": "Warp — temas",
-    "url": "docs.warp.dev/appearance/themes",
+    "title": "Temas de terminal",
+    "url": "github.com/topics/terminal-theme",
     "tags": [
      "design"
     ],

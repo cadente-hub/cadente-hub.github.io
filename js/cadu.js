@@ -1,4 +1,4 @@
-// Cadu, the Cadente mascot and app icon (ADR 0065 and 0066 of the app). The art is the app's own sprite sheet:
+// Cadu, the Cadente mascot and app icon. The art is the app's own sprite sheet:
 // 16×16 frames of role characters, drawn here as one SVG path per colour role.
 import sheet from './cadu.sprites.json' with { type: 'json' };
 import { COLORS } from './cadu-colors.mjs';

@@ -81,7 +81,7 @@ nav.classList.toggle('is-scrolled', scrollY > 8);
 const DESC = {
   inicio: 'Seu dia: agenda, tarefas, notas, clima e o que ficou aberto.',
   chat: 'Qualquer modelo, com plano, fila, sessões e o contexto à vista.',
-  terminal: 'Blocos como no Warp, sugestão de IA e agentes como Claude Code e Codex.',
+  terminal: 'Blocos de comando, sugestão de IA e agentes como Claude Code e Codex.',
   workspaces: 'Repositórios, alterações e worktrees, com diff e commit.',
   pr: 'Seus PRs e os do time: diff, checks, threads e revisão com IA.',
   requests: 'Cliente HTTP com coleções, ambientes e histórico.',

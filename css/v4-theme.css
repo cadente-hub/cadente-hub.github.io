@@ -1,4 +1,4 @@
-/* Tokens of the Cadente v4 prototype (design/prototypes/cadente-warp-slint/v4/tokens.css), with the site's two changes:
+/* Tokens of the Cadente v4 prototype (its tokens.css), with the site's two changes:
    absolute black canvas and the purple that replaces the cyan accent in the app. */
 @font-face { font-family: Hack; font-display: swap; src: url('../assets/fonts/hack-regular.woff2') format('woff2'); }
 @font-face { font-family: Hack; font-weight: 700; font-display: swap; src: url('../assets/fonts/hack-bold.woff2') format('woff2'); }

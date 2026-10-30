@@ -234,14 +234,14 @@ export const CHAPTERS = [
       await s.key('⌘T', id);
       await pick(s, id, 'doc', 'abrir Documentos');
       await s.wait(600, id);
-      for (const label of ['2026-10-30', 'Plano 1.3', 'Site', 'Produto 30-10']) await s.key('↓', id, { hold: 340, label });
+      for (const label of ['2026-10-30', 'Lançamento', 'Site', 'Produto 30-10']) await s.key('↓', id, { hold: 340, label });
       await s.key('↵', id, { label: 'abrir a nota' });
       await s.wait(700, id);
       for (let i = 0; i < 9; i++) await s.key('↓', id, { hold: 150, label: 'descer pela nota' });
       await s.key('↵', id, { label: 'nova tarefa' });
       await s.type('mandar o changelog para o time', id, { speed: 1.6 });
       await s.key('↵', id, { label: 'a lista continua' });
-      await s.type('revisar o [[Plano 1.3]]', id, { speed: 1.6 });
+      await s.type('revisar o [[Lançamento]]', id, { speed: 1.6 });
       await s.key('↵', id, { hold: 300, label: 'a lista continua' });
       await s.key('↵', id, { label: 'fechar a lista' });
       for (let i = 0; i < 4; i++) await s.key('↑', id, { hold: 200, label: 'subir' });
@@ -252,7 +252,7 @@ export const CHAPTERS = [
   {
     step: 'Web',
     title: 'Um site em outra aba.',
-    text: '<kbd>⌘T</kbd> e o Navegador abre o app que você está fazendo, em localhost. <kbd>⌘L</kbd> vai ao endereço, <kbd>↓</kbd> anda pelos links e <kbd>⌫</kbd> volta. O projeto nora, criado pelo POST lá atrás, já está na lista.',
+    text: '<kbd>⌘T</kbd> e o Navegador abre o app que você está fazendo, em localhost. <kbd>⌘L</kbd> vai ao endereço, <kbd>↓</kbd> anda pelos links e <kbd>⌫</kbd> volta. O projeto vitrine, criado pelo POST lá atrás, já está na lista.',
     async run(s, id) {
       await s.key('⌘T', id);
       await pick(s, id, 'naveg', 'abrir o Navegador');
@@ -262,8 +262,8 @@ export const CHAPTERS = [
       await s.key('↵', id, { label: 'abrir o site' });
       await s.ticks(1, id);
       await s.wait(600, id);
-      for (const label of ['warp', 'nora']) await s.key('↓', id, { hold: 420, label });
-      await s.key('↵', id, { label: 'abrir o projeto nora' });
+      for (const label of ['mapa', 'vitrine']) await s.key('↓', id, { hold: 420, label });
+      await s.key('↵', id, { label: 'abrir o projeto vitrine' });
       await s.ticks(1, id);
       await s.wait(1000, id);
       await s.key('⌫', id, { label: 'voltar' });
@@ -286,7 +286,7 @@ export const CHAPTERS = [
       await s.key('↵', id, { label: 'instalar, grátis' });
       await s.ticks(2, id);
       await s.wait(600, id);
-      for (const [key, label, text] of [['r', 'retângulo', 'app nora'], ['r', 'outro retângulo', 'API /v1/projects']]) {
+      for (const [key, label, text] of [['r', 'retângulo', 'app web'], ['r', 'outro retângulo', 'API /v1/projects']]) {
         await s.key(key, id, { label });
         await s.type(text, id, { speed: 1.5 });
         await s.key('↵', id, { hold: 300, label: 'guardar o texto' });

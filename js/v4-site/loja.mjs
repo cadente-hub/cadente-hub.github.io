@@ -1,4 +1,4 @@
-// The plugin store in a pane, for the site's demo (in the app it arrives with the plugin platform, ADR 0077 1.3).
+// The plugin store in a pane, for the site's demo.
 // Typing filters the community plugins, ↵ shows one with what it asks for, and ↵ on "instalar" installs it:
 // download, signature check, and the same pane opens the new plugin.
 import { fromManifest, registerFn, h, row, note } from '../v4/engine.mjs';

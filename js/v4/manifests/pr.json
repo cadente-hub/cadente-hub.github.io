@@ -751,7 +751,7 @@
     "id": "pr87",
     "n": 87,
     "title": "Atualizar dependências do terminal",
-    "repo": "cadente/warp-fork",
+    "repo": "cadente/mapa",
     "author": "bot",
     "branch": "deps/terminal",
     "updated": "há 2 d",

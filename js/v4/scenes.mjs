@@ -95,7 +95,7 @@ const SCENES = {
   'chat-decisoes': () => solo('chat', d => Object.assign(d, { pending: { kind: 'plan', steps: ['ler pane.rs', 'propor patch', 'rodar testes'] }, next: [
     { kind: 'question', text: 'qual estratégia de foco?', options: ['manter', 'restaurar a última', 'sempre a primeira'] },
     { kind: 'destructive', text: 'apagar 3 worktrees antigas', payload: { cmd: 'git worktree remove …' } },
-    { kind: 'fs', path: '~/dev/warp' }] })),
+    { kind: 'fs', path: '~/dev/mapa' }] })),
   'chat-muito-longo': () => solo('chat', d => { d.turns = Array.from({ length: 16 }, (_, i) => ({ who: i % 2 ? 'agent' : 'you', text: `mensagem ${i + 1}` })); }),
   'chat-falha': () => solo('chat', d => { d.turns.push({ who: 'you', text: 'resuma o PR' }, { who: 'agent', text: 'sem resposta do provider', failed: true }); d.compactError = true; }),
   'terminal-erro': () => solo('terminal', d => { d.boot = 'erro'; }),

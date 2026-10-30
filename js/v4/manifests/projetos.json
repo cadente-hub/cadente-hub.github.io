@@ -137,15 +137,15 @@
    },
    {
     "id": "pj3",
-    "name": "nora",
-    "path": "~/dev/nora",
+    "name": "vitrine",
+    "path": "~/dev/vitrine",
     "sessions": 5,
     "branch": "dev"
    },
    {
     "id": "pj4",
-    "name": "gamedev",
-    "path": "~/dev/gamedev",
+    "name": "quiz",
+    "path": "~/dev/quiz",
     "sessions": 1,
     "branch": "main"
    }
@@ -165,8 +165,8 @@
    },
    {
     "id": "ss3",
-    "project": "nora",
-    "name": "Nora: onboarding",
+    "project": "vitrine",
+    "name": "Vitrine: onboarding",
     "when": "há 2 d"
    }
   ]

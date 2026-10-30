@@ -1,4 +1,4 @@
-// Cadu in the site's palette: the sprite sheet keeps its roles (ADR 0065 of the app), and the site paints them
+// Cadu in the site's palette: the sprite sheet keeps its roles, and the site paints them
 // mostly white, lit from the top left, with purple only in the cheeks and the trail. Used by the page, the
 // tamagotchi and scripts/brand-assets.mjs (logo, favicons and share card).
 export const COLORS = {
