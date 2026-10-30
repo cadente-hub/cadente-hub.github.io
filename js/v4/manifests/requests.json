@@ -336,7 +336,7 @@
   },
   {
    "name": "import",
-   "desc": "curl · postman · insomnia",
+   "desc": "curl · coleções exportadas",
    "op": {
     "op": "fn",
     "name": "importStart"
@@ -344,7 +344,7 @@
   },
   {
    "name": "export",
-   "desc": "curl · postman · insomnia",
+   "desc": "curl · coleções exportadas",
    "op": {
     "op": "log",
     "cmd": "exportar ${$args}",

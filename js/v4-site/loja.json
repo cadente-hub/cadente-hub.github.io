@@ -40,13 +40,13 @@
         "plugin": "banco",
         "version": "2.3.0",
         "size": "212 KB",
-        "desc": "Script, navegador e resultado como no DBeaver, tudo pelo teclado.",
+        "desc": "Script, navegador de tabelas e resultado numa folha, tudo pelo teclado.",
         "perms": [
           "conectar em localhost:5432",
           "ler e gravar as consultas no seu perfil"
         ],
         "readme": [
-          "Um cliente de banco do jeito do DBeaver, numa folha do Cadente. Suas consultas ficam num script .sql, e o resultado aparece logo abaixo, sem tirar a mão do teclado.",
+          "Um cliente de banco numa folha do Cadente. Suas consultas ficam num script .sql, e o resultado aparece logo abaixo, sem tirar a mão do teclado.",
           "## O que ele faz",
           "- navegador com conexões, schemas e tabelas",
           "- um script com todas as suas consultas salvas",
@@ -67,7 +67,7 @@
         "id": "s15",
         "cat": "em alta",
         "glyph": "✎",
-        "name": "Excalidraw",
+        "name": "Quadro",
         "author": "bitcraft",
         "label": "grátis",
         "plugin": "draw",
@@ -78,7 +78,7 @@
           "salvar os desenhos no seu perfil"
         ],
         "readme": [
-          "O quadro branco que todo mundo conhece, numa folha do Cadente. Os desenhos têm cara de feitos à mão e saem pelo teclado, com os atalhos de sempre.",
+          "Um quadro para diagramas numa folha do Cadente. Os desenhos têm cara de feitos à mão e saem pelo teclado, uma tecla para cada ferramenta.",
           "## O que ele faz",
           "- retângulos, elipses, losangos, setas e texto",
           "- as formas se arrumam sozinhas em linhas",

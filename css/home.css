@@ -57,16 +57,28 @@
 .stage { position: relative; }
 .stage__viewport { position: relative; overflow: hidden; margin: 0 auto; contain: layout paint; }
 .stage__app { position: absolute; top: 0; left: 0; transform-origin: 0 0; pointer-events: none; user-select: none; }
-.stage__hud { position: absolute; left: 50%; bottom: 22px; z-index: 5; display: flex; align-items: center; gap: 12px; padding: 8px 16px 8px 8px; transform: translateX(-50%) translateY(6px); border-radius: 14px; background: rgba(8, 8, 8, .92); border: 1px solid rgba(255, 255, 255, .14); font-family: var(--mono); font-size: 13px; color: var(--fg-2); opacity: 0; transition: opacity .25s, transform .25s var(--ease); pointer-events: none; white-space: nowrap; }
+.stage__hud { position: absolute; left: 50%; bottom: 22px; z-index: 5; display: flex; align-items: center; gap: 12px; padding: 8px 16px 8px 8px; transform: translateX(-50%) translateY(6px); border-radius: 14px; background: linear-gradient(180deg, rgba(24, 16, 36, .94), rgba(8, 6, 12, .94)); border: 1px solid rgba(216, 180, 254, .22); box-shadow: 0 18px 50px rgba(0, 0, 0, .6), inset 0 1px 0 rgba(255, 255, 255, .08); font-family: var(--mono); font-size: 13px; color: var(--fg-2); opacity: 0; transition: opacity .25s, transform .25s var(--ease); pointer-events: none; white-space: nowrap; }
 .stage__hud.is-on { opacity: 1; transform: translateX(-50%); }
-/* Chapter title card over the window (Stage.card) */
-.stage__card { position: absolute; inset: 0; z-index: 4; display: grid; place-items: center; padding: 24px; border-radius: 14px; pointer-events: none; opacity: 0; background: radial-gradient(70% 60% at 50% 50%, rgba(0, 0, 0, .82), rgba(0, 0, 0, .55)); }
-.stage__card-in { text-align: center; }
-.stage__card-n { font-family: var(--mono); font-size: 13px; letter-spacing: .1em; text-transform: uppercase; color: var(--violet-hi); }
-.stage__card-in b { display: block; margin-top: 12px; font-size: clamp(28px, 4.4vw, 60px); line-height: 1; font-weight: 600; letter-spacing: -0.045em; color: #fff; text-shadow: 0 0 48px rgba(168, 85, 247, .55); }
-.hud__caps { display: flex; gap: 5px; }
-.hud__caps kbd { min-width: 32px; height: 32px; display: grid; place-items: center; padding: 0 8px; border-radius: 8px; border: 1px solid rgba(180, 107, 255, .7); border-bottom-width: 3px; background: linear-gradient(#1a0f2b, #0d0716); color: #fff; font-size: 15px; box-shadow: 0 0 18px rgba(168, 85, 247, .35); }
-.hud__label { color: var(--fg); }
+/* Camera (Stage.follow): one layer over the window that pushes in and pulls back; a vignette darkens the edges of a close-up */
+.stage__cam { position: absolute; inset: 0; transform-origin: 0 0; transition: transform 1.15s cubic-bezier(.65, 0, .35, 1); }
+.stage__vig { position: absolute; inset: 0; z-index: 3; border-radius: 14px; pointer-events: none; opacity: 0; transition: opacity .9s ease; background: radial-gradient(75% 70% at 50% 50%, transparent 55%, rgba(0, 0, 0, .72)); }
+.stage.is-close .stage__vig { opacity: 1; }
+/* Chapter title card over the window (Stage.card): letterbox, a shooting star and the title rising word by word */
+.stage__card { position: absolute; inset: 0; z-index: 4; display: grid; place-items: center; padding: 24px; border-radius: 14px; overflow: hidden; pointer-events: none; opacity: 0; background: radial-gradient(60% 55% at 50% 58%, rgba(88, 28, 135, .34), transparent 70%), radial-gradient(90% 80% at 50% 50%, rgba(0, 0, 0, .94), rgba(0, 0, 0, .84)); }
+.stage__lb { position: absolute; left: 0; right: 0; z-index: 5; height: 9%; background: #000; transform: scaleY(0); pointer-events: none; }
+.stage__lb--t { top: 0; transform-origin: 50% 0; border-radius: 14px 14px 0 0; }
+.stage__lb--b { bottom: 0; transform-origin: 50% 100%; border-radius: 0 0 14px 14px; }
+.stage__star { position: absolute; left: 0; top: 46%; width: 100%; height: 2px; opacity: 0; background: linear-gradient(90deg, transparent 20%, rgba(216, 180, 254, .0) 30%, rgba(216, 180, 254, .55) 62%, #fff 66%, transparent 67%); filter: drop-shadow(0 0 6px rgba(216, 180, 254, .9)); }
+.stage__card-in { position: relative; text-align: center; }
+.stage__card-n { display: inline-flex; align-items: center; gap: 14px; font-family: var(--mono); font-size: 12px; letter-spacing: .22em; text-transform: uppercase; color: var(--violet-hi); }
+.stage__card-n i { display: block; width: 36px; height: 1px; background: linear-gradient(90deg, transparent, var(--violet-hi)); }
+.stage__card-n i:last-child { background: linear-gradient(90deg, var(--violet-hi), transparent); }
+.stage__card-in b { display: block; margin-top: 16px; font-size: clamp(30px, 5vw, 72px); line-height: 1.02; font-weight: 600; letter-spacing: -0.05em; color: #fff; text-wrap: balance; }
+.stage__card-in .w { display: inline-block; overflow: hidden; padding-bottom: .08em; margin-bottom: -.08em; vertical-align: top; }
+.stage__card-in .w > span { display: inline-block; background: linear-gradient(180deg, #fff 30%, #e9d5ff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.hud__caps { display: flex; gap: 6px; }
+.hud__caps kbd { min-width: 34px; height: 34px; display: grid; place-items: center; padding: 0 9px; border-radius: 9px; border: 1px solid rgba(216, 180, 254, .55); border-bottom-width: 3px; background: linear-gradient(180deg, #2a1745, #120a20 60%); color: #fff; font-size: 15px; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .22), 0 6px 18px rgba(0, 0, 0, .5), 0 0 22px rgba(168, 85, 247, .35); }
+.hud__label { color: var(--fg); font-family: var(--sans, Geist, system-ui, sans-serif); font-size: 15px; letter-spacing: -0.01em; }
 
 /* ── Native, in Rust ─────────────────────────────────────────────── */
 .light__inner { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(32px, 6vw, 80px); align-items: center; }
@@ -177,7 +189,7 @@
 .v4 .tui-svg text { white-space: pre; }
 .v4 .tui-caret { fill: var(--accent); opacity: .9; }
 
-/* ── Plugins drawn as one block: Postgres like DBeaver, Documentos like Obsidian, Navegador (js/v4-site) ─ */
+/* ── Plugins drawn as one block: Postgres, Documentos, Navegador (js/v4-site) ─ */
 .v4 [data-pane]:is([data-plugin="banco"], [data-plugin="docs"], [data-plugin="web"]):not(:has(.pick)) .pp { display: none; }
 .v4 [data-pane]:is([data-plugin="banco"], [data-plugin="docs"], [data-plugin="web"]):not(:has(.pick)) .pc { padding: 0; overflow: hidden; }
 .v4 :is(.dbv, .mdv, .wbv) { height: 100%; display: grid; font-size: 12px; line-height: 18px; }
@@ -268,7 +280,7 @@
 .v4 :is(.wb-card, .wb-a) span { font-size: 12.5px; color: #777; }
 .v4 :is(.wb-card, .wb-a).on { outline: 2px solid #8b5cf6; outline-offset: 2px; }
 .v4 .wb-a.on { padding-inline: 8px; border-radius: 6px; }
-/* Excalidraw: its dark canvas, the floating toolbar and hand-drawn strokes */
+/* Quadro: its dark canvas, the floating toolbar and hand-drawn strokes */
 .v4 [data-pane][data-plugin="draw"]:not(:has(.pick)) .pp { display: none; }
 .v4 [data-pane][data-plugin="draw"]:not(:has(.pick)) .pc { padding: 0; overflow: hidden; }
 .v4 .xdv { position: relative; height: 100%; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; background: #121212; background-image: radial-gradient(rgba(255, 255, 255, .07) 1px, transparent 1px); background-size: 18px 18px; font-size: 12px; }

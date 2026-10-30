@@ -13,7 +13,7 @@ function resolve(S, d) {
   return { url: sub(d.url) + (q ? `?${q}` : ''), headers };
 }
 export const requests = fromManifest({
-  id: 'requests', title: 'Requests', short: 'HTTP', glyph: '↗', keywords: 'http api rest postman insomnia', cursorless: true,
+  id: 'requests', title: 'Requests', short: 'HTTP', glyph: '↗', keywords: 'http api rest coleções', cursorless: true,
   hint: 'GET https://… · / import, ambientes, scan…',
   init: () => ({ last: null }),
   view(leaf, S) {

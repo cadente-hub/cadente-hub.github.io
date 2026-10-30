@@ -38,16 +38,16 @@ async function cli(s, id, name, label, task) {
 
 // Pacing: every wait, keystroke and tick of the scripts below is played at TEMPO of its written length, so the
 // story moves like a cut film while each step stays on screen long enough to read. Each chapter opens with a title
-// card (CARD ms of script time) and leaves PAUSE ms before the next one. `secs` is how long a chapter lasts on screen
+// card (CARD ms of script time) and ends on a wide shot held for PAUSE ms. `secs` is how long a chapter lasts on screen
 // with this pacing; the step bars above the window fill over it.
-export const TEMPO = 0.72, CARD = 1500, PAUSE = 600;
+export const TEMPO = 0.72, CARD = 1700, PAUSE = 1300;
 
 // How long each chapter lasts on screen, in ms, from its script alone: a stand-in for the Stage adds up the waits.
 export async function durations() {
   const out = [];
   for (const c of CHAPTERS) {
     let t = 0;
-    const s = { S: initial(), boot() {}, setState() {}, async fade() {}, async whenVisible() {}, async card() {},
+    const s = { S: initial(), boot() {}, setState() {}, wide() {}, shot() {}, async fade() {}, async whenVisible() {}, async card() {},
       async wait(ms) { t += ms; }, async key(k, id, { hold = 520 } = {}) { t += hold; },
       async type(text, id, { speed = 1 } = {}) { t += (text.length * 62.5) / speed; }, async ticks(n) { t += n * 1000 + 250; } };
     await c.run(s);
@@ -129,7 +129,7 @@ export const CHAPTERS = [
   {
     step: 'API',
     title: 'Uma página para a API.',
-    text: '<kbd>⌘T</kbd> abre outra aba, e os agentes seguem trabalhando na primeira. No Requests você anda pela coleção, troca o <code>limit</code> e manda o GET, como no Bruno, sem tirar a mão do teclado.',
+    text: '<kbd>⌘T</kbd> abre outra aba, e os agentes seguem trabalhando na primeira. No Requests você anda pela coleção, troca o <code>limit</code> e manda o GET sem tirar a mão do teclado.',
     async run(s, id) {
       await s.key('⌘T', id);
       await pick(s, id, 'req', 'abrir o Requests');
@@ -164,22 +164,26 @@ export const CHAPTERS = [
       await pick(s, id, 'loja', 'abrir a Loja');
       await s.key('⌘⇧↵', id, { label: 'ampliar a folha' });
       await s.wait(700, id);
-      for (const label of ['Excalidraw', 'Kanban', 'Rádio lo-fi']) await s.key('↓', id, { hold: 380, label });
+      for (const label of ['Quadro', 'Kanban', 'Rádio lo-fi']) await s.key('↓', id, { hold: 380, label });
       await s.type('postgres', id, { speed: 2 });
       await s.wait(300, id);
       await s.key('↵', id, { label: 'abrir a página do Postgres' });
-      await s.wait(800, id);
+      await s.wait(500, id);
+      s.shot('.pg-shots', 1.22);
+      await s.wait(300, id);
       for (const label of ['próxima foto', 'mais uma']) await s.key('→', id, { hold: 950, label });
       for (const label of ['as fotos', 'sobre', 'o que ele faz', 'atalhos']) await s.key('↓', id, { hold: 480, label });
       await s.key('Home', id, { label: 'voltar ao topo' });
+      s.shot('.pg-top', 1.35);
       await s.key('↵', id, { label: 'instalar, grátis' });
       await s.ticks(2, id);
+      s.wide();
       await s.wait(700, id);
     },
   },
   {
     step: 'Banco',
-    title: 'E o banco, como no DBeaver.',
+    title: 'O banco, sem barra de comando.',
     text: 'Navegador à esquerda, o script no meio, o resultado embaixo. Você desce pelos selects e <kbd>⌘↵</kbd> roda o que está no cursor. <kbd>End</kbd> edita a linha ali mesmo, sem barra de comando. <kbd>⇥</kbd> vai às tabelas e <kbd>↵</kbd> abre os dados.',
     async run(s, id) {
       await s.wait(500, id);
@@ -191,15 +195,19 @@ export const CHAPTERS = [
       await s.ticks(1, id);
       await s.wait(500, id);
       for (let i = 0; i < 2; i++) await s.key('↓', id, { hold: 300, label: 'até o order by' });
+      s.shot('.dbv-ed', 1.35);
       await s.key('End', id, { label: 'editar a linha, ali mesmo' });
       await s.key('⌥⌫', id, { label: 'apagar a última palavra' });
       await s.type('paineis desc;', id, { speed: 1.8 });
       await s.key('⌘↵', id, { label: 'gravar e rodar' });
+      s.shot('.dbv-res', 1.35);
       await s.ticks(1, id);
       await s.wait(500, id);
+      s.shot('.dbv-nav', 1.4);
       await s.key('⇥', id, { label: 'navegador do banco' });
       for (const label of ['usuarios', 'sessoes']) await s.key('↓', id, { hold: 320, label });
       await s.key('↵', id, { label: 'ver os dados da tabela' });
+      s.shot('.dbv-res', 1.35);
       await s.ticks(1, id);
       await s.wait(700, id);
       await s.key('⌘⇧↵', id, { label: 'voltar às duas folhas' });
@@ -229,7 +237,7 @@ export const CHAPTERS = [
   },
   {
     step: 'Notas',
-    title: 'Suas notas, como no Obsidian.',
+    title: 'Notas que viram tarefas.',
     text: 'O Documentos, da comunidade, guarda cada nota como um arquivo .md na sua pasta. Você abre a ata da reunião e escreve direto no texto: <kbd>↵</kbd> puxa a próxima tarefa e <kbd>espaço</kbd> marca como feita. Nada disso precisa de IA.',
     async run(s, id) {
       await s.key('⌘T', id);
@@ -237,6 +245,7 @@ export const CHAPTERS = [
       await s.wait(600, id);
       for (const label of ['2026-10-30', 'Lançamento', 'Site', 'Produto 30-10']) await s.key('↓', id, { hold: 340, label });
       await s.key('↵', id, { label: 'abrir a nota' });
+      s.shot('.mdv-note', 1.3);
       await s.wait(450, id);
       for (let i = 0; i < 9; i++) await s.key('↓', id, { hold: 110, label: 'descer pela nota' });
       await s.key('↵', id, { label: 'nova tarefa' });
@@ -262,6 +271,7 @@ export const CHAPTERS = [
       await s.type('localhost:5173', id, { speed: 2 });
       await s.key('↵', id, { label: 'abrir o site' });
       await s.ticks(1, id);
+      s.shot('.wb-body', 1.3);
       await s.wait(600, id);
       for (const label of ['mapa', 'vitrine']) await s.key('↓', id, { hold: 420, label });
       await s.key('↵', id, { label: 'abrir o projeto vitrine' });
@@ -275,17 +285,18 @@ export const CHAPTERS = [
   {
     step: 'Desenho',
     title: 'E o que mais você imaginar.',
-    text: 'Quer desenhar a arquitetura? <kbd>⌘D</kbd>, abra a Loja e veja a página do Excalidraw, com as fotos. Instalado, a folha vira um quadro ao lado do site: <kbd>r</kbd> faz um retângulo, <kbd>o</kbd> uma elipse e <kbd>a</kbd> liga as duas com uma seta. Tudo pelo teclado.',
+    text: 'Quer desenhar a arquitetura? <kbd>⌘D</kbd>, abra a Loja e veja a página do Quadro, com as fotos. Instalado, a folha vira um quadro ao lado do site: <kbd>r</kbd> faz um retângulo, <kbd>o</kbd> uma elipse e <kbd>a</kbd> liga as duas com uma seta. Tudo pelo teclado.',
     async run(s, id) {
       await s.key('⌘D', id);
       await pick(s, id, 'loja', 'abrir a Loja');
-      await s.type('excali', id, { speed: 2 });
+      await s.type('quadro', id, { speed: 2 });
       await s.wait(250, id);
-      await s.key('↵', id, { label: 'abrir a página do Excalidraw' });
+      await s.key('↵', id, { label: 'abrir a página do Quadro' });
       await s.wait(500, id);
       await s.key('→', id, { hold: 900, label: 'próxima foto' });
       await s.key('↵', id, { label: 'instalar, grátis' });
       await s.ticks(2, id);
+      s.shot('.xd-svg', 1.2);
       await s.wait(400, id);
       for (const [key, label, text] of [['r', 'retângulo', 'app web'], ['r', 'outro retângulo', 'API /v1/projects']]) {
         await s.key(key, id, { label });

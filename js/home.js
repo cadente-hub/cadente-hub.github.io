@@ -33,7 +33,7 @@ const narrow = matchMedia('(max-width: 760px)').matches;
 // Phones get a taller, narrower window without the sidebar, so the text stays readable once scaled.
 const fresh = () => (narrow ? reduce(initial(), { type: 'PATCH_SETTINGS', sidebar: false }) : initial());
 const stage = new Stage($('#theater-stage'), {
-  width: narrow ? 640 : 1240, height: narrow ? 900 : 760, state: fresh(), fitTo: body, tempo: TEMPO,
+  width: narrow ? 640 : 1240, height: narrow ? 900 : 760, state: fresh(), fitTo: body, tempo: TEMPO, camera: true,
   // The steps, the caption and the whole window fit in one screen below the navigation bar.
   maxHeight: () => Math.max(300, innerHeight - 64 - $('.theater__head').offsetHeight - (narrow ? 40 : 64)),
 });
@@ -53,9 +53,9 @@ function showCaption(i) {
   caption.innerHTML = `<h3 class="caption__title"><span class="n">${pad(i + 1)} / ${pad(CHAPTERS.length)}</span>${c.title}</h3><p class="caption__text">${c.text}</p>`;
   markSteps(i);
 }
-const card = i => `<span class="stage__card-n">${pad(i + 1)} · ${CHAPTERS[i].step}</span><b>${CHAPTERS[i].title}</b>`;
+const card = i => ({ kicker: `capítulo ${pad(i + 1)} · ${CHAPTERS[i].step}`, title: CHAPTERS[i].title });
 // One run plays from chapter `from` to the end, then starts over from a fresh window. Each chapter opens on its
-// title card and cuts to the next after a short pause.
+// title card and ends on a wide shot of what it built, held for a beat before the next card.
 function story(from = 0) {
   stage.play(async (s, id) => {
     let i = from;
@@ -70,6 +70,7 @@ function story(from = 0) {
       showCaption(i);
       await s.card(card(i), CARD, id);
       await CHAPTERS[i].run(s, id);
+      s.wide();
       await s.wait(i === CHAPTERS.length - 1 ? 2400 : PAUSE, id);
       i = (i + 1) % CHAPTERS.length;
       if (i === 0) {

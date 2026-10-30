@@ -1,4 +1,4 @@
-// Documentos, a community plugin in the spirit of Obsidian, used in the site's demo: a vault of .md notes with the
+// Documentos, a community plugin used in the site's demo: a vault of .md notes with the
 // file tree on the left, the note in live preview in the middle (the line under the caret shows its markdown) and the
 // links on the right. ↑↓ walk the lines, End edits one in place, ↵ opens a new line that continues the list, espaço
 // ticks a task, ⇥ moves between the tree and the note. Nothing goes through the prompt bar.
@@ -18,7 +18,7 @@ function md(t) {
   if ((m = t.match(/^- (.*)$/))) return ['li', `<b class="dot">•</b><span>${inline(m[1])}</span>`];
   return ['', inline(t)];
 }
-// The line under the caret shows its markdown, with the markers dimmed, as in Obsidian's live preview.
+// The line under the caret shows its markdown, with the markers dimmed, as in a live preview.
 const raw = t => { const m = t.match(/^(#{1,3} |- \[[ x]\] |- )?(.*)$/); return `${m[1] ? `<span class="mk">${esc(m[1])}</span>` : ''}${esc(m[2])}`; };
 const prefix = t => (/^- \[[ x]\] /.test(t) ? '- [ ] ' : /^- /.test(t) ? '- ' : '');
 const edit = at => ({ path: 'data.draft', label: `linha ${at + 1}`, then: { op: 'fn', name: 'docLine', at } });
@@ -27,7 +27,7 @@ const links = d => [...d.lines.join('\n').matchAll(/\[\[([^\]]+)\]\]/g)].map(m =
 
 export const docs = fromManifest({
   id: 'docs', title: 'Documentos', short: 'MD', glyph: '❖', community: true, author: 'sofia', cursorless: true,
-  keywords: 'documentos notas markdown md obsidian cofre wiki',
+  keywords: 'documentos notas markdown md cofre wiki',
   hint: '↵ nova linha · End edita · espaço marca a tarefa · ⇥ arquivos',
   init: () => ({ open: null, nav: 0, at: 0, focus: 'files' }),
   view(leaf, S) {

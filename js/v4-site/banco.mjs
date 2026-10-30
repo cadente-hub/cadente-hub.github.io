@@ -1,5 +1,5 @@
-// Postgres, a community plugin from the store, used in the site's demo. It works like DBeaver: the database
-// navigator on the left, a .sql script with every saved query in the middle and the result grid below. ↑↓ walk the
+// Postgres, a community plugin from the store, used in the site's demo. The database navigator is on the
+// left, a .sql script with every saved query in the middle and the result grid below. ↑↓ walk the
 // script, ⌘↵ runs the statement under the caret, End edits the line in place, ⇥ moves to the navigator, where ↵
 // opens a table's data. Nothing goes through the prompt bar.
 import { fromManifest, registerFn } from '../v4/engine.mjs';
@@ -28,7 +28,7 @@ const DATA = {
   turnos: [['1', '901', '1840', '2026-10-30 10:02'], ['2', '901', '2210', '2026-10-30 10:04'], ['3', '902', '960', '2026-10-30 10:05']],
 };
 
-// The script: every saved query as a commented statement, the way a .sql file looks in DBeaver.
+// The script: every saved query as a commented statement, as in a .sql file.
 function script(S) {
   const out = [], qs = S.store.queries;
   qs.forEach((q, i) => {
@@ -61,7 +61,7 @@ function grid(r) {
 
 export const banco = fromManifest({
   id: 'banco', title: 'Postgres', short: 'SQL', glyph: '⛁', community: true, author: 'leo', cursorless: true,
-  keywords: 'postgres banco database sql consultas select tabelas dbeaver',
+  keywords: 'postgres banco database sql consultas select tabelas',
   hint: '⌘↵ executa · End edita a linha · ⇥ navegador',
   init: () => ({ at: 1, nav: 0, focus: 'sql', last: null }),
   view(leaf, S) {

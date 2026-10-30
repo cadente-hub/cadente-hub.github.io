@@ -1,5 +1,5 @@
-// Excalidraw, a community plugin from the store, used in the site's demo: a whiteboard with hand-drawn shapes,
-// driven by Excalidraw's own keys. r draws a rectangle, o an ellipse, d a diamond; the label is typed right into the
+// Quadro, a community plugin from the store, used in the site's demo: a whiteboard with hand-drawn shapes,
+// driven by one key per tool. r draws a rectangle, o an ellipse, d a diamond; the label is typed right into the
 // shape and ↵ keeps it. a joins the selected shape to the one before it with an arrow, ← → change the selection,
 // ↵ edits the label and ⌫ erases. New shapes are laid out in rows, so a diagram needs no mouse.
 import { fromManifest, registerFn } from '../v4/engine.mjs';
@@ -16,7 +16,7 @@ function corners(kind, { x, y, w, h }) {
   if (kind === 'ellipse') return Array.from({ length: 16 }, (_, i) => [x + w / 2 + (w / 2) * Math.cos((i * Math.PI) / 8), y + h / 2 + (h / 2) * Math.sin((i * Math.PI) / 8)]);
   return [[x, y], [x + w, y], [x + w, y + h], [x, y + h]];
 }
-// Two loose passes over the outline, the way Excalidraw strokes a shape.
+// Two loose passes over the outline, so each stroke looks drawn by hand.
 function strokes(kind, box, seed) {
   const pts = corners(kind, box);
   return [0, 1].map(p => { const r = rng(seed + p * 101); return pts.map((a, i) => seg(r, a, pts[(i + 1) % pts.length], kind === 'ellipse' ? 1.8 : 3.6)).join(' '); });
@@ -33,8 +33,8 @@ const KIND = { r: 'rect', o: 'ellipse', d: 'diamond' };
 const editLabel = i => ({ data: { editing: { path: 'data.draft', label: 'texto', then: { op: 'fn', name: 'drawLabel', i } }, edAt: i } });
 
 export const draw = fromManifest({
-  id: 'draw', title: 'Excalidraw', short: 'DRAW', glyph: '✎', community: true, author: 'bitcraft', cursorless: true,
-  keywords: 'excalidraw desenho diagrama quadro whiteboard rabisco',
+  id: 'draw', title: 'Quadro', short: 'DRAW', glyph: '✎', community: true, author: 'bitcraft', cursorless: true,
+  keywords: 'quadro desenho diagrama whiteboard rabisco',
   hint: 'r retângulo · o elipse · d losango · a seta · ↵ texto',
   init: () => ({ shapes: [], arrows: [], sel: -1, tool: 'select', fresh: null, seq: 1 }),
   view(leaf, S) {

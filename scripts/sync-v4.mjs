@@ -52,11 +52,11 @@ const changes = [];
 // The site's copy of the prototype gets a few additions for the demo, all applied here so a new sync keeps them:
 // - Terminal: `claude`, `codex`, `agy`, `gemini` and `opencode` open the CLI's own interactive screen
 //   (js/v4-site/tui.mjs); the next line typed is the task, and the steps below fill the transcript.
-// - Requests: a "▶ enviar" row in the request, and collection items that set the method, used like Bruno.
-// - Postgres: a community plugin laid out like DBeaver (js/v4-site/banco.*), shown apart from the first-party ones.
-// - Documentos, Navegador and Excalidraw: community plugins for markdown notes like Obsidian, web pages and
+// - Requests: a "▶ enviar" row in the request, and collection items that set the method.
+// - Postgres: a community plugin with navigator, script and result grid (js/v4-site/banco.*), shown apart from the first-party ones.
+// - Documentos, Navegador and Quadro: community plugins for markdown notes, web pages and
 //   hand-drawn diagrams (js/v4-site/docs.*, web.*, draw.*).
-// - Loja: the plugin store in a pane (js/v4-site/loja.*), where the demo installs Postgres and Excalidraw.
+// - Loja: the plugin store in a pane (js/v4-site/loja.*), where the demo installs Postgres and Quadro.
 // - Workspaces: four worktrees at once, with the state of each pull request or agent.
 const EXTRA_AGENTS = {
   agy: { model: 'gemini 3 pro', steps: ['lendo src/auth/login.ts', 'escrevendo login.test.ts  +48', '?rodar `npm test`', 'rodando npm test', '✓12 testes novos · todos passam'] },
@@ -98,7 +98,7 @@ function moreAgents(text) {
   ]);
 }
 // Requests answers each method the way an API would (201 with the new item for POST, 204 for DELETE), and the
-// request view starts with a row that sends it, like the send button of Bruno, reached with the arrows.
+// request view starts with a row that sends it, reached with the arrows.
 function restfulRequests(text) {
   return swapAll('apis.mjs', text, [
     ["status: 200, ms: 184, size: '1,2 KB', headers: r.headers", "status: { POST: 201, DELETE: 204 }[d.method] ?? 200, ms: { POST: 212, DELETE: 96 }[d.method] ?? 184, size: { POST: '64 B', DELETE: '0 B' }[d.method] ?? '1,2 KB', headers: r.headers"],
@@ -146,7 +146,7 @@ function liveWorkspaces(m) {
   Object.assign(m.lists.workspaces.row, { g: '${g}', meta: '${status}', tone: '${tone}' });
   return m;
 }
-// Collection items carry their method, and opening one sets it, as in Bruno.
+// Collection items carry their method, and opening one sets it.
 function brunoCollections(m) {
   for (const c of m.seed.collections) if (c.kind === 'request') c.method = c.name.split(' ')[0];
   m.lists.collections.enter.ops.unshift({ op: 'set', path: 'store.reqDraft.method', value: '${method}' });

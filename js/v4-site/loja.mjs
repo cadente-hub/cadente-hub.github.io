@@ -21,10 +21,10 @@ const sql = l => esc(l).replace(/\b(select|from|where|order|by|limit|desc|count)
 const dbShot = (side, code, grid) => win(`<div class="mk-db"><div class="mk-side">${side.map(t => `<span>${esc(t)}</span>`).join('')}</div><div class="mk-main"><div class="mk-code">${code.map((l, i) => `<span${l[0] ? ' class="on"' : ''}><i>${i + 1}</i>${sql(l[1])}</span>`).join('')}</div>`
   + `<table>${grid.map((r, i) => `<tr>${r.map(c => (i ? `<td>${esc(c)}</td>` : `<th>${esc(c)}</th>`)).join('')}</tr>`).join('')}</table></div></div>`, 'Postgres · consultas.sql');
 const box = (x, y, w, h, t, round) => `${round ? `<ellipse cx="${x + w / 2}" cy="${y + h / 2}" rx="${w / 2}" ry="${h / 2}"/>` : `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="3"/>`}<text x="${x + w / 2}" y="${y + h / 2 + 4}">${esc(t)}</text>`;
-const drawShot = shapes => win(`<svg class="mk-draw" viewBox="0 0 300 150">${shapes}</svg>`, 'Excalidraw · quadro');
+const drawShot = shapes => win(`<svg class="mk-draw" viewBox="0 0 300 150">${shapes}</svg>`, 'Quadro · diagrama');
 const SHOTS = {
   banco: [
-    ['o script e o resultado, como no DBeaver', dbShot(['▾ cadente', '  ▾ public', '    ▦ projetos', '    ▦ usuarios', '    ▦ sessoes'], [[0, '-- projetos'], [1, 'select id, nome, paineis'], [1, 'from projetos'], [1, 'order by paineis desc;'], [0, ''], [0, '-- sessões por agente']], [['id', 'nome', 'paineis'], ['proj_01', 'cadente', '4'], ['proj_02', 'mapa', '1'], ['proj_03', 'vitrine', '0']])],
+    ['o script e o resultado, lado a lado', dbShot(['▾ cadente', '  ▾ public', '    ▦ projetos', '    ▦ usuarios', '    ▦ sessoes'], [[0, '-- projetos'], [1, 'select id, nome, paineis'], [1, 'from projetos'], [1, 'order by paineis desc;'], [0, ''], [0, '-- sessões por agente']], [['id', 'nome', 'paineis'], ['proj_01', 'cadente', '4'], ['proj_02', 'mapa', '1'], ['proj_03', 'vitrine', '0']])],
     ['as tabelas no navegador', dbShot(['▾ cadente', '  ▾ public', '    ▦ projetos', '  ❯ ▦ sessoes', '    ▦ pedidos'], [[0, 'select *'], [0, 'from sessoes'], [0, 'limit 200;']], [['id', 'agente', 'projeto'], ['901', 'claude', 'cadente'], ['902', 'codex', 'cadente'], ['903', 'agy', 'mapa']])],
     ['⌘↵ roda só o select do cursor', dbShot(['▾ cadente', '  ▾ public', '    ▦ turnos'], [[0, '-- usuários ativos hoje'], [1, 'select count(*)'], [1, 'from usuarios;']], [['count'], ['128']])],
   ],
