@@ -22,6 +22,8 @@
 /* ── Theater: the pinned Cadente window ─────────────────────────────── */
 .theater { position: relative; padding: 24px 0 clamp(72px, 9vw, 120px); scroll-margin-top: 0; }
 .theater__head { display: grid; gap: 18px; }
+.theater__intro { display: flex; align-items: center; gap: 10px; font-family: var(--mono); font-size: 12px; letter-spacing: .04em; color: var(--fg-3); }
+.theater__intro .dot { flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--violet); box-shadow: 0 0 10px var(--violet); }
 .theater__body { display: flex; justify-content: center; padding-top: 20px; }
 
 .steps { display: flex; gap: 6px; }

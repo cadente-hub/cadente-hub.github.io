@@ -1,6 +1,7 @@
-// The story told by the Cadente window: open, pick a plugin, run several agents side by side, open more pages,
-// install from the store, work the database, notes and the web, bring any account, own every part, then reach
-// everything from the keyboard. Each chapter is a script of real keystrokes played on the v4 prototype; played in
+// The story told by the Cadente window: one working day. The morning opens on the agenda, the Claude gets a test to
+// write while two more agents help, the CI of another branch breaks, then the feature of the day: an API that
+// creates projects, checked in the database (installed from the store), seen in the app, drawn for the meeting,
+// noted in the meeting minutes, followed by focus time, accounts, plugins, and the agents still waiting at the end. Each chapter is a script of real keystrokes played on the v4 prototype; played in
 // order they build one session.
 import { createState, leaves, activeTab, jumpLabels } from './v4/model.mjs';
 
@@ -58,9 +59,9 @@ export async function durations() {
 
 export const CHAPTERS = [
   {
-    step: 'Abrir',
-    title: 'Bom dia. Seu dia já está aqui.',
-    text: 'Agenda, tarefas e o que ficou aberto ontem, numa folha só. <kbd>⇥</kbd> troca de vista.',
+    step: 'Manhã',
+    title: '9h. O dia já está montado.',
+    text: 'Você abre o Cadente e a primeira folha já mostra o dia: a daily às 9h30, a reunião de design às 14h e um conflito de merge esperando. <kbd>⇥</kbd> passa para os recentes e as tarefas.',
     async run(s, id) {
       s.boot();
       await s.wait(900, id);
@@ -73,9 +74,9 @@ export const CHAPTERS = [
     },
   },
   {
-    step: 'Escolher',
-    title: 'Quatro letras e o Claude entra.',
-    text: '<kbd>⌘O</kbd>, digite “term” e a folha vira um Terminal. Daí é chamar o Claude Code e passar a tarefa.',
+    step: 'Claude',
+    title: 'Primeiro, um teste para o Claude.',
+    text: '<kbd>⌘O</kbd> e quatro letras transformam a folha num Terminal. Você abre o Claude Code e pede um teste para <code>focus_neighbor</code>. Ele lê o arquivo e começa a escrever.',
     async run(s, id) {
       await s.key('⌘O', id);
       await pick(s, id, 'term', 'abrir o Terminal');
@@ -85,8 +86,8 @@ export const CHAPTERS = [
   },
   {
     step: 'Agentes',
-    title: 'Claude, Codex e agy. Ao mesmo tempo.',
-    text: '<kbd>⌘D</kbd> divide para o lado, <kbd>⌘⇧D</kbd> para baixo. Cada agente na sua tela, todos trabalhando juntos, e ainda sobra um Terminal para você.',
+    title: 'Enquanto isso, mais dois agentes.',
+    text: '<kbd>⌘D</kbd> divide a tela para o lado e <kbd>⌘⇧D</kbd> para baixo. O Codex roda os testes, o agy explica o <code>layout.rs</code>, e embaixo do Claude ainda sobra um Terminal para você.',
     async run(s, id) {
       await s.key('⌘D', id);
       await pick(s, id, 'term', 'outro Terminal');
@@ -104,9 +105,9 @@ export const CHAPTERS = [
     },
   },
   {
-    step: 'Workspaces',
-    title: 'Quatro branches. Zero confusão.',
-    text: 'Uma com o CI quebrado, outra pronta para o merge, outra com o Claude no meio do trabalho. Você abre a quebrada, <kbd>⌘J</kbd> chama o Chat dela e o diff abre do lado.',
+    step: 'CI',
+    title: 'Aí o CI do login quebra.',
+    text: 'Numa página nova estão os quatro branches abertos e o estado de cada PR. O login está vermelho. Você abre o branch, <kbd>⌘J</kbd> chama um Chat que já sabe onde você está, pergunta o motivo e abre o diff do lado.',
     async run(s, id) {
       await s.key('⌘T', id);
       await pick(s, id, 'work', 'abrir Workspaces');
@@ -128,8 +129,8 @@ export const CHAPTERS = [
   },
   {
     step: 'API',
-    title: 'A API na aba ao lado.',
-    text: '<kbd>⌘T</kbd> abre outra aba e os agentes seguem trabalhando na primeira. Você troca o <code>limit</code>, manda o GET, depois o POST. Nenhum clique.',
+    title: 'Agora, a feature do dia.',
+    text: 'A tarefa de hoje é a API de projetos. No Requests você abre o <code>GET /v1/projects</code>, troca o <code>limit</code> para 5 e envia. Depois manda o POST que cria o projeto vitrine. Os agentes seguem trabalhando na primeira página.',
     async run(s, id) {
       await s.key('⌘T', id);
       await pick(s, id, 'req', 'abrir o Requests');
@@ -157,8 +158,8 @@ export const CHAPTERS = [
   },
   {
     step: 'Loja',
-    title: 'Faltou algo? Tem na loja.',
-    text: 'Busque, passe as fotos, leia o que o plugin pede para acessar. <kbd>↵</kbd> e o Postgres está instalado, de graça, na mesma folha.',
+    title: 'Falta um cliente de banco.',
+    text: 'Para ver se o POST salvou, você precisa olhar o banco. A Loja abre logo abaixo: você acha o Postgres, passa as fotos, confere o que ele pede para acessar e instala com <kbd>↵</kbd>, de graça.',
     async run(s, id) {
       await s.key('⌘⇧D', id);
       await pick(s, id, 'loja', 'abrir a Loja');
@@ -183,8 +184,8 @@ export const CHAPTERS = [
   },
   {
     step: 'Banco',
-    title: 'SQL na ponta dos dedos.',
-    text: 'Desça pelos selects e <kbd>⌘↵</kbd> roda o do cursor. <kbd>End</kbd> edita a linha ali mesmo. <kbd>⇥</kbd> vai às tabelas e <kbd>↵</kbd> abre os dados.',
+    title: 'O banco confirma o POST.',
+    text: '<kbd>⌘↵</kbd> roda o select do cursor. Na consulta dos projetos, o vitrine já aparece. Você troca a ordem ali mesmo na linha, roda de novo e abre a tabela de sessões pelo navegador do banco.',
     async run(s, id) {
       await s.wait(500, id);
       await s.key('⌘↵', id, { label: 'rodar o select do cursor' });
@@ -214,55 +215,9 @@ export const CHAPTERS = [
     },
   },
   {
-    step: 'Seu dia',
-    title: 'E uma página só para você.',
-    text: 'Agenda, um pomodoro rodando, a memória do computador e quanto você já gastou do Claude. <kbd>⌘1</kbd> a <kbd>⌘4</kbd> pulam entre as páginas.',
-    async run(s, id) {
-      await s.key('⌘T', id);
-      await pick(s, id, 'cal', 'abrir o Calendário');
-      await s.key('⌘D', id);
-      await pick(s, id, 'foco', 'abrir o Foco');
-      await s.key('espaço', id, { label: 'começar um pomodoro' });
-      await s.key('⌘⇧D', id);
-      await pick(s, id, 'sis', 'abrir o Sistema');
-      await s.key('⌘⌥←', id);
-      await s.key('⌘⇧D', id);
-      await pick(s, id, 'uso', 'abrir o Uso');
-      await s.wait(600, id);
-      await s.key('⌘1', id, { hold: 850, label: 'página 1: os agentes' });
-      await s.key('⌘2', id, { hold: 850, label: 'página 2: os workspaces' });
-      await s.key('⌘3', id, { hold: 850, label: 'página 3: a API e o banco' });
-      await s.key('⌘4', id, { label: 'página 4: o seu dia' });
-    },
-  },
-  {
-    step: 'Notas',
-    title: 'A ata vira lista de tarefas.',
-    text: 'Cada nota é um .md na sua pasta. Você escreve direto no texto, <kbd>↵</kbd> puxa a próxima tarefa e <kbd>espaço</kbd> marca como feita. Sem IA nenhuma.',
-    async run(s, id) {
-      await s.key('⌘T', id);
-      await pick(s, id, 'doc', 'abrir Documentos');
-      await s.wait(600, id);
-      for (const label of ['2026-10-30', 'Lançamento', 'Site', 'Produto 30-10']) await s.key('↓', id, { hold: 340, label });
-      await s.key('↵', id, { label: 'abrir a nota' });
-      s.shot('.mdv-note', 1.3);
-      await s.wait(450, id);
-      for (let i = 0; i < 9; i++) await s.key('↓', id, { hold: 110, label: 'descer pela nota' });
-      await s.key('↵', id, { label: 'nova tarefa' });
-      await s.type('mandar o changelog para o time', id, { speed: 2.6 });
-      await s.key('↵', id, { label: 'a lista continua' });
-      await s.type('revisar o [[Lançamento]]', id, { speed: 2.6 });
-      await s.key('↵', id, { hold: 300, label: 'a lista continua' });
-      await s.key('↵', id, { label: 'fechar a lista' });
-      for (let i = 0; i < 4; i++) await s.key('↑', id, { hold: 160, label: 'subir' });
-      await s.key('espaço', id, { label: 'marcar como feita' });
-      await s.wait(700, id);
-    },
-  },
-  {
-    step: 'Web',
-    title: 'Seu app rodando, ali do lado.',
-    text: '<kbd>⌘L</kbd>, <code>localhost:5173</code>, e o site abre numa folha. <kbd>↓</kbd> anda pelos links e <kbd>⌫</kbd> volta. O projeto criado pelo POST já está na lista.',
+    step: 'No app',
+    title: 'E já aparece no app.',
+    text: 'Numa nova página, o Navegador abre o app que você está fazendo, em <code>localhost:5173</code>. O vitrine está na lista. <kbd>↓</kbd> anda pelos links, <kbd>↵</kbd> abre o projeto e <kbd>⌫</kbd> volta.',
     async run(s, id) {
       await s.key('⌘T', id);
       await pick(s, id, 'naveg', 'abrir o Navegador');
@@ -283,9 +238,9 @@ export const CHAPTERS = [
     },
   },
   {
-    step: 'Desenho',
-    title: 'A arquitetura, desenhada no teclado.',
-    text: 'Instale o Quadro e a folha vira um quadro branco. <kbd>r</kbd> faz um retângulo, <kbd>o</kbd> uma elipse e <kbd>a</kbd> liga os dois com uma seta.',
+    step: 'Diagrama',
+    title: 'Um diagrama para a reunião.',
+    text: 'Às 14h tem reunião de design. Do lado do site, você instala o Quadro pela Loja e desenha o caminho do dado: app web, API e Postgres. <kbd>r</kbd> faz um retângulo, <kbd>o</kbd> uma elipse e <kbd>a</kbd> liga os dois.',
     async run(s, id) {
       await s.key('⌘D', id);
       await pick(s, id, 'loja', 'abrir a Loja');
@@ -312,9 +267,55 @@ export const CHAPTERS = [
     },
   },
   {
+    step: 'Reunião',
+    title: 'Na reunião, a ata vira tarefa.',
+    text: 'A ata fica no Documentos, como um arquivo .md na sua pasta. Você escreve as próximas tarefas direto no texto, <kbd>↵</kbd> puxa a seguinte e <kbd>espaço</kbd> marca a que já saiu: o anúncio no blog.',
+    async run(s, id) {
+      await s.key('⌘T', id);
+      await pick(s, id, 'doc', 'abrir Documentos');
+      await s.wait(600, id);
+      for (const label of ['2026-10-30', 'Lançamento', 'Site', 'Design 30-10']) await s.key('↓', id, { hold: 340, label });
+      await s.key('↵', id, { label: 'abrir a nota' });
+      s.shot('.mdv-note', 1.3);
+      await s.wait(450, id);
+      for (let i = 0; i < 9; i++) await s.key('↓', id, { hold: 110, label: 'descer pela nota' });
+      await s.key('↵', id, { label: 'nova tarefa' });
+      await s.type('mandar o changelog para o time', id, { speed: 2.6 });
+      await s.key('↵', id, { label: 'a lista continua' });
+      await s.type('revisar o [[Lançamento]]', id, { speed: 2.6 });
+      await s.key('↵', id, { hold: 300, label: 'a lista continua' });
+      await s.key('↵', id, { label: 'fechar a lista' });
+      for (let i = 0; i < 4; i++) await s.key('↑', id, { hold: 160, label: 'subir' });
+      await s.key('espaço', id, { label: 'marcar como feita' });
+      await s.wait(700, id);
+    },
+  },
+  {
+    step: 'Foco',
+    title: 'Depois, 25 minutos de foco.',
+    text: 'Uma página só sua: a agenda, um pomodoro de 25 minutos, a memória do computador e quanto você já usou do Claude. <kbd>⌘1</kbd> a <kbd>⌘6</kbd> pulam entre as seis páginas do dia.',
+    async run(s, id) {
+      await s.key('⌘T', id);
+      await pick(s, id, 'cal', 'abrir o Calendário');
+      await s.key('⌘D', id);
+      await pick(s, id, 'foco', 'abrir o Foco');
+      await s.key('espaço', id, { label: 'começar um pomodoro' });
+      await s.key('⌘⇧D', id);
+      await pick(s, id, 'sis', 'abrir o Sistema');
+      await s.key('⌘⌥←', id);
+      await s.key('⌘⇧D', id);
+      await pick(s, id, 'uso', 'abrir o Uso');
+      await s.wait(600, id);
+      await s.key('⌘1', id, { hold: 850, label: 'página 1: os agentes' });
+      await s.key('⌘3', id, { hold: 850, label: 'página 3: a API e o banco' });
+      await s.key('⌘5', id, { hold: 850, label: 'página 5: a ata' });
+      await s.key('⌘6', id, { label: 'página 6: de volta ao seu dia' });
+    },
+  },
+  {
     step: 'Contas',
-    title: 'Sua assinatura. Seu modelo.',
-    text: 'Claude Max, ChatGPT Plus, uma chave do Gemini ou um modelo rodando no notebook. Cada conversa escolhe a sua.',
+    title: 'Uma conta para cada conversa.',
+    text: 'O Uso mostrou o Claude em 58% do limite. Em Configurações estão as contas que você já paga: Claude Max, ChatGPT Plus, uma chave do Gemini, o OpenRouter e um modelo local no Ollama. Cada conversa escolhe a sua.',
     async run(s, id) {
       await s.key('⌘,', id);
       await s.wait(250, id);
@@ -326,9 +327,9 @@ export const CHAPTERS = [
     },
   },
   {
-    step: 'Você manda',
-    title: 'Não gostou? Desliga.',
-    text: 'Tudo é plugin, até o que vem de fábrica. <kbd>espaço</kbd> desliga, inclusive a IA. Ou troque o provider vendo antes o que muda.',
+    step: 'Plugins',
+    title: 'O que você não usa, sai.',
+    text: 'No Plugins, até o que vem de fábrica pode sair. <kbd>espaço</kbd> desliga o Links e as Ferramentas. O provider de IA também se troca: ele passa para o Ollama, no seu notebook, e você vê antes o que muda. Dá para desligar a IA inteira.',
     async run(s, id) {
       await s.key('⌘O', id);
       await pick(s, id, 'plug', 'abrir Plugins');
@@ -351,9 +352,9 @@ export const CHAPTERS = [
     },
   },
   {
-    step: 'Atalhos',
-    title: 'Quem precisa de você, primeiro.',
-    text: '<kbd>⌘⇧A</kbd> lista os agentes de todas as páginas, os que esperam no topo. <kbd>↵</kbd> leva até lá e <kbd>y</kbd> responde. <kbd>⌘;</kbd> salta para qualquer folha.',
+    step: 'Fim do dia',
+    title: 'Fim do dia. Quem ainda espera?',
+    text: '<kbd>⌘⇧A</kbd> junta os agentes de todas as páginas, com quem espera por você no topo. O Claude ainda pede permissão para gravar o teste: <kbd>↵</kbd> leva até ele e <kbd>y</kbd> libera. <kbd>⌘;</kbd> salta para qualquer folha.',
     async run(s, id) {
       await s.key('⌘⇧A', id);
       await s.wait(1200, id);
@@ -364,7 +365,7 @@ export const CHAPTERS = [
       await s.key('⌘;', id);
       await s.wait(1100, id);
       const cal = jumpLabels(s.S).find(l => leaves(s.S.tabs.find(t => t.id === l.tab)?.tree ?? { kind: 'leaf' }).find(x => x.id === l.leaf)?.plugin === 'calendario');
-      if (cal) await s.key(cal.label, id, { label: 'saltar para o Calendário, em outra página' });
+      if (cal) await s.key(cal.label, id, { label: 'saltar para o Calendário, na página do dia' });
       else await s.key('esc', id);
       await s.wait(800, id);
     },
