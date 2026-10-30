@@ -13,11 +13,13 @@ on:
         required: false
         type: string
   schedule:
-    - cron: '0 */3 * * *'
+    - cron: '0 * * * *'
 
+# Queue instead of cancelling: each run tests the private main's HEAD, and cancelling a run that is
+# almost green would hold the unstable release back for every new commit.
 concurrency:
   group: native-ci
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 permissions:
   contents: read
@@ -357,3 +359,25 @@ jobs:
           else
             echo "Nenhuma alteração em supabase/ desde $LAST_DEPLOYED_SHA."
           fi
+
+  unstable:
+    # Every commit of main that passes on the three systems becomes an unstable (beta) release;
+    # promoting it to stable stays a manual native-promote run.
+    name: unstable release
+    needs: [resolve, check]
+    if: needs.resolve.outputs.skip != 'true' && success()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ github.token }}
+      SHA: ${{ needs.resolve.outputs.sha }}
+    steps:
+      - name: Dispatch native-release (beta)
+        run: |
+          set -euo pipefail
+          if gh run list -R "$GITHUB_REPOSITORY" -w native-release.yml --json displayTitle --jq '.[].displayTitle' | grep -qxF "native-release beta $SHA"; then
+            echo "$SHA already has an unstable release run; nothing to do."
+            exit 0
+          fi
+          gh workflow run native-release.yml -R "$GITHUB_REPOSITORY" -f sha="$SHA" -f channel=beta
+          echo "native-release beta dispatched for $SHA"
