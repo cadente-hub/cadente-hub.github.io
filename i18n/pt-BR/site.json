@@ -1026,5 +1026,59 @@
     "read": "Ler",
     "back": "Todas as publicações",
     "updated": "Atualizado em {date}"
+  },
+  "cmp": {
+    "metaTitle": "Cadente e outros harness de agentes",
+    "metaDescription": "Como o Cadente se compara a Conductor, Orca, Paradev e Warp, com a fonte de cada informação.",
+    "eyebrow": "Comparar",
+    "title": "Cadente lado a lado<br /><span class=\"violet-text\">com outros harness.</span>",
+    "lede": "O que cada um diz no próprio site, com o link de onde tiramos cada linha. O que o site não diz aparece como “não informado”.",
+    "checked": "Conferido em {date}.",
+    "unknown": "não informado",
+    "source": "fonte",
+    "feature": "O que comparar",
+    "row": {
+      "systems": "Sistemas",
+      "price": "Preço",
+      "agents": "Agentes",
+      "isolation": "Isolamento por tarefa",
+      "noAi": "Desligar a IA e seguir usando",
+      "languages": "Idiomas da interface",
+      "data": "Onde ficam os dados"
+    },
+    "cell": {
+      "cadente": {
+        "systems": "macOS, Windows e Linux",
+        "price": "Grátis, sem plano pago",
+        "agents": "Claude Code, Codex, Gemini CLI, OpenCode e qualquer CLI",
+        "isolation": "Um worktree do Git por tarefa",
+        "noAi": "Sim: a IA é um plugin",
+        "languages": "15",
+        "data": "Na sua máquina; as chamadas vão direto ao provedor"
+      },
+      "conductor": {
+        "agents": "Claude Code, Codex, Cursor e OpenCode",
+        "isolation": "Uma microVM na nuvem por agente",
+        "data": "Na nuvem do Conductor (Conductor Cloud)"
+      },
+      "orca": {
+        "agents": "Claude Code, Codex, OpenCode, Grok e outros CLIs",
+        "isolation": "Workspaces isolados"
+      },
+      "paradev": {
+        "systems": "macOS; Linux experimental; sem Windows",
+        "price": "Tem plano grátis",
+        "agents": "Claude Code, Codex, OpenCode e qualquer CLI",
+        "isolation": "Um worktree do Git por agente",
+        "data": "Na sua máquina; a nuvem guarda só metadados da conta"
+      },
+      "warp": {
+        "price": "Por uso, cobrado por execução de agente (Factories)",
+        "agents": "Warp, Claude Code, Codex, Cursor e agentes com MCP",
+        "data": "Nuvem do Warp ou a sua própria (self-hosted)"
+      }
+    },
+    "note": "Nomes e marcas são dos seus donos. Achou algo desatualizado? <a href=\"https://github.com/cadente-hub/cadente-hub.github.io/issues\" target=\"_blank\" rel=\"noopener noreferrer\">Abra uma issue</a>.",
+    "link": "Comparar com outros harness"
   }
 }

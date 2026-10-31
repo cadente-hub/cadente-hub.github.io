@@ -73,3 +73,20 @@
 .legal-divider { margin: 40px 0; border: 0; border-top: 1px solid var(--line); }
 
 @media (max-width: 960px) { .dl-cards { grid-template-columns: 1fr; } }
+
+/* Comparison */
+.cmp-section { padding-bottom: clamp(72px, 9vw, 130px); }
+.cmp-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 18px; }
+.cmp { width: 100%; min-width: 860px; border-collapse: collapse; font-size: 14px; }
+.cmp :is(th, td) { padding: 16px 18px; border-bottom: 1px solid var(--line); text-align: start; vertical-align: top; }
+.cmp tr:last-child :is(th, td) { border-bottom: 0; }
+.cmp thead th { font-family: var(--mono); font-size: 12px; font-weight: 400; letter-spacing: .04em; color: var(--fg-3); }
+.cmp thead th.is-us { color: var(--violet-hi); }
+.cmp tbody th { width: 18%; font-weight: 500; color: var(--fg); }
+.cmp td { color: var(--fg-2); }
+.cmp td.is-us { color: var(--fg); background: rgba(168, 85, 247, .07); }
+.cmp td.is-unknown { color: var(--fg-4); font-style: italic; }
+.cmp-src { display: inline-block; margin-inline-start: 4px; font-family: var(--mono); font-size: 11px; color: var(--violet-hi); }
+.cmp-checked, .cmp-note { margin-top: 14px; font-size: 13px; color: var(--fg-3); }
+.cmp-note a { color: var(--violet-hi); }
+.cmp-actions { margin-top: 32px; }

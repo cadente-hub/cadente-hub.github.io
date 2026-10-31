@@ -1,0 +1,18 @@
+{
+  "checked": "2026-10-31",
+  "rows": ["systems", "price", "agents", "isolation", "noAi", "languages", "data"],
+  "products": [
+    { "id": "cadente", "name": "Cadente", "url": "/", "proof": "https://github.com/cadente-hub/cadente-hub.github.io/blob/main/docs/afirmacoes.md" },
+    { "id": "conductor", "name": "Conductor", "url": "https://www.conductor.build/" },
+    { "id": "orca", "name": "Orca", "url": "https://www.onorca.dev/" },
+    { "id": "paradev", "name": "Paradev", "url": "https://paradev.com/" },
+    { "id": "warp", "name": "Warp", "url": "https://www.warp.dev/" }
+  ],
+  "known": {
+    "cadente": ["systems", "price", "agents", "isolation", "noAi", "languages", "data"],
+    "conductor": ["agents", "isolation", "data"],
+    "orca": ["agents", "isolation"],
+    "paradev": ["systems", "price", "agents", "isolation", "data"],
+    "warp": ["price", "agents", "data"]
+  }
+}

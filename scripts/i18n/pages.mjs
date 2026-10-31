@@ -21,6 +21,7 @@ export const PAGES = [
   { id: 'downloads', template: 'pages/downloads.html', file: 'downloads.html', url: 'downloads.html' },
   { id: 'release-notes', template: 'pages/release-notes.html', file: 'release-notes.html', url: 'release-notes.html' },
   { id: 'terms', template: 'pages/terms.html', file: 'terms-and-conditions.html', url: 'terms-and-conditions.html' },
+  { id: 'compare', template: 'pages/compare.html', file: 'compare.html', url: 'compare.html' },
 ];
 // The blog of a language: /blog/ for pt-BR, /blog/<language>/ for the others.
 export const blogBase = locale => (locale.path === '/' ? '/blog/' : `/blog${locale.path}`);
@@ -67,6 +68,19 @@ function faqJsonLd(messages) {
   return `<script type="application/ld+json">${scriptJson(data)}</script>`;
 }
 
+function compareTable(root, messages, locale) {
+  const data = JSON.parse(fs.readFileSync(path.join(root, 'i18n/compare.json'), 'utf8')), t = createT(messages, locale.intl);
+  const head = data.products.map(p => `<th scope="col"${p.id === 'cadente' ? ' class="is-us"' : ''}>${escAttr(p.name)}</th>`).join('');
+  const rows = data.rows.map(r => `<tr><th scope="row">${t(`cmp.row.${r}`)}</th>${data.products.map(p => {
+    const known = data.known[p.id]?.includes(r);
+    if (!known) return `<td class="is-unknown">${t('cmp.unknown')}</td>`;
+    const src = p.id === 'cadente' ? p.proof : p.url;
+    return `<td${p.id === 'cadente' ? ' class="is-us"' : ''}>${t(`cmp.cell.${p.id}.${r}`)} <a class="cmp-src" href="${escAttr(src)}" target="_blank" rel="noopener noreferrer">${t('cmp.source')}</a></td>`;
+  }).join('')}</tr>`).join('');
+  const date = new Intl.DateTimeFormat(locale.intl, { dateStyle: 'long', timeZone: 'UTC' }).format(new Date(data.checked));
+  return `<div class="cmp-wrap"><table class="cmp"><thead><tr><th scope="col">${t('cmp.feature')}</th>${head}</tr></thead><tbody>${rows}</tbody></table></div><p class="cmp-checked">${escAttr(t('cmp.checked', { date }))}</p>`;
+}
+
 // The page in one language. Throws on a key the catalog does not have, or on a token left in the result.
 export function renderPage({ template, page, locale, locales, messages, catalogs = new Map(), origin = ORIGIN, root = ROOT, vars = {} }) {
   const t = createT(messages, locale.intl);
@@ -94,6 +108,8 @@ export function renderPage({ template, page, locale, locales, messages, catalogs
     // A script Geist does not cover gets its Noto font, on its own pages only, after Geist in the stack.
     else if (key === '@fonts') v = locale.font ? `<link href="https://fonts.googleapis.com/css2?family=${encodeURIComponent(locale.font).replace(/%20/g, '+')}:wght@400;500;600;700&display=swap" rel="stylesheet" />\n  <style>:root { --sans: 'Geist', '${locale.font}', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }</style>` : '';
     else if (key === '@jsonld:faq') v = faqJsonLd(messages);
+    // The comparison table (i18n/compare.json): a cell only where the product's own site says it, with its source.
+    else if (key === '@compare') v = compareTable(root, messages, locale);
     // The legal text of the language (i18n/<code>/terms.html); the English one is the original.
     else if (key === '@terms') v = fs.readFileSync(path.join(root, 'i18n', locale.code, 'terms.html'), 'utf8');
     else if (key.startsWith('$')) { if (!Object.hasOwn(vars, key.slice(1))) throw new Error(`falta a variável ${key}`); v = vars[key.slice(1)]; }

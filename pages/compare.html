@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="{{@lang}}" dir="{{@dir}}">
+<head>
+  <meta charset="UTF-8" />
+  <title>{{cmp.metaTitle}}</title>
+  <meta name="description" content="{{cmp.metaDescription|attr}}" />
+  <meta property="og:title" content="{{cmp.metaTitle|attr}}" />
+  <meta property="og:description" content="{{cmp.metaDescription|attr}}" />
+  <meta name="twitter:title" content="{{cmp.metaTitle|attr}}" />
+  <meta name="twitter:description" content="{{cmp.metaDescription|attr}}" />
+{{@include:head}}  <link rel="stylesheet" href="/css/pages.css" />
+</head>
+<body class="page">
+  <a class="skip" href="#conteudo">{{meta.skip}}</a>
+{{@include:nav}}
+  <main id="conteudo">
+    <section class="page-hero">
+      <div class="page-hero__glow" aria-hidden="true"></div>
+      <div class="wrap">
+        <p class="eyebrow"><span class="dot" aria-hidden="true"></span>{{cmp.eyebrow}}</p>
+        <h1 class="title">{{cmp.title}}</h1>
+        <p class="lede">{{cmp.lede}}</p>
+      </div>
+    </section>
+    <section class="wrap cmp-section">
+      {{@compare}}
+      <p class="cmp-note">{{cmp.note}}</p>
+      <div class="cmp-actions">
+        <a href="{{@href:downloads}}" class="btn btn--light btn--lg">{{nav.download}}</a>
+      </div>
+    </section>
+  </main>
+{{@include:foot}}
+  <script type="module" src="/js/page-main.js"></script>
+</body>
+</html>
