@@ -30,6 +30,8 @@ img, svg { display: block; }
 button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
 input { font: inherit; color: inherit; }
 code, kbd { font-family: var(--mono); font-size: 0.86em; }
+/* Commands and the stack tree read left to right even on Arabic pages. */
+:is(code, kbd, pre) { direction: ltr; unicode-bidi: isolate; }
 kbd { display: inline-block; min-width: 1.6em; padding: 0.05em 0.4em; border: 1px solid var(--line-2); border-bottom-width: 2px; border-radius: 6px; color: var(--fg); background: var(--surface-2); text-align: center; line-height: 1.4; }
 ::selection { background: var(--violet); color: #fff; }
 :focus-visible { outline: 2px solid var(--violet-hi); outline-offset: 3px; border-radius: 4px; }
