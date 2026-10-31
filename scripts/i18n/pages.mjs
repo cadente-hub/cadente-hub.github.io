@@ -102,6 +102,20 @@ function compareTable(root, messages, locale) {
   return `<div class="cmp-wrap"><table class="cmp"><thead><tr><th scope="col">${t('cmp.feature')}</th>${head}</tr></thead><tbody>${rows}</tbody></table></div><p class="cmp-checked">${escAttr(t('cmp.checked', { date }))}</p>`;
 }
 
+// The Geist file each language needs on its first screen besides latin (the unicode ranges are in css/site.css).
+const GEIST_EXTRA = { ru: 'cyrillic', tr: 'latin-ext', vi: 'vietnamese' };
+const fontPreload = href => `<link rel="preload" href="${href}" as="font" type="font/woff2" crossorigin />`;
+function fontLinks(locale) {
+  const out = ['latin', GEIST_EXTRA[locale.code]].filter(Boolean).map(f => fontPreload(`/assets/fonts/geist/${f}.woff2`));
+  if (locale.font) out.push(
+    '<link rel="preconnect" href="https://fonts.googleapis.com" />',
+    '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />',
+    `<link href="https://fonts.googleapis.com/css2?family=${encodeURIComponent(locale.font).replace(/%20/g, '+')}:wght@400..700&display=swap" rel="stylesheet" />`,
+    `<style>:root { --sans: 'Geist', '${locale.font}', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }</style>`,
+  );
+  return out.join('\n  ');
+}
+
 // The page in one language. Throws on a key the catalog does not have, or on a token left in the result.
 export function renderPage({ template, page, locale, locales, messages, catalogs = new Map(), origin = ORIGIN, root = ROOT, vars = {} }) {
   const t = createT(messages, locale.intl);
@@ -126,8 +140,11 @@ export function renderPage({ template, page, locale, locales, messages, catalogs
     else if (key === '@base') v = locale.path;
     else if (key === '@head') v = head(locale, page, locales, origin);
     else if (key === '@brand') v = brand(root);
-    // A script Geist does not cover gets its Noto font, on its own pages only, after Geist in the stack.
-    else if (key === '@fonts') v = locale.font ? `<link href="https://fonts.googleapis.com/css2?family=${encodeURIComponent(locale.font).replace(/%20/g, '+')}:wght@400;500;600;700&display=swap" rel="stylesheet" />\n  <style>:root { --sans: 'Geist', '${locale.font}', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }</style>` : '';
+    // Geist comes from this site (css/site.css): the latin file, and the one the language's own letters need, start
+    // loading with the page. A script Geist does not cover gets its Noto font from Google Fonts, on its own pages only,
+    // after Geist in the stack. The weight range asks for the same variable files as the four weights did, in a
+    // stylesheet a quarter of the size (Noto Sans JP: 30 KB instead of 122 KB), and that stylesheet blocks the paint.
+    else if (key === '@fonts') v = fontLinks(locale);
     else if (key === '@jsonld:faq') v = faqJsonLd(messages);
     else if (key === '@jsonld:app') v = appJsonLd(locale, page, locales, messages, origin);
     // The comparison table (i18n/compare.json): a cell only where the product's own site says it, with its source.

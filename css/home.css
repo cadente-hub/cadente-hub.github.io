@@ -87,7 +87,7 @@
 .stage__title { position: absolute; inset: 0; z-index: 4; display: grid; place-items: center; padding: 24px; border-radius: 14px; overflow: hidden; pointer-events: none; opacity: 0; background: radial-gradient(52% 42% at 50% 50%, rgba(0, 0, 0, .78), rgba(0, 0, 0, .25) 70%, transparent); }
 .stage__title-in { position: relative; max-width: 88%; text-align: center; }
 .stage__kicker { display: block; font-family: var(--mono); font-size: 12px; letter-spacing: .24em; text-transform: uppercase; color: var(--violet-hi); }
-.stage__title-in b { display: block; margin-top: 14px; font-size: clamp(32px, 5.6vw, 80px); line-height: 1; font-weight: 650; letter-spacing: -0.055em; color: #fff; text-wrap: balance; filter: drop-shadow(0 10px 40px rgba(0, 0, 0, .9)); }
+.stage__title-in b { display: block; margin-top: 14px; font-size: clamp(32px, 5.6vw, 80px); line-height: 1; font-weight: 700; letter-spacing: -0.055em; color: #fff; text-wrap: balance; filter: drop-shadow(0 10px 40px rgba(0, 0, 0, .9)); }
 .stage__title-in .w { display: inline-block; overflow: hidden; padding: 0 .02em .1em; margin-bottom: -.1em; vertical-align: top; }
 .stage__title-in .w > span { display: inline-block; transform-origin: 0 100%; background: linear-gradient(180deg, #fff 35%, #e9d5ff); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .stage__meteor { position: absolute; left: 30%; top: 30%; width: 44%; height: 2px; opacity: 0; transform-origin: 100% 50%; border-radius: 2px; background: linear-gradient(90deg, transparent, rgba(216, 180, 254, .25) 45%, rgba(233, 213, 255, .9) 92%, #fff); box-shadow: 0 0 12px 1px rgba(216, 180, 254, .7); }
