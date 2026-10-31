@@ -4,7 +4,8 @@
 .hero { position: relative; min-height: 100vh; min-height: 100svh; display: flex; align-items: center; padding: calc(var(--nav) + 48px) 0 72px; overflow: hidden; }
 .hero__glow { position: absolute; left: 50%; bottom: -46vh; width: 140vw; height: 70vh; transform: translateX(-50%); background: radial-gradient(50% 50% at 50% 50%, rgba(168, 85, 247, .32) 0%, rgba(109, 40, 217, .12) 38%, rgba(0, 0, 0, 0) 70%); pointer-events: none; }
 .hero__glow::after { content: ''; position: absolute; left: 10%; right: 10%; top: 50%; height: 1px; background: linear-gradient(90deg, transparent, rgba(216, 180, 254, .8), transparent); box-shadow: 0 0 24px 2px rgba(168, 85, 247, .6); }
-.hero__inner { position: relative; text-align: center; }
+/* A flex item of .hero: without min-width 0 the install command's one line widens the whole hero on a phone. */
+.hero__inner { position: relative; width: 100%; min-width: 0; text-align: center; }
 /* "Cadente is ~~an agent harness~~ … a hub." (js/hero.js): every word sits in the same grid cell of the slot, so the
    line keeps its width while words come and go. Without scripts the hub is simply there. */
 .hero__title { font-size: clamp(42px, 7.8vw, 116px); line-height: .98; letter-spacing: -0.055em; font-weight: 600; text-wrap: balance; }

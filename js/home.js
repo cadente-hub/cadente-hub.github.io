@@ -87,7 +87,7 @@ const markSteps = i => [...stepsEl.children].forEach((li, k) => {
 const pad = n => String(n).padStart(2, '0');
 function showCaption(i) {
   const c = CHAPTERS[i];
-  caption.innerHTML = `<h3 class="caption__title"><span class="n">${pad(i + 1)} / ${pad(CHAPTERS.length)}</span>${c.title}</h3><p class="caption__text">${c.text}</p>`;
+  caption.innerHTML = `<h2 class="caption__title"><span class="n">${pad(i + 1)} / ${pad(CHAPTERS.length)}</span>${c.title}</h2><p class="caption__text">${c.text}</p>`;
   markSteps(i);
 }
 const card = i => ({ kicker: `${pad(i + 1)} / ${pad(CHAPTERS.length)} · ${CHAPTERS[i].step}`, title: CHAPTERS[i].title });

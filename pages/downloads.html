@@ -27,7 +27,7 @@
     <section class="wrap dl">
       <div class="dl-primary" id="dl-primary"></div>
       <div class="oneliner oneliner--wide">
-        <code data-install>curl -fsSL https://cadente-hub.github.io/install.sh | bash</code>
+        <code data-install tabindex="0">curl -fsSL https://cadente-hub.github.io/install.sh | bash</code>
         <button class="oneliner__copy" data-copy aria-label="{{finale.copyLabel|attr}}">{{finale.copy}}</button>
       </div>
       <h2 class="dl-sub">{{dl.others}}</h2>
@@ -41,16 +41,16 @@
         <article class="dl-card">
           <h3>macOS</h3>
           <p class="dl-card__label">{{dl.oneLine}}</p>
-          <code class="dl-code">curl -fsSL https://cadente-hub.github.io/install.sh | bash</code>
+          <code class="dl-code" tabindex="0">curl -fsSL https://cadente-hub.github.io/install.sh | bash</code>
           <p class="dl-card__label">{{dl.orHomebrew}}</p>
-          <code class="dl-code">brew tap cadente-hub/apps &amp;&amp; brew install --cask cadente</code>
+          <code class="dl-code" tabindex="0">brew tap cadente-hub/apps &amp;&amp; brew install --cask cadente</code>
           <p class="dl-card__label">{{dl.orDmg}}</p>
           <ol><li>{{dl.mac1}}</li><li>{{dl.mac2}}</li></ol>
         </article>
         <article class="dl-card">
           <h3>Linux</h3>
           <p class="dl-card__label">{{dl.oneLine}}</p>
-          <code class="dl-code">curl -fsSL https://cadente-hub.github.io/install.sh | bash</code>
+          <code class="dl-code" tabindex="0">curl -fsSL https://cadente-hub.github.io/install.sh | bash</code>
           <p class="dl-card__label">{{dl.orPackages}}</p>
           <ol>
             <li><b>Debian, Ubuntu, Mint</b> <code>sudo apt install ./cadente_*.deb</code></li>
@@ -61,21 +61,21 @@
         <article class="dl-card">
           <h3>Windows</h3>
           <p class="dl-card__label">{{dl.powershell}}</p>
-          <code class="dl-code">irm https://cadente-hub.github.io/install.ps1 | iex</code>
+          <code class="dl-code" tabindex="0">irm https://cadente-hub.github.io/install.ps1 | iex</code>
           <p class="dl-card__label">{{dl.orInstaller}}</p>
           <ol><li>{{dl.win1}}</li><li>{{dl.win2}}</li></ol>
         </article>
       </div>
 
-      <aside class="dl-fix" id="macos-danificado">
-        <h3>{{dl.fixTitle}}</h3>
+      <section class="dl-fix" id="macos-danificado" aria-labelledby="macos-danificado-title">
+        <h3 id="macos-danificado-title">{{dl.fixTitle}}</h3>
         <p>{{dl.fixText}}</p>
         <div class="oneliner oneliner--wide">
-          <code>xattr -cr /Applications/Cadente.app &amp;&amp; codesign --force --deep --sign - /Applications/Cadente.app</code>
+          <code tabindex="0">xattr -cr /Applications/Cadente.app &amp;&amp; codesign --force --deep --sign - /Applications/Cadente.app</code>
           <button class="oneliner__copy" data-copy="xattr -cr /Applications/Cadente.app &amp;&amp; codesign --force --deep --sign - /Applications/Cadente.app" aria-label="{{finale.copyLabel|attr}}">{{finale.copy}}</button>
         </div>
         <p class="dl-fix__note">{{dl.fixNote}}</p>
-      </aside>
+      </section>
     </section>
   </main>
 {{@include:foot}}
