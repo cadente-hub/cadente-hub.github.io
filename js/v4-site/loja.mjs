@@ -62,9 +62,9 @@ function storefront(leaf, S) {
   let xs = S.store.shop.filter(x => d.view !== 'instalados' || x.installed);
   if (q) xs = xs.filter(x => `${x.name} ${x.author} ${x.desc} ${x.cat}`.toLowerCase().includes(q));
   const focused = S.tabs.find(t => t.id === S.active)?.focus === leaf.id;
-  const field = inp.text && typing ? `${esc(inp.text.slice(0, inp.caret))}<b class="cur">${esc(inp.text[inp.caret] ?? ' ')}</b>${esc(inp.text.slice(inp.caret + 1))}` : `${focused ? '<b class="cur"> </b>' : ''}<span class="dim">buscar entre milhões de plugins</span>`;
+  const field = inp.text && typing ? `${esc(inp.text.slice(0, inp.caret))}<b class="cur">${esc(inp.text[inp.caret] ?? ' ')}</b>${esc(inp.text.slice(inp.caret + 1))}` : `${focused ? '<b class="cur"> </b>' : ''}<span class="dim">buscar plugins</span>`;
   const cats = [...new Set(S.store.shop.map(x => x.cat))];
-  const lines = [{ t: 'tui', html: `<div class="sh-hero"><p class="sh-kick">✦ loja da comunidade</p><p class="sh-title">Milhões de plugins.<br/><span>Todos grátis para instalar.</span></p>`
+  const lines = [{ t: 'tui', html: `<div class="sh-hero"><p class="sh-kick">✦ loja da comunidade</p><p class="sh-title">Feitos pela comunidade.<br/><span>Todos grátis para instalar.</span></p>`
     + `<p class="sh-search"><i>›</i>${field}</p><p class="sh-cats">${cats.map(c => `<span>${esc(c)}</span>`).join('')}</p></div>` }];
   let cat = null;
   for (const x of xs) {

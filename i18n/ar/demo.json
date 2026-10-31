@@ -328,7 +328,6 @@
  "bot: CI verde em {0}/{1}": "bot: CI ناجح في {0}/{1}",
  "branch main": "الفرع main",
  "busca": "البحث",
- "buscar entre milhões de plugins": "ابحث بين ملايين الإضافات",
  "Buscar na folha": "البحث في اللوحة",
  "Buscar no histórico": "البحث في السجل",
  "buscar PR nos repositórios": "البحث عن PR في المستودعات",
@@ -784,7 +783,6 @@
  "método": "الطريقة",
  "microsoft": "microsoft",
  "migre a tabela de sessões": "رحّل جدول الجلسات",
- "Milhões de plugins.": "ملايين الإضافات.",
  "minificar": "تصغير",
  "minify": "minify",
  "model": "model",
@@ -1263,5 +1261,10 @@
  "y permite": "y سماح",
  "y uma vez": "y مرة واحدة",
  "zerar o timer": "تصفير المؤقت",
- "zsh": "zsh"
+ "zsh": "zsh",
+ "Feitos pela comunidade.": "من صنع المجتمع.",
+ "buscar plugins": "ابحث عن إضافات",
+ "({0}m {1}s": "({0}m {1}s",
+ "✻ Worked for {0} min {1} s": "✻ Worked for {0} min {1} s",
+ "pronto em {0} min {1} s": "جاهز خلال {0} د {1} ث"
 }

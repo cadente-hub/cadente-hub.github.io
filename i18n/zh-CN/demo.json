@@ -328,7 +328,6 @@
  "bot: CI verde em {0}/{1}": "bot：CI 通过 {0}/{1}",
  "branch main": "branch main",
  "busca": "搜索",
- "buscar entre milhões de plugins": "在数百万个插件中搜索",
  "Buscar na folha": "在窗格中查找",
  "Buscar no histórico": "搜索历史",
  "buscar PR nos repositórios": "在仓库中搜索 PR",
@@ -784,7 +783,6 @@
  "método": "方法",
  "microsoft": "microsoft",
  "migre a tabela de sessões": "迁移会话表",
- "Milhões de plugins.": "数百万个插件。",
  "minificar": "压缩",
  "minify": "minify",
  "model": "model",
@@ -1263,5 +1261,10 @@
  "y permite": "y 允许",
  "y uma vez": "y 仅此一次",
  "zerar o timer": "重置计时器",
- "zsh": "zsh"
+ "zsh": "zsh",
+ "Feitos pela comunidade.": "由社区打造。",
+ "buscar plugins": "搜索插件",
+ "({0}m {1}s": "({0}m {1}s",
+ "✻ Worked for {0} min {1} s": "✻ Worked for {0} min {1} s",
+ "pronto em {0} min {1} s": "{0} 分 {1} 秒完成"
 }

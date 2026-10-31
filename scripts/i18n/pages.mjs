@@ -49,6 +49,17 @@ function brand(root) {
   return `<svg class="brand__mark" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">${brandBody}</svg>`;
 }
 
+// The FAQ for search engines, from the same faq.q<n> / faq.a<n> keys the page shows.
+const plain = html => html.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
+export function faqItems(messages) {
+  return Object.keys(messages).map(k => k.match(/^faq\.q(\d+)$/)?.[1]).filter(Boolean).sort((a, b) => a - b)
+    .map(n => ({ q: plain(messages[`faq.q${n}`]), a: plain(messages[`faq.a${n}`]) }));
+}
+function faqJsonLd(messages) {
+  const data = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faqItems(messages).map(({ q, a }) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) };
+  return `<script type="application/ld+json">${scriptJson(data)}</script>`;
+}
+
 // The page in one language. Throws on a key the catalog does not have, or on a token left in the result.
 export function renderPage({ template, page, locale, locales, messages, origin = ORIGIN, root = ROOT }) {
   const t = createT(messages, locale.intl);
@@ -66,6 +77,7 @@ export function renderPage({ template, page, locale, locales, messages, origin =
     else if (key === '@base') v = locale.path;
     else if (key === '@head') v = head(locale, page, locales, origin);
     else if (key === '@brand') v = brand(root);
+    else if (key === '@jsonld:faq') v = faqJsonLd(messages);
     else if (key === '@i18n') v = `<script type="application/json" id="i18n">${scriptJson({ locale: locale.code, intl: locale.intl, dir: locale.dir, base: locale.path, messages: js })}</script>`;
     else if (key.startsWith('@href:')) v = href(key.slice(6));
     else if (key.startsWith('@')) throw new Error(`token desconhecido: ${key}`);

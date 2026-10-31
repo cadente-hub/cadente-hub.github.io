@@ -328,7 +328,6 @@
  "bot: CI verde em {0}/{1}": "bot : CI verte sur {0}/{1}",
  "branch main": "branche main",
  "busca": "recherche",
- "buscar entre milhões de plugins": "chercher parmi des millions de plugins",
  "Buscar na folha": "Rechercher dans le volet",
  "Buscar no histórico": "Rechercher dans l'historique",
  "buscar PR nos repositórios": "chercher une PR dans les dépôts",
@@ -784,7 +783,6 @@
  "método": "méthode",
  "microsoft": "microsoft",
  "migre a tabela de sessões": "migrez la table des sessions",
- "Milhões de plugins.": "Des millions de plugins.",
  "minificar": "minifier",
  "minify": "minify",
  "model": "model",
@@ -1263,5 +1261,10 @@
  "y permite": "y autoriser",
  "y uma vez": "y une fois",
  "zerar o timer": "remettre le minuteur à zéro",
- "zsh": "zsh"
+ "zsh": "zsh",
+ "Feitos pela comunidade.": "Faits par la communauté.",
+ "buscar plugins": "chercher des plugins",
+ "({0}m {1}s": "({0}m {1}s",
+ "✻ Worked for {0} min {1} s": "✻ Worked for {0} min {1} s",
+ "pronto em {0} min {1} s": "prêt en {0} min {1} s"
 }

@@ -328,7 +328,6 @@
  "bot: CI verde em {0}/{1}": "bot: CI зелёный {0}/{1}",
  "branch main": "ветка main",
  "busca": "поиск",
- "buscar entre milhões de plugins": "искать среди миллионов плагинов",
  "Buscar na folha": "Найти в панели",
  "Buscar no histórico": "Поиск по истории",
  "buscar PR nos repositórios": "искать PR в репозиториях",
@@ -784,7 +783,6 @@
  "método": "метод",
  "microsoft": "microsoft",
  "migre a tabela de sessões": "сделай миграцию таблицы сессий",
- "Milhões de plugins.": "Миллионы плагинов.",
  "minificar": "минифицировать",
  "minify": "minify",
  "model": "model",
@@ -1263,5 +1261,10 @@
  "y permite": "y разрешить",
  "y uma vez": "y один раз",
  "zerar o timer": "сбросить таймер",
- "zsh": "zsh"
+ "zsh": "zsh",
+ "Feitos pela comunidade.": "Сделано сообществом.",
+ "buscar plugins": "искать плагины",
+ "({0}m {1}s": "({0}m {1}s",
+ "✻ Worked for {0} min {1} s": "✻ Worked for {0} min {1} s",
+ "pronto em {0} min {1} s": "готово за {0} мин {1} с"
 }

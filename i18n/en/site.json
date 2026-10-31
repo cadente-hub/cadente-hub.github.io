@@ -1,31 +1,31 @@
 {
   "meta": {
-    "title": "Cadente — agents, terminal, database and notes in one window",
-    "description": "Cadente is a free desktop app that puts Claude Code, Codex, a terminal, an API client, a database client, notes and a calendar in one split window. Every part is a plugin: keep what you use and turn off the rest, even the AI. Built in Rust, for Mac, Windows and Linux.",
-    "ogDescription": "Agents, terminal, database and notes in one window. Every part is a plugin, and you only turn on what you use.",
+    "title": "Cadente — the hub where everything is a plugin, even the AI",
+    "description": "Cadente is a free desktop app that brings agents such as Claude Code and Codex, a terminal, an API client, a database client, notes and a calendar into one split window. Everything is a plugin, even the AI. Built in Rust, for Mac, Windows and Linux, in 15 languages.",
+    "ogDescription": "The hub where everything is a plugin, even the AI: agents, terminal, database and notes in one window.",
     "skip": "Skip to content"
   },
   "nav": {
     "label": "Main navigation",
     "home": "Cadente, home",
     "how": "How it works",
-    "earn": "Earn money",
     "plugins": "Plugins",
-    "arch": "Architecture",
     "store": "Store",
     "blog": "Blog",
     "download": "Download free",
-    "menu": "Open menu"
+    "menu": "Open menu",
+    "agents": "Agents",
+    "faq": "FAQ"
   },
   "hero": {
-    "eyebrow": "Free · Mac, Windows and Linux · built in Rust",
-    "title1": "Agents, terminal,",
-    "title2": "database and notes.",
-    "title3": "In one window.",
-    "lede": "Put Claude Code and Codex to work side by side while you test the API, query the database and wrap up the meeting notes. All in the same window, all from the keyboard. Every piece is a plugin: keep what you use and turn off the rest, even the AI. And it costs nothing.",
+    "eyebrow": "Free · Mac, Windows and Linux · built in Rust · 15 languages",
+    "lede": "Agents, terminal, database, notes and calendar in the same window, all from the keyboard. Every part is a plugin: keep what you use, swap what you want and turn off the rest, even the AI. And it costs nothing.",
     "watch": "Watch a working day",
-    "earn": "Build plugins and keep up to 90% of what they earn",
-    "anyCli": "any CLI"
+    "anyCli": "any CLI",
+    "before": "Cadente is",
+    "hub": "a hub",
+    "after": ".",
+    "sub": "Everything is a plugin. Even the AI."
   },
   "theater": {
     "label": "Cadente in use",
@@ -33,7 +33,7 @@
     "chapters": "Chapters"
   },
   "creator": {
-    "eyebrow": "Creator mode · earn money",
+    "eyebrow": "Creator mode · coming soon",
     "title": "Your plugin<br /><span class=\"violet-text\">can become income.</span>",
     "lede": "Had an idea that fixes your day? It probably fixes other people's too. Describe it to the agent, it writes the plugin, you publish it in the store and choose how to charge. You keep 90% of donations and 70% of sales and of every subscription renewal.",
     "forYou": "for you",
@@ -70,23 +70,23 @@
   "rust": {
     "eyebrow": "Built in Rust",
     "title": "Rust from the core<br /><span class=\"muted\">to the screen.</span><br /><span class=\"violet-text\">The fan never kicks in.</span>",
-    "lede": "No hidden browser and no Node running behind it. Cadente is native, drawn by the GPU, and only uses energy when something changes on screen.",
+    "lede": "No hidden browser and no Node running behind it. Cadente is native, Rust from the core to the interface, and drawn by the GPU.",
     "stackLabel": "What Cadente is made of",
     "stack": "<span class=\"stack__root\">cadente</span>\n├─ core       <b>rust</b>\n├─ interface  <b>rust</b> · slint, drawn by the GPU\n├─ terminal   <b>rust</b> · native pty\n├─ agents     <b>rust</b> · claude, codex, agy and any cli\n└─ plugins    <b>rust</b> · webassembly for community ones",
     "memory": "Less memory",
     "memoryText": "History stays on disk and only loads when you open it. The app does not grow over time.",
-    "battery": "Less battery",
-    "batteryText": "Stopped typing? Cadente stops too and lets the processor rest.",
+    "battery": "A single process",
+    "batteryText": "The interface talks straight to the core, with no local server or browser in between.",
     "hidden": "Nothing hidden",
     "hiddenText": "Close the pane and it is gone. No terminal, agent or plugin keeps running behind it."
   },
   "plugins": {
-    "eyebrow": "<span class=\"num\">18</span> built-in plugins · millions from the community",
+    "eyebrow": "Built-in plugins",
     "title": "Every pane becomes<br /><span class=\"muted\">what you need.</span>",
-    "lede": "Chat, Terminal, PRs, Requests, Calendar, Focus: 18 plugins come with the app, and they all work the same way. <kbd>↵</kbd> opens, <kbd>.</kbd> shows what you can do, <kbd>/</kbd> lists the commands, <kbd>⇥</kbd> switches the view. Learn one and you know them all. Click one to see it.",
+    "lede": "Chat, Terminal, Workspaces, Requests, Calendar, Focus: the built-in plugins all work the same way. <kbd>↵</kbd> opens, <kbd>.</kbd> shows what you can do, <kbd>/</kbd> lists the commands, <kbd>⇥</kbd> switches the view. Learn one and you know them all. Click one to see it.",
     "gridLabel": "Built-in plugins",
-    "communityBig": "<span class=\"violet-text\">+ millions</span><br />of community plugins.",
-    "communityText": "Beyond the 18 built-in ones there is the store: anyone can publish plugins there, and they add up to millions. Installing is always free and takes one <kbd>↵</kbd>. Don't use AI? Keep only the productivity ones.",
+    "communityBig": "<span class=\"violet-text\">And the ones</span><br />the community builds.",
+    "communityText": "The store opens soon: anyone can publish, and installing is always free. Don’t use AI? Keep only the productivity ones.",
     "seeStore": "See the store",
     "namesLabel": "Some community plugins",
     "names": {
@@ -103,9 +103,9 @@
     }
   },
   "owner": {
-    "eyebrow": "Plugin architecture",
-    "title": "Your Cadente,<br /><span class=\"violet-text\">your rules.</span>",
-    "lede": "The Chat, the Terminal, the sidebar, the AI provider, even the theme: everything is a plugin, just like the community ones. Don't like one? Turn it off, swap it or rip it out. It works without AI too: turn it off and keep a productivity hub with a terminal, database, notes, calendar and focus.",
+    "eyebrow": "Everything is a plugin",
+    "title": "Even the AI<br /><span class=\"violet-text\">is a plugin.</span>",
+    "lede": "The Chat, the Terminal, the sidebar, the AI provider, even the theme: every part of Cadente is a plugin, just like the community ones. Swap the provider, turn off what you don’t use and, if you like, turn off the AI and keep a hub with a terminal, database, notes and calendar.",
     "plugins": "Plugins",
     "installKanban": "install Kanban from the community",
     "services": "Services",
@@ -114,24 +114,33 @@
     "forSafety": "for your safety",
     "base": "plugin manager · shell · picker",
     "install": "Install",
-    "installText": "From the store, a link or a folder, without restarting anything.",
-    "remove": "Remove",
-    "removeText": "Any plugin can go, even the built-in ones.",
+    "installText": "From a link or a folder, without restarting anything.",
+    "remove": "Turn off",
+    "removeText": "The built-in plugins turn off too.",
     "swap": "Swap",
-    "swapText": "Before you swap the provider, you see what will change.",
-    "noSurprise": "No surprises",
-    "noSurpriseText": "You see the permissions before installing, and again if an update asks for more."
+    "swapText": "Swap the provider and the plugins that depend on it restart on the new one.",
+    "layersLabel": "The layers you choose",
+    "layer1": "The agent",
+    "layer1Text": "Claude Code, Codex, Gemini CLI, OpenCode or the CLI you already use.",
+    "layer2": "The model",
+    "layer2Text": "Your subscription, an API key or a local model in Ollama.",
+    "layer3": "Every plugin",
+    "layer3Text": "Turn it on, off or swap it without restarting the app.",
+    "layer4": "The interface",
+    "layer4Text": "Even the sidebar and the theme are plugins.",
+    "noAi": "No AI, too",
+    "noAiText": "Turn off the AI and the rest keeps working: terminal, workspaces, notes, database and calendar."
   },
   "store": {
-    "eyebrow": "Plugin store",
-    "title": "Millions of plugins<br /><span class=\"violet-text\">one ↵ away.</span>",
-    "lede": "Kanban, Kubernetes, lo-fi radio, a board for diagrams: if someone needed it, someone built it. Cadente has no paid plan, installing costs nothing and most plugins are free.",
+    "eyebrow": "Plugin store · coming soon",
+    "title": "If someone needed it,<br /><span class=\"violet-text\">someone built it.</span>",
+    "lede": "Kanban, Kubernetes, lo-fi radio, a board for diagrams. The store opens soon, installing costs nothing and most plugins will be free. The plugins below are examples.",
     "search": "Search plugins",
     "placeholder": "search for a plugin",
     "categories": "Categories",
     "empty": "No plugin with that name yet. Why not build yours?",
-    "oneClick": "One click",
-    "oneClickText": "It downloads, checks the file is the right one, shows the permissions and installs.",
+    "oneClick": "One ↵",
+    "oneClickText": "It downloads, checks the file is the right one and installs.",
     "open": "Open",
     "openText": "Published on GitHub with the <code>cadente-plugin</code> topic? Your plugin is in the store.",
     "watched": "Watched",
@@ -139,12 +148,12 @@
   },
   "finale": {
     "title": "Ready to open<br /><span class=\"muted\">the first pane?</span>",
-    "lede": "It's free, runs on Mac, Windows and Linux, and asks for no card.",
+    "lede": "It’s free, runs on Mac, Windows and Linux, speaks 15 languages and asks for no card.",
     "copyLabel": "Copy the install command",
     "copy": "copy"
   },
   "foot": {
-    "tagline": "Agents, terminal, database and notes. In one window.",
+    "tagline": "The hub where everything is a plugin, even the AI.",
     "label": "Footer",
     "product": "Product",
     "resources": "Resources",
@@ -872,6 +881,54 @@
       "clean": "I'm already clean",
       "splash": "splash!",
       "fresh": "fresh and clean ✦"
+    },
+    "hero": {
+      "words": [
+        "an agent harness",
+        "a terminal",
+        "a worktree manager",
+        "an API client",
+        "a database client",
+        "a notes app",
+        "a calendar"
+      ]
     }
+  },
+  "agents": {
+    "eyebrow": "Agents",
+    "title": "Your agents,<br /><span class=\"violet-text\">side by side.</span>",
+    "lede": "Cadente doesn’t replace your agent. Claude Code, Codex and the other CLIs run as they are, with your account. Cadente organizes the work around them: each task in its own worktree, all of them in sight, and whoever needs you shows up first.",
+    "wallLabel": "Agents that run in Cadente",
+    "known": "Recognized by Cadente",
+    "any": "And any other CLI that runs in a terminal.",
+    "yours": "yours",
+    "p1": "One worktree per task",
+    "p1Text": "Each agent works on its own branch and in its own directory, without touching the other’s files.",
+    "p2": "Whoever waits for you, first",
+    "p2Text": "<kbd>⌘⇧A</kbd> gathers the agents from every page, with whoever needs you at the top.",
+    "p3": "The subscription you already pay for",
+    "p3Text": "Claude Max, ChatGPT Plus, an API key or a local model. Cadente charges nothing on top.",
+    "p4": "Straight to the provider",
+    "p4Text": "Calls go from your machine to the provider you chose. No Cadente server sits in the middle.",
+    "p5": "Everything on your machine",
+    "p5Text": "Sessions, history and settings live in a local database, on your computer."
+  },
+  "faq": {
+    "eyebrow": "Questions",
+    "title": "Before you<br /><span class=\"muted\">download.</span>",
+    "q1": "Is it just a wrapper around Claude Code?",
+    "a1": "No. Claude Code, Codex and the other CLIs run in Cadente’s terminal as they are, with your account. Cadente is the window around them: it splits the screen into panes, gives each task a worktree, gathers the agents waiting for you and puts a terminal, database, API client, notes and calendar next to them.",
+    "q2": "How is it different from running Claude Code in a terminal?",
+    "a2": "For the agent, it isn’t: it is the same CLI. The difference is around it. Several agents work side by side, each in its own worktree, ⌘⇧A shows who is waiting for you, and the rest of your work stays in the same window.",
+    "q3": "Do my calls go through your servers?",
+    "a3": "No. Cadente talks straight to the provider you chose, with your subscription or your key. Cadente’s server only keeps your account.",
+    "q4": "Does it work without AI?",
+    "a4": "It does. The AI is a plugin like the others: turn it off and keep the terminal, workspaces, notes, database and calendar.",
+    "q5": "If it’s free, how do you make money?",
+    "a5": "From the plugin store, once it opens: Cadente keeps 30% of sales and subscriptions and 10% of donations. The app stays free.",
+    "q6": "Which languages?",
+    "a6": "15: Portuguese, English, Spanish, French, German, Italian, Russian, Turkish, Arabic, Hindi, Indonesian, Vietnamese, Japanese, Korean and Simplified Chinese. Switching is instant, with no restart. Some new screens arrive in Portuguese and English first.",
+    "q7": "Which systems?",
+    "a7": "macOS, on Apple Silicon and Intel, plus Windows and Linux, both on x64."
   }
 }

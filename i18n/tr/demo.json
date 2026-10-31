@@ -328,7 +328,6 @@
  "bot: CI verde em {0}/{1}": "bot: CI yeşil {0}/{1}",
  "branch main": "branch main",
  "busca": "arama",
- "buscar entre milhões de plugins": "milyonlarca eklenti arasında ara",
  "Buscar na folha": "Bölmede ara",
  "Buscar no histórico": "Geçmişte ara",
  "buscar PR nos repositórios": "depolarda PR ara",
@@ -784,7 +783,6 @@
  "método": "yöntem",
  "microsoft": "microsoft",
  "migre a tabela de sessões": "oturumlar tablosunu taşı",
- "Milhões de plugins.": "Milyonlarca eklenti.",
  "minificar": "küçült",
  "minify": "minify",
  "model": "model",
@@ -1263,5 +1261,10 @@
  "y permite": "y izin ver",
  "y uma vez": "y bir kez",
  "zerar o timer": "zamanlayıcıyı sıfırla",
- "zsh": "zsh"
+ "zsh": "zsh",
+ "Feitos pela comunidade.": "Topluluk tarafından yapıldı.",
+ "buscar plugins": "eklenti ara",
+ "({0}m {1}s": "({0}m {1}s",
+ "✻ Worked for {0} min {1} s": "✻ Worked for {0} min {1} s",
+ "pronto em {0} min {1} s": "{0} dk {1} sn'de tamamlandı"
 }

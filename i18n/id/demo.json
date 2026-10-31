@@ -328,7 +328,6 @@
  "bot: CI verde em {0}/{1}": "bot: CI hijau di {0}/{1}",
  "branch main": "branch main",
  "busca": "cari",
- "buscar entre milhões de plugins": "cari di antara jutaan plugin",
  "Buscar na folha": "Cari di panel",
  "Buscar no histórico": "Cari di riwayat",
  "buscar PR nos repositórios": "cari PR di repositori",
@@ -784,7 +783,6 @@
  "método": "metode",
  "microsoft": "microsoft",
  "migre a tabela de sessões": "migrasikan tabel sesi",
- "Milhões de plugins.": "Jutaan plugin.",
  "minificar": "minifikasi",
  "minify": "minify",
  "model": "model",
@@ -1263,5 +1261,10 @@
  "y permite": "y izinkan",
  "y uma vez": "y sekali",
  "zerar o timer": "reset timer",
- "zsh": "zsh"
+ "zsh": "zsh",
+ "Feitos pela comunidade.": "Dibuat oleh komunitas.",
+ "buscar plugins": "cari plugin",
+ "({0}m {1}s": "({0}m {1}s",
+ "✻ Worked for {0} min {1} s": "✻ Worked for {0} min {1} s",
+ "pronto em {0} min {1} s": "selesai dalam {0} mnt {1} dtk"
 }

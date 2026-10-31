@@ -328,7 +328,6 @@
  "bot: CI verde em {0}/{1}": "bot: {0}/{1} पर CI ग्रीन",
  "branch main": "ब्रांच main",
  "busca": "खोज",
- "buscar entre milhões de plugins": "लाखों प्लगइन में खोजें",
  "Buscar na folha": "पैन में खोजें",
  "Buscar no histórico": "हिस्ट्री में खोजें",
  "buscar PR nos repositórios": "रिपॉज़िटरी में PR खोजें",
@@ -784,7 +783,6 @@
  "método": "मेथड",
  "microsoft": "microsoft",
  "migre a tabela de sessões": "सेशन वाली टेबल माइग्रेट करें",
- "Milhões de plugins.": "लाखों प्लगइन।",
  "minificar": "मिनिफ़ाई करें",
  "minify": "minify",
  "model": "model",
@@ -1263,5 +1261,10 @@
  "y permite": "y अनुमति दें",
  "y uma vez": "y एक बार",
  "zerar o timer": "टाइमर रीसेट करें",
- "zsh": "zsh"
+ "zsh": "zsh",
+ "Feitos pela comunidade.": "कम्युनिटी के बनाए हुए।",
+ "buscar plugins": "प्लगइन खोजें",
+ "({0}m {1}s": "({0}m {1}s",
+ "✻ Worked for {0} min {1} s": "✻ Worked for {0} min {1} s",
+ "pronto em {0} min {1} s": "{0} मिनट {1} सेकंड में हो गया"
 }

@@ -328,7 +328,6 @@
  "bot: CI verde em {0}/{1}": "bot: CI {0}/{1} 成功",
  "branch main": "ブランチ main",
  "busca": "検索",
- "buscar entre milhões de plugins": "数百万のプラグインから検索",
  "Buscar na folha": "ペイン内を検索",
  "Buscar no histórico": "履歴を検索",
  "buscar PR nos repositórios": "リポジトリの PR を検索",
@@ -784,7 +783,6 @@
  "método": "メソッド",
  "microsoft": "microsoft",
  "migre a tabela de sessões": "セッションテーブルをマイグレーションして",
- "Milhões de plugins.": "数百万のプラグイン。",
  "minificar": "最小化",
  "minify": "minify",
  "model": "model",
@@ -1263,5 +1261,10 @@
  "y permite": "y 許可",
  "y uma vez": "y 1回",
  "zerar o timer": "タイマーをリセット",
- "zsh": "zsh"
+ "zsh": "zsh",
+ "Feitos pela comunidade.": "コミュニティが作ったもの。",
+ "buscar plugins": "プラグインを検索",
+ "({0}m {1}s": "({0}m {1}s",
+ "✻ Worked for {0} min {1} s": "✻ Worked for {0} min {1} s",
+ "pronto em {0} min {1} s": "{0} 分 {1} 秒で完了"
 }

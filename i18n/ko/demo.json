@@ -328,7 +328,6 @@
  "bot: CI verde em {0}/{1}": "bot: {0}/{1} CI 통과",
  "branch main": "브랜치 main",
  "busca": "검색",
- "buscar entre milhões de plugins": "수백만 개의 플러그인 검색",
  "Buscar na folha": "패널에서 찾기",
  "Buscar no histórico": "기록 검색",
  "buscar PR nos repositórios": "저장소에서 PR 검색",
@@ -784,7 +783,6 @@
  "método": "메서드",
  "microsoft": "microsoft",
  "migre a tabela de sessões": "세션 테이블을 마이그레이션해 줘",
- "Milhões de plugins.": "수백만 개의 플러그인.",
  "minificar": "최소화",
  "minify": "minify",
  "model": "model",
@@ -1263,5 +1261,10 @@
  "y permite": "y 허용",
  "y uma vez": "y 한 번",
  "zerar o timer": "타이머 초기화",
- "zsh": "zsh"
+ "zsh": "zsh",
+ "Feitos pela comunidade.": "커뮤니티가 만든 플러그인.",
+ "buscar plugins": "플러그인 검색",
+ "({0}m {1}s": "({0}m {1}s",
+ "✻ Worked for {0} min {1} s": "✻ Worked for {0} min {1} s",
+ "pronto em {0} min {1} s": "{0}분 {1}초 만에 완료"
 }

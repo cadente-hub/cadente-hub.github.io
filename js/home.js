@@ -10,6 +10,7 @@ import { PLUGINS, plugin } from './v4/plugins.mjs';
 import { scene } from './v4/scenes.mjs';
 import { reduce, leaves, activeTab } from './v4/model.mjs';
 import { Cadu } from './cadu.js';
+import { playHero, installCommand } from './hero.js';
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
@@ -19,6 +20,9 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 setWindowLanguage(await demoTranslator(LOCALE));
 
 const onVisible = (el, fn, threshold = 0.2) => new IntersectionObserver((es, io) => { if (es[0].isIntersecting) { io.disconnect(); fn(); } }, { threshold }).observe(el);
+
+// ── Hero ──────────────────────────────────────────────────────────────
+export const hero = playHero({ slot: $('#hero-slot'), sub: $('#hero-sub'), reduced: REDUCED });
 
 // ── Navigation and reveal ─────────────────────────────────────────────
 const nav = $('#nav');
@@ -345,16 +349,16 @@ navCadu.className = 'brand__mark';
 navMark.replaceWith(navCadu);
 const logo = new Cadu(navCadu, { idle: null });
 $('.nav .brand').addEventListener('pointerenter', () => logo.play('wave'));
-new Cadu($('#hero-cadu')).play('wave');
 const finaleCadu = new Cadu($('#finale-cadu'));
 onVisible($('#finale-cadu'), () => finaleCadu.play('celebrate'), 0.6);
 
 // The store wall only moves while it is on screen.
 new IntersectionObserver(([e]) => $('#loja').classList.toggle('is-live', e.isIntersecting)).observe($('#loja'));
 
-// ── Install one-liner ─────────────────────────────────────────────────
-$('#oneliner-copy').addEventListener('click', async e => {
-  const btn = e.currentTarget;
-  try { await navigator.clipboard.writeText($('#oneliner').textContent); btn.textContent = t('oneliner.copied'); } catch { btn.textContent = t('oneliner.select'); }
+// ── Install one-liner: the command of the visitor's system, at the top and at the end ──
+const command = installCommand(navigator.userAgentData?.platform ?? navigator.platform ?? '');
+document.querySelectorAll('[data-install]').forEach(el => { el.textContent = command; });
+document.querySelectorAll('[data-copy]').forEach(btn => btn.addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText(command); btn.textContent = t('oneliner.copied'); } catch { btn.textContent = t('oneliner.select'); }
   setTimeout(() => { btn.textContent = t('oneliner.copy'); }, 1600);
-});
+}));

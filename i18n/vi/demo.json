@@ -328,7 +328,6 @@
  "bot: CI verde em {0}/{1}": "bot: CI xanh ở {0}/{1}",
  "branch main": "branch main",
  "busca": "tìm kiếm",
- "buscar entre milhões de plugins": "tìm trong hàng triệu plugin",
  "Buscar na folha": "Tìm trong ô",
  "Buscar no histórico": "Tìm trong lịch sử",
  "buscar PR nos repositórios": "tìm PR trong các kho mã",
@@ -784,7 +783,6 @@
  "método": "phương thức",
  "microsoft": "microsoft",
  "migre a tabela de sessões": "migrate bảng phiên",
- "Milhões de plugins.": "Hàng triệu plugin.",
  "minificar": "rút gọn",
  "minify": "minify",
  "model": "model",
@@ -1263,5 +1261,10 @@
  "y permite": "y cho phép",
  "y uma vez": "y một lần",
  "zerar o timer": "đặt lại hẹn giờ",
- "zsh": "zsh"
+ "zsh": "zsh",
+ "Feitos pela comunidade.": "Do cộng đồng tạo ra.",
+ "buscar plugins": "tìm plugin",
+ "({0}m {1}s": "({0}m {1}s",
+ "✻ Worked for {0} min {1} s": "✻ Worked for {0} min {1} s",
+ "pronto em {0} min {1} s": "xong trong {0} phút {1} giây"
 }
