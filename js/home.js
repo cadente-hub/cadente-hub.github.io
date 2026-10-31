@@ -11,6 +11,7 @@ import { scene } from './v4/scenes.mjs';
 import { reduce, leaves, activeTab } from './v4/model.mjs';
 import { Cadu } from './cadu.js';
 import { playHero, installCommand } from './hero.js';
+import { browserSkyMode } from './sky/gate.mjs';
 import { initLanguages, languageSection } from './langs.js';
 
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -25,7 +26,26 @@ const onVisible = (el, fn, threshold = 0.2) => new IntersectionObserver((es, io)
 initLanguages();
 
 // ── Hero ──────────────────────────────────────────────────────────────
-export const hero = playHero({ slot: $('#hero-slot'), sub: $('#hero-sub'), reduced: REDUCED });
+// Each struck word falls into the sky (js/sky): a WebGL2 star where it is cheap, a still SVG elsewhere. The sky module
+// loads after the first paint; words that fall before it is ready wait in a queue.
+const skyMode = browserSkyMode(), skyNames = t('hero.stars'), fallen = [];
+let sky = null;
+export const hero = playHero({ slot: $('#hero-slot'), sub: $('#hero-sub'), reduced: REDUCED, onFall: (span, rect, i) => (sky ? sky.drop(i, rect) : fallen.push([i, rect])) });
+requestAnimationFrame(() => setTimeout(async () => {
+  const narrow = innerWidth < 760, labels = $('#sky-labels');
+  if (skyMode === 'webgl') {
+    const { createSky } = await import('./sky/renderer.mjs');
+    try { sky = createSky($('#sky-canvas'), { words: skyNames, labels, narrow }); } catch { sky = null; }
+  }
+  if (!sky) {
+    $('#sky-canvas').remove();
+    const { staticSky } = await import('./sky/static.mjs');
+    return staticSky($('#sky'), { words: skyNames, labels, narrow });
+  }
+  for (const [i, rect] of fallen.splice(0)) sky.drop(i, rect);
+  const hub = await hero;
+  sky.settle((hub ?? $('#hero-slot')).getBoundingClientRect());
+}, 0));
 
 // ── Navigation and reveal ─────────────────────────────────────────────
 const nav = $('#nav');

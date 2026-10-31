@@ -892,6 +892,15 @@
         "a database client",
         "a notes app",
         "a calendar"
+      ],
+      "stars": [
+        "agents",
+        "terminal",
+        "worktrees",
+        "API",
+        "database",
+        "notes",
+        "calendar"
       ]
     }
   },

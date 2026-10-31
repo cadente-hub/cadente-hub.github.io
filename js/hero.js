@@ -4,7 +4,7 @@
 // `onFall(word, rect)` is called as each word falls, for the sky to catch it (js/sky).
 import { t } from './i18n.js';
 
-export const HERO_TIMING = { enter: 140, strike: 520, fall: 360, next: 760, settle: 420 };
+export const HERO_TIMING = { enter: 140, strike: 400, fall: 280, next: 580, settle: 360 };
 const wait = ms => new Promise(r => setTimeout(r, ms));
 
 export async function playHero({ slot, sub, reduced, onFall = () => {}, timing = HERO_TIMING }) {

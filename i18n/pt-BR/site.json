@@ -892,6 +892,15 @@
         "um cliente de banco",
         "um app de notas",
         "uma agenda"
+      ],
+      "stars": [
+        "agentes",
+        "terminal",
+        "worktrees",
+        "API",
+        "banco",
+        "notas",
+        "agenda"
       ]
     }
   },

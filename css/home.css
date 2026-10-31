@@ -655,3 +655,12 @@
 .langs__body { display: flex; justify-content: center; }
 .langs__body .frame { width: min(100%, 900px); }
 .langs__note { margin-top: 18px; text-align: center; font-family: var(--mono); font-size: 12px; color: var(--fg-3); }
+
+/* ── The hero sky (js/sky): behind the title, never in the way ─────── */
+.sky { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.sky__canvas, .sky__svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.sky__labels { position: absolute; inset: 0; }
+.sky__label { position: absolute; transform: translate(-50%, 12px); font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: rgba(216, 190, 255, .62); opacity: 0; white-space: nowrap; }
+[dir="rtl"] .sky__label { transform: translate(50%, 12px); }
+.hero__inner { z-index: 1; }
+@media (max-width: 760px) { .sky__label { display: none; } }
