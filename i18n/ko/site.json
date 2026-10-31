@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "Cadente — AI까지 모든 게 플러그인인 허브",
-    "description": "Cadente는 Claude Code, Codex 같은 에이전트와 터미널, API, 데이터베이스, 노트, 일정을 분할된 창 하나에 모아 주는 무료 데스크톱 앱이에요. AI까지 모든 게 플러그인이에요. Rust로 만들었고, Mac, Windows, Linux에서 15개 언어로 쓸 수 있어요.",
+    "description": "Cadente는 Claude Code, Codex, 터미널, 데이터베이스, 노트, 캘린더를 한 창에 모은 무료 데스크톱 앱이에요. 모든 게 플러그인이에요. AI까지도요.",
     "ogDescription": "AI까지 모든 게 플러그인인 허브. 에이전트, 터미널, 데이터베이스, 노트를 창 하나에.",
     "skip": "본문으로 건너뛰기"
   },

@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "Cadente — 一切皆插件的中心，连 AI 也是",
-    "description": "Cadente 是一款免费的桌面应用，把 Claude Code、Codex 等智能体，以及终端、API 客户端、数据库客户端、笔记和日程，放进一个可拆分的窗口。一切都是插件，连 AI 也是。用 Rust 打造，支持 Mac、Windows 和 Linux，提供 15 种语言。",
+    "description": "Cadente 是一款免费桌面应用，把 Claude Code、Codex、终端、数据库、笔记和日历放进同一个窗口。一切都是插件，连 AI 也是。",
     "ogDescription": "一切皆插件的中心，连 AI 也是：智能体、终端、数据库和笔记，都在一个窗口里。",
     "skip": "跳到正文"
   },

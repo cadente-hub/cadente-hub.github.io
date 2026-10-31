@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "Cadente — her şeyin, yapay zekânın bile eklenti olduğu merkez",
-    "description": "Cadente; Claude Code ve Codex gibi ajanları, terminali, API'yi, veritabanını, notları ve takvimi bölünmüş tek bir pencerede toplayan ücretsiz bir masaüstü uygulamasıdır. Her şey eklentidir, yapay zekâ bile. Rust ile yazıldı; Mac, Windows ve Linux için, 15 dilde.",
+    "description": "Cadente; Claude Code, Codex, terminal, veritabanı, notlar ve takvimi tek pencerede toplayan ücretsiz bir masaüstü uygulaması. Her şey eklenti, yapay zekâ bile.",
     "ogDescription": "Her şeyin, yapay zekânın bile eklenti olduğu merkez: ajanlar, terminal, veritabanı ve notlar tek pencerede.",
     "skip": "İçeriğe geç"
   },

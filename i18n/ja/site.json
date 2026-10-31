@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "Cadente — AI まで、すべてがプラグインのハブ",
-    "description": "Cadente は、Claude Code や Codex などのエージェント、ターミナル、API、データベース、ノート、カレンダーをひとつの分割ウィンドウにまとめる無料のデスクトップアプリです。すべてがプラグインで、AI もそのひとつ。Rust 製で、Mac、Windows、Linux に対応し、15 言語で使えます。",
+    "description": "Cadente は Claude Code、Codex、ターミナル、データベース、ノート、カレンダーをひとつのウィンドウにまとめる無料のデスクトップアプリ。すべてがプラグイン、AI さえも。",
     "ogDescription": "AI まで、すべてがプラグインのハブ。エージェント、ターミナル、データベース、ノートをひとつのウィンドウに。",
     "skip": "本文へスキップ"
   },

@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "Cadente — hub tempat semuanya adalah plugin, bahkan AI",
-    "description": "Cadente adalah aplikasi desktop gratis yang menyatukan agen seperti Claude Code dan Codex, terminal, API, database, catatan, dan agenda dalam satu jendela terbagi. Semuanya plugin, bahkan AI. Dibuat dengan Rust, untuk Mac, Windows, dan Linux, dalam 15 bahasa.",
+    "description": "Cadente, aplikasi desktop gratis: Claude Code, Codex, terminal, database, catatan, dan kalender dalam satu jendela. Semuanya plugin, bahkan AI.",
     "ogDescription": "Hub tempat semuanya adalah plugin, bahkan AI: agen, terminal, database, dan catatan dalam satu jendela.",
     "skip": "Langsung ke konten"
   },

@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "Cadente — el hub donde todo es un plugin, incluso la IA",
-    "description": "Cadente es una app de escritorio gratis que reúne agentes como Claude Code y Codex, terminal, API, base de datos, notas y agenda en una ventana dividida. Todo es un plugin, incluso la IA. Hecho en Rust, para Mac, Windows y Linux, en 15 idiomas.",
+    "description": "Cadente es una app de escritorio gratis que reúne Claude Code, Codex, terminal, base de datos, notas y agenda en una ventana. Todo es un plugin, incluso la IA.",
     "ogDescription": "El hub donde todo es un plugin, incluso la IA: agentes, terminal, base de datos y notas en una sola ventana.",
     "skip": "Saltar al contenido"
   },
