@@ -6,14 +6,15 @@ pt-BR é o original. Cada idioma tem dois catálogos:
 - `demo.json`: os textos que a janela do Cadente mostra no site. É um objeto `{ "texto em pt-BR": "tradução" }`, com uma
   entrada para cada texto de `demo-strings.json`.
 
-`locales.json` lista os 15 idiomas do app. Só os marcados `ready` viram páginas, e um idioma `ready` precisa ter todas
-as chaves e os mesmos placeholders do pt-BR (`npm test`).
+`locales.json` lista os 15 idiomas do app. Só os marcados `ready` viram páginas, e o build para se um deles não tiver
+uma chave que a página usa.
 
 ## Atualizar
 
 - Texto novo numa página ou num script: entre em `pt-BR/site.json` e em todos os idiomas prontos.
 - Mudou o que a janela mostra (protótipo sincronizado, capítulo novo): com `npm run dev` rodando, rode
-  `node scripts/i18n/harvest-demo.mjs`, que regrava `demo-strings.json`, e traduza o que entrou.
+  `node scripts/i18n/harvest-demo.mjs`, que regrava `demo-strings.json`, traduza o que entrou e confira com
+  `node scripts/i18n/check-demo.mjs <código>`.
 
 ## Regras para traduzir
 

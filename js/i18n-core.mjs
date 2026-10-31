@@ -19,12 +19,6 @@ export function flatten(tree, prefix = '', out = {}) {
   return out;
 }
 
-// The `{name}` placeholders of a leaf, sorted and unique, so two languages can be compared.
-export function placeholders(leaf) {
-  const texts = typeof leaf === 'string' ? [leaf] : Array.isArray(leaf) ? leaf : Object.values(leaf);
-  return [...new Set(texts.flatMap(s => [...s.matchAll(/\{(\w+)\}/g)].map(m => m[1])))].sort();
-}
-
 export const format = (text, vars = {}) => text.replace(/\{(\w+)\}/g, (all, name) => (name in vars ? String(vars[name]) : all));
 
 // t(key, vars) for one language. A key the catalog does not have is an error: a page never falls back to pt-BR
@@ -43,18 +37,4 @@ export function createT(map, locale) {
   }
   t.has = key => Object.hasOwn(map, key);
   return t;
-}
-
-// What a translation must keep from the source: every key, the same placeholders, and lists of the same length.
-export function compareCatalogs(source, target) {
-  const missing = [], extra = [], mismatched = [];
-  for (const [key, leaf] of Object.entries(source)) {
-    if (!Object.hasOwn(target, key)) { missing.push(key); continue; }
-    const other = target[key];
-    const shape = v => (Array.isArray(v) ? `list:${v.length}` : isPlural(v) ? 'plural' : 'text');
-    if (shape(leaf) !== shape(other) && !(shape(leaf) === 'plural' || shape(other) === 'plural')) mismatched.push(`${key}: ${shape(leaf)} ≠ ${shape(other)}`);
-    else if (placeholders(leaf).join() !== placeholders(other).join()) mismatched.push(`${key}: {${placeholders(leaf)}} ≠ {${placeholders(other)}}`);
-  }
-  for (const key of Object.keys(target)) if (!Object.hasOwn(source, key)) extra.push(key);
-  return { missing, extra, mismatched };
 }
