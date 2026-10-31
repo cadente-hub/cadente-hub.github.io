@@ -27,5 +27,7 @@ export default defineConfig({
       },
     },
     outDir: 'dist',
+    // The home waits for its language's window catalog with a top-level await.
+    target: 'es2022',
   },
 });

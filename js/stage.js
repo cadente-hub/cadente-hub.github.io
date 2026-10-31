@@ -5,6 +5,7 @@ import { createState, reduce, leaves, activeTab, findLeaf, activityOf, rects } f
 import { resolveKey, KEYMAP } from './v4/keys.mjs';
 import { render } from './v4/view.mjs';
 import { plugin } from './v4/plugins.mjs';
+import { translateTree } from './v4-site/translate.mjs';
 
 export const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const EASE = 'cubic-bezier(.2,.8,.2,1)';
@@ -23,6 +24,11 @@ export function parseKey(combo) {
   return ev;
 }
 const labelOf = combo => KEYMAP.find(e => e.keys === combo && e.scope === 'global')?.label ?? '';
+// The language windows are drawn in (js/v4-site/translate.mjs): null keeps the prototype's pt-BR. A window created
+// later takes the page's language; Stage.setLanguage changes one window. `onDraw` sees every frame (the harvest).
+let pageLanguage = null;
+export const setWindowLanguage = tr => { pageLanguage = tr; };
+export const drawHooks = [];
 const capsOf = combo => { const caps = []; let rest = combo; while (rest.length > 1 && MODS[rest[0]]) { caps.push(rest[0]); rest = rest.slice(1); } return [...caps, rest]; };
 
 // Reconciliation from the prototype's app.mjs: only what changed is touched, so unchanged panes keep their nodes
@@ -53,6 +59,7 @@ export class Stage {
     this.run_ = 0;
     this.fast = false;
     this.tpl = document.createElement('template');
+    this.tr = pageLanguage;
 
     host.classList.add('stage');
     host.innerHTML = `<div class="stage__viewport"><div class="stage__cam"><div class="stage__tilt"><div class="v4 stage__app" aria-hidden="true"></div></div></div></div>`
@@ -100,6 +107,8 @@ export class Stage {
   // ── Drawing ─────────────────────────────────────────────────────────────
   draw() {
     this.tpl.innerHTML = render(this.S);
+    if (this.tr) translateTree(this.tpl.content, this.tr);
+    for (const hook of drawHooks) hook(this.tpl.content, this);
     const next = this.tpl.content.firstElementChild;
     if (!this.root.firstElementChild) this.root.append(next); else morph(this.root.firstElementChild, next);
     // Scroll inside the window only: scrollIntoView would also move the page.
@@ -131,6 +140,9 @@ export class Stage {
     if (top - pad < box.scrollTop) box.scrollTop = Math.max(0, top - pad);
     else if (bottom + pad > box.scrollTop + box.clientHeight) box.scrollTop = bottom + pad - box.clientHeight;
   }
+
+  setLanguage(tr) { this.tr = tr; this.draw(); }
+  label(text) { return (text && this.tr?.(text)) || text; }
 
   // ── State ───────────────────────────────────────────────────────────────
   setState(S) { this.S = S; this.draw(); this.measure(); this.cut(); this.beam(); }
@@ -344,7 +356,7 @@ export class Stage {
   async key(combo, id, { label, hold = 520 } = {}) {
     this.check(id);
     const action = resolveKey(this.S, parseKey(combo));
-    if (!this.fast) this.showHud(combo, label ?? labelOf(combo));
+    if (!this.fast) this.showHud(combo, label ?? this.label(labelOf(combo)));
     if (action) this.dispatch(action);
     if (!this.fast) await this.wait(hold, id);
   }

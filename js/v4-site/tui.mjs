@@ -3,6 +3,7 @@
 // scripts/capture-cli.py and scripts/import-cli-recordings.mjs): every character, colour and attribute as the CLI drew
 // it. A CLI without a recording falls back to a drawn approximation (STYLE below).
 import REC from './recordings.json' with { type: 'json' };
+import { LOCALE } from '../i18n.js';
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 const span = (cls, t) => `<span class="${cls}">${t}</span>`;
 const dim = t => span('t-dim', t), acc = t => span('t-acc', t), bold = t => span('t-b', t), ok = t => span('t-ok', t);
@@ -103,7 +104,8 @@ export function tui(b, o) {
 const SPEED = 2;
 const NAMED = { black: '#1e1e1e', red: '#ff8272', green: '#b4fa72', brown: '#fefdc2', yellow: '#fefdc2', blue: '#6aa9ff', magenta: '#ff8ffd', cyan: '#5fd7ff', white: '#e6e6e6' };
 const tone = c => (c === 'default' ? null : NAMED[c] ?? NAMED[c.replace(/^bright/, '')] ?? (/^[0-9a-f]{6}$/i.test(c) ? `#${c}` : null));
-export const hasRecording = agent => !!REC[agent];
+// The recordings show the real CLIs talking in Portuguese, so other languages get the drawn screens, which translate.
+export const hasRecording = agent => LOCALE === 'pt-BR' && !!REC[agent];
 const phase = (rec, kind) => rec.frames.filter(f => f.kind === kind);
 
 // Each recorded screen is drawn as an SVG on the terminal's own grid: every run starts at its exact column and is

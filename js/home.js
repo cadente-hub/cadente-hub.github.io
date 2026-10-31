@@ -1,9 +1,10 @@
 // Home page: the Cadente window playing on its own, the plugin tour, the plugin rack, the store, Creator mode,
 // the earnings calculator and Cadu.
-import { Stage, REDUCED } from './stage.js';
+import { Stage, REDUCED, setWindowLanguage } from './stage.js';
 import { CHAPTERS, initial, TEMPO, CARD, PAUSE, durations } from './theater.js';
 import { Maker } from './maker.js';
-import { t, usd, number, list } from './i18n.js';
+import { t, usd, number, list, LOCALE } from './i18n.js';
+import { demoTranslator } from './v4-site/demo-catalogs.js';
 import { storeApps, storeCategories, filterApps, peopleAt, earnings, NO_AI, usersOf, rackLog, serviceNote } from './home-logic.mjs';
 import { PLUGINS, plugin } from './v4/plugins.mjs';
 import { scene } from './v4/scenes.mjs';
@@ -14,6 +15,9 @@ const $ = (sel, root = document) => root.querySelector(sel);
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
+// Every Cadente window on the page speaks the page's language (js/v4-site/translate.mjs).
+setWindowLanguage(await demoTranslator(LOCALE));
+
 const onVisible = (el, fn, threshold = 0.2) => new IntersectionObserver((es, io) => { if (es[0].isIntersecting) { io.disconnect(); fn(); } }, { threshold }).observe(el);
 
 // ── Navigation and reveal ─────────────────────────────────────────────
