@@ -26,6 +26,9 @@ export function initLanguages() {
   const best = pickLocale(navigator.languages ?? [navigator.language], [LOCALE, ...Object.keys(others)]);
   const o = best && best !== LOCALE ? others[best] : null;
   if (!o || !o.notice) return;
+  // Seen and left alone: the notice goes once the visitor scrolls past the first screen, and stays away for the visit.
+  const session = (() => { try { return window.sessionStorage; } catch { return null; } })();
+  if (session?.getItem('cadente.lang.notice')) return;
   const bar = document.createElement('div');
   bar.className = 'langbar';
   bar.lang = best;
@@ -36,6 +39,14 @@ export function initLanguages() {
   bar.querySelector('button').addEventListener('click', () => { storeChoice(store, LOCALE); bar.remove(); });
   document.body.append(bar);
   requestAnimationFrame(() => bar.classList.add('is-in'));
+  const leave = () => {
+    if (window.scrollY < window.innerHeight) return;
+    window.removeEventListener('scroll', leave);
+    session?.setItem('cadente.lang.notice', 'seen');
+    bar.classList.remove('is-in');
+    setTimeout(() => bar.remove(), 500);
+  };
+  window.addEventListener('scroll', leave, { passive: true });
 }
 
 // One window, 15 languages. The buttons cycle on their own while the section is on screen, until the visitor picks.
