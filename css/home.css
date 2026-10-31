@@ -28,7 +28,6 @@
 .hero__sub { margin-top: 22px; font-size: clamp(22px, 2.8vw, 38px); line-height: 1.15; letter-spacing: -0.03em; font-weight: 500; color: var(--fg); }
 .js-motion .hero__sub { opacity: 0; transform: translateY(12px); transition: opacity .9s var(--ease), transform .9s var(--ease); }
 .js-motion .hero__sub.is-in { opacity: 1; transform: none; }
-.oneliner--hero { width: fit-content; margin: 22px auto 0; }
 .hero__lede { max-width: 680px; margin: 32px auto 0; font-size: clamp(17px, 1.7vw, 21px); color: var(--fg-2); }
 .hero__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 40px; }
 .hero__models { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 22px; margin-top: 56px; font-family: var(--mono); font-size: 12px; letter-spacing: .04em; color: var(--fg-3); }
@@ -571,11 +570,6 @@
 .finale__mark svg, .hero__cadu svg { display: block; width: 100%; height: 100%; }
 .hero__cadu { display: block; width: 64px; height: 64px; margin: 0 auto 22px; filter: drop-shadow(0 0 22px rgba(255, 255, 255, .2)); }
 .finale .lede { margin-left: auto; margin-right: auto; }
-.oneliner { display: flex; align-items: center; gap: 4px; max-width: 100%; margin-top: 36px; padding: 6px 6px 6px 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
-.oneliner code { overflow-x: auto; white-space: nowrap; font-size: 13px; color: var(--fg-2); scrollbar-width: none; }
-.oneliner code::before { content: '$ '; color: var(--violet-hi); }
-.oneliner__copy { flex: none; height: 32px; padding: 0 12px; border-radius: 8px; font-family: var(--mono); font-size: 12px; color: var(--fg-2); border: 1px solid var(--line); transition: color .2s, border-color .2s; }
-.oneliner__copy:hover { color: var(--fg); border-color: var(--violet); }
 
 /* ── Responsive ─────────────────────────────────────────────────────── */
 @media (max-width: 1080px) {
@@ -693,3 +687,4 @@
 :is(:lang(ja), :lang(ko), :lang(zh-CN)) :is(.title, .hero__title, .caption__title, .stage__title-in b) { letter-spacing: -0.02em; line-height: 1.15; }
 :lang(ja), :lang(zh-CN) { line-break: strict; word-break: auto-phrase; }
 :lang(ko) { word-break: keep-all; }
+.finale .oneliner { margin-top: 36px; }

@@ -36,8 +36,3 @@ export async function playHero({ slot, sub, reduced, onFall = () => {}, timing =
   setTimeout(() => layer.remove(), 1200);
   return hub;
 }
-
-// The install command of the visitor's system.
-export function installCommand(platform = '') {
-  return /win/i.test(platform) ? 'irm https://cadente-hub.github.io/install.ps1 | iex' : 'curl -fsSL https://cadente-hub.github.io/install.sh | bash';
-}

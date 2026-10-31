@@ -902,6 +902,18 @@
         "notes",
         "calendar"
       ]
+    },
+    "dl": {
+      "detected": "For your {os}, the right file is right here.",
+      "pick": "Pick the file for your system.",
+      "downloadFor": "Download for {os}",
+      "macNote": "The first time, macOS may need the <a href=\"#macos-danificado\">fix below</a>."
+    },
+    "rn": {
+      "latest": "latest",
+      "onGitHub": "View on GitHub",
+      "none": "No versions here yet.",
+      "failed": "We couldn’t load the notes. See them on <a href=\"{url}\" target=\"_blank\" rel=\"noopener noreferrer\">GitHub</a>."
     }
   },
   "agents": {
@@ -953,5 +965,50 @@
     "lede": "From the menus to the terminal, Cadente comes in 15 languages, and switching is instant, with no restart. Pick a language and watch the window change.",
     "pick": "Window language",
     "note": "Some new screens arrive in Portuguese and English first."
+  },
+  "dl": {
+    "metaTitle": "Download Cadente",
+    "metaDescription": "Download Cadente for macOS (Apple Silicon and Intel), Windows and Linux. Free.",
+    "eyebrow": "Downloads",
+    "title": "Download <span class=\"violet-text\">Cadente</span>.",
+    "lede": "Free, for macOS, Windows and Linux.",
+    "version": "Version",
+    "others": "Other systems",
+    "fallback": "We couldn’t read the latest version. The files are on the <a href=\"https://github.com/cadente-hub/cadente-hub.github.io/releases\" target=\"_blank\" rel=\"noopener noreferrer\">releases page</a>.",
+    "installTitle": "How to install",
+    "oneLine": "In one line",
+    "orHomebrew": "Or with Homebrew",
+    "orDmg": "Or with the .dmg",
+    "mac1": "Open the <code>.dmg</code> and drag Cadente to Applications.",
+    "mac2": "If macOS says the app is damaged, see the fix below.",
+    "orPackages": "Or with a package",
+    "powershell": "In PowerShell",
+    "orInstaller": "Or with the installer",
+    "win1": "Download the <code>.exe</code> or the <code>.msi</code> and follow the installer.",
+    "win2": "If SmartScreen warns you, click <b>More info</b> and then <b>Run anyway</b>.",
+    "fixTitle": "macOS says Cadente is damaged?",
+    "fixText": "macOS blocks apps that don’t have Apple’s paid signature yet. Paste this command into Terminal once and Cadente opens normally.",
+    "fixNote": "The one-line command and Homebrew already do this for you."
+  },
+  "rn": {
+    "metaTitle": "Cadente release notes",
+    "metaDescription": "What changed in each Cadente version, on the stable and beta channels.",
+    "eyebrow": "Release notes",
+    "title": "Every version<br /><span class=\"violet-text\">of Cadente.</span>",
+    "lede": "The stable and beta channels, read from the same update files the app uses.",
+    "inEnglish": "The notes for each version are written in English.",
+    "stable": "Stable",
+    "beta": "Beta",
+    "stableTitle": "Tested versions",
+    "betaTitle": "Before everyone else",
+    "download": "Download stable",
+    "loading": "Loading…"
+  },
+  "terms": {
+    "metaTitle": "Terms, privacy and refunds — Cadente",
+    "metaDescription": "Terms and conditions, privacy policy and refund policy for Cadente.",
+    "title": "Terms, privacy and refunds",
+    "updated": "Last updated: October 30, 2026",
+    "notice": ""
   }
 }

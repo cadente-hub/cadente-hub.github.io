@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="{{@lang}}" dir="{{@dir}}">
+<head>
+  <meta charset="UTF-8" />
+  <title>{{dl.metaTitle}}</title>
+  <meta name="description" content="{{dl.metaDescription|attr}}" />
+  <meta property="og:title" content="{{dl.metaTitle|attr}}" />
+  <meta property="og:description" content="{{dl.metaDescription|attr}}" />
+  <meta name="twitter:title" content="{{dl.metaTitle|attr}}" />
+  <meta name="twitter:description" content="{{dl.metaDescription|attr}}" />
+{{@include:head}}  <link rel="stylesheet" href="/css/pages.css" />
+</head>
+<body class="page">
+  <a class="skip" href="#conteudo">{{meta.skip}}</a>
+{{@include:nav}}
+  <main id="conteudo">
+    <section class="page-hero">
+      <div class="page-hero__glow" aria-hidden="true"></div>
+      <div class="wrap">
+        <p class="eyebrow"><span class="dot" aria-hidden="true"></span>{{dl.eyebrow}}</p>
+        <h1 class="title">{{dl.title}}</h1>
+        <p class="lede" id="dl-detected">{{dl.lede}}</p>
+        <p class="dl-version"><span>{{dl.version}}</span><b id="dl-version">…</b></p>
+      </div>
+    </section>
+
+    <section class="wrap dl">
+      <div class="dl-primary" id="dl-primary"></div>
+      <div class="oneliner oneliner--wide">
+        <code data-install>curl -fsSL https://cadente-hub.github.io/install.sh | bash</code>
+        <button class="oneliner__copy" data-copy aria-label="{{finale.copyLabel|attr}}">{{finale.copy}}</button>
+      </div>
+      <h2 class="dl-sub">{{dl.others}}</h2>
+      <ul class="dl-grid" id="dl-others"></ul>
+      <p class="dl-fallback" id="dl-fallback" hidden>{{dl.fallback}}</p>
+    </section>
+
+    <section class="wrap dl-install" id="instalar">
+      <h2 class="subtitle">{{dl.installTitle}}</h2>
+      <div class="dl-cards">
+        <article class="dl-card">
+          <h3>macOS</h3>
+          <p class="dl-card__label">{{dl.oneLine}}</p>
+          <code class="dl-code">curl -fsSL https://cadente-hub.github.io/install.sh | bash</code>
+          <p class="dl-card__label">{{dl.orHomebrew}}</p>
+          <code class="dl-code">brew tap cadente-hub/apps &amp;&amp; brew install --cask cadente</code>
+          <p class="dl-card__label">{{dl.orDmg}}</p>
+          <ol><li>{{dl.mac1}}</li><li>{{dl.mac2}}</li></ol>
+        </article>
+        <article class="dl-card">
+          <h3>Linux</h3>
+          <p class="dl-card__label">{{dl.oneLine}}</p>
+          <code class="dl-code">curl -fsSL https://cadente-hub.github.io/install.sh | bash</code>
+          <p class="dl-card__label">{{dl.orPackages}}</p>
+          <ol>
+            <li><b>Debian, Ubuntu, Mint</b> <code>sudo apt install ./cadente_*.deb</code></li>
+            <li><b>Fedora, RHEL, openSUSE</b> <code>sudo dnf install ./cadente-*.rpm</code></li>
+            <li><b>AppImage</b> <code>chmod +x *.AppImage &amp;&amp; ./*.AppImage</code></li>
+          </ol>
+        </article>
+        <article class="dl-card">
+          <h3>Windows</h3>
+          <p class="dl-card__label">{{dl.powershell}}</p>
+          <code class="dl-code">irm https://cadente-hub.github.io/install.ps1 | iex</code>
+          <p class="dl-card__label">{{dl.orInstaller}}</p>
+          <ol><li>{{dl.win1}}</li><li>{{dl.win2}}</li></ol>
+        </article>
+      </div>
+
+      <aside class="dl-fix" id="macos-danificado">
+        <h3>{{dl.fixTitle}}</h3>
+        <p>{{dl.fixText}}</p>
+        <div class="oneliner oneliner--wide">
+          <code>xattr -cr /Applications/Cadente.app &amp;&amp; codesign --force --deep --sign - /Applications/Cadente.app</code>
+          <button class="oneliner__copy" data-copy="xattr -cr /Applications/Cadente.app &amp;&amp; codesign --force --deep --sign - /Applications/Cadente.app" aria-label="{{finale.copyLabel|attr}}">{{finale.copy}}</button>
+        </div>
+        <p class="dl-fix__note">{{dl.fixNote}}</p>
+      </aside>
+    </section>
+  </main>
+{{@include:foot}}
+  <script type="module" src="/js/downloads.js"></script>
+</body>
+</html>

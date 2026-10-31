@@ -1,619 +1,77 @@
-/**
- * Cadente - Downloads Page Logic
- * Handles: GitHub Releases API fetch, OS detection, dynamic download links
- * Layout: Big hero card for detected platform, compact grid for others
- */
+// Downloads: the file for the visitor's system first, the others below. The version is the one the updater offers
+// (/update.json); its files come from the GitHub release of that version, or from the latest release.
+import { initPage } from './page.js';
+import { t, number } from './i18n.js';
 
-// Import shared modules so Vite bundles them for this page
-import './main.js';
-import './animations.js';
+const REPO = 'cadente-hub/cadente-hub.github.io';
+const RELEASES = `https://github.com/${REPO}/releases`;
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 
-const GITHUB_REPO = 'cadente-hub/cadente-hub.github.io';
-const API_URL = `https://api.github.com/repos/${GITHUB_REPO}/releases/latest`;
-const TAG_API_URL = (tag) => `https://api.github.com/repos/${GITHUB_REPO}/releases/tags/${encodeURIComponent(tag)}`;
-// The updater reads this manifest, so the page offers the same version it does.
-const MANIFEST_URL = '/update.json';
-const RELEASES_URL = `https://github.com/${GITHUB_REPO}/releases`;
+// Each file the release may have: the system, how it is packaged, and how to recognize it.
+const FILES = [
+  { id: 'macos-arm64', os: 'macOS', arch: 'Apple Silicon', ext: '.dmg', match: n => /(arm64|aarch64).*\.dmg$/i.test(n) },
+  { id: 'macos-x64', os: 'macOS', arch: 'Intel', ext: '.dmg', match: n => /\.dmg$/i.test(n) && !/arm64|aarch64/i.test(n) },
+  { id: 'windows-exe', os: 'Windows', arch: 'x64', ext: '.exe', match: n => /\.exe$/i.test(n) },
+  { id: 'windows-msi', os: 'Windows', arch: 'x64', ext: '.msi', match: n => /\.msi$/i.test(n) },
+  { id: 'linux-deb', os: 'Linux', arch: 'Debian, Ubuntu', ext: '.deb', match: n => /\.deb$/i.test(n) },
+  { id: 'linux-rpm', os: 'Linux', arch: 'Fedora, openSUSE', ext: '.rpm', match: n => /\.rpm$/i.test(n) },
+  { id: 'linux-appimage', os: 'Linux', arch: 'AppImage', ext: '.AppImage', match: n => /\.AppImage$/i.test(n) },
+];
 
-// Platform mapping: filename patterns -> platform keys
-const PLATFORM_PATTERNS = {
-  'macos-arm64': { match: (name) => /macos.*arm64.*\.dmg$/i.test(name) || /aarch64.*\.dmg$/i.test(name) },
-  'macos-x64': { match: (name) => /macos.*x64.*\.dmg$/i.test(name) || /x86_64.*\.dmg$/i.test(name) || (/\.dmg$/i.test(name) && !/arm64|aarch64/i.test(name)) },
-  'linux-appimage': { match: (name) => /linux.*x64.*\.AppImage$/i.test(name) || /\.AppImage$/i.test(name) },
-  'linux-deb': { match: (name) => /linux.*x64.*\.deb$/i.test(name) || /\.deb$/i.test(name) },
-  'linux-rpm': { match: (name) => /linux.*x64.*\.rpm$/i.test(name) || /\.rpm$/i.test(name) },
-  'windows-exe': { match: (name) => /windows.*x64.*\.exe$/i.test(name) || (/\.exe$/i.test(name) && !/\.msi/i.test(name)) },
-  'windows-msi': { match: (name) => /windows.*x64.*\.msi$/i.test(name) || /\.msi$/i.test(name) },
-};
-
-// SVG Icons (monochrome, professional)
-const SVG_ICONS = {
-  apple: `<svg viewBox="0 0 24 24" fill="currentColor" class="platform-icon"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>`,
-  linux: `<svg viewBox="0 0 24 24" fill="currentColor" class="platform-icon"><path d="M12.504 0c-.155 0-.315.008-.48.021-4.226.333-3.105 4.807-3.17 6.298-.076 1.092-.3 1.953-1.05 3.02-.885 1.051-2.127 2.75-2.716 4.521-.278.832-.41 1.684-.287 2.489a.424.424 0 00-.11.135c-.26.268-.45.6-.663.839-.199.199-.485.267-.797.4-.313.136-.658.269-.864.68-.09.189-.136.394-.132.602.01.199.059.389.137.564.259.56.848.59 1.314.596.3.003.548-.02.727-.048.096.131.226.256.418.376.405.254.878.379 1.344.379.543 0 1.074-.165 1.46-.555.155-.148.276-.338.372-.563h1.306c.096.225.217.415.372.563.386.39.917.555 1.46.555.466 0 .939-.125 1.344-.379.192-.12.322-.245.418-.376.179.028.427.051.727.048.466-.006 1.055-.036 1.314-.596.078-.175.127-.365.137-.564.004-.208-.042-.413-.132-.602-.206-.411-.551-.544-.864-.68-.312-.133-.598-.201-.797-.4-.213-.239-.403-.571-.663-.839a.424.424 0 00-.11-.135c.123-.805-.009-1.657-.287-2.489-.589-1.771-1.831-3.47-2.716-4.521-.75-1.067-.974-1.928-1.05-3.02-.065-1.491 1.056-5.965-3.17-6.298A5.042 5.042 0 0012.504 0zm-.218 1.53c.057-.003.12 0 .186.007 1.168.138 1.578 1.468 1.57 2.618-.008 1.197-.238 2.208-.88 3.312-.802 1.26-1.862 2.8-2.406 4.444-.258.788-.378 1.573-.278 2.267-.036-.003-.072-.004-.109-.004a1.86 1.86 0 00-.537.08c-.052-.467-.02-.937.115-1.393.432-1.444 1.335-2.9 2.127-4.148.79-1.228 1.068-2.353 1.083-3.622.016-1.292-.596-2.343-1.053-2.805a.764.764 0 01.182-.756z"/></svg>`,
-  windows: `<svg viewBox="0 0 24 24" fill="currentColor" class="platform-icon"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/></svg>`,
-};
-
-// CLI install commands per platform (1-line frictionless installs)
-const CLI_COMMAND_TEMPLATES = {
-  'macos-arm64': 'curl -fsSL https://cadente-hub.github.io/install.sh | bash',
-  'macos-x64': 'curl -fsSL https://cadente-hub.github.io/install.sh | bash',
-  'linux-appimage': 'curl -fsSL https://cadente-hub.github.io/install.sh | bash',
-  'linux-deb': 'curl -fsSL <URL> -o cadente.deb && sudo apt install -y ./cadente.deb',
-  'linux-rpm': 'curl -fsSL <URL> -o cadente.rpm && sudo dnf install -y ./cadente.rpm',
-  'windows-exe': 'powershell -Command "irm https://cadente-hub.github.io/install.ps1 | iex"',
-  'windows-msi': 'powershell -Command "iwr <URL> -OutFile $env:TEMP\\cadente.msi; Start-Process msiexec.exe -ArgumentList \'/i\',\\\"$env:TEMP\\cadente.msi\\\" -Wait"',
-};
-// Mutable runtime copy — <URL> placeholders get replaced once GitHub Releases data arrives.
-const CLI_COMMANDS = { ...CLI_COMMAND_TEMPLATES };
-// Cached latest release for re-rendering (when user swaps the primary platform).
-let cachedRelease = null;
-
-// Platform display info
-const PLATFORM_INFO = {
-  'macos-arm64': { icon: SVG_ICONS.apple, title: 'macOS', arch: 'Apple Silicon', format: '.dmg', btnLabel: 'Download for macOS (Apple Silicon)' },
-  'macos-x64': { icon: SVG_ICONS.apple, title: 'macOS', arch: 'Intel (x86_64)', format: '.dmg', btnLabel: 'Download for macOS (Intel)' },
-  'linux-deb': { icon: SVG_ICONS.linux, title: 'Linux', arch: 'Debian / Ubuntu / Mint', format: '.deb', btnLabel: 'Download .deb Package' },
-  'linux-rpm': { icon: SVG_ICONS.linux, title: 'Linux', arch: 'Fedora / RHEL / openSUSE', format: '.rpm', btnLabel: 'Download .rpm Package' },
-  'linux-appimage': { icon: SVG_ICONS.linux, title: 'Linux', arch: 'AppImage (any distro)', format: '.AppImage', btnLabel: 'Download AppImage' },
-  'windows-exe': { icon: SVG_ICONS.windows, title: 'Windows', arch: 'x86_64 (Installer)', format: '.exe', btnLabel: 'Download .exe Installer' },
-  'windows-msi': { icon: SVG_ICONS.windows, title: 'Windows', arch: 'x86_64 (MSI)', format: '.msi', btnLabel: 'Download .msi Package' },
-};
-
-// Group platforms by OS family
-const OS_FAMILIES = {
-  macos: ['macos-arm64', 'macos-x64'],
-  linux: ['linux-deb', 'linux-rpm', 'linux-appimage'],
-  windows: ['windows-exe', 'windows-msi'],
-};
-
-// ---------- OS Detection ----------
-function detectOS() {
-  const ua = navigator.userAgent;
-  const platform = navigator.platform || '';
-
+function detect() {
+  const ua = navigator.userAgent, platform = navigator.userAgentData?.platform ?? navigator.platform ?? '';
+  if (/Win/i.test(platform) || /Windows/i.test(ua)) return 'windows-exe';
   if (/Mac/i.test(platform) || /Macintosh/i.test(ua)) {
-    return detectMacArch();
+    if (navigator.userAgentData?.architecture === 'x86') return 'macos-x64';
+    try {
+      const gl = document.createElement('canvas').getContext('webgl'), info = gl?.getExtension('WEBGL_debug_renderer_info');
+      if (info && /Intel/i.test(gl.getParameter(info.UNMASKED_RENDERER_WEBGL))) return 'macos-x64';
+    } catch { /* no WebGL */ }
+    return 'macos-arm64';
   }
-
-  if (/Linux/i.test(platform) || /Linux/i.test(ua)) {
-    return detectLinuxFamily(ua);
-  }
-
-  if (/Win/i.test(platform) || /Windows/i.test(ua)) {
-    return 'windows-exe';
-  }
-
+  if (/Linux/i.test(platform) || /Linux/i.test(ua)) return /Fedora|RHEL|SUSE/i.test(ua) ? 'linux-rpm' : 'linux-deb';
   return null;
 }
 
-function detectLinuxFamily(ua) {
-  // Firefox embeds the distro in the UA (e.g. "X11; Ubuntu; Linux x86_64").
-  // Chrome strips it. Default unknown desktop Linux to .deb because that's the
-  // largest user base (Ubuntu/Debian/Mint/Pop/Elementary), with AppImage as a fallback.
-  if (/Fedora|RHEL|CentOS|SUSE|openSUSE|Mageia/i.test(ua)) return 'linux-rpm';
-  if (/Arch|Manjaro|Gentoo|Slackware/i.test(ua)) return 'linux-appimage';
-  return 'linux-deb';
+const size = bytes => (bytes ? `${number(bytes / 1048576, { maximumFractionDigits: 1 })} MB` : '');
+const label = f => `${f.os} · ${f.arch}`;
+
+function draw(primaryId, assets = {}) {
+  const primary = FILES.find(f => f.id === primaryId) ?? FILES[0];
+  const a = assets[primary.id];
+  document.getElementById('dl-primary').innerHTML = `<p class="dl-primary__os">${esc(label(primary))}<span>${esc(primary.ext)}${a ? ` · ${esc(size(a.size))}` : ''}</span></p>
+    <a class="btn btn--light btn--lg" href="${esc(a?.browser_download_url ?? RELEASES)}" rel="noopener">${esc(t('dl.downloadFor', { os: primary.os }))}</a>
+    ${primary.os === 'macOS' ? `<p class="dl-primary__note">${t('dl.macNote')}</p>` : ''}`;
+  document.getElementById('dl-others').innerHTML = FILES.filter(f => f.id !== primary.id).map(f => {
+    const x = assets[f.id];
+    return `<li><a href="${esc(x?.browser_download_url ?? RELEASES)}" rel="noopener"><b>${esc(f.os)}</b><span>${esc(f.arch)}</span><i>${esc(f.ext)}${x ? ` · ${esc(size(x.size))}` : ''}</i></a></li>`;
+  }).join('');
 }
 
-function detectMacArch() {
-  // Method 1: Check navigator.userAgentData (Chromium 90+)
-  if (navigator.userAgentData && navigator.userAgentData.getHighEntropyValues) {
-    // This is async but we need sync — use the sync hints if available
-    const brands = navigator.userAgentData.brands || [];
-    // On ARM Macs, the architecture in userAgentData is 'arm'
-    if (navigator.userAgentData.architecture === 'arm') return 'macos-arm64';
-    if (navigator.userAgentData.architecture === 'x86') return 'macos-x64';
-  }
-
-  // Method 2: Check WebGL renderer for Apple GPU (Apple Silicon has Apple GPU, Intel has Intel GPU)
+async function json(url) {
+  const r = await fetch(url, { cache: 'no-store' });
+  if (!r.ok) throw new Error(`${url}: ${r.status}`);
+  return r.json();
+}
+async function release() {
   try {
-    const canvas = document.createElement('canvas');
-    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-    if (gl) {
-      const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
-      if (debugInfo) {
-        const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
-        // Apple Silicon GPUs show as "Apple M1", "Apple M2", "Apple GPU", etc.
-        if (/Apple M|Apple GPU/i.test(renderer)) return 'macos-arm64';
-        // Intel GPUs show as "Intel" on Intel Macs
-        if (/Intel/i.test(renderer)) return 'macos-x64';
-      }
-    }
-  } catch (e) {
-    // WebGL not available
-  }
-
-  // Method 3: Check platform string
-  const platform = navigator.platform || '';
-  if (/arm/i.test(platform)) return 'macos-arm64';
-
-  // Default: Intel (safer default — ARM users on modern browsers will be caught above)
-  return 'macos-x64';
+    const { version } = await json('/update.json');
+    if (/^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/.test(version)) return await json(`https://api.github.com/repos/${REPO}/releases/tags/v${encodeURIComponent(version)}`);
+  } catch { /* falls back to the latest release */ }
+  return json(`https://api.github.com/repos/${REPO}/releases/latest`);
 }
 
-function getOSDisplayName(platform) {
-  const info = PLATFORM_INFO[platform];
-  return info ? `${info.title} ${info.arch}` : 'your platform';
-}
-
-// ---------- Format Helpers ----------
-function formatBytes(bytes) {
-  if (!bytes || bytes === 0) return '--';
-  const mb = bytes / (1024 * 1024);
-  return `${mb.toFixed(1)} MB`;
-}
-
-// ---------- CLI Snippet Builder ----------
-function buildCLISnippet(platformKey) {
-  const cmd = CLI_COMMANDS[platformKey];
-  if (!cmd) return '';
-  return `
-    <div class="cli-snippet">
-      <div class="cli-snippet__header">
-        <span class="cli-snippet__label">Terminal</span>
-        <button class="cli-snippet__copy" data-copy="${platformKey}" aria-label="Copy command" title="Copy to clipboard">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="cli-snippet__copy-icon"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="cli-snippet__check-icon"><polyline points="20 6 9 17 4 12"/></svg>
-        </button>
-      </div>
-      <div class="cli-snippet__body">
-        <code class="cli-snippet__code" id="cli-cmd-${platformKey}">$ ${cmd}</code>
-      </div>
-    </div>
-  `;
-}
-
-// Copy to clipboard handler
-function initCopyButtons() {
-  document.querySelectorAll('.cli-snippet__copy').forEach((btn) => {
-    btn.addEventListener('click', async () => {
-      let cmd = '';
-      if (btn.hasAttribute('data-gatekeeper-copy') || btn.id === 'gatekeeper-callout-copy') {
-        cmd = 'xattr -cr /Applications/Cadente.app && codesign --force --deep --sign - /Applications/Cadente.app';
-      } else {
-        const platformKey = btn.dataset.copy;
-        cmd = CLI_COMMANDS[platformKey];
-      }
-      if (!cmd) return;
-
-      try {
-        await navigator.clipboard.writeText(cmd);
-        btn.classList.add('copied');
-        setTimeout(() => btn.classList.remove('copied'), 2000);
-      } catch {
-        // Fallback
-        const textarea = document.createElement('textarea');
-        textarea.value = cmd;
-        document.body.appendChild(textarea);
-        textarea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textarea);
-        btn.classList.add('copied');
-        setTimeout(() => btn.classList.remove('copied'), 2000);
-      }
-    });
-  });
-}
-
-// ---------- macOS Guided Install ----------
-function initMacInstallButton() {
-  const btn = document.getElementById('mac-install-btn');
-  const steps = document.getElementById('mac-install-steps');
-  if (!btn || !steps) return;
-
-  btn.addEventListener('click', async () => {
-    const cmd = CLI_COMMANDS['macos-arm64'];
-    try {
-      await navigator.clipboard.writeText(cmd);
-    } catch {
-      const textarea = document.createElement('textarea');
-      textarea.value = cmd;
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textarea);
-    }
-
-    // Show steps with animation
-    steps.hidden = false;
-    steps.classList.add('visible');
-    btn.innerHTML = `
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><polyline points="20 6 9 17 4 12"/></svg>
-      Copied! Follow steps below
-    `;
-    btn.classList.add('btn--success');
-    btn.disabled = true;
-  });
-}
-
-// ---------- macOS Download Buttons (open modal) ----------
-function initMacDownloadButtons() {
-  document.querySelectorAll('[data-mac-download]').forEach((btn) => {
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      const platformKey = btn.dataset.macDownload;
-      // Find the actual download URL from data-download links or fallback
-      const downloadLink = document.querySelector(`[data-download="${platformKey}"]`);
-      const url = downloadLink ? downloadLink.href : RELEASES_URL;
-      openGatekeeperModal(url);
-    });
-  });
-}
-
-// ---------- Gatekeeper Modal ----------
-function buildGatekeeperModal() {
-  const modal = document.createElement('div');
-  modal.className = 'modal-overlay';
-  modal.id = 'gatekeeper-modal';
-  modal.hidden = true;
-  modal.innerHTML = `
-    <div class="modal">
-      <button class="modal__close" aria-label="Close">&times;</button>
-      <div class="modal__header">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="modal__header-icon"><path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
-        <h2 class="modal__title">First time opening on macOS</h2>
-        <p class="modal__subtitle">macOS blocks apps from unidentified developers with an "is damaged" error. You only need to do this once.</p>
-      </div>
-      <div class="modal__steps">
-        <div class="modal__step">
-          <span class="modal__step-num">1</span>
-          <div class="modal__step-content">
-            <h3>Install the app</h3>
-            <p>Open the <code>.dmg</code> file and drag <strong>Cadente</strong> to your <strong>Applications</strong> folder.</p>
-          </div>
-        </div>
-        <div class="modal__step modal__step--highlight">
-          <span class="modal__step-num">2</span>
-          <div class="modal__step-content">
-            <h3>Run this command in Terminal</h3>
-            <p>Open <strong>Terminal</strong> (press <kbd>⌘</kbd> + <kbd>Space</kbd>, type <strong>Terminal</strong>, hit Enter), then paste and run:</p>
-            <div class="cli-snippet" style="margin-top:12px">
-              <div class="cli-snippet__header">
-                <span class="cli-snippet__label">Terminal</span>
-                <button class="cli-snippet__copy" id="modal-xattr-copy" aria-label="Copy command" title="Copy to clipboard">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="cli-snippet__copy-icon"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="cli-snippet__check-icon"><polyline points="20 6 9 17 4 12"/></svg>
-                </button>
-              </div>
-              <div class="cli-snippet__body">
-                <code class="cli-snippet__code" id="modal-xattr-cmd">$ xattr -cr /Applications/Cadente.app && codesign --force --deep --sign - /Applications/Cadente.app</code>
-              </div>
-            </div>
-            <div class="modal__step-note">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4m0-4h.01"/></svg>
-              <span>This removes the macOS quarantine flag. Required on Apple Silicon (M1–M4) — right-click → Open no longer works for unsigned apps on recent macOS versions.</span>
-            </div>
-          </div>
-        </div>
-        <div class="modal__step">
-          <span class="modal__step-num">3</span>
-          <div class="modal__step-content">
-            <h3>Open Cadente normally</h3>
-            <p>Double-click <strong>Cadente</strong> in Applications — it will launch like any other app from now on.</p>
-          </div>
-        </div>
-      </div>
-      <div class="modal__footer">
-        <p class="modal__footer-tip">Tip: <code>brew install --cask cadente</code> handles this automatically — see the recommended terminal install.</p>
-        <a class="btn btn--primary modal__download-btn" id="modal-download-link" href="#" target="_blank" rel="noopener noreferrer">
-          <span class="btn__icon">↓</span>
-          Download .dmg
-        </a>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(modal);
-
-  // Close handlers
-  modal.querySelector('.modal__close').addEventListener('click', () => closeGatekeeperModal());
-  modal.addEventListener('click', (e) => {
-    if (e.target === modal) closeGatekeeperModal();
-  });
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeGatekeeperModal();
-  });
-}
-
-function openGatekeeperModal(downloadUrl) {
-  const modal = document.getElementById('gatekeeper-modal');
-  if (!modal) return;
-  const link = document.getElementById('modal-download-link');
-  if (link) link.href = downloadUrl;
-  modal.hidden = false;
-  requestAnimationFrame(() => modal.classList.add('visible'));
-  document.body.style.overflow = 'hidden';
-
-  const copyBtn = document.getElementById('modal-xattr-copy');
-  if (copyBtn && !copyBtn.dataset.bound) {
-    copyBtn.dataset.bound = 'true';
-    copyBtn.addEventListener('click', async () => {
-      const cmd = 'xattr -cr /Applications/Cadente.app && codesign --force --deep --sign - /Applications/Cadente.app';
-      try {
-        await navigator.clipboard.writeText(cmd);
-      } catch {
-        const textarea = document.createElement('textarea');
-        textarea.value = cmd;
-        document.body.appendChild(textarea);
-        textarea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textarea);
-      }
-      copyBtn.classList.add('copied');
-      setTimeout(() => copyBtn.classList.remove('copied'), 2000);
-    });
-  }
-}
-
-function closeGatekeeperModal() {
-  const modal = document.getElementById('gatekeeper-modal');
-  if (!modal) return;
-  modal.classList.remove('visible');
-  setTimeout(() => {
-    modal.hidden = true;
-    document.body.style.overflow = '';
-  }, 300);
-}
-
-// ---------- Dynamic Layout Builder ----------
-function buildDownloadsLayout(detectedOS) {
-  const container = document.getElementById('downloads-dynamic');
-  if (!container) return;
-
-  // Determine the primary platform and alternatives
-  const primaryPlatform = detectedOS || 'macos-arm64';
-  const allPlatforms = Object.keys(PLATFORM_INFO);
-  const otherPlatforms = allPlatforms.filter((p) => p !== primaryPlatform);
-
-  // Build the hero (primary) card
-  const primaryInfo = PLATFORM_INFO[primaryPlatform];
-  const isMac = primaryPlatform.startsWith('macos-');
-
-  // macOS gets a "Recommended: install via terminal" with a guided flow
-  const macInstallerHTML = isMac
-    ? `
-      <div class="download-hero-card__options">
-        <button class="btn btn--primary btn--lg download-hero-card__btn" id="mac-install-btn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-          Copy Install Command
-        </button>
-        <div class="install-steps" id="mac-install-steps" hidden>
-          <div class="install-steps__success">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="install-steps__check"><polyline points="20 6 9 17 4 12"/></svg>
-            Command copied!
-          </div>
-          <div class="install-steps__guide">
-            <div class="install-step">
-              <span class="install-step__num">1</span>
-              <span>Open <strong>Terminal</strong> (<kbd>⌘</kbd> + <kbd>Space</kbd>, type <strong>Terminal</strong>, hit Enter)</span>
-            </div>
-            <div class="install-step">
-              <span class="install-step__num">2</span>
-              <span>Paste with <kbd>⌘</kbd> + <kbd>V</kbd> and press <strong>Enter</strong></span>
-            </div>
-            <div class="install-step">
-              <span class="install-step__num">3</span>
-              <span>Done! Installs Cadente, removes Gatekeeper quarantine (no "damaged / move to trash" warning), and launches the app automatically.</span>
-            </div>
-          </div>
-        </div>
-        <div class="download-hero-card__or">
-          <span>or download manually</span>
-        </div>
-        <button class="btn btn--outline btn--lg download-hero-card__btn download-hero-card__btn--secondary" data-mac-download="${primaryPlatform}">
-          <span class="btn__icon">↓</span>
-          ${primaryInfo.btnLabel}
-        </button>
-      </div>`
-    : `
-      <a class="btn btn--primary btn--lg download-hero-card__btn" data-download="${primaryPlatform}" href="${RELEASES_URL}" target="_blank" rel="noopener noreferrer">
-        <span class="btn__icon">↓</span>
-        ${primaryInfo.btnLabel}
-      </a>`;
-
-  const heroHTML = `
-    <div class="download-hero-card animate-on-scroll" data-platform="${primaryPlatform}">
-      <div class="download-hero-card__badge">
-        <span class="download-hero-card__badge-dot"></span>
-        Detected: ${primaryInfo.title} ${primaryInfo.arch}
-      </div>
-      <div class="download-hero-card__content">
-        <div class="download-hero-card__icon">${primaryInfo.icon}</div>
-        <div class="download-hero-card__info">
-          <h2 class="download-hero-card__title">Download for ${primaryInfo.title}</h2>
-          <p class="download-hero-card__arch">${primaryInfo.arch}</p>
-          <div class="download-hero-card__meta">
-            <span class="download-card__format">${primaryInfo.format}</span>
-            <span class="download-card__size" data-size="${primaryPlatform}">--</span>
-          </div>
-        </div>
-      </div>
-      ${macInstallerHTML}
-      ${buildCLISnippet(primaryPlatform)}
-    </div>
-  `;
-
-  // Build the compact grid of other platforms
-  const othersHTML = otherPlatforms
-    .map(
-      (platformKey) => {
-        const info = PLATFORM_INFO[platformKey];
-        const isMacAlt = platformKey.startsWith('macos-');
-        const downloadBtn = isMacAlt
-          ? `<button class="btn btn--sm btn--outline download-alt-card__btn" data-mac-download="${platformKey}"><span class="btn__icon">↓</span>Download</button>`
-          : `<a class="btn btn--sm btn--outline download-alt-card__btn" data-download="${platformKey}" href="${RELEASES_URL}" target="_blank" rel="noopener noreferrer"><span class="btn__icon">↓</span>Download</a>`;
-        return `
-      <div class="download-alt-card animate-on-scroll" data-platform="${platformKey}">
-        <button class="download-alt-card__swap" data-swap="${platformKey}" type="button" aria-label="View install steps for ${info.title} ${info.arch}">
-          <span class="download-alt-card__top">
-            <span class="download-alt-card__left">
-              <span class="download-alt-card__icon">${info.icon}</span>
-              <span>
-                <span class="download-alt-card__title">${info.title}</span>
-                <span class="download-alt-card__arch">${info.arch}</span>
-              </span>
-            </span>
-            <span class="download-alt-card__right">
-              <span class="download-alt-card__meta">
-                <span class="download-card__format">${info.format}</span>
-                <span class="download-card__size" data-size="${platformKey}">--</span>
-              </span>
-            </span>
-          </span>
-          <span class="download-alt-card__hint">View install steps →</span>
-        </button>
-        <div class="download-alt-card__actions">
-          ${downloadBtn}
-        </div>
-        ${buildCLISnippet(platformKey)}
-      </div>
-    `;
-      }
-    )
-    .join('');
-
-  container.innerHTML = `
-    ${heroHTML}
-    <div class="download-alt-section">
-      <h3 class="download-alt-section__title">Other platforms</h3>
-      <div class="download-alt-grid">
-        ${othersHTML}
-      </div>
-    </div>
-  `;
-
-  // Re-observe for scroll animations (elements were just created)
-  container.querySelectorAll('.animate-on-scroll').forEach((el) => {
-    requestAnimationFrame(() => el.classList.add('visible'));
-  });
-
-  // Init copy buttons
-  initCopyButtons();
-
-  // Init macOS guided install button
-  initMacInstallButton();
-
-  // Init Gatekeeper modal
-  buildGatekeeperModal();
-  initMacDownloadButtons();
-
-  // Init alt-card swap buttons
-  initSwapButtons();
-}
-
-function initSwapButtons() {
-  document.querySelectorAll('[data-swap]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const target = btn.dataset.swap;
-      if (target) swapPrimaryPlatform(target);
-    });
-  });
-}
-
-// Apply asset URLs/sizes/CLI snippets to whatever is currently in the DOM.
-// Pure-ish: reads release, mutates DOM + resolved CLI_COMMANDS for each platform.
-function applyAssetData(release) {
-  const assets = release.assets || [];
-
-  for (const [platformKey, config] of Object.entries(PLATFORM_PATTERNS)) {
-    const asset = assets.find((a) => config.match(a.name));
-    const template = CLI_COMMAND_TEMPLATES[platformKey];
-
-    if (asset) {
-      // Update download link
-      document.querySelectorAll(`[data-download="${platformKey}"]`).forEach((btn) => {
-        btn.href = asset.browser_download_url;
-      });
-
-      // Update file size
-      const sizeEl = document.querySelector(`[data-size="${platformKey}"]`);
-      if (sizeEl) sizeEl.textContent = formatBytes(asset.size);
-
-      // Resolve and inject the CLI snippet with the real versioned URL.
-      if (template) {
-        CLI_COMMANDS[platformKey] = template.replace('<URL>', asset.browser_download_url);
-        const codeEl = document.getElementById(`cli-cmd-${platformKey}`);
-        if (codeEl) codeEl.textContent = `$ ${CLI_COMMANDS[platformKey]}`;
-      }
-    }
-  }
-}
-
-// User clicked an alt card — promote it to hero, demote the previous hero.
-// Re-applies cached release data so URLs/sizes don't show stale placeholders.
-function swapPrimaryPlatform(platformKey) {
-  if (!PLATFORM_INFO[platformKey]) return;
-  // Reset resolved commands to templates so placeholders re-render before re-applying URLs.
-  Object.assign(CLI_COMMANDS, CLI_COMMAND_TEMPLATES);
-  buildDownloadsLayout(platformKey);
-  if (cachedRelease) applyAssetData(cachedRelease);
-
-  // Scroll the new hero into view smoothly.
-  const hero = document.querySelector('.download-hero-card');
-  if (hero) hero.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-// ---------- Fetch and Render ----------
-// Resolve the release the update manifest points to; null when unavailable
-// so the caller can fall back to GitHub's "latest".
-async function fetchManifestRelease() {
-  try {
-    const manifest = await fetch(MANIFEST_URL, { cache: 'no-store' });
-    if (!manifest.ok) return null;
-    const { version } = await manifest.json();
-    if (typeof version !== 'string' || !/^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/.test(version)) return null;
-    const response = await fetch(TAG_API_URL(`v${version}`));
-    return response.ok ? await response.json() : null;
-  } catch {
-    return null;
-  }
-}
-
-async function fetchLatestFallback() {
-  const response = await fetch(API_URL);
-  if (!response.ok) throw new Error(`GitHub API returned ${response.status}`);
-  return response.json();
-}
-
-async function fetchLatestRelease() {
-  const versionValue = document.getElementById('version-value');
-  const fallback = document.getElementById('downloads-fallback');
-  const osMsg = document.getElementById('os-detect-msg');
-
-  const detectedOS = detectOS();
-
-  if (osMsg) {
-    if (detectedOS) {
-      const info = PLATFORM_INFO[detectedOS];
-      osMsg.textContent = `We detected ${info.title} ${info.arch} — your download is ready.`;
-    } else {
-      osMsg.textContent = 'Select the download for your operating system.';
-    }
-  }
-
-  buildDownloadsLayout(detectedOS);
-
-  try {
-    const release = await fetchManifestRelease() || await fetchLatestFallback();
-    cachedRelease = release;
-
-    if (versionValue) {
-      versionValue.textContent = release.tag_name || release.name || 'Unknown';
-    }
-
-    applyAssetData(release);
-  } catch (error) {
-    console.warn('Failed to fetch latest release:', error.message);
-
-    if (versionValue) versionValue.textContent = 'Check GitHub';
-    if (fallback) fallback.hidden = false;
-
-    document.querySelectorAll('[data-download]').forEach((btn) => {
-      btn.href = RELEASES_URL;
-    });
-  }
-}
-
-// ---------- Init ----------
-document.addEventListener('DOMContentLoaded', () => {
-  fetchLatestRelease();
+initPage();
+const detected = detect();
+const found = FILES.find(f => f.id === detected);
+document.getElementById('dl-detected').textContent = found ? t('dl.detected', { os: label(found) }) : t('dl.pick');
+draw(detected);
+release().then(r => {
+  const assets = {};
+  for (const f of FILES) { const a = (r.assets ?? []).find(x => f.match(x.name)); if (a) assets[f.id] = a; }
+  document.getElementById('dl-version').textContent = r.tag_name ?? r.name ?? '';
+  draw(detected, assets);
+}).catch(() => {
+  document.getElementById('dl-version').textContent = '—';
+  document.getElementById('dl-fallback').hidden = false;
 });

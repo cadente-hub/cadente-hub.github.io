@@ -2,68 +2,21 @@
 <html lang="{{@lang}}" dir="{{@dir}}">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="color-scheme" content="dark" />
-  <meta name="theme-color" content="#000000" />
   <title>{{meta.title}}</title>
   <meta name="description" content="{{meta.description|attr}}" />
   <meta property="og:title" content="Cadente" />
   <meta property="og:description" content="{{meta.ogDescription|attr}}" />
-  <meta property="og:image" content="https://cadente-hub.github.io/assets/og-image.png" />
-  <meta property="og:type" content="website" />
-  {{@head}}
-  <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Cadente" />
   <meta name="twitter:description" content="{{meta.ogDescription|attr}}" />
-  <meta name="twitter:image" content="https://cadente-hub.github.io/assets/og-image.png" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  {{@fonts}}
-  <link rel="preload" href="/assets/fonts/hack-regular.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="preload" href="/assets/fonts/hack-bold.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="/css/site.css" />
+{{@include:head}}  <link rel="preload" href="/assets/fonts/hack-bold.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="/css/v4-theme.css" />
   <link rel="stylesheet" href="/css/v4.css" />
   <link rel="stylesheet" href="/css/home.css" />
-  <script>if (!matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('js-motion');</script>
-  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png" />
-  <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
-  <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png" />
-  <meta name="google-site-verification" content="HGFZHpKEZzOsP2slAus8nx0z4HrCyMUmFyTK2WrWpVA" />
-  {{@i18n}}
 </head>
 <body class="home">
   <a class="skip" href="#conteudo">{{meta.skip}}</a>
 
-  <header class="nav" id="nav">
-    <nav class="nav__inner wrap" aria-label="{{nav.label|attr}}">
-      <a href="{{@base}}" class="brand" aria-label="{{nav.home|attr}}">
-        {{@brand}}
-        <span>Cadente</span>
-      </a>
-      <ul class="nav__links">
-        <li><a href="#abrir">{{nav.how}}</a></li>
-        <li><a href="#dono">{{nav.plugins}}</a></li>
-        <li><a href="#agentes">{{nav.agents}}</a></li>
-        <li><a href="#loja">{{nav.store}}</a></li>
-        <li><a href="#faq">{{nav.faq}}</a></li>
-        <li><a href="{{@href:blog}}">{{nav.blog}}</a></li>
-      </ul>
-      <details class="langpick"><summary aria-label="{{lang.label|attr}}">{{@lang}}</summary><div class="langpick__list">{{@langlinks}}</div></details>
-      <a href="{{@href:downloads}}" class="btn btn--light btn--sm nav__cta">{{nav.download}}</a>
-      <button class="nav__menu" id="nav-menu" aria-label="{{nav.menu|attr}}" aria-expanded="false" aria-controls="nav-sheet"><span></span><span></span></button>
-    </nav>
-    <div class="nav__sheet" id="nav-sheet" hidden>
-      <a href="#abrir">{{nav.how}}</a>
-      <a href="#dono">{{nav.plugins}}</a>
-      <a href="#agentes">{{nav.agents}}</a>
-      <a href="#loja">{{nav.store}}</a>
-      <a href="#faq">{{nav.faq}}</a>
-      <a href="{{@href:blog}}">{{nav.blog}}</a>
-      <a href="{{@href:downloads}}" class="btn btn--light">{{nav.download}}</a>
-    </div>
-  </header>
+{{@include:nav}}
 
   <main id="conteudo">
     <!-- Hero: Cadente is a ~~harness~~ ~~terminal~~ … hub. -->
@@ -385,21 +338,7 @@
     </section>
   </main>
 
-  <footer class="foot">
-    <div class="wrap foot__inner">
-      <div class="foot__brand">
-        <a href="{{@base}}" class="brand">{{@brand}}<span>Cadente</span></a>
-        <p>{{foot.tagline}}</p>
-      </div>
-      <nav class="foot__cols" aria-label="{{foot.label|attr}}">
-        <div><h4>{{foot.product}}</h4><a href="#abrir">{{nav.how}}</a><a href="#plugins">{{nav.plugins}}</a><a href="#loja">{{nav.store}}</a><a href="#creator">Creator mode</a><a href="{{@href:downloads}}">Downloads</a></div>
-        <div><h4>{{foot.resources}}</h4><a href="{{@href:blog}}">{{nav.blog}}</a><a href="{{@href:release-notes}}">Release notes</a><a href="https://github.com/cadente-hub/cadente-hub.github.io" target="_blank" rel="noopener noreferrer">GitHub</a><a href="https://github.com/cadente-hub/cadente-hub.github.io/issues" target="_blank" rel="noopener noreferrer">Issues</a></div>
-        <div><h4>{{foot.legal}}</h4><a href="{{@href:terms}}">{{foot.terms}}</a></div>
-        <div class="foot__langs"><h4>{{foot.langs}}</h4>{{@langlinks}}</div>
-      </nav>
-      <p class="foot__copy">{{foot.copy}}</p>
-    </div>
-  </footer>
+{{@include:foot}}
 
   <script type="module" src="/js/home.js"></script>
 </body>

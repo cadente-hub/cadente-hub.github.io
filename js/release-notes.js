@@ -1,215 +1,59 @@
-/**
- * Cadente release notes page.
- * Reads public update manifests and GitHub releases.
- */
-import './main.js';
-import './animations.js';
+// Release notes: the stable and beta channels, from the update feeds the app reads (/update.json, /update-beta.json)
+// and the GitHub releases. The notes are written in English; dates follow the page's language.
+import { initPage } from './page.js';
+import { t, INTL } from './i18n.js';
 
-const GITHUB_REPO = 'cadente-hub/cadente-hub.github.io';
-const RELEASES_API = `https://api.github.com/repos/${GITHUB_REPO}/releases?per_page=40`;
-const RELEASES_URL = `https://github.com/${GITHUB_REPO}/releases`;
-const STABLE_MANIFEST = './update.json';
-const BETA_MANIFEST = './update-beta.json';
+const REPO = 'cadente-hub/cadente-hub.github.io';
+const RELEASES = `https://github.com/${REPO}/releases`;
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const VERSION = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
+const day = v => { const d = new Date(v); return Number.isNaN(d.getTime()) ? '' : new Intl.DateTimeFormat(INTL, { dateStyle: 'medium' }).format(d); };
+const inline = s => esc(s).replace(/`([^`]+)`/g, '<code>$1</code>').replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
 
-const stableList = document.getElementById('stable-release-list');
-const betaList = document.getElementById('beta-release-list');
-const stableVersion = document.getElementById('stable-version');
-const betaVersion = document.getElementById('beta-version');
-
-function escapeHtml(value) {
-  return String(value ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
-
-function parseVersion(tag) {
-  const version = String(tag || '').replace(/^v/, '').trim();
-  if (!/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(version)) return null;
-  return version;
-}
-
-function releaseChannel(version, prerelease) {
-  return prerelease || version.includes('-beta') ? 'beta' : 'stable';
-}
-
-function formatDate(value) {
-  if (!value) return '';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '';
-  return new Intl.DateTimeFormat(undefined, {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  }).format(date);
-}
-
-function inlineMarkdown(text) {
-  return escapeHtml(text)
-    .replace(/`([^`]+)`/g, '<code>$1</code>')
-    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-}
-
-function markdownToHtml(markdown) {
-  const lines = String(markdown || '').split(/\r?\n/);
-  const html = [];
-  let inList = false;
-
-  for (const raw of lines) {
+// The few Markdown forms the release notes use: ## and ### headings, - lists and paragraphs.
+function markdown(text) {
+  const out = [];
+  let list = false;
+  const close = () => { if (list) { out.push('</ul>'); list = false; } };
+  for (const raw of String(text ?? '').split(/\r?\n/)) {
     const line = raw.trim();
-    if (!line) {
-      if (inList) {
-        html.push('</ul>');
-        inList = false;
-      }
-      continue;
-    }
-
-    if (line.startsWith('## ')) {
-      if (inList) {
-        html.push('</ul>');
-        inList = false;
-      }
-      html.push(`<h3>${inlineMarkdown(line.slice(3))}</h3>`);
-      continue;
-    }
-
-    if (line.startsWith('### ')) {
-      if (inList) {
-        html.push('</ul>');
-        inList = false;
-      }
-      html.push(`<h4>${inlineMarkdown(line.slice(4))}</h4>`);
-      continue;
-    }
-
-    if (line.startsWith('- ')) {
-      if (!inList) {
-        html.push('<ul>');
-        inList = true;
-      }
-      html.push(`<li>${inlineMarkdown(line.slice(2))}</li>`);
-      continue;
-    }
-
-    if (inList) {
-      html.push('</ul>');
-      inList = false;
-    }
-    html.push(`<p>${inlineMarkdown(line)}</p>`);
+    if (!line) { close(); continue; }
+    if (line.startsWith('### ')) { close(); out.push(`<h4>${inline(line.slice(4))}</h4>`); continue; }
+    if (line.startsWith('## ')) { close(); out.push(`<h3>${inline(line.slice(3))}</h3>`); continue; }
+    if (line.startsWith('- ')) { if (!list) { out.push('<ul>'); list = true; } out.push(`<li>${inline(line.slice(2))}</li>`); continue; }
+    close();
+    out.push(`<p>${inline(line)}</p>`);
   }
-
-  if (inList) html.push('</ul>');
-  return html.join('');
+  close();
+  return out.join('');
 }
 
-async function fetchJson(url) {
-  const response = await fetch(url, { cache: 'no-store' });
-  if (!response.ok) throw new Error(`Request failed: ${url}`);
-  return response.json();
+async function json(url) {
+  const r = await fetch(url, { cache: 'no-store' });
+  if (!r.ok) throw new Error(`${url}: ${r.status}`);
+  return r.json();
+}
+const fromFeed = m => ({ version: m.version, date: m.pub_date, body: m.notes, url: `${RELEASES}/tag/v${m.version}`, latest: true });
+const fromGitHub = r => { const v = String(r.tag_name ?? '').replace(/^v/, ''); return VERSION.test(v) ? { version: v, beta: r.prerelease || v.includes('-'), date: r.published_at, body: r.body, url: r.html_url } : null; };
+const unique = xs => xs.filter((x, i) => x && xs.findIndex(y => y?.version === x.version) === i);
+
+function render(el, items) {
+  el.innerHTML = items.length ? items.map(r => `<article class="rn-item"><p class="rn-item__meta"><b>v${esc(r.version)}</b>${r.latest ? `<span class="rn-badge">${esc(t('rn.latest'))}</span>` : ''}<time>${esc(day(r.date))}</time></p>
+    <div class="rn-item__body">${markdown(r.body || `Cadente v${r.version}`)}</div><a class="rn-item__link" href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">${esc(t('rn.onGitHub'))}</a></article>`).join('')
+    : `<p class="rn-empty">${esc(t('rn.none'))}</p>`;
 }
 
-function manifestRelease(manifest, channel) {
-  return {
-    version: manifest.version,
-    channel,
-    tag: channel === 'beta' ? `v${manifest.version}` : `v${manifest.version}`,
-    name: `Cadente v${manifest.version}`,
-    date: manifest.pub_date,
-    body: manifest.notes || '',
-    htmlUrl: `${RELEASES_URL}/tag/v${manifest.version}`,
-    latest: true,
-  };
-}
-
-function githubRelease(release) {
-  const version = parseVersion(release.tag_name);
-  if (!version) return null;
-  const channel = releaseChannel(version, release.prerelease);
-  return {
-    version,
-    channel,
-    tag: release.tag_name,
-    name: release.name || `Cadente v${version}`,
-    date: release.published_at,
-    body: release.body || '',
-    htmlUrl: release.html_url,
-    latest: false,
-  };
-}
-
-function dedupeByVersion(releases) {
-  const seen = new Set();
-  return releases.filter((release) => {
-    if (!release?.version || seen.has(release.version)) return false;
-    seen.add(release.version);
-    return true;
-  });
-}
-
-function renderRelease(release) {
-  const date = formatDate(release.date);
-  return `
-    <article class="release-note">
-      <div class="release-note__meta">
-        <span class="release-note__version">v${escapeHtml(release.version)}</span>
-        ${release.latest ? '<span class="release-note__badge">Latest</span>' : ''}
-        ${date ? `<span class="release-note__date">${escapeHtml(date)}</span>` : ''}
-      </div>
-      <div class="release-note__body">
-        ${markdownToHtml(release.body || `Cadente v${release.version}`)}
-      </div>
-      <a class="release-note__link" href="${escapeHtml(release.htmlUrl)}" target="_blank" rel="noopener noreferrer">View on GitHub</a>
-    </article>
-  `;
-}
-
-function renderList(target, releases) {
-  if (!target) return;
-  if (!releases.length) {
-    target.innerHTML = '<div class="release-loading">No release notes found.</div>';
-    return;
-  }
-  target.innerHTML = releases.map(renderRelease).join('');
-}
-
-async function initReleaseNotes() {
-  try {
-    const [stableManifest, betaManifest, githubRaw] = await Promise.all([
-      fetchJson(STABLE_MANIFEST),
-      fetchJson(BETA_MANIFEST),
-      fetchJson(RELEASES_API),
-    ]);
-
-    const githubReleases = githubRaw.map(githubRelease).filter(Boolean);
-    const stable = dedupeByVersion([
-      manifestRelease(stableManifest, 'stable'),
-      ...githubReleases.filter((release) => release.channel === 'stable'),
-    ]).slice(0, 8);
-    const beta = dedupeByVersion([
-      manifestRelease(betaManifest, 'beta'),
-      ...githubReleases.filter((release) => release.channel === 'beta'),
-    ]).slice(0, 8);
-
-    stableVersion.textContent = stable[0] ? `v${stable[0].version}` : 'Unavailable';
-    betaVersion.textContent = beta[0] ? `v${beta[0].version}` : 'Unavailable';
-    renderList(stableList, stable);
-    renderList(betaList, beta);
-  } catch (error) {
-    console.error('Failed to load release notes:', error);
-    stableVersion.textContent = 'Unavailable';
-    betaVersion.textContent = 'Unavailable';
-    const fallback = `
-      <div class="release-loading">
-        Could not load release notes.
-        <a href="${RELEASES_URL}" target="_blank" rel="noopener noreferrer">Open GitHub releases</a>.
-      </div>
-    `;
-    if (stableList) stableList.innerHTML = fallback;
-    if (betaList) betaList.innerHTML = fallback;
-  }
-}
-
-initReleaseNotes();
+initPage();
+const $ = id => document.getElementById(id);
+Promise.all([json('/update.json'), json('/update-beta.json'), json(`https://api.github.com/repos/${REPO}/releases?per_page=40`).catch(() => [])]).then(([stable, beta, gh]) => {
+  const all = gh.map(fromGitHub).filter(Boolean);
+  const stableList = unique([fromFeed(stable), ...all.filter(r => !r.beta)]).slice(0, 8);
+  const betaList = unique([fromFeed(beta), ...all.filter(r => r.beta)]).slice(0, 8);
+  $('rn-stable-version').textContent = stableList[0] ? `v${stableList[0].version}` : '—';
+  $('rn-beta-version').textContent = betaList[0] ? `v${betaList[0].version}` : '—';
+  render($('rn-stable'), stableList);
+  render($('rn-beta'), betaList);
+}).catch(() => {
+  for (const id of ['rn-stable-version', 'rn-beta-version']) $(id).textContent = '—';
+  for (const id of ['rn-stable', 'rn-beta']) $(id).innerHTML = `<p class="rn-empty">${t('rn.failed', { url: RELEASES })}</p>`;
+});

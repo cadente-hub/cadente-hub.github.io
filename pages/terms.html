@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="{{@lang}}" dir="{{@dir}}">
+<head>
+  <meta charset="UTF-8" />
+  <title>{{terms.metaTitle}}</title>
+  <meta name="description" content="{{terms.metaDescription|attr}}" />
+  <meta property="og:title" content="{{terms.metaTitle|attr}}" />
+  <meta property="og:description" content="{{terms.metaDescription|attr}}" />
+  <meta name="twitter:title" content="{{terms.metaTitle|attr}}" />
+  <meta name="twitter:description" content="{{terms.metaDescription|attr}}" />
+{{@include:head}}  <link rel="stylesheet" href="/css/pages.css" />
+</head>
+<body class="page">
+  <a class="skip" href="#conteudo">{{meta.skip}}</a>
+{{@include:nav}}
+  <main id="conteudo" class="wrap legal">
+    <header class="legal__head">
+      <h1 class="title">{{terms.title}}</h1>
+      <p class="legal__meta">{{terms.updated}}</p>
+      <p class="legal__notice">{{terms.notice}}</p>
+    </header>
+    <article class="legal__body">
+{{@terms}}
+    </article>
+  </main>
+{{@include:foot}}
+  <script type="module" src="/js/page-main.js"></script>
+</body>
+</html>

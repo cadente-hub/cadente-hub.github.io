@@ -21,9 +21,6 @@ export default defineConfig({
     rollupOptions: {
       input: {
         ...pageInputs(__dirname),
-        downloads: resolve(__dirname, 'downloads.html'),
-        releaseNotes: resolve(__dirname, 'release-notes.html'),
-        terms: resolve(__dirname, 'terms-and-conditions.html'),
       },
     },
     outDir: 'dist',

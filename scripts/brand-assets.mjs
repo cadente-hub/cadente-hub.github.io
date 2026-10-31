@@ -30,12 +30,7 @@ rest.forEach((row, y) => {
 const body = rects.join('');
 fs.writeFileSync(path.join(root, 'assets/logo-symbol.svg'), `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" shape-rendering="crispEdges"><title>Cadente</title>${body}</svg>\n`);
 
-// The same mark inline in the pages, so the logo shows before any script runs.
-const INLINE = /(<svg class="(?:brand__mark|navbar__logo-icon)" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">)[\s\S]*?(<\/svg>)/g;
-for (const page of ['downloads.html', 'release-notes.html', 'terms-and-conditions.html']) {
-  const file = path.join(root, page), html = fs.readFileSync(file, 'utf8');
-  fs.writeFileSync(file, html.replace(INLINE, `$1${body}$2`));
-}
+// The pages draw the same mark inline from assets/logo-symbol.svg (scripts/i18n/pages.mjs, {{@brand}}).
 
 // PNG encoder: RGBA, no filter, one IDAT.
 const crcTable = Array.from({ length: 256 }, (_, n) => { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; return c >>> 0; });

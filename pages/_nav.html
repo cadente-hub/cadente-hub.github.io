@@ -1,0 +1,28 @@
+  <header class="nav" id="nav">
+    <nav class="nav__inner wrap" aria-label="{{nav.label|attr}}">
+      <a href="{{@base}}" class="brand" aria-label="{{nav.home|attr}}">
+        {{@brand}}
+        <span>Cadente</span>
+      </a>
+      <ul class="nav__links">
+        <li><a href="{{@base}}#abrir">{{nav.how}}</a></li>
+        <li><a href="{{@base}}#dono">{{nav.plugins}}</a></li>
+        <li><a href="{{@base}}#agentes">{{nav.agents}}</a></li>
+        <li><a href="{{@base}}#loja">{{nav.store}}</a></li>
+        <li><a href="{{@base}}#faq">{{nav.faq}}</a></li>
+        <li><a href="{{@href:blog}}">{{nav.blog}}</a></li>
+      </ul>
+      <details class="langpick"><summary aria-label="{{lang.label|attr}}">{{@lang}}</summary><div class="langpick__list">{{@langlinks}}</div></details>
+      <a href="{{@href:downloads}}" class="btn btn--light btn--sm nav__cta">{{nav.download}}</a>
+      <button class="nav__menu" id="nav-menu" aria-label="{{nav.menu|attr}}" aria-expanded="false" aria-controls="nav-sheet"><span></span><span></span></button>
+    </nav>
+    <div class="nav__sheet" id="nav-sheet" hidden>
+      <a href="{{@base}}#abrir">{{nav.how}}</a>
+      <a href="{{@base}}#dono">{{nav.plugins}}</a>
+      <a href="{{@base}}#agentes">{{nav.agents}}</a>
+      <a href="{{@base}}#loja">{{nav.store}}</a>
+      <a href="{{@base}}#faq">{{nav.faq}}</a>
+      <a href="{{@href:blog}}">{{nav.blog}}</a>
+      <a href="{{@href:downloads}}" class="btn btn--light">{{nav.download}}</a>
+    </div>
+  </header>

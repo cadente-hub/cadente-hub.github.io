@@ -18,9 +18,12 @@ export const ORIGIN = 'https://cadente-hub.github.io';
 // Pages made from a template. `file` is where the page lands inside the language folder; `url` is its public path.
 export const PAGES = [
   { id: 'index', template: 'pages/index.html', file: 'index.html', url: '' },
+  { id: 'downloads', template: 'pages/downloads.html', file: 'downloads.html', url: 'downloads.html' },
+  { id: 'release-notes', template: 'pages/release-notes.html', file: 'release-notes.html', url: 'release-notes.html' },
+  { id: 'terms', template: 'pages/terms.html', file: 'terms-and-conditions.html', url: 'terms-and-conditions.html' },
 ];
 // Pages that still exist only once, at the root.
-const STATIC = { downloads: 'downloads.html', 'release-notes': 'release-notes.html', terms: 'terms-and-conditions.html', blog: 'blog/' };
+const STATIC = { blog: 'blog/' };
 
 export const outFile = (locale, page) => `${locale.path.slice(1)}${page.file}`;
 export const pageUrl = (locale, page, origin = ORIGIN) => `${origin}${locale.path}${page.url}`;
@@ -75,6 +78,8 @@ export function renderPage({ template, page, locale, locales, messages, catalogs
     return [l.code, { name: l.name, dir: l.dir, href: `${l.path}${page.url}`, notice: m['lang.notice'] ?? '', go: m['lang.go'] ?? '', close: m['lang.close'] ?? '' }];
   }));
   const js = Object.fromEntries(Object.entries(messages).filter(([k]) => k.startsWith('js.')).map(([k, v]) => [k.slice(3), v]));
+  // Shared pieces (pages/_nav.html, pages/_foot.html) go in first, so their tokens are filled like the page's.
+  template = template.replace(/\{\{@include:([\w-]+)\}\}/g, (all, name) => fs.readFileSync(path.join(root, 'pages', `_${name}.html`), 'utf8'));
   const html = template.replace(/\{\{\s*(@?[\w.:-]+)\s*(?:\|\s*(\w+)\s*)?\}\}/g, (all, key, filter) => {
     let v;
     if (key === '@lang') v = locale.code;
@@ -85,6 +90,8 @@ export function renderPage({ template, page, locale, locales, messages, catalogs
     // A script Geist does not cover gets its Noto font, on its own pages only, after Geist in the stack.
     else if (key === '@fonts') v = locale.font ? `<link href="https://fonts.googleapis.com/css2?family=${encodeURIComponent(locale.font).replace(/%20/g, '+')}:wght@400;500;600;700&display=swap" rel="stylesheet" />\n  <style>:root { --sans: 'Geist', '${locale.font}', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }</style>` : '';
     else if (key === '@jsonld:faq') v = faqJsonLd(messages);
+    // The legal text of the language (i18n/<code>/terms.html); the English one is the original.
+    else if (key === '@terms') v = fs.readFileSync(path.join(root, 'i18n', locale.code, 'terms.html'), 'utf8');
     else if (key === '@langlinks') v = locales.map(l => `<a href="${l.path}${page.url}" hreflang="${l.code}" lang="${l.code}" data-lang="${l.code}"${l.code === locale.code ? ' aria-current="true"' : ''}>${escAttr(l.name)}</a>`).join('');
     else if (key === '@i18n') v = `<script type="application/json" id="i18n">${scriptJson({ locale: locale.code, intl: locale.intl, dir: locale.dir, base: locale.path, messages: js, others: others() })}</script>`;
     else if (key.startsWith('@href:')) v = href(key.slice(6));

@@ -145,3 +145,12 @@ kbd { display: inline-block; min-width: 1.6em; padding: 0.05em 0.4em; border: 1p
 .langbar a { padding: 6px 14px; border-radius: 999px; background: var(--fg); color: var(--bg); font-weight: 500; white-space: nowrap; }
 .langbar button { width: 30px; height: 30px; border-radius: 8px; color: var(--fg-3); font-size: 18px; }
 @media (max-width: 960px) { .nav .langpick { margin-inline-start: auto; } .nav .langpick + .nav__cta + .nav__menu { margin-inline-start: 8px; } }
+
+/* The install command box (home and downloads) */
+.oneliner--hero { width: fit-content; margin: 22px auto 0; }
+.oneliner { display: flex; align-items: center; gap: 4px; max-width: 100%;  padding-block: 6px; padding-inline: 18px 6px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.oneliner code { overflow-x: auto; white-space: nowrap; font-size: 13px; color: var(--fg-2); scrollbar-width: none; }
+.oneliner code::before { content: '$ '; color: var(--violet-hi); }
+.oneliner__copy { flex: none; height: 32px; padding: 0 12px; border-radius: 8px; font-family: var(--mono); font-size: 12px; color: var(--fg-2); border: 1px solid var(--line); transition: color .2s, border-color .2s; }
+.oneliner__copy:hover { color: var(--fg); border-color: var(--violet); }
+.oneliner { direction: ltr; }

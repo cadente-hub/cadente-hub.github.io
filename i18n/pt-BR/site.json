@@ -902,6 +902,18 @@
         "notas",
         "agenda"
       ]
+    },
+    "dl": {
+      "detected": "Para o seu {os}, o arquivo certo já está aqui.",
+      "pick": "Escolha o arquivo do seu sistema.",
+      "downloadFor": "Baixar para {os}",
+      "macNote": "Na primeira vez, o macOS pode pedir a <a href=\"#macos-danificado\">correção abaixo</a>."
+    },
+    "rn": {
+      "latest": "mais recente",
+      "onGitHub": "Ver no GitHub",
+      "none": "Nenhuma versão por aqui ainda.",
+      "failed": "Não deu para carregar as notas. Veja no <a href=\"{url}\" target=\"_blank\" rel=\"noopener noreferrer\">GitHub</a>."
     }
   },
   "agents": {
@@ -953,5 +965,50 @@
     "lede": "Do menu ao terminal, o Cadente aparece em 15 idiomas, e a troca é na hora, sem reiniciar. Escolha uma língua e veja a janela mudar.",
     "pick": "Idioma da janela",
     "note": "Algumas telas novas chegam primeiro em português e inglês."
+  },
+  "dl": {
+    "metaTitle": "Baixar o Cadente",
+    "metaDescription": "Baixe o Cadente para macOS (Apple Silicon e Intel), Windows e Linux. Grátis.",
+    "eyebrow": "Downloads",
+    "title": "Baixe o <span class=\"violet-text\">Cadente</span>.",
+    "lede": "Grátis, para macOS, Windows e Linux.",
+    "version": "Versão",
+    "others": "Outros sistemas",
+    "fallback": "Não deu para ler a versão mais recente. Os arquivos estão na <a href=\"https://github.com/cadente-hub/cadente-hub.github.io/releases\" target=\"_blank\" rel=\"noopener noreferrer\">página de releases</a>.",
+    "installTitle": "Como instalar",
+    "oneLine": "Em uma linha",
+    "orHomebrew": "Ou pelo Homebrew",
+    "orDmg": "Ou pelo .dmg",
+    "mac1": "Abra o <code>.dmg</code> e arraste o Cadente para Aplicativos.",
+    "mac2": "Se o macOS disser que o app está danificado, veja a correção abaixo.",
+    "orPackages": "Ou por pacote",
+    "powershell": "No PowerShell",
+    "orInstaller": "Ou pelo instalador",
+    "win1": "Baixe o <code>.exe</code> ou o <code>.msi</code> e siga o instalador.",
+    "win2": "Se o SmartScreen avisar, clique em <b>Mais informações</b> e depois em <b>Executar assim mesmo</b>.",
+    "fixTitle": "O macOS diz que o Cadente está danificado?",
+    "fixText": "O macOS bloqueia apps que ainda não têm a assinatura paga da Apple. Cole este comando no Terminal uma vez e o Cadente abre normalmente.",
+    "fixNote": "O comando de uma linha e o Homebrew já fazem isso por você."
+  },
+  "rn": {
+    "metaTitle": "Release notes do Cadente",
+    "metaDescription": "O que mudou em cada versão do Cadente, nos canais estável e beta.",
+    "eyebrow": "Release notes",
+    "title": "Cada versão<br /><span class=\"violet-text\">do Cadente.</span>",
+    "lede": "Os canais estável e beta, lidos dos mesmos arquivos de atualização que o app usa.",
+    "inEnglish": "As notas de cada versão são escritas em inglês.",
+    "stable": "Estável",
+    "beta": "Beta",
+    "stableTitle": "Versões testadas",
+    "betaTitle": "Antes de todo mundo",
+    "download": "Baixar a estável",
+    "loading": "Carregando…"
+  },
+  "terms": {
+    "metaTitle": "Termos, privacidade e reembolso — Cadente",
+    "metaDescription": "Termos e condições, política de privacidade e política de reembolso do Cadente.",
+    "title": "Termos, privacidade e reembolso",
+    "updated": "Atualizado em 30 de outubro de 2026",
+    "notice": "Esta é uma tradução. Se houver diferença, vale o <a href=\"/en/terms-and-conditions.html\">texto em inglês</a>."
   }
 }

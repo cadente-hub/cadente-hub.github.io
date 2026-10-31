@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="{{@lang}}" dir="{{@dir}}">
+<head>
+  <meta charset="UTF-8" />
+  <title>{{rn.metaTitle}}</title>
+  <meta name="description" content="{{rn.metaDescription|attr}}" />
+  <meta property="og:title" content="{{rn.metaTitle|attr}}" />
+  <meta property="og:description" content="{{rn.metaDescription|attr}}" />
+  <meta name="twitter:title" content="{{rn.metaTitle|attr}}" />
+  <meta name="twitter:description" content="{{rn.metaDescription|attr}}" />
+{{@include:head}}  <link rel="stylesheet" href="/css/pages.css" />
+</head>
+<body class="page">
+  <a class="skip" href="#conteudo">{{meta.skip}}</a>
+{{@include:nav}}
+  <main id="conteudo">
+    <section class="page-hero">
+      <div class="page-hero__glow" aria-hidden="true"></div>
+      <div class="wrap">
+        <p class="eyebrow"><span class="dot" aria-hidden="true"></span>{{rn.eyebrow}}</p>
+        <h1 class="title">{{rn.title}}</h1>
+        <p class="lede">{{rn.lede}}</p>
+        <p class="rn-lang">{{rn.inEnglish}}</p>
+        <div class="rn-summary">
+          <a href="#stable"><span>{{rn.stable}}</span><b id="rn-stable-version">…</b></a>
+          <a href="#beta"><span>{{rn.beta}}</span><b id="rn-beta-version">…</b></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="wrap rn">
+      <section class="rn-channel" id="stable">
+        <header><h2 class="subtitle">{{rn.stableTitle}}</h2><a class="btn btn--ghost btn--sm" href="{{@href:downloads}}">{{rn.download}}</a></header>
+        <div class="rn-list" id="rn-stable"><p class="rn-empty">{{rn.loading}}</p></div>
+      </section>
+      <section class="rn-channel" id="beta">
+        <header><h2 class="subtitle">{{rn.betaTitle}}</h2><a class="btn btn--ghost btn--sm" href="https://github.com/cadente-hub/cadente-hub.github.io/releases" target="_blank" rel="noopener noreferrer">GitHub</a></header>
+        <div class="rn-list" id="rn-beta"><p class="rn-empty">{{rn.loading}}</p></div>
+      </section>
+    </section>
+  </main>
+{{@include:foot}}
+  <script type="module" src="/js/release-notes.js"></script>
+</body>
+</html>

@@ -10,9 +10,10 @@ import { PLUGINS, plugin } from './v4/plugins.mjs';
 import { scene } from './v4/scenes.mjs';
 import { reduce, leaves, activeTab } from './v4/model.mjs';
 import { Cadu } from './cadu.js';
-import { playHero, installCommand } from './hero.js';
+import { playHero } from './hero.js';
+import { initPage } from './page.js';
 import { browserSkyMode } from './sky/gate.mjs';
-import { initLanguages, languageSection } from './langs.js';
+import { languageSection } from './langs.js';
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
@@ -23,7 +24,7 @@ setWindowLanguage(await demoTranslator(LOCALE));
 
 const onVisible = (el, fn, threshold = 0.2) => new IntersectionObserver((es, io) => { if (es[0].isIntersecting) { io.disconnect(); fn(); } }, { threshold }).observe(el);
 
-initLanguages();
+initPage();
 
 // ── Hero ──────────────────────────────────────────────────────────────
 // Each struck word falls into the sky (js/sky): a WebGL2 star where it is cheap, a still SVG elsewhere. The sky module
@@ -57,10 +58,6 @@ requestAnimationFrame(() => setTimeout(async () => {
 }, 0));
 
 // ── Navigation and reveal ─────────────────────────────────────────────
-const nav = $('#nav');
-const menu = $('#nav-menu'), sheet = $('#nav-sheet');
-menu.addEventListener('click', () => { const open = menu.getAttribute('aria-expanded') !== 'true'; menu.setAttribute('aria-expanded', open); sheet.hidden = !open; });
-sheet.addEventListener('click', e => { if (e.target.closest('a')) { menu.setAttribute('aria-expanded', 'false'); sheet.hidden = true; } });
 
 const reveal = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('is-in'); reveal.unobserve(e.target); } }), { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
 document.querySelectorAll('.reveal').forEach(el => reveal.observe(el));
@@ -125,8 +122,6 @@ stepsEl.addEventListener('click', e => { const b = e.target.closest('button'); i
 showCaption(0);
 story(0);
 
-addEventListener('scroll', () => nav.classList.toggle('is-scrolled', scrollY > 8), { passive: true });
-nav.classList.toggle('is-scrolled', scrollY > 8);
 
 // ── First-party plugins: the window walks through them on its own; a card jumps to one ──
 const grid = $('#plugin-grid'), note = $('#plugin-note');
@@ -393,11 +388,3 @@ onVisible($('#finale-cadu'), () => finaleCadu.play('celebrate'), 0.6);
 
 // The store wall only moves while it is on screen.
 new IntersectionObserver(([e]) => $('#loja').classList.toggle('is-live', e.isIntersecting)).observe($('#loja'));
-
-// ── Install one-liner: the command of the visitor's system, at the top and at the end ──
-const command = installCommand(navigator.userAgentData?.platform ?? navigator.platform ?? '');
-document.querySelectorAll('[data-install]').forEach(el => { el.textContent = command; });
-document.querySelectorAll('[data-copy]').forEach(btn => btn.addEventListener('click', async () => {
-  try { await navigator.clipboard.writeText(command); btn.textContent = t('oneliner.copied'); } catch { btn.textContent = t('oneliner.select'); }
-  setTimeout(() => { btn.textContent = t('oneliner.copy'); }, 1600);
-}));
