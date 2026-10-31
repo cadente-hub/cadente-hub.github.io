@@ -11,7 +11,15 @@ export const DIR = data.dir;
 export const BASE = data.base;
 export const t = createT(data.messages, INTL);
 
-export const number = (n, opts) => new Intl.NumberFormat(INTL, opts).format(n);
+// One formatter per kind and options: building an Intl formatter costs far more than using one, and the home
+// formats lists and prices hundreds of times while it starts.
+const formatters = new Map();
+const formatter = (Kind, opts) => {
+  const key = `${Kind.name}:${JSON.stringify(opts ?? {})}`;
+  if (!formatters.has(key)) formatters.set(key, new Kind(INTL, opts));
+  return formatters.get(key);
+};
+export const number = (n, opts) => formatter(Intl.NumberFormat, opts).format(n);
 // Prices on the site are in US dollars, written the way each language writes money.
-export const usd = (n, opts) => new Intl.NumberFormat(INTL, { style: 'currency', currency: 'USD', maximumFractionDigits: 0, ...opts }).format(n);
-export const list = xs => new Intl.ListFormat(INTL, { type: 'conjunction' }).format(xs);
+export const usd = (n, opts) => formatter(Intl.NumberFormat, { style: 'currency', currency: 'USD', maximumFractionDigits: 0, ...opts }).format(n);
+export const list = xs => formatter(Intl.ListFormat, { type: 'conjunction' }).format(xs);
