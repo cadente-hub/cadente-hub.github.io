@@ -7,6 +7,7 @@
 //   {{@lang}} {{@dir}} {{@base}}   the language code, the text direction and the folder of the language
 //   {{@href:id}}    a link to another page in this language, or to the root page while it has no translation
 //   {{@head}}       canonical, hreflang alternates, og:url and og:locale
+//   {{@jsonld:faq}} {{@jsonld:app}}   the FAQ and the app as schema.org data
 //   {{@i18n}}       the js.* part of the catalog, for the scripts of the page
 import fs from 'node:fs';
 import path from 'node:path';
@@ -68,6 +69,26 @@ function faqJsonLd(messages) {
   return `<script type="application/ld+json">${scriptJson(data)}</script>`;
 }
 
+// The app for search engines: only what the site proves (free, the three systems, the ready languages).
+function appJsonLd(locale, page, locales, messages, origin) {
+  const downloads = PAGES.find(p => p.id === 'downloads');
+  const data = {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: 'Cadente',
+    url: pageUrl(locale, page, origin),
+    description: plain(messages['meta.description']),
+    applicationCategory: 'DeveloperApplication',
+    operatingSystem: 'macOS, Windows, Linux',
+    inLanguage: locale.code,
+    availableLanguage: locales.map(l => l.code),
+    downloadUrl: pageUrl(locale, downloads, origin),
+    image: `${origin}/assets/og-image.png`,
+    offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+  };
+  return `<script type="application/ld+json">${scriptJson(data)}</script>`;
+}
+
 function compareTable(root, messages, locale) {
   const data = JSON.parse(fs.readFileSync(path.join(root, 'i18n/compare.json'), 'utf8')), t = createT(messages, locale.intl);
   const head = data.products.map(p => `<th scope="col"${p.id === 'cadente' ? ' class="is-us"' : ''}>${escAttr(p.name)}</th>`).join('');
@@ -108,6 +129,7 @@ export function renderPage({ template, page, locale, locales, messages, catalogs
     // A script Geist does not cover gets its Noto font, on its own pages only, after Geist in the stack.
     else if (key === '@fonts') v = locale.font ? `<link href="https://fonts.googleapis.com/css2?family=${encodeURIComponent(locale.font).replace(/%20/g, '+')}:wght@400;500;600;700&display=swap" rel="stylesheet" />\n  <style>:root { --sans: 'Geist', '${locale.font}', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }</style>` : '';
     else if (key === '@jsonld:faq') v = faqJsonLd(messages);
+    else if (key === '@jsonld:app') v = appJsonLd(locale, page, locales, messages, origin);
     // The comparison table (i18n/compare.json): a cell only where the product's own site says it, with its source.
     else if (key === '@compare') v = compareTable(root, messages, locale);
     // The legal text of the language (i18n/<code>/terms.html); the English one is the original.
