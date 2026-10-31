@@ -58,7 +58,7 @@ export function blogFiles({ root, contentDir, origin = DEFAULT_ORIGIN }) {
       <h1>${escapeHtml(p.title)}</h1>
       <p class="blog-summary">${escapeHtml(p.summary)}</p>
       ${tags ? `<div class="blog-tags">${tags}</div>` : ''}
-      <div class="blog-body">${renderMarkdown(p.body)}</div>
+      <div class="blog-body">${renderMarkdown(p.body.replace(/^#\s+(.+)\n+/, (all, h) => (h.trim() === p.title ? '' : all)))}</div>
       <footer class="blog-foot"><span>${escapeHtml(t('blog.updated', { date: formatDate(p.updatedAt, locale.intl) }))}</span><a href="${base}feed.json">${t('blog.feed')} ↗</a></footer>
     </article>`;
       files[`${base.slice(1)}${p.slug}/index.html`] = { type: 'html', body: page(`blog-${p.slug}`, l => `${blogBase(l)}${p.slug}/`, withPost(p.slug), { title: escapeHtml(`${p.title} — Cadente`), description: escapeHtml(p.summary), type: 'article', body }) };
