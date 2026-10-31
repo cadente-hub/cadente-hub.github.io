@@ -1,0 +1,1084 @@
+{
+  "meta": {
+    "title": "Cadente — l'hub dove tutto è un plugin, anche l'IA",
+    "description": "Cadente è un'app desktop gratuita che riunisce agenti come Claude Code e Codex, terminale, API, database, note e agenda in una finestra divisa. Tutto è un plugin, anche l'IA. Scritta in Rust, per Mac, Windows e Linux, in 15 lingue.",
+    "ogDescription": "L'hub dove tutto è un plugin, anche l'IA: agenti, terminale, database e note in un'unica finestra.",
+    "skip": "Vai al contenuto"
+  },
+  "nav": {
+    "label": "Navigazione principale",
+    "home": "Cadente, home",
+    "how": "Come funziona",
+    "plugins": "Plugin",
+    "store": "Store",
+    "blog": "Blog",
+    "download": "Scarica gratis",
+    "menu": "Apri il menu",
+    "agents": "Agenti",
+    "faq": "Domande"
+  },
+  "hero": {
+    "eyebrow": "Gratis · Mac, Windows e Linux · scritto in Rust · 15 lingue",
+    "lede": "Agenti, terminale, database, note e agenda nella stessa finestra, tutto da tastiera. Ogni parte è un plugin: attiva quello che usi, cambia quello che vuoi e disattiva il resto, anche l'IA. E non costa niente.",
+    "watch": "Guarda una giornata di lavoro",
+    "anyCli": "qualsiasi CLI",
+    "before": "Cadente è",
+    "hub": "un hub",
+    "after": ".",
+    "sub": "Tutto è un plugin. Anche l'IA."
+  },
+  "theater": {
+    "label": "Cadente in uso",
+    "intro": "Una giornata di lavoro con Cadente, dalle 9 a fine giornata",
+    "chapters": "Capitoli"
+  },
+  "creator": {
+    "eyebrow": "Creator mode · in arrivo",
+    "title": "Il tuo plugin<br /><span class=\"violet-text\">può farti guadagnare.</span>",
+    "lede": "Hai avuto un'idea che ti risolve la giornata? Probabilmente la risolve anche ad altri. Descrivila all'agente: lui scrive il plugin, tu lo pubblichi nello Store e scegli come farti pagare. Tieni il 90% delle donazioni e il 70% delle vendite e di ogni rinnovo dell'abbonamento.",
+    "forYou": "a te",
+    "donation": "Donazioni",
+    "donationText": "Il plugin è gratis e chi lo apprezza può sostenerti.",
+    "subscription": "Abbonamento",
+    "subscriptionText": "Mensile o annuale. Guadagni a ogni rinnovo, non solo al primo.",
+    "once": "Acquisto singolo",
+    "onceText": "Chi compra paga una volta e lo usa su massimo 5 computer.",
+    "trialCut": "7 giorni",
+    "trialExample": "per esempio",
+    "trial": "Prova gratuita",
+    "trialText": "Lascia provare qualche giorno prima di far pagare.",
+    "calc": {
+      "model": "Modello di prezzo",
+      "pricePerMonth": "Prezzo al mese",
+      "subscribers": "Abbonati",
+      "youGet": "Ricevi fino a",
+      "perMonth": "al mese",
+      "note": "È una stima, prima delle tasse e della commissione della carta. Il calcolo si fa sull'importo netto, e ogni vendita passa dal checkout di Cadente."
+    },
+    "makerTitle": "Dall'idea allo Store, senza uscire da Cadente.",
+    "makerLede": "Tre richieste di esempio, ognuna guadagna in un modo diverso: un Cadu da compagnia libero sullo schermo, un pannello con le vendite del giorno e una status page che avvisa quando GitHub, Cloudflare o AWS vanno giù. Il Cadu si può trascinare, nutrire e lavare.",
+    "examples": "Esempi di plugin",
+    "step1": "Racconta l'idea",
+    "step1Text": "Si apre una Chat con la richiesta. Non parte niente finché non premi <kbd>↵</kbd>.",
+    "step2": "L'agente scrive",
+    "step2Text": "Manifest, codice e test, in un riquadro accanto a dove sei.",
+    "step3": "Provalo subito",
+    "step3Text": "<code>cadente plugin dev</code> fa girare il plugin lì, accanto alla conversazione. Il Cadu vive libero sopra l'app: trascinalo, premi <kbd>f</kbd> per dargli da mangiare e <kbd>b</kbd> per il bagnetto.",
+    "step4": "Pubblica",
+    "step4Text": "<code>/publish</code> ed è fatta: il plugin è nello Store, al prezzo che hai scelto."
+  },
+  "rust": {
+    "eyebrow": "Scritto in Rust",
+    "title": "Rust dal core<br /><span class=\"muted\">allo schermo.</span><br /><span class=\"violet-text\">La ventola non parte nemmeno.</span>",
+    "lede": "Nessun browser nascosto e nessun Node in esecuzione dietro le quinte. Cadente è nativo, in Rust dal core all'interfaccia, e disegnato dalla GPU.",
+    "stackLabel": "Di cosa è fatto Cadente",
+    "stack": "<span class=\"stack__root\">cadente</span>\n├─ core        <b>rust</b>\n├─ interfaccia <b>rust</b> · slint, disegnata dalla GPU\n├─ terminale   <b>rust</b> · pty nativo\n├─ agenti      <b>rust</b> · claude, codex, agy e qualsiasi cli\n└─ plugin      <b>rust</b> · webassembly per quelli della community",
+    "memory": "Meno memoria",
+    "memoryText": "La cronologia resta su disco e viene caricata solo quando la apri. L'app non si appesantisce col tempo.",
+    "battery": "Un solo processo",
+    "batteryText": "L'interfaccia parla direttamente con il core, senza server locale né browser in mezzo.",
+    "hidden": "Niente di nascosto",
+    "hiddenText": "Chiuso il riquadro, è finita. Terminale, agente o plugin non restano in esecuzione dietro le quinte."
+  },
+  "plugins": {
+    "eyebrow": "Plugin integrati",
+    "title": "Ogni riquadro diventa<br /><span class=\"muted\">quello che ti serve.</span>",
+    "lede": "Chat, Terminal, Workspaces, Requests, Calendario, Focus: i plugin integrati funzionano tutti allo stesso modo. <kbd>↵</kbd> apre, <kbd>.</kbd> mostra cosa puoi fare, <kbd>/</kbd> elenca i comandi, <kbd>⇥</kbd> cambia vista. Ne impari uno, li conosci tutti. Clicca su uno per vederlo.",
+    "gridLabel": "Plugin integrati",
+    "communityBig": "<span class=\"violet-text\">E quelli che</span><br />farà la community.",
+    "communityText": "Lo Store apre presto: chiunque può pubblicare, e installare è sempre gratis. Non usi l'IA? Tieni solo quelli di produttività.",
+    "seeStore": "Vedi lo Store",
+    "namesLabel": "Alcuni plugin della community",
+    "names": {
+      "board": "Lavagna",
+      "docs": "Documenti",
+      "browser": "Browser",
+      "radio": "Radio lo-fi",
+      "neon": "Tema Neon",
+      "rag": "RAG locale",
+      "habits": "Abitudini",
+      "stars": "Pioggia di stelle",
+      "chess": "Scacchi",
+      "yours": "…e quello che creerai tu"
+    }
+  },
+  "owner": {
+    "eyebrow": "Tutto è un plugin",
+    "title": "Anche l'IA<br /><span class=\"violet-text\">è un plugin.</span>",
+    "lede": "La Chat, il Terminal, la barra laterale, il provider IA, perfino il tema: ogni parte di Cadente è un plugin, proprio come quelli della community. Cambia il provider, disattiva quello che non usi e, se vuoi, disattiva l'IA e tieni un hub di terminale, database, note e agenda.",
+    "plugins": "Plugin",
+    "installKanban": "installa Kanban della community",
+    "services": "Servizi",
+    "clickToSwap": "clicca per cambiare",
+    "always": "Resta sempre",
+    "forSafety": "per la tua sicurezza",
+    "base": "gestore dei plugin · shell · selettore",
+    "install": "Installa",
+    "installText": "Da un link o da una cartella, senza riavviare niente.",
+    "remove": "Disattiva",
+    "removeText": "Anche i plugin integrati si disattivano.",
+    "swap": "Cambia",
+    "swapText": "Cambia il provider e i plugin che ne dipendono ripartono con quello nuovo.",
+    "layersLabel": "I livelli che scegli tu",
+    "layer1": "L'agente",
+    "layer1Text": "Claude Code, Codex, Gemini CLI, OpenCode o la CLI che usi già.",
+    "layer2": "Il modello",
+    "layer2Text": "Il tuo abbonamento, una chiave API o un modello locale su Ollama.",
+    "layer3": "Ogni plugin",
+    "layer3Text": "Si attiva, si disattiva e si cambia senza riavviare l'app.",
+    "layer4": "L'interfaccia",
+    "layer4Text": "Anche la barra laterale e il tema sono plugin.",
+    "noAi": "Anche senza IA",
+    "noAiText": "Disattiva l'IA e il resto continua: terminale, workspace, note, database e agenda."
+  },
+  "store": {
+    "eyebrow": "Store dei plugin · in arrivo",
+    "title": "Se a qualcuno è servito,<br /><span class=\"violet-text\">qualcuno l'ha fatto.</span>",
+    "lede": "Kanban, Kubernetes, radio lo-fi, una lavagna per diagrammi. Lo Store apre presto, installare non costa niente e la maggior parte dei plugin sarà gratis. I plugin qui sotto sono esempi.",
+    "search": "Cerca plugin",
+    "placeholder": "cerca un plugin",
+    "categories": "Categorie",
+    "empty": "Ancora nessun plugin con questo nome. Perché non crei il tuo?",
+    "oneClick": "Un ↵",
+    "oneClickText": "Lo scarica, controlla che il file sia quello giusto e lo installa.",
+    "open": "Aperto",
+    "openText": "Hai pubblicato su GitHub con il topic <code>cadente-plugin</code>? Il tuo plugin entra nello Store.",
+    "watched": "Sorvegliato",
+    "watchedText": "Se compare un plugin malevolo, viene bloccato e si disattiva da solo su tutte le macchine."
+  },
+  "finale": {
+    "title": "Apriamo<br /><span class=\"muted\">il primo riquadro?</span>",
+    "lede": "È gratis, c'è per Mac, Windows e Linux, parla 15 lingue e non chiede la carta.",
+    "copyLabel": "Copia il comando di installazione",
+    "copy": "copia"
+  },
+  "foot": {
+    "tagline": "L'hub dove tutto è un plugin, anche l'IA.",
+    "label": "Piè di pagina",
+    "product": "Prodotto",
+    "resources": "Risorse",
+    "legal": "Note legali",
+    "terms": "Termini e condizioni",
+    "copy": "© 2026 Cadente. Scritto in Rust.",
+    "langs": "Lingue"
+  },
+  "js": {
+    "theater": {
+      "chapters": {
+        "morning": {
+          "step": "Mattina",
+          "title": "Ore 9. La giornata è già pronta.",
+          "text": "Apri Cadente e il primo riquadro mostra già la giornata: la daily alle 9:30, la riunione di design alle 14 e un conflitto di merge in attesa. Senza aprire cinque app per capire da dove cominciare. <kbd>⇥</kbd> passa ai recenti e alle attività."
+        },
+        "claude": {
+          "step": "Claude",
+          "title": "Prima, un test per Claude.",
+          "text": "<kbd>⌘O</kbd> e quattro lettere trasformano il riquadro in un Terminal. Apri Claude Code con l'abbonamento che paghi già e chiedi un test per <code>focus_neighbor</code>. Lui inizia a scrivere, e tu passi alla cosa successiva."
+        },
+        "agents": {
+          "step": "Agenti",
+          "title": "Tre agenti, nessuna finestra in più.",
+          "text": "<kbd>⌘D</kbd> divide lo schermo di lato e <kbd>⌘⇧D</kbd> verso il basso. Codex esegue i test, agy spiega <code>layout.rs</code>, e sotto Claude resta anche un Terminal per te. Tutti al lavoro, tutti in vista."
+        },
+        "ci": {
+          "step": "CI",
+          "title": "Poi si rompe la CI del login.",
+          "text": "In una nuova pagina ci sono i quattro branch aperti e lo stato di ogni PR. Il login è rosso. Apri il branch e <kbd>⌘J</kbd> chiama una Chat che sa già dove sei, quindi basta chiedere il motivo. Il diff si apre accanto."
+        },
+        "api": {
+          "step": "API",
+          "title": "Ora, la feature del giorno.",
+          "text": "Il compito di oggi è l'API dei progetti. In Requests apri <code>GET /v1/projects</code>, cambi <code>limit</code> in 5 e invii. Poi il POST crea il progetto vetrina. Gli agenti continuano nella prima pagina, e non hai aperto un altro programma."
+        },
+        "store": {
+          "step": "Store",
+          "title": "Manca un client di database.",
+          "text": "Per vedere se il POST ha salvato, bisogna guardare il database. Lo Store si apre subito sotto: trovi Postgres, scorri le foto, controlli a cosa chiede di accedere e lo installi con <kbd>↵</kbd>, gratis."
+        },
+        "db": {
+          "step": "Database",
+          "title": "Il database conferma il POST.",
+          "text": "<kbd>⌘↵</kbd> esegue la select sotto il cursore. Nella query dei progetti compare già vetrina. Cambi l'ordinamento lì sulla riga, la esegui di nuovo e apri la tabella delle sessioni dal browser del database."
+        },
+        "app": {
+          "step": "Nell'app",
+          "title": "E compare già nell'app.",
+          "text": "In una nuova pagina, il Browser apre l'app che stai sviluppando, su <code>localhost:5173</code>. Il progetto vetrina è nella lista. <kbd>↓</kbd> scorre i link, <kbd>↵</kbd> apre il progetto e <kbd>⌫</kbd> torna indietro."
+        },
+        "diagram": {
+          "step": "Diagramma",
+          "title": "Un diagramma per la riunione.",
+          "text": "Alle 14 c'è la riunione di design. Accanto al sito installi Lavagna dallo Store e disegni il percorso del dato, senza aprire un altro strumento. <kbd>r</kbd> fa un rettangolo, <kbd>o</kbd> un'ellisse e <kbd>a</kbd> li collega."
+        },
+        "meeting": {
+          "step": "Riunione",
+          "title": "In riunione, il verbale diventa attività.",
+          "text": "Il verbale sta in Documenti, come un file .md nella tua cartella. Scrivi le prossime attività direttamente nel testo, <kbd>↵</kbd> aggiunge la successiva e <kbd>spazio</kbd> spunta quella già fatta: l'annuncio sul blog."
+        },
+        "focus": {
+          "step": "Focus",
+          "title": "Poi, 25 minuti di focus.",
+          "text": "Una pagina tutta tua: l'agenda, un pomodoro di 25 minuti, la memoria del computer e quanto hai già usato di Claude. Da <kbd>⌘1</kbd> a <kbd>⌘6</kbd> salti tra le sei pagine della giornata."
+        },
+        "accounts": {
+          "step": "Account",
+          "title": "Usa gli abbonamenti che paghi già.",
+          "text": "Utilizzo mostra Claude al 58% del limite. In Impostazioni ci sono gli account che hai già: Claude Max, ChatGPT Plus, una chiave di Gemini, OpenRouter e un modello locale su Ollama. Ogni conversazione sceglie il suo, e Cadente non fa pagare niente in più."
+        },
+        "plugins": {
+          "step": "Plugin",
+          "title": "Quello che non usi, se ne va.",
+          "text": "In Plugins anche quello che è integrato può andarsene. <kbd>spazio</kbd> disattiva Links e Strumenti. Anche il provider IA si cambia: passa a Ollama, sul tuo portatile, e prima vedi cosa cambia. Si può disattivare l'IA del tutto."
+        },
+        "end": {
+          "step": "Fine giornata",
+          "title": "Fine giornata. Chi aspetta ancora?",
+          "text": "<kbd>⌘⇧A</kbd> riunisce gli agenti di tutte le pagine, con chi aspetta in cima. Claude chiede ancora il permesso di salvare il test: <kbd>↵</kbd> ti porta da lui e <kbd>y</kbd> lo autorizza. Ogni plugin che hai usato oggi l'ha fatto qualcuno, e il prossimo può essere il tuo."
+        }
+      },
+      "typed": {
+        "ciQuestion": "perché la CI è fallita?",
+        "boardWeb": "app web",
+        "task1": "mandare il changelog al team",
+        "task2": "rivedere il [[Lancio]]",
+        "claude": "aggiungi un test per focus_neighbor in fondo a layout.rs, senza eseguire nulla",
+        "codex": "esegui cargo test e dimmi il risultato",
+        "agy": "spiega in una frase cosa fa layout.rs"
+      },
+      "hud": {
+        "mandarATarefa": "invia l'attività",
+        "proximaVista": "vista successiva",
+        "vistaAnterior": "vista precedente",
+        "rodarOsTestes": "esegui i test",
+        "voltarAoLogin": "torna al login",
+        "abrirOWorkspaceLogin": "apri il workspace login",
+        "chatAoLadoLigadoAoWorkspace": "Chat accanto, collegata al workspace",
+        "perguntar": "chiedi",
+        "abrirODiffDoLado": "apri il diff accanto",
+        "alteracoes": "modifiche",
+        "descer": "giù",
+        "abrirODiff": "apri il diff",
+        "requisicao": "richiesta",
+        "colecoes": "raccolte",
+        "colecaoProjetos": "raccolta progetti",
+        "abrirORequest": "apri la request",
+        "descerAteOLimit": "scendi fino a limit",
+        "editarOLimit": "modifica limit",
+        "apagarOValor": "cancella il valore",
+        "gravar": "salva",
+        "voltarAoEnviar": "torna a invia",
+        "enviarOGet": "invia il GET",
+        "enviarOPost": "invia il POST",
+        "ampliarAFolha": "ingrandisci il riquadro",
+        "abrirAPaginaDoPostgres": "apri la pagina di Postgres",
+        "voltarAoTopo": "torna in cima",
+        "instalarGratis": "installa, gratis",
+        "rodarOSelectDoCursor": "esegui la select sotto il cursore",
+        "descerPeloScript": "scendi nello script",
+        "rodarEsteSelect": "esegui questa select",
+        "ateOOrderBy": "fino a order by",
+        "editarALinhaAliMesmo": "modifica la riga, lì sul posto",
+        "apagarAUltimaPalavra": "cancella l'ultima parola",
+        "gravarERodar": "salva ed esegui",
+        "navegadorDoBanco": "browser del database",
+        "verOsDadosDaTabela": "vedi i dati della tabella",
+        "voltarAsDuasFolhas": "torna ai due riquadri",
+        "irAoEndereco": "vai all'indirizzo",
+        "abrirOSite": "apri il sito",
+        "abrirOProjetoVitrine": "apri il progetto vetrina",
+        "voltar": "indietro",
+        "abrirAPaginaDoQuadro": "apri la pagina di Lavagna",
+        "proximaFoto": "foto successiva",
+        "guardarOTexto": "salva il testo",
+        "ligarComUmaSeta": "collega con una freccia",
+        "elipse": "ellisse",
+        "maisUmaSeta": "un'altra freccia",
+        "abrirANota": "apri la nota",
+        "descerPelaNota": "scendi nella nota",
+        "novaTarefa": "nuova attività",
+        "aListaContinua": "la lista continua",
+        "fecharALista": "chiudi la lista",
+        "subir": "su",
+        "marcarComoFeita": "segna come fatta",
+        "comecarUmPomodoro": "avvia un pomodoro",
+        "pagina1OsAgentes": "pagina 1: gli agenti",
+        "pagina3AApiEO": "pagina 3: l'API e il database",
+        "pagina5AAta": "pagina 5: il verbale",
+        "pagina6DeVoltaAoSeu": "pagina 6: di nuovo alla tua giornata",
+        "proximaConta": "account successivo",
+        "desligarLinks": "disattiva Links",
+        "desligarFerramentas": "disattiva Strumenti",
+        "ultimoItem": "ultimo elemento",
+        "providerDeIa": "provider IA",
+        "trocarProvider": "cambia provider",
+        "ollamaNoSeuComputador": "Ollama, sul tuo computer",
+        "verAPrevia": "vedi l'anteprima",
+        "aplicar": "applica",
+        "irAteQuemEspera": "vai da chi aspetta",
+        "permitir": "consenti",
+        "saltarParaOCalendarioNaPagina": "salta al Calendario, nella pagina della giornata",
+        "abrirOTerminal": "apri il Terminal",
+        "outroTerminal": "un altro Terminal",
+        "maisUm": "un altro ancora",
+        "umTerminalParaVoce": "un Terminal per te",
+        "abrirWorkspaces": "apri Workspaces",
+        "workspacesNasAlteracoes": "Workspaces, sulle modifiche",
+        "abrirORequests": "apri Requests",
+        "abrirALoja": "apri lo Store",
+        "abrirONavegador": "apri il Browser",
+        "abrirDocumentos": "apri Documenti",
+        "abrirOCalendario": "apri il Calendario",
+        "abrirOFoco": "apri Focus",
+        "abrirOSistema": "apri Sistema",
+        "abrirOUso": "apri Utilizzo",
+        "abrirPlugins": "apri Plugins",
+        "abrirOClaudeCode": "apri Claude Code",
+        "abrirOCodex": "apri Codex",
+        "abrirOAgy": "apri agy",
+        "loginOCiFalhou": "login · la CI è fallita",
+        "paineisProntoParaOMerge": "pannelli · pronto per il merge",
+        "buscaOClaudeTrabalhando": "ricerca · Claude al lavoro",
+        "temaEsperandoRevisao": "tema · in attesa di revisione",
+        "quadro": "Lavagna",
+        "radioLoFi": "Radio lo-fi",
+        "maisUma": "un'altra",
+        "asFotos": "le foto",
+        "sobre": "info",
+        "oQueEleFaz": "cosa fa",
+        "atalhos": "scorciatoie",
+        "mapa": "mappa",
+        "vitrine": "vetrina",
+        "lancamento": "Lancio",
+        "retangulo": "rettangolo",
+        "outroRetangulo": "un altro rettangolo"
+      }
+    },
+    "plugins": {
+      "title": {
+        "inicio": "Home",
+        "chat": "Chat",
+        "terminal": "Terminal",
+        "workspaces": "Workspaces",
+        "pr": "PR Reviews",
+        "requests": "Requests",
+        "calendario": "Calendario",
+        "sistema": "Sistema",
+        "uso": "Utilizzo",
+        "foco": "Focus",
+        "automacoes": "Automazioni",
+        "prompts": "Prompts",
+        "projetos": "Progetti",
+        "recursos": "Risorse",
+        "links": "Links",
+        "ferramentas": "Strumenti",
+        "config": "Impostazioni",
+        "plugins": "Plugins"
+      },
+      "desc": {
+        "inicio": "La tua giornata: agenda, attività, note, meteo e quello che è rimasto aperto.",
+        "chat": "Qualsiasi modello, con piano, coda, sessioni e il contesto in vista.",
+        "terminal": "Blocchi di comando, suggerimenti dell'IA e agenti come Claude Code e Codex.",
+        "workspaces": "Repository, modifiche e worktree, con diff e commit.",
+        "pr": "Le tue PR e quelle del team: diff, check, thread e revisione con l'IA.",
+        "requests": "Client HTTP con raccolte, ambienti e cronologia.",
+        "calendario": "Giorno, mese e prossimi eventi. Scrivi “Reunião amanhã 10h” e ↵.",
+        "sistema": "Memoria, CPU, porte e Docker, in tempo reale.",
+        "uso": "Limiti, costi e previsione di utilizzo dei tuoi account.",
+        "foco": "Pomodoro con attività e note.",
+        "automacoes": "Attività di IA pianificate, con cronologia.",
+        "prompts": "Libreria di prompt e tecniche, con una sessione nella Chat accanto.",
+        "projetos": "Progetti e sessioni: aggiungi, clona e metti tra i preferiti.",
+        "recursos": "Skill, memoria, agent, MCP e istruzioni.",
+        "links": "Link con tag. Incolla un URL e ↵.",
+        "ferramentas": "JSON e Markdown per Word.",
+        "config": "Account, provider, scorciatoie, accesso e aspetto.",
+        "plugins": "Catalogo, grafo e cambio di provider con anteprima."
+      }
+    },
+    "rack": {
+      "service": {
+        "ai": "provider IA",
+        "compaction": "compattazione del contesto",
+        "pty": "terminale (pty)",
+        "theme": "tema"
+      },
+      "noAi": "nessuno · IA disattivata",
+      "plugin": {
+        "chat": "Chat",
+        "terminal": "Terminal",
+        "pr": "PR Reviews",
+        "automacoes": "Automazioni",
+        "workspaces": "Workspaces",
+        "sidebar": "Barra laterale",
+        "tray": "Barra di sistema"
+      },
+      "meta": {
+        "community": "community",
+        "on": "attivato",
+        "off": "disattivato"
+      },
+      "removeKanban": "Rimuovi Kanban",
+      "count": {
+        "one": "{count} attivo",
+        "other": "{count} attivi"
+      },
+      "svc": {
+        "again": "clicca di nuovo per riattivare",
+        "usedBy": "usato da {users}",
+        "nobody": "nessuno lo usa ora"
+      },
+      "log": {
+        "hint": "Prova: clicca su un plugin per disattivarlo, su un servizio per cambiarlo, o installane uno della community.",
+        "on": "<b>{name}</b> è tornato, senza riavviare niente.",
+        "off": "<b>{name}</b> disattivato. Se era aperto in un riquadro, il riquadro resta lì ad aspettare un altro plugin.",
+        "noAi": "<b>IA disattivata.</b> {users} restano in attesa di un provider; Terminal, Workspaces, note, database e agenda continuano come prima.",
+        "swap": "anteprima · {service}: <b>{from} → {to}</b>",
+        "swapUsers": "anteprima · {service}: <b>{from} → {to}</b> · {users} finiscono quello che stanno facendo e ripartono con il nuovo provider",
+        "install": "Fatto, <b>Kanban di @ana</b> installato. Ha chiesto accesso solo ad api.github.com.",
+        "remove": "<b>Kanban</b> rimosso. I suoi dati restano nel tuo profilo, nel caso cambiassi idea."
+      }
+    },
+    "store": {
+      "cat": {
+        "all": "Tutti",
+        "dev": "Dev",
+        "ai": "IA",
+        "productivity": "Produttività",
+        "data": "Dati",
+        "themes": "Temi",
+        "fun": "Svago"
+      },
+      "app": {
+        "kanban": {
+          "name": "Kanban",
+          "desc": "Bacheca con le issue del repository, in tre colonne."
+        },
+        "board": {
+          "name": "Lavagna",
+          "desc": "Diagrammi che sembrano fatti a mano, disegnati da tastiera."
+        },
+        "postgres": {
+          "name": "Postgres",
+          "desc": "Script, tabelle e risultato in un solo riquadro."
+        },
+        "docs": {
+          "name": "Documenti",
+          "desc": "Note in markdown, con [[link]] e attività."
+        },
+        "browser": {
+          "name": "Browser",
+          "desc": "Un sito in un riquadro, con i link da tastiera."
+        },
+        "testWriter": {
+          "name": "Scrittore di test",
+          "desc": "Un agente che scrive test per il diff attuale."
+        },
+        "neon": {
+          "name": "Tema Neon",
+          "desc": "Dettagli viola e rosa sul nero."
+        },
+        "kubernetes": {
+          "name": "Kubernetes",
+          "desc": "Pod, log ed eventi del cluster senza lasciare la tastiera."
+        },
+        "meetingSummary": {
+          "name": "Riassunto della riunione",
+          "desc": "Trascrive la riunione e restituisce le attività."
+        },
+        "radio": {
+          "name": "Radio lo-fi",
+          "desc": "Musica per il Focus, con il timer sullo schermo."
+        },
+        "regex": {
+          "name": "Regex",
+          "desc": "Prova le espressioni regolari con evidenziazione in tempo reale."
+        },
+        "sheets": {
+          "name": "Fogli di calcolo",
+          "desc": "Apri CSV e XLSX con filtri e somme."
+        },
+        "rag": {
+          "name": "RAG locale",
+          "desc": "Fai domande sui tuoi documenti con un modello sul tuo computer."
+        },
+        "habits": {
+          "name": "Abitudini",
+          "desc": "Spunta le abitudini del giorno e guarda la serie."
+        },
+        "sqlite": {
+          "name": "SQLite",
+          "desc": "Apri qualsiasi .db e naviga tra le tabelle."
+        },
+        "cron": {
+          "name": "Cron",
+          "desc": "Componi espressioni cron e guarda le prossime esecuzioni."
+        },
+        "contrast": {
+          "name": "Tema Alto contrasto",
+          "desc": "Bianco e nero puri, per leggere meglio."
+        },
+        "promptJudge": {
+          "name": "Valutatore di prompt",
+          "desc": "Confronta le risposte dei modelli fianco a fianco."
+        },
+        "compose": {
+          "name": "Docker Compose",
+          "desc": "Avvia, ferma e segui i servizi del compose."
+        },
+        "journal": {
+          "name": "Diario",
+          "desc": "Una nota al giorno, con ricerca."
+        },
+        "chess": {
+          "name": "Scacchi",
+          "desc": "Una partita al giorno contro l'agente."
+        },
+        "jsonSchema": {
+          "name": "JSON Schema",
+          "desc": "Valida JSON con uno schema e guarda gli errori riga per riga."
+        },
+        "commitWriter": {
+          "name": "Scrittore di commit",
+          "desc": "Messaggi di commit a partire da quello che c'è nello stage."
+        },
+        "exchange": {
+          "name": "Cambio valute",
+          "desc": "Quotazioni del giorno e conversione rapida."
+        },
+        "sepia": {
+          "name": "Tema Seppia",
+          "desc": "Toni caldi per le sessioni lunghe."
+        },
+        "logs": {
+          "name": "Log",
+          "desc": "Segui i file di log con filtri e colori."
+        },
+        "finance": {
+          "name": "Finanze",
+          "desc": "Spese del mese per categoria, da un CSV."
+        },
+        "graphql": {
+          "name": "GraphQL",
+          "desc": "Esplora gli schemi ed esegui query con variabili."
+        },
+        "explainer": {
+          "name": "Spiega codice",
+          "desc": "Spiega il file aperto, funzione per funzione."
+        },
+        "stars": {
+          "name": "Pioggia di stelle",
+          "desc": "Una stella cadente a ogni build verde."
+        },
+        "gitGraph": {
+          "name": "Git graph",
+          "desc": "Il grafo di branch e commit, in testo."
+        },
+        "rss": {
+          "name": "Lettore RSS",
+          "desc": "Feed in lista, da leggere nel riquadro stesso."
+        },
+        "charts": {
+          "name": "Grafici",
+          "desc": "Grafici testuali da CSV o SQL."
+        },
+        "retro": {
+          "name": "Tema Terminale retrò",
+          "desc": "Verde fosforo e cursore a blocco."
+        },
+        "flags": {
+          "name": "Feature flag",
+          "desc": "Attiva e disattiva i flag in più ambienti."
+        },
+        "translator": {
+          "name": "Traduttore",
+          "desc": "Traduci testi e file di i18n."
+        },
+        "timesheet": {
+          "name": "Timesheet",
+          "desc": "Ore per progetto, a partire dai riquadri che hai usato."
+        },
+        "migrations": {
+          "name": "Migrations",
+          "desc": "Esegui e annulla le migration con anteprima dell'SQL."
+        },
+        "mascot": {
+          "name": "Mascotte",
+          "desc": "Un compagno che reagisce ai tuoi test."
+        },
+        "coverage": {
+          "name": "Copertura",
+          "desc": "Copertura dei test per file, con quello che manca."
+        },
+        "email": {
+          "name": "E-mail",
+          "desc": "Posta in arrivo in righe, con azioni da tastiera."
+        },
+        "weather": {
+          "name": "Meteo",
+          "desc": "Previsioni della settimana per le tue città."
+        },
+        "secrets": {
+          "name": "Segreti",
+          "desc": "Trova i segreti dimenticati prima del commit."
+        },
+        "mindMap": {
+          "name": "Mappa mentale",
+          "desc": "Idee ad albero, solo con la tastiera."
+        },
+        "typing": {
+          "name": "Dattilografia",
+          "desc": "Allena la velocità con frammenti del tuo codice."
+        },
+        "uptime": {
+          "name": "Uptime",
+          "desc": "Stato dei tuoi servizi, con un avviso nell'intestazione del riquadro."
+        },
+        "benchmarks": {
+          "name": "Benchmark",
+          "desc": "Confronta le esecuzioni e scopri le regressioni."
+        },
+        "changelog": {
+          "name": "Changelog",
+          "desc": "Genera il changelog a partire dai commit."
+        },
+        "snippets": {
+          "name": "Snippet",
+          "desc": "Frammenti di testo e codice a portata di scorciatoia."
+        }
+      },
+      "price": {
+        "free": "gratis",
+        "donation": "gratis · donazione",
+        "perMonth": "{price}/mese",
+        "trial": "{days} giorni gratis",
+        "once": "{price} · una volta"
+      },
+      "action": {
+        "free": "installa",
+        "donation": "installa",
+        "subscription": "abbonati",
+        "once": "acquista",
+        "trial": "prova gratis"
+      },
+      "installed": "installato",
+      "stepsFree": [
+        "download in corso…",
+        "sha256 ok",
+        "permessi ok"
+      ],
+      "stepsPaid": [
+        "checkout di Cadente…",
+        "licenza ok",
+        "sha256 ok"
+      ],
+      "empty": "Ancora nessun plugin con questo nome. <a href=\"#creator\">Perché non crei il tuo?</a>",
+      "demoSearches": [
+        "tema",
+        "sql",
+        "agente"
+      ],
+      "wall": [
+        "Pomodoro+",
+        "Note veloci",
+        "Webhook",
+        "Mock server",
+        "WebSocket",
+        "gRPC",
+        "MQTT",
+        "OpenAPI",
+        "Licenze",
+        "Dipendenze",
+        "Vulnerabilità",
+        ".env",
+        "SSH",
+        "Server",
+        "Costi del cloud",
+        "Seed",
+        "Fixture",
+        "Bundle size",
+        "Web vitals",
+        "Accessibilità",
+        "i18n",
+        "Semver",
+        "Release",
+        "Status page",
+        "Metriche",
+        "Flamegraph",
+        "Profiler",
+        "Test instabili",
+        "Conflitti",
+        "Blame",
+        "Dizionario",
+        "Icone",
+        "Colori",
+        "Font",
+        "Slide",
+        "Lettore PDF",
+        "Trascrizione",
+        "Embedding",
+        "Agenti",
+        "Budget",
+        "Fatture",
+        "Contatti",
+        "Agenda del team",
+        "Viaggi",
+        "Ricette",
+        "Libri",
+        "Film",
+        "Podcast",
+        "Segnapunti",
+        "Sudoku",
+        "Parole",
+        "Quiz",
+        "ASCII art",
+        "Kanban del team",
+        "Scrum",
+        "Retro",
+        "OKR",
+        "Pull request del giorno",
+        "Revisore SQL",
+        "Lint",
+        "Formattatore",
+        "Diff di immagini",
+        "Tavolozza di colori",
+        "Calcolatrice",
+        "Convertitore di unità",
+        "Fuso orario",
+        "QR code",
+        "UUID",
+        "Base64",
+        "JWT"
+      ]
+    },
+    "calc": {
+      "subscription": {
+        "price": "Prezzo al mese",
+        "people": "Abbonati",
+        "per": "al mese"
+      },
+      "once": {
+        "price": "Prezzo",
+        "people": "Acquirenti",
+        "per": "in totale"
+      },
+      "donation": {
+        "price": "Donazione media al mese",
+        "people": "Sostenitori",
+        "per": "al mese"
+      }
+    },
+    "oneliner": {
+      "copied": "copiato",
+      "select": "seleziona e copia",
+      "copy": "copia"
+    },
+    "maker": {
+      "intro": "creator mode · l'agente usa l'SDK",
+      "nothingSent": "non parte niente finché non premi ↵",
+      "newPane": "nuovo riquadro",
+      "waiting": "in attesa dell'agente",
+      "codeHere": "il codice compare qui",
+      "lines": {
+        "one": "{count} riga",
+        "other": "{count} righe"
+      },
+      "writing": "in scrittura",
+      "inDev": "in sviluppo",
+      "running": "in esecuzione",
+      "chatTitle": "Chat · creator mode",
+      "terminalTitle": "Terminal · cadente plugin dev",
+      "placeholder": "messaggio · @ allegati · / comandi",
+      "writingToml": "scrivo cadente-plugin.toml",
+      "wroteToml": "ha scritto cadente-plugin.toml",
+      "writingLib": "scrivo src/lib.rs",
+      "runningTests": "eseguo cargo test",
+      "testsOk": {
+        "one": "test ok · {count} superato",
+        "other": "test ok · {count} superati"
+      },
+      "compiling": "compilo in webassembly · 0,8 s",
+      "permissions": "permessi: {perms}",
+      "devRunning": "{id} 0.1.0 in esecuzione",
+      "inDevAt": "{where} · in sviluppo",
+      "floatingLayer": "livello fluttuante",
+      "publishDesc": "release, sha256 e indice dello Store",
+      "publishing": "in pubblicazione",
+      "released": "release v0.1.0 · artefatto e sha256 inviati",
+      "manifestOk": "manifest valido · topic cadente-plugin",
+      "published": "pubblicato · entra nello Store al prossimo indice",
+      "inStore": "nello Store",
+      "ex": {
+        "pet": {
+          "tab": "Cadu da compagnia",
+          "ask": "crea un tamagotchi del Cadu che fluttua nell'app, ha fame e si sporca",
+          "keyFeed": "nutri",
+          "keyBath": "fai il bagnetto",
+          "plan": "Creo il pacchetto ana.cadu-tamagotchi nel livello fluttuante: vola per lo schermo, ha fame e si sporca col tempo; f gli dà da mangiare e b gli fa il bagnetto.",
+          "file": "ha scritto src/lib.rs · il Cadu in ANSI, la fame e il bagnetto",
+          "perms": "nessuno oltre al Core",
+          "ready": "Fatto. Il Cadu è libero nell'app, affamato e sporco. Trascinalo: f gli dà da mangiare e b gli fa il bagnetto.",
+          "hint": "f nutre · b fa il bagnetto · trascina il Cadu",
+          "price": "prezzo: gratis con donazione · ricevi il 90%"
+        },
+        "sales": {
+          "title": "Vendite del giorno",
+          "ask": "crea un plugin che mostra le vendite di oggi del mio negozio, con un grafico per ora",
+          "viewToday": "oggi",
+          "viewTodayText": "totale, grafico e ordini",
+          "viewWeek": "settimana",
+          "viewWeekText": "confronto con la settimana scorsa",
+          "plan": "Creo leo.vendas-do-dia: un riquadro con il totale di oggi, un grafico per ora e gli ultimi ordini. Parla solo con api.stripe.com.",
+          "file": "ha scritto src/lib.rs · il totale, il grafico e gli ordini",
+          "today": "oggi",
+          "todayMeta": "3.482,90 € · 27 ordini",
+          "perHour": "all'ora",
+          "peak": "picco alle 11",
+          "latest": "ultimi ordini",
+          "order1": "129,90 € · pagato",
+          "order2": "49,00 € · pagato",
+          "order3": "310,00 € · in attesa",
+          "ready": "Fatto. Il riquadro mostra le vendite di oggi e si aggiorna da solo ogni minuto.",
+          "hint": "⇥ settimana · ↵ apre l'ordine",
+          "price": "prezzo: US$ 4 al mese · ricevi il 70% di ogni rinnovo"
+        },
+        "status": {
+          "title": "Status page",
+          "ask": "crea una status page che mostra quando GitHub, Cloudflare, AWS e altri servizi vanno giù",
+          "when": "un servizio va giù o torna su",
+          "plan": "Creo orbita.status-page: un riquadro con GitHub, Cloudflare, AWS e altri servizi, letti ogni minuto dalle pagine di stato ufficiali. Quando uno va giù, l'intestazione del riquadro diventa rossa e ricevi un avviso.",
+          "file": "ha scritto src/lib.rs · la lettura delle pagine di stato e gli avvisi",
+          "perms": "rete · 7 pagine di stato",
+          "signal": "1 fuori servizio",
+          "now": "adesso",
+          "nowMeta": "1 fuori servizio · 1 instabile · 5 ok",
+          "aws": "fuori servizio · us-east-1 · 4 min",
+          "github": "lento · code in ritardo",
+          "operational": "operativo",
+          "day": "24 ore",
+          "incidents": "2 incidenti",
+          "ready": "Fatto. Il riquadro controlla le pagine di stato ogni minuto. In questo esempio, CloudFront di AWS risulta fuori servizio in us-east-1 e GitHub Actions è lento.",
+          "hint": "↵ apre l'incidente · ⇥ cronologia",
+          "price": "prezzo: US$ 12, acquisto singolo · ricevi il 70%"
+        }
+      }
+    },
+    "tama": {
+      "feedButton": "mangia",
+      "bathButton": "bagnetto",
+      "hello": "ciao! ho fame…",
+      "drag": "wow! dove andiamo?",
+      "starving": "fame… tanta fame",
+      "hungry": "ho fame",
+      "dirty": "mi serve un bagnetto",
+      "aria": "Cadu: {mood}. Trascinalo, f gli dà da mangiare, b gli fa il bagnetto.",
+      "mood": {
+        "hungry": "affamato",
+        "dirty": "sporco",
+        "happy": "felice"
+      },
+      "full": "ho già mangiato, grazie!",
+      "eating": "gnam gnam!",
+      "thanks": "grazie ✦",
+      "clean": "sono già pulitissimo",
+      "splash": "splash!",
+      "fresh": "profumatissimo ✦"
+    },
+    "hero": {
+      "words": [
+        "un harness per agenti",
+        "un terminale",
+        "un gestore di worktree",
+        "un client API",
+        "un client di database",
+        "un'app per le note",
+        "un'agenda"
+      ],
+      "stars": [
+        "agenti",
+        "terminale",
+        "worktree",
+        "API",
+        "database",
+        "note",
+        "agenda"
+      ]
+    },
+    "dl": {
+      "detected": "Per il tuo {os}, il file giusto è già qui.",
+      "pick": "Scegli il file per il tuo sistema.",
+      "downloadFor": "Scarica per {os}",
+      "macNote": "La prima volta, macOS potrebbe richiedere la <a href=\"#macos-danificado\">correzione qui sotto</a>."
+    },
+    "rn": {
+      "latest": "più recente",
+      "onGitHub": "Vedi su GitHub",
+      "none": "Ancora nessuna versione qui.",
+      "failed": "Non è stato possibile caricare le note. Guardale su <a href=\"{url}\" target=\"_blank\" rel=\"noopener noreferrer\">GitHub</a>."
+    }
+  },
+  "agents": {
+    "eyebrow": "Agenti",
+    "title": "I tuoi agenti,<br /><span class=\"violet-text\">fianco a fianco.</span>",
+    "lede": "Cadente non sostituisce il tuo agente. Claude Code, Codex e le altre CLI girano così come sono, con il tuo account. Cadente organizza il lavoro intorno: ogni attività nel suo worktree, tutti in vista, e chi ha bisogno di te compare per primo.",
+    "wallLabel": "Agenti che girano su Cadente",
+    "known": "Riconosciuti da Cadente",
+    "any": "E qualsiasi altra CLI che gira in un terminale.",
+    "yours": "il tuo",
+    "p1": "Un worktree per attività",
+    "p1Text": "Ogni agente lavora nel suo branch e nella sua directory, senza toccare i file degli altri.",
+    "p2": "Prima chi aspetta te",
+    "p2Text": "<kbd>⌘⇧A</kbd> riunisce gli agenti di tutte le pagine, con chi ha bisogno di te in cima.",
+    "p3": "L'abbonamento che paghi già",
+    "p3Text": "Claude Max, ChatGPT Plus, una chiave API o un modello locale. Cadente non fa pagare niente in più.",
+    "p4": "Dritto al provider",
+    "p4Text": "Le chiamate partono dalla tua macchina verso il provider che hai scelto. Nessun server di Cadente sta in mezzo.",
+    "p5": "Tutto sulla tua macchina",
+    "p5Text": "Sessioni, cronologia e impostazioni restano in un database locale, sul tuo computer."
+  },
+  "faq": {
+    "eyebrow": "Domande",
+    "title": "Prima di<br /><span class=\"muted\">scaricare.</span>",
+    "q1": "È solo un wrapper di Claude Code?",
+    "a1": "No. Claude Code, Codex e le altre CLI girano nel terminale di Cadente così come sono, con il tuo account. Cadente è la finestra intorno: divide lo schermo in riquadri, dà un worktree a ogni attività, riunisce gli agenti che aspettano te e mette accanto terminale, database, API, note e agenda.",
+    "q2": "Che differenza c'è con usare Claude Code direttamente nel terminale?",
+    "a2": "Nell'agente, nessuna: è la stessa CLI. La differenza sta intorno. Più agenti lavorano fianco a fianco, ognuno nel suo worktree, ⌘⇧A mostra chi aspetta te, e il resto del lavoro sta nella stessa finestra.",
+    "q3": "Le mie chiamate passano dai vostri server?",
+    "a3": "No. Cadente parla direttamente con il provider che hai scelto, con il tuo abbonamento o la tua chiave. Il server di Cadente conserva solo il tuo account.",
+    "q4": "Funziona senza IA?",
+    "a4": "Sì. L'IA è un plugin come gli altri: disattivala e tieni terminale, workspace, note, database e agenda.",
+    "q5": "Se è gratis, come guadagnate?",
+    "a5": "Con lo Store dei plugin, quando aprirà: Cadente trattiene il 30% delle vendite e degli abbonamenti e il 10% delle donazioni. L'app resta gratis.",
+    "q6": "In quali lingue?",
+    "a6": "In 15: portoghese, inglese, spagnolo, francese, tedesco, italiano, russo, turco, arabo, hindi, indonesiano, vietnamita, giapponese, coreano e cinese semplificato. Il cambio è immediato, senza riavviare. Alcune schermate nuove arrivano prima in portoghese e inglese.",
+    "q7": "Su quali sistemi?",
+    "a7": "macOS, con Apple Silicon e Intel, Windows e Linux, entrambi x64."
+  },
+  "lang": {
+    "label": "Lingua",
+    "notice": "Questa pagina è disponibile anche in italiano.",
+    "go": "Vedi in italiano",
+    "close": "Chiudi"
+  },
+  "langs": {
+    "eyebrow": "15 lingue",
+    "title": "Parla la tua lingua.<br /><span class=\"violet-text\">E altre 14.</span>",
+    "lede": "Dal menu al terminale, Cadente è disponibile in 15 lingue, e il cambio è immediato, senza riavviare. Scegli una lingua e guarda la finestra cambiare.",
+    "pick": "Lingua della finestra",
+    "note": "Alcune schermate nuove arrivano prima in portoghese e inglese."
+  },
+  "dl": {
+    "metaTitle": "Scarica Cadente",
+    "metaDescription": "Scarica Cadente per macOS (Apple Silicon e Intel), Windows e Linux. Gratis.",
+    "eyebrow": "Download",
+    "title": "Scarica <span class=\"violet-text\">Cadente</span>.",
+    "lede": "Gratis, per macOS, Windows e Linux.",
+    "version": "Versione",
+    "others": "Altri sistemi",
+    "fallback": "Non è stato possibile leggere l'ultima versione. I file sono nella <a href=\"https://github.com/cadente-hub/cadente-hub.github.io/releases\" target=\"_blank\" rel=\"noopener noreferrer\">pagina delle release</a>.",
+    "installTitle": "Come installare",
+    "oneLine": "In una riga",
+    "orHomebrew": "Oppure con Homebrew",
+    "orDmg": "Oppure con il .dmg",
+    "mac1": "Apri il <code>.dmg</code> e trascina Cadente in Applicazioni.",
+    "mac2": "Se macOS dice che l'app è danneggiata, guarda la correzione qui sotto.",
+    "orPackages": "Oppure con un pacchetto",
+    "powershell": "In PowerShell",
+    "orInstaller": "Oppure con il programma di installazione",
+    "win1": "Scarica il <code>.exe</code> o il <code>.msi</code> e segui il programma di installazione.",
+    "win2": "Se SmartScreen mostra un avviso, clicca su <b>Ulteriori informazioni</b> e poi su <b>Esegui comunque</b>.",
+    "fixTitle": "macOS dice che Cadente è danneggiato?",
+    "fixText": "macOS blocca le app che non hanno ancora la firma a pagamento di Apple. Incolla questo comando nel Terminale una volta e Cadente si apre normalmente.",
+    "fixNote": "Il comando di una riga e Homebrew lo fanno già per te."
+  },
+  "rn": {
+    "metaTitle": "Note di rilascio di Cadente",
+    "metaDescription": "Cosa è cambiato in ogni versione di Cadente, nei canali stabile e beta.",
+    "eyebrow": "Note di rilascio",
+    "title": "Ogni versione<br /><span class=\"violet-text\">di Cadente.</span>",
+    "lede": "I canali stabile e beta, letti dagli stessi file di aggiornamento che usa l'app.",
+    "inEnglish": "Le note di ogni versione sono scritte in inglese.",
+    "stable": "Stabile",
+    "beta": "Beta",
+    "stableTitle": "Versioni testate",
+    "betaTitle": "Prima di tutti",
+    "download": "Scarica la stabile",
+    "loading": "Caricamento…"
+  },
+  "terms": {
+    "metaTitle": "Termini, privacy e rimborsi — Cadente",
+    "metaDescription": "Termini e condizioni, informativa sulla privacy e politica di rimborso di Cadente.",
+    "title": "Termini, privacy e rimborsi",
+    "updated": "Aggiornato il 30 ottobre 2026",
+    "notice": "Questa è una traduzione. In caso di differenze, prevale il <a href=\"/en/terms-and-conditions.html\">testo in inglese</a>."
+  },
+  "blog": {
+    "metaTitle": "Blog",
+    "metaDescription": "Note di prodotto, ingegneria e pratiche di Cadente.",
+    "eyebrow": "Diario di Cadente",
+    "title": "Idee per<br /><span class=\"violet-text\">lavorare meglio.</span>",
+    "lede": "Note di prodotto, ingegneria e pratiche per usare l'IA con più chiarezza, controllo e velocità.",
+    "feed": "Iscriviti al feed JSON",
+    "count": {
+      "one": "{count} articolo",
+      "other": "{count} articoli"
+    },
+    "empty": "Nuovi articoli in arrivo.",
+    "read": "Leggi",
+    "back": "Tutti gli articoli",
+    "updated": "Aggiornato il {date}"
+  },
+  "cmp": {
+    "metaTitle": "Cadente e altri harness per agenti",
+    "metaDescription": "Come si confronta Cadente con Conductor, Orca, Paradev e Warp, con la fonte di ogni informazione.",
+    "eyebrow": "Confronta",
+    "title": "Cadente fianco a fianco<br /><span class=\"violet-text\">con altri harness.</span>",
+    "lede": "Quello che ognuno dice sul proprio sito, con il link da cui abbiamo preso ogni riga. Quello che il sito non dice compare come “non indicato”.",
+    "checked": "Verificato il {date}.",
+    "unknown": "non indicato",
+    "source": "fonte",
+    "feature": "Cosa confrontare",
+    "row": {
+      "systems": "Sistemi",
+      "price": "Prezzo",
+      "agents": "Agenti",
+      "isolation": "Isolamento per attività",
+      "noAi": "Disattivare l'IA e continuare a usarlo",
+      "languages": "Lingue dell'interfaccia",
+      "data": "Dove stanno i dati"
+    },
+    "cell": {
+      "cadente": {
+        "systems": "macOS, Windows e Linux",
+        "price": "Gratis, senza piani a pagamento",
+        "agents": "Claude Code, Codex, Gemini CLI, OpenCode e qualsiasi CLI",
+        "isolation": "Un worktree Git per attività",
+        "noAi": "Sì: l'IA è un plugin",
+        "languages": "15",
+        "data": "Sulla tua macchina; le chiamate vanno direttamente al provider"
+      },
+      "conductor": {
+        "agents": "Claude Code, Codex, Cursor e OpenCode",
+        "isolation": "Una microVM nel cloud per agente",
+        "data": "Nel cloud di Conductor (Conductor Cloud)"
+      },
+      "orca": {
+        "agents": "Claude Code, Codex, OpenCode, Grok e altre CLI",
+        "isolation": "Workspace isolati"
+      },
+      "paradev": {
+        "systems": "macOS; Linux sperimentale; niente Windows",
+        "price": "Ha un piano gratuito",
+        "agents": "Claude Code, Codex, OpenCode e qualsiasi CLI",
+        "isolation": "Un worktree Git per agente",
+        "data": "Sulla tua macchina; il cloud conserva solo i metadati dell'account"
+      },
+      "warp": {
+        "price": "A consumo, addebitato per esecuzione di agente (Factories)",
+        "agents": "Warp, Claude Code, Codex, Cursor e agenti con MCP",
+        "data": "Cloud di Warp o il tuo (self-hosted)"
+      }
+    },
+    "note": "Nomi e marchi appartengono ai rispettivi proprietari. Hai trovato qualcosa di non aggiornato? <a href=\"https://github.com/cadente-hub/cadente-hub.github.io/issues\" target=\"_blank\" rel=\"noopener noreferrer\">Apri una issue</a>.",
+    "link": "Confronta con altri harness"
+  }
+}

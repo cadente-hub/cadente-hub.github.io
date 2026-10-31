@@ -1,0 +1,1080 @@
+{
+  "meta": {
+    "title": "Cadente — 一切皆插件的中心，连 AI 也是",
+    "description": "Cadente 是一款免费的桌面应用，把 Claude Code、Codex 等智能体，以及终端、API 客户端、数据库客户端、笔记和日程，放进一个可拆分的窗口。一切都是插件，连 AI 也是。用 Rust 打造，支持 Mac、Windows 和 Linux，提供 15 种语言。",
+    "ogDescription": "一切皆插件的中心，连 AI 也是：智能体、终端、数据库和笔记，都在一个窗口里。",
+    "skip": "跳到正文"
+  },
+  "nav": {
+    "label": "主导航",
+    "home": "Cadente 主页",
+    "how": "工作方式",
+    "plugins": "插件",
+    "store": "商店",
+    "blog": "博客",
+    "download": "免费下载",
+    "menu": "打开菜单",
+    "agents": "智能体",
+    "faq": "常见问题"
+  },
+  "hero": {
+    "eyebrow": "免费 · Mac、Windows 和 Linux · Rust 打造 · 15 种语言",
+    "lede": "智能体、终端、数据库、笔记和日程都在同一个窗口里，全程用键盘操作。每个部分都是插件：用得上的开着，想换的换掉，其余的关掉，连 AI 也一样。而且完全免费。",
+    "watch": "看看一个工作日",
+    "anyCli": "任意 CLI",
+    "before": "Cadente 是",
+    "hub": "一个中心",
+    "after": "。",
+    "sub": "一切都是插件。连 AI 也是。"
+  },
+  "theater": {
+    "label": "使用中的 Cadente",
+    "intro": "在 Cadente 里度过的一个工作日，从早上 9 点到下班",
+    "chapters": "章节"
+  },
+  "creator": {
+    "eyebrow": "Creator mode · 即将推出",
+    "title": "你的插件<br /><span class=\"violet-text\">也能带来收入。</span>",
+    "lede": "有个点子解决了你自己的问题？它多半也能帮到别人。讲给智能体听，它来写插件，你发布到商店，自己决定怎么收费。捐赠你拿 90%，销售和每次订阅续费你拿 70%。",
+    "forYou": "归你",
+    "donation": "捐赠",
+    "donationText": "插件免费，喜欢的人可以支持你。",
+    "subscription": "订阅",
+    "subscriptionText": "按月或按年。每次续费你都有收入，不只是第一次。",
+    "once": "一次性购买",
+    "onceText": "付一次钱，最多可在 5 台电脑上使用。",
+    "trialCut": "7 天",
+    "trialExample": "例如",
+    "trial": "免费试用",
+    "trialText": "先让人试用几天，再开始收费。",
+    "calc": {
+      "model": "定价模式",
+      "pricePerMonth": "每月价格",
+      "subscribers": "订阅人数",
+      "youGet": "你最多可得",
+      "perMonth": "每月",
+      "note": "这只是估算，未扣除税费和刷卡手续费。按净额计算，每笔销售都经过 Cadente 结账。"
+    },
+    "makerTitle": "从点子到商店，不用离开 Cadente。",
+    "makerLede": "三个示例需求，各有一种赚钱方式：一只在屏幕上自由活动的电子宠物 Cadu，一个显示当天销售额的面板，还有一个在 GitHub、Cloudflare 或 AWS 宕机时提醒你的状态页。Cadu 可以拖来拖去、喂食，还能给它洗澡。",
+    "examples": "插件示例",
+    "step1": "说出你的点子",
+    "step1Text": "聊天会带着你的需求打开。按下 <kbd>↵</kbd> 之前，什么都不会发出。",
+    "step2": "智能体来写",
+    "step2Text": "清单、代码和测试，写在你当前位置旁边的窗格里。",
+    "step3": "马上试用",
+    "step3Text": "<code>cadente plugin dev</code> 让插件就在对话旁边运行起来。Cadu 自由地待在应用上层：拖动它，按 <kbd>f</kbd> 喂食，按 <kbd>b</kbd> 洗澡。",
+    "step4": "发布",
+    "step4Text": "输入 <code>/publish</code> 就好，它会上架商店，价格由你定。"
+  },
+  "rust": {
+    "eyebrow": "Rust 打造",
+    "title": "从内核到屏幕，<br /><span class=\"muted\">全是 Rust。</span><br /><span class=\"violet-text\">风扇都不用转。</span>",
+    "lede": "没有藏起来的浏览器，后台也没有跑着 Node。Cadente 是原生应用，从内核到界面都是 Rust，由 GPU 绘制。",
+    "stackLabel": "Cadente 由什么构成",
+    "stack": "<span class=\"stack__root\">cadente</span>\n├─ 内核       <b>rust</b>\n├─ 界面       <b>rust</b> · slint，由 GPU 绘制\n├─ 终端       <b>rust</b> · 原生 pty\n├─ 智能体     <b>rust</b> · claude、codex、agy 及任意 cli\n└─ 插件       <b>rust</b> · 社区插件用 webassembly",
+    "memory": "更少内存",
+    "memoryText": "历史记录存放在磁盘上，打开时才加载。应用不会越用越臃肿。",
+    "battery": "只有一个进程",
+    "batteryText": "界面直接与内核通信，中间没有本地服务器，也没有浏览器。",
+    "hidden": "后台不留东西",
+    "hiddenText": "窗格一关，就结束了。终端、智能体或插件都不会在后台继续运行。"
+  },
+  "plugins": {
+    "eyebrow": "内置插件",
+    "title": "每个窗格<br /><span class=\"muted\">都能变成你需要的样子。</span>",
+    "lede": "聊天、终端、Workspaces、Requests、日历、专注：内置插件的用法都一样。<kbd>↵</kbd> 打开，<kbd>.</kbd> 显示能做什么，<kbd>/</kbd> 列出命令，<kbd>⇥</kbd> 切换视图。学会一个，就全会了。点一个看看。",
+    "gridLabel": "内置插件",
+    "communityBig": "<span class=\"violet-text\">还有</span><br />社区做的插件。",
+    "communityText": "商店即将开放：任何人都能发布，安装永远免费。不用 AI？只留效率类插件就行。",
+    "seeStore": "看看商店",
+    "namesLabel": "部分社区插件",
+    "names": {
+      "board": "白板",
+      "docs": "文档",
+      "browser": "浏览器",
+      "radio": "Lo-fi 电台",
+      "neon": "霓虹主题",
+      "rag": "本地 RAG",
+      "habits": "习惯",
+      "stars": "流星雨",
+      "chess": "国际象棋",
+      "yours": "……还有你做的插件"
+    }
+  },
+  "owner": {
+    "eyebrow": "一切都是插件",
+    "title": "连 AI<br /><span class=\"violet-text\">也是插件。</span>",
+    "lede": "聊天、终端、侧边栏、AI 提供方，甚至主题：Cadente 的每个部分都是插件，和社区插件一样。换掉提供方，关掉不用的；愿意的话，把 AI 也关掉，留下一个有终端、数据库、笔记和日程的中心。",
+    "plugins": "插件",
+    "installKanban": "安装社区的 Kanban",
+    "services": "服务",
+    "clickToSwap": "点击更换",
+    "always": "始终保留",
+    "forSafety": "为了你的安全",
+    "base": "插件管理器 · shell · 选择器",
+    "install": "安装",
+    "installText": "从链接或文件夹安装，什么都不用重启。",
+    "remove": "关闭",
+    "removeText": "内置插件也能关闭。",
+    "swap": "更换",
+    "swapText": "更换提供方后，依赖它的插件会在新提供方上重启。",
+    "layersLabel": "由你选择的各层",
+    "layer1": "智能体",
+    "layer1Text": "Claude Code、Codex、Gemini CLI、OpenCode，或你已经在用的 CLI。",
+    "layer2": "模型",
+    "layer2Text": "你的订阅、一个 API 密钥，或 Ollama 里的本地模型。",
+    "layer3": "每个插件",
+    "layer3Text": "开启、关闭或更换，都不用重启应用。",
+    "layer4": "界面",
+    "layer4Text": "连侧边栏和主题都是插件。",
+    "noAi": "不用 AI 也行",
+    "noAiText": "关掉 AI，其余照常运行：终端、workspaces、笔记、数据库和日程。"
+  },
+  "store": {
+    "eyebrow": "插件商店 · 即将推出",
+    "title": "有人需要过，<br /><span class=\"violet-text\">就有人做过。</span>",
+    "lede": "Kanban、Kubernetes、Lo-fi 电台、画图用的白板。商店即将开放，安装免费，大多数插件也会免费。下面的插件只是示例。",
+    "search": "搜索插件",
+    "placeholder": "找个插件",
+    "categories": "分类",
+    "empty": "还没有叫这个名字的插件。不如自己做一个？",
+    "oneClick": "一键 ↵",
+    "oneClickText": "它会下载、校验文件是否正确，然后安装。",
+    "open": "开放",
+    "openText": "在 GitHub 上发布并加上 <code>cadente-plugin</code> topic？你的插件就会进入商店。",
+    "watched": "有人把关",
+    "watchedText": "一旦出现恶意插件，它会被封禁，并在所有机器上自动关闭。"
+  },
+  "finale": {
+    "title": "来打开<br /><span class=\"muted\">第一个窗格吧？</span>",
+    "lede": "免费，支持 Mac、Windows 和 Linux，提供 15 种语言，无需绑卡。",
+    "copyLabel": "复制安装命令",
+    "copy": "复制"
+  },
+  "foot": {
+    "tagline": "一切皆插件的中心，连 AI 也是。",
+    "label": "页脚",
+    "product": "产品",
+    "resources": "资源",
+    "legal": "法律",
+    "terms": "条款与条件",
+    "copy": "© 2026 Cadente。Rust 打造。",
+    "langs": "语言"
+  },
+  "js": {
+    "theater": {
+      "chapters": {
+        "morning": {
+          "step": "早上",
+          "title": "9 点。一天已经安排好了。",
+          "text": "你打开 Cadente，第一个窗格已经显示出今天的安排：9:30 的每日站会、下午 2 点的设计会议，还有一个等着处理的合并冲突。不用打开五个应用才知道从哪儿开始。<kbd>⇥</kbd> 切到最近项目和任务。"
+        },
+        "claude": {
+          "step": "Claude",
+          "title": "先给 Claude 一个测试任务。",
+          "text": "<kbd>⌘O</kbd> 加四个字母，就把窗格变成终端。你用已经在付费的订阅打开 Claude Code，让它为 <code>focus_neighbor</code> 写一个测试。它开始写，你接着做下一件事。"
+        },
+        "agents": {
+          "step": "智能体",
+          "title": "三个智能体，不多开一个窗口。",
+          "text": "<kbd>⌘D</kbd> 向右拆分屏幕，<kbd>⌘⇧D</kbd> 向下拆分。Codex 跑测试，agy 解释 <code>layout.rs</code>，Claude 下面还留着一个给你用的终端。全都在干活，全都看得见。"
+        },
+        "ci": {
+          "step": "CI",
+          "title": "这时 login 的 CI 挂了。",
+          "text": "新页面上是四个打开的分支和每个 PR 的状态。login 是红的。你打开这个分支，<kbd>⌘J</kbd> 叫出一个已经知道你在哪儿的聊天，直接问原因就行。diff 在旁边打开。"
+        },
+        "api": {
+          "step": "API",
+          "title": "现在，做今天的功能。",
+          "text": "今天的任务是项目 API。在 Requests 里打开 <code>GET /v1/projects</code>，把 <code>limit</code> 改成 5，发送。接着用 POST 创建展示项目。智能体们还在第一个页面上干活，而你没打开任何别的程序。"
+        },
+        "store": {
+          "step": "商店",
+          "title": "还缺一个数据库客户端。",
+          "text": "要确认 POST 有没有存进去，得看看数据库。商店就在下方打开：你找到 Postgres，翻翻截图，看看它要访问什么，按 <kbd>↵</kbd> 免费安装。"
+        },
+        "db": {
+          "step": "数据库",
+          "title": "数据库确认了 POST。",
+          "text": "<kbd>⌘↵</kbd> 运行光标所在的 select。在项目查询的结果里，展示项目已经出现了。你直接在这一行改排序，再运行一次，然后从数据库浏览器打开会话表。"
+        },
+        "app": {
+          "step": "应用里",
+          "title": "应用里也已经有了。",
+          "text": "在新页面里，浏览器打开你正在做的应用，地址是 <code>localhost:5173</code>。展示项目就在列表里。<kbd>↓</kbd> 在链接间移动，<kbd>↵</kbd> 打开项目，<kbd>⌫</kbd> 返回。"
+        },
+        "diagram": {
+          "step": "画图",
+          "title": "给会议画一张图。",
+          "text": "下午 2 点有设计会议。在网站旁边，你从商店安装白板，画出数据的流向，不用打开别的工具。<kbd>r</kbd> 画矩形，<kbd>o</kbd> 画椭圆，<kbd>a</kbd> 把两者连起来。"
+        },
+        "meeting": {
+          "step": "会议",
+          "title": "开会时，纪要变成了任务。",
+          "text": "会议纪要放在文档里，是你文件夹中的一个 .md 文件。你直接在正文里写下接下来的任务，<kbd>↵</kbd> 开始下一条，<kbd>空格</kbd> 勾掉已经完成的那条：博客公告。"
+        },
+        "focus": {
+          "step": "专注",
+          "title": "然后，专注 25 分钟。",
+          "text": "一个只属于你的页面：日程、25 分钟的番茄钟、电脑的内存，以及你已经用了多少 Claude。<kbd>⌘1</kbd> 到 <kbd>⌘6</kbd> 在今天的六个页面之间跳转。"
+        },
+        "accounts": {
+          "step": "账户",
+          "title": "用你已经在付费的订阅。",
+          "text": "用量显示 Claude 已用到限额的 58%。设置里是你已有的账户：Claude Max、ChatGPT Plus、一个 Gemini 密钥、OpenRouter，以及 Ollama 里的本地模型。每个对话各选各的，Cadente 不额外收一分钱。"
+        },
+        "plugins": {
+          "step": "插件",
+          "title": "用不上的，就拿掉。",
+          "text": "在插件里，连内置的也能拿掉。<kbd>空格</kbd> 关闭链接和工具。AI 提供方也能换：换成你笔记本上的 Ollama，而且你能先看到会有哪些变化。整个 AI 都可以关掉。"
+        },
+        "end": {
+          "step": "下班",
+          "title": "一天结束了。还有谁在等？",
+          "text": "<kbd>⌘⇧A</kbd> 把所有页面的智能体汇集到一起，在等你的排在最上面。Claude 还在请求写入测试的权限：<kbd>↵</kbd> 跳到它那里，<kbd>y</kbd> 允许。你今天用的每个插件都是某个人做的，下一个可能就是你做的。"
+        }
+      },
+      "typed": {
+        "ciQuestion": "CI 为什么失败了？",
+        "boardWeb": "Web 应用",
+        "task1": "把 changelog 发给团队",
+        "task2": "评审 [[发布]]",
+        "claude": "在 layout.rs 末尾为 focus_neighbor 加一个测试，先别运行",
+        "codex": "运行 cargo test 并告诉我结果",
+        "agy": "用一句话解释 layout.rs 的作用"
+      },
+      "hud": {
+        "mandarATarefa": "发送任务",
+        "proximaVista": "下一个视图",
+        "vistaAnterior": "上一个视图",
+        "rodarOsTestes": "运行测试",
+        "voltarAoLogin": "回到 login",
+        "abrirOWorkspaceLogin": "打开 login workspace",
+        "chatAoLadoLigadoAoWorkspace": "旁边的聊天，关联到 workspace",
+        "perguntar": "询问",
+        "abrirODiffDoLado": "在旁边打开 diff",
+        "alteracoes": "更改",
+        "descer": "向下",
+        "abrirODiff": "打开 diff",
+        "requisicao": "请求",
+        "colecoes": "集合",
+        "colecaoProjetos": "项目集合",
+        "abrirORequest": "打开请求",
+        "descerAteOLimit": "向下到 limit",
+        "editarOLimit": "编辑 limit",
+        "apagarOValor": "清除值",
+        "gravar": "保存",
+        "voltarAoEnviar": "回到发送",
+        "enviarOGet": "发送 GET",
+        "enviarOPost": "发送 POST",
+        "ampliarAFolha": "最大化窗格",
+        "abrirAPaginaDoPostgres": "打开 Postgres 页面",
+        "voltarAoTopo": "回到顶部",
+        "instalarGratis": "安装，免费",
+        "rodarOSelectDoCursor": "运行光标所在的 select",
+        "descerPeloScript": "沿脚本向下",
+        "rodarEsteSelect": "运行这条 select",
+        "ateOOrderBy": "到 order by",
+        "editarALinhaAliMesmo": "就地编辑这一行",
+        "apagarAUltimaPalavra": "删除最后一个词",
+        "gravarERodar": "保存并运行",
+        "navegadorDoBanco": "数据库浏览器",
+        "verOsDadosDaTabela": "查看表数据",
+        "voltarAsDuasFolhas": "回到两个窗格",
+        "irAoEndereco": "前往地址",
+        "abrirOSite": "打开网站",
+        "abrirOProjetoVitrine": "打开展示项目",
+        "voltar": "返回",
+        "abrirAPaginaDoQuadro": "打开白板页面",
+        "proximaFoto": "下一张截图",
+        "guardarOTexto": "确认文字",
+        "ligarComUmaSeta": "用箭头连接",
+        "elipse": "椭圆",
+        "maisUmaSeta": "再加一个箭头",
+        "abrirANota": "打开笔记",
+        "descerPelaNota": "沿笔记向下",
+        "novaTarefa": "新任务",
+        "aListaContinua": "列表继续",
+        "fecharALista": "结束列表",
+        "subir": "向上",
+        "marcarComoFeita": "标记为完成",
+        "comecarUmPomodoro": "开始一个番茄钟",
+        "pagina1OsAgentes": "页面 1：智能体",
+        "pagina3AApiEO": "页面 3：API 和数据库",
+        "pagina5AAta": "页面 5：会议纪要",
+        "pagina6DeVoltaAoSeu": "页面 6：回到你的一天",
+        "proximaConta": "下一个账户",
+        "desligarLinks": "关闭链接",
+        "desligarFerramentas": "关闭工具",
+        "ultimoItem": "最后一项",
+        "providerDeIa": "AI 提供方",
+        "trocarProvider": "更换提供方",
+        "ollamaNoSeuComputador": "Ollama，在你的电脑上",
+        "verAPrevia": "查看预览",
+        "aplicar": "应用",
+        "irAteQuemEspera": "跳到正在等待的",
+        "permitir": "允许",
+        "saltarParaOCalendarioNaPagina": "跳到今天页面上的日历",
+        "abrirOTerminal": "打开终端",
+        "outroTerminal": "再开一个终端",
+        "maisUm": "再来一个",
+        "umTerminalParaVoce": "一个给你用的终端",
+        "abrirWorkspaces": "打开 Workspaces",
+        "workspacesNasAlteracoes": "Workspaces，更改视图",
+        "abrirORequests": "打开 Requests",
+        "abrirALoja": "打开商店",
+        "abrirONavegador": "打开浏览器",
+        "abrirDocumentos": "打开文档",
+        "abrirOCalendario": "打开日历",
+        "abrirOFoco": "打开专注",
+        "abrirOSistema": "打开系统",
+        "abrirOUso": "打开用量",
+        "abrirPlugins": "打开插件",
+        "abrirOClaudeCode": "打开 Claude Code",
+        "abrirOCodex": "打开 Codex",
+        "abrirOAgy": "打开 agy",
+        "loginOCiFalhou": "login · CI 失败了",
+        "paineisProntoParaOMerge": "窗格 · 可以合并",
+        "buscaOClaudeTrabalhando": "搜索 · Claude 正在工作",
+        "temaEsperandoRevisao": "主题 · 等待评审",
+        "quadro": "白板",
+        "radioLoFi": "Lo-fi 电台",
+        "maisUma": "再来一个",
+        "asFotos": "截图",
+        "sobre": "简介",
+        "oQueEleFaz": "功能介绍",
+        "atalhos": "快捷键",
+        "mapa": "地图",
+        "vitrine": "展示",
+        "lancamento": "发布",
+        "retangulo": "矩形",
+        "outroRetangulo": "再画一个矩形"
+      }
+    },
+    "plugins": {
+      "title": {
+        "inicio": "主页",
+        "chat": "聊天",
+        "terminal": "终端",
+        "workspaces": "Workspaces",
+        "pr": "PR Reviews",
+        "requests": "Requests",
+        "calendario": "日历",
+        "sistema": "系统",
+        "uso": "用量",
+        "foco": "专注",
+        "automacoes": "自动化",
+        "prompts": "提示词",
+        "projetos": "项目",
+        "recursos": "资源",
+        "links": "链接",
+        "ferramentas": "工具",
+        "config": "设置",
+        "plugins": "插件"
+      },
+      "desc": {
+        "inicio": "你的一天：日程、任务、笔记、天气，以及还开着的东西。",
+        "chat": "任意模型，支持计划模式、队列和会话，上下文一目了然。",
+        "terminal": "命令块、AI 建议，以及 Claude Code、Codex 等智能体。",
+        "workspaces": "仓库、更改和 worktree，支持 diff 和提交。",
+        "pr": "你和团队的 PR：diff、检查、讨论串和 AI 评审。",
+        "requests": "HTTP 客户端，支持集合、环境和历史记录。",
+        "calendario": "日视图、月视图和即将到来的事件。输入“Reunião amanhã 10h”然后按 ↵。",
+        "sistema": "内存、CPU、端口和 Docker，实时显示。",
+        "uso": "各个账户的限额、费用和用量预测。",
+        "foco": "带任务和笔记的番茄钟。",
+        "automacoes": "定时运行的 AI 任务，附带历史记录。",
+        "prompts": "提示词与技巧库，旁边开着聊天会话。",
+        "projetos": "项目和会话：添加、克隆、收藏。",
+        "recursos": "Skills、记忆、agents、MCP 和指令。",
+        "links": "带标签的链接。粘贴 URL 然后按 ↵。",
+        "ferramentas": "JSON，以及 Markdown 转 Word。",
+        "config": "账户、提供方、快捷键、访问权限和外观。",
+        "plugins": "目录、依赖图，以及可预览的提供方更换。"
+      }
+    },
+    "rack": {
+      "service": {
+        "ai": "AI 提供方",
+        "compaction": "上下文压缩",
+        "pty": "终端 (pty)",
+        "theme": "主题"
+      },
+      "noAi": "无 · AI 已关闭",
+      "plugin": {
+        "chat": "聊天",
+        "terminal": "终端",
+        "pr": "PR Reviews",
+        "automacoes": "自动化",
+        "workspaces": "Workspaces",
+        "sidebar": "侧边栏",
+        "tray": "系统托盘"
+      },
+      "meta": {
+        "community": "社区",
+        "on": "开启",
+        "off": "关闭"
+      },
+      "removeKanban": "移除 Kanban",
+      "count": {
+        "other": "{count} 个已开启"
+      },
+      "svc": {
+        "again": "再点一次重新开启",
+        "usedBy": "{users} 在用",
+        "nobody": "现在没人用"
+      },
+      "log": {
+        "hint": "试试看：点插件把它关掉，点服务来更换，或者安装一个社区插件。",
+        "on": "<b>{name}</b> 回来了，什么都不用重启。",
+        "off": "<b>{name}</b> 已关闭。如果它原本开在某个窗格里，那个窗格会留着，等待别的插件。",
+        "noAi": "<b>AI 已关闭。</b>{users} 在等待提供方；终端、Workspaces、笔记、数据库和日程照常运行。",
+        "swap": "预览 · {service}：<b>{from} → {to}</b>",
+        "swapUsers": "预览 · {service}：<b>{from} → {to}</b> · {users} 会先完成手头的工作，再在新提供方上重启",
+        "install": "好了，<b>@ana 的 Kanban</b> 已安装。它只申请访问 api.github.com。",
+        "remove": "<b>Kanban</b> 已移除。它的数据还留在你的配置文件里，以防你改主意。"
+      }
+    },
+    "store": {
+      "cat": {
+        "all": "全部",
+        "dev": "开发",
+        "ai": "AI",
+        "productivity": "效率",
+        "data": "数据",
+        "themes": "主题",
+        "fun": "娱乐"
+      },
+      "app": {
+        "kanban": {
+          "name": "Kanban",
+          "desc": "仓库 issue 的看板，分三列。"
+        },
+        "board": {
+          "name": "白板",
+          "desc": "像手绘一样的图，用键盘来画。"
+        },
+        "postgres": {
+          "name": "Postgres",
+          "desc": "脚本、表和结果都在一个窗格里。"
+        },
+        "docs": {
+          "name": "文档",
+          "desc": "Markdown 笔记，支持 [[链接]] 和任务。"
+        },
+        "browser": {
+          "name": "浏览器",
+          "desc": "窗格里的网站，用键盘点链接。"
+        },
+        "testWriter": {
+          "name": "测试编写器",
+          "desc": "为当前 diff 编写测试的智能体。"
+        },
+        "neon": {
+          "name": "霓虹主题",
+          "desc": "黑底上点缀紫色和粉色。"
+        },
+        "kubernetes": {
+          "name": "Kubernetes",
+          "desc": "集群的 pod、日志和事件，不用离开键盘。"
+        },
+        "meetingSummary": {
+          "name": "会议摘要",
+          "desc": "转写会议内容，并整理出任务。"
+        },
+        "radio": {
+          "name": "Lo-fi 电台",
+          "desc": "专注时听的音乐，计时器显示在屏幕上。"
+        },
+        "regex": {
+          "name": "正则表达式",
+          "desc": "测试正则表达式，实时高亮匹配。"
+        },
+        "sheets": {
+          "name": "表格",
+          "desc": "打开 CSV 和 XLSX，支持筛选和求和。"
+        },
+        "rag": {
+          "name": "本地 RAG",
+          "desc": "用你电脑上的模型，就你的文档提问。"
+        },
+        "habits": {
+          "name": "习惯",
+          "desc": "勾选今天的习惯，查看连续天数。"
+        },
+        "sqlite": {
+          "name": "SQLite",
+          "desc": "打开任意 .db 文件，浏览其中的表。"
+        },
+        "cron": {
+          "name": "Cron",
+          "desc": "编写 cron 表达式，查看接下来的执行时间。"
+        },
+        "contrast": {
+          "name": "高对比度主题",
+          "desc": "纯黑配纯白，读起来更清楚。"
+        },
+        "promptJudge": {
+          "name": "提示词评测",
+          "desc": "并排比较不同模型的回答。"
+        },
+        "compose": {
+          "name": "Docker Compose",
+          "desc": "启动、停止并跟踪 compose 服务。"
+        },
+        "journal": {
+          "name": "日记",
+          "desc": "每天一篇笔记，支持搜索。"
+        },
+        "chess": {
+          "name": "国际象棋",
+          "desc": "每天与智能体对弈一局。"
+        },
+        "jsonSchema": {
+          "name": "JSON Schema",
+          "desc": "用 schema 校验 JSON，按行查看错误。"
+        },
+        "commitWriter": {
+          "name": "提交信息编写器",
+          "desc": "根据暂存区的内容写提交信息。"
+        },
+        "exchange": {
+          "name": "汇率",
+          "desc": "当日汇率和快速换算。"
+        },
+        "sepia": {
+          "name": "棕褐主题",
+          "desc": "暖色调，适合长时间工作。"
+        },
+        "logs": {
+          "name": "日志",
+          "desc": "实时查看日志文件，支持过滤和着色。"
+        },
+        "finance": {
+          "name": "财务",
+          "desc": "从 CSV 汇总每月各类别的支出。"
+        },
+        "graphql": {
+          "name": "GraphQL",
+          "desc": "浏览 schema，带变量运行查询。"
+        },
+        "explainer": {
+          "name": "代码讲解",
+          "desc": "逐个函数讲解当前打开的文件。"
+        },
+        "stars": {
+          "name": "流星雨",
+          "desc": "每次构建通过，就有一颗流星划过。"
+        },
+        "gitGraph": {
+          "name": "Git 图",
+          "desc": "以文本显示分支和提交的关系图。"
+        },
+        "rss": {
+          "name": "RSS 阅读器",
+          "desc": "订阅源列成清单，直接在窗格里阅读。"
+        },
+        "charts": {
+          "name": "图表",
+          "desc": "从 CSV 或 SQL 生成文本图表。"
+        },
+        "retro": {
+          "name": "复古终端主题",
+          "desc": "荧光绿配方块光标。"
+        },
+        "flags": {
+          "name": "功能开关",
+          "desc": "在多个环境中开启和关闭功能开关。"
+        },
+        "translator": {
+          "name": "翻译器",
+          "desc": "翻译文本和 i18n 文件。"
+        },
+        "timesheet": {
+          "name": "工时表",
+          "desc": "根据你用过的窗格统计各项目的工时。"
+        },
+        "migrations": {
+          "name": "数据库迁移",
+          "desc": "运行和撤销迁移，可预览 SQL。"
+        },
+        "mascot": {
+          "name": "吉祥物",
+          "desc": "一个会对你的测试做出反应的小伙伴。"
+        },
+        "coverage": {
+          "name": "覆盖率",
+          "desc": "按文件显示测试覆盖率，以及还缺哪些。"
+        },
+        "email": {
+          "name": "邮件",
+          "desc": "收件箱按行排列，用键盘操作。"
+        },
+        "weather": {
+          "name": "天气",
+          "desc": "你关注的城市未来一周的天气预报。"
+        },
+        "secrets": {
+          "name": "密钥扫描",
+          "desc": "在提交前找出遗忘在代码里的密钥。"
+        },
+        "mindMap": {
+          "name": "思维导图",
+          "desc": "用树状结构整理想法，只用键盘。"
+        },
+        "typing": {
+          "name": "打字练习",
+          "desc": "用你自己的代码片段练习打字速度。"
+        },
+        "uptime": {
+          "name": "在线监测",
+          "desc": "你的服务状态，出问题时在窗格标题栏提醒。"
+        },
+        "benchmarks": {
+          "name": "基准测试",
+          "desc": "比较多次运行，发现性能回退。"
+        },
+        "changelog": {
+          "name": "更新日志",
+          "desc": "根据提交生成更新日志。"
+        },
+        "snippets": {
+          "name": "片段",
+          "desc": "文本和代码片段，一个快捷键就能调出。"
+        }
+      },
+      "price": {
+        "free": "免费",
+        "donation": "免费 · 捐赠",
+        "perMonth": "{price}/月",
+        "trial": "免费 {days} 天",
+        "once": "{price} · 一次性"
+      },
+      "action": {
+        "free": "安装",
+        "donation": "安装",
+        "subscription": "订阅",
+        "once": "购买",
+        "trial": "免费试用"
+      },
+      "installed": "已安装",
+      "stepsFree": [
+        "正在下载…",
+        "sha256 ok",
+        "权限 ok"
+      ],
+      "stepsPaid": [
+        "Cadente 结账…",
+        "许可证 ok",
+        "sha256 ok"
+      ],
+      "empty": "还没有叫这个名字的插件。<a href=\"#creator\">不如自己做一个？</a>",
+      "demoSearches": [
+        "主题",
+        "sql",
+        "智能体"
+      ],
+      "wall": [
+        "番茄钟+",
+        "速记",
+        "Webhooks",
+        "Mock 服务器",
+        "WebSocket",
+        "gRPC",
+        "MQTT",
+        "OpenAPI",
+        "许可证",
+        "依赖",
+        "漏洞",
+        ".env",
+        "SSH",
+        "服务器",
+        "云成本",
+        "种子数据",
+        "测试夹具",
+        "包体积",
+        "Web Vitals",
+        "无障碍",
+        "i18n",
+        "Semver",
+        "版本发布",
+        "状态页",
+        "指标",
+        "火焰图",
+        "性能分析器",
+        "不稳定测试",
+        "冲突",
+        "Blame",
+        "词典",
+        "图标",
+        "颜色",
+        "字体",
+        "幻灯片",
+        "PDF 阅读器",
+        "转写",
+        "向量嵌入",
+        "智能体",
+        "预算",
+        "发票",
+        "联系人",
+        "团队日程",
+        "旅行",
+        "菜谱",
+        "书籍",
+        "电影",
+        "播客",
+        "记分板",
+        "数独",
+        "猜词",
+        "问答",
+        "ASCII 艺术",
+        "团队 Kanban",
+        "Scrum",
+        "回顾会",
+        "OKR",
+        "今日 PR",
+        "SQL 评审",
+        "Lint",
+        "格式化工具",
+        "图片 diff",
+        "调色板",
+        "计算器",
+        "单位换算",
+        "时区",
+        "二维码",
+        "UUID",
+        "Base64",
+        "JWT"
+      ]
+    },
+    "calc": {
+      "subscription": {
+        "price": "每月价格",
+        "people": "订阅人数",
+        "per": "每月"
+      },
+      "once": {
+        "price": "价格",
+        "people": "购买人数",
+        "per": "总计"
+      },
+      "donation": {
+        "price": "每月平均捐赠",
+        "people": "支持者",
+        "per": "每月"
+      }
+    },
+    "oneliner": {
+      "copied": "已复制",
+      "select": "选中后复制",
+      "copy": "复制"
+    },
+    "maker": {
+      "intro": "creator mode · 智能体使用 SDK",
+      "nothingSent": "按下 ↵ 之前，什么都不会发出",
+      "newPane": "新窗格",
+      "waiting": "等待智能体",
+      "codeHere": "代码会显示在这里",
+      "lines": {
+        "other": "{count} 行"
+      },
+      "writing": "正在编写",
+      "inDev": "开发中",
+      "running": "运行中",
+      "chatTitle": "聊天 · creator mode",
+      "terminalTitle": "终端 · cadente plugin dev",
+      "placeholder": "消息 · @ 附件 · / 命令",
+      "writingToml": "正在写入 cadente-plugin.toml",
+      "wroteToml": "已写入 cadente-plugin.toml",
+      "writingLib": "正在写入 src/lib.rs",
+      "runningTests": "正在运行 cargo test",
+      "testsOk": {
+        "other": "测试通过 · {count} 个通过"
+      },
+      "compiling": "正在编译为 webassembly · 0.8 秒",
+      "permissions": "权限：{perms}",
+      "devRunning": "{id} 0.1.0 运行中",
+      "inDevAt": "{where} · 开发中",
+      "floatingLayer": "浮动层",
+      "publishDesc": "release、sha256 和商店索引",
+      "publishing": "正在发布",
+      "released": "release v0.1.0 · 已上传构件和 sha256",
+      "manifestOk": "清单有效 · topic cadente-plugin",
+      "published": "已发布 · 下次索引时进入商店",
+      "inStore": "已上架",
+      "ex": {
+        "pet": {
+          "tab": "电子宠物 Cadu",
+          "ask": "做一个 Cadu 电子宠物，浮在应用上方，会饿，也会变脏",
+          "keyFeed": "喂食",
+          "keyBath": "洗澡",
+          "plan": "我会在浮动层创建 ana.cadu-tamagotchi 包：它在屏幕上飞来飞去，时间久了会饿、会脏；按 f 喂食，按 b 洗澡。",
+          "file": "已写入 src/lib.rs · ANSI 画的 Cadu、饥饿和洗澡",
+          "perms": "除 Core 外不需要其他权限",
+          "ready": "好了。Cadu 已经在应用里自由活动，又饿又脏。拖动它，按 f 喂食，按 b 洗澡。",
+          "hint": "f 喂食 · b 洗澡 · 拖动 Cadu",
+          "price": "价格：免费，接受捐赠 · 你拿 90%"
+        },
+        "sales": {
+          "title": "今日销售",
+          "ask": "做一个插件，显示我店铺今天的销售额，带按小时的图表",
+          "viewToday": "今天",
+          "viewTodayText": "总额、图表和订单",
+          "viewWeek": "本周",
+          "viewWeekText": "与上周对比",
+          "plan": "我会创建 leo.vendas-do-dia：一个窗格，显示今天的总额、按小时的图表和最近的订单。它只访问 api.stripe.com。",
+          "file": "已写入 src/lib.rs · 总额、图表和订单",
+          "today": "今天",
+          "todayMeta": "¥3,482.90 · 27 笔订单",
+          "perHour": "按小时",
+          "peak": "11 点达到高峰",
+          "latest": "最近订单",
+          "order1": "¥129.90 · 已支付",
+          "order2": "¥49.00 · 已支付",
+          "order3": "¥310.00 · 待支付",
+          "ready": "好了。窗格显示今天的销售额，每分钟自动刷新。",
+          "hint": "⇥ 本周 · ↵ 打开订单",
+          "price": "价格：每月 US$ 4 · 每次续费你拿 70%"
+        },
+        "status": {
+          "title": "状态页",
+          "ask": "做一个状态页，显示 GitHub、Cloudflare、AWS 和其他服务什么时候宕机",
+          "when": "某个服务宕机或恢复时",
+          "plan": "我会创建 orbita.status-page：一个窗格，每分钟从官方状态页读取 GitHub、Cloudflare、AWS 和其他服务的状态。有服务宕机时，窗格标题栏会变红，你也会收到通知。",
+          "file": "已写入 src/lib.rs · 读取状态页和发送提醒",
+          "perms": "网络 · 7 个状态页",
+          "signal": "1 个宕机",
+          "now": "现在",
+          "nowMeta": "1 个宕机 · 1 个不稳定 · 5 个正常",
+          "aws": "宕机 · us-east-1 · 4 分钟",
+          "github": "缓慢 · 队列延迟",
+          "operational": "正常运行",
+          "day": "24 小时",
+          "incidents": "2 起事件",
+          "ready": "好了。窗格每分钟检查一次状态页。在这个例子里，AWS CloudFront 在 us-east-1 显示宕机，GitHub Actions 运行缓慢。",
+          "hint": "↵ 打开事件 · ⇥ 历史",
+          "price": "价格：US$ 12，一次性购买 · 你拿 70%"
+        }
+      }
+    },
+    "tama": {
+      "feedButton": "吃饭",
+      "bathButton": "洗澡",
+      "hello": "嗨！我饿了…",
+      "drag": "哇！我们去哪儿？",
+      "starving": "饿……好饿",
+      "hungry": "我饿了",
+      "dirty": "我要洗澡",
+      "aria": "Cadu：{mood}。拖动它，按 f 喂食，按 b 洗澡。",
+      "mood": {
+        "hungry": "饿了",
+        "dirty": "脏了",
+        "happy": "开心"
+      },
+      "full": "我吃过啦，谢谢！",
+      "eating": "啊呜啊呜！",
+      "thanks": "谢谢 ✦",
+      "clean": "我已经很干净啦",
+      "splash": "哗啦！",
+      "fresh": "香喷喷 ✦"
+    },
+    "hero": {
+      "words": [
+        "一个智能体 harness",
+        "一个终端",
+        "一个 worktree 管理器",
+        "一个 API 客户端",
+        "一个数据库客户端",
+        "一个笔记应用",
+        "一个日历"
+      ],
+      "stars": [
+        "智能体",
+        "终端",
+        "worktree",
+        "API",
+        "数据库",
+        "笔记",
+        "日历"
+      ]
+    },
+    "dl": {
+      "detected": "适合你的 {os} 的文件已经在这里了。",
+      "pick": "选择适合你系统的文件。",
+      "downloadFor": "下载 {os} 版",
+      "macNote": "首次打开时，macOS 可能需要<a href=\"#macos-danificado\">下面的修复方法</a>。"
+    },
+    "rn": {
+      "latest": "最新",
+      "onGitHub": "在 GitHub 上查看",
+      "none": "这里还没有任何版本。",
+      "failed": "无法加载更新说明。请到 <a href=\"{url}\" target=\"_blank\" rel=\"noopener noreferrer\">GitHub</a> 查看。"
+    }
+  },
+  "agents": {
+    "eyebrow": "智能体",
+    "title": "你的智能体，<br /><span class=\"violet-text\">并排工作。</span>",
+    "lede": "Cadente 不会取代你的智能体。Claude Code、Codex 和其他 CLI 按原样运行，用的是你的账户。Cadente 负责安排它们周围的工作：每个任务在自己的 worktree 里，所有智能体都看得见，需要你的那个最先出现。",
+    "wallLabel": "可在 Cadente 中运行的智能体",
+    "known": "Cadente 可识别",
+    "any": "以及任何能在终端里运行的 CLI。",
+    "yours": "你的",
+    "p1": "一个任务一个 worktree",
+    "p1Text": "每个智能体在自己的分支和目录里工作，不会碰别人的文件。",
+    "p2": "等你的，排在最前",
+    "p2Text": "<kbd>⌘⇧A</kbd> 汇集所有页面的智能体，需要你的那个排在最上面。",
+    "p3": "用你已经在付费的订阅",
+    "p3Text": "Claude Max、ChatGPT Plus、API 密钥或本地模型。Cadente 不额外收费。",
+    "p4": "直连提供方",
+    "p4Text": "调用从你的机器直接发往你选的提供方。中间没有任何 Cadente 服务器。",
+    "p5": "一切都在你的机器上",
+    "p5Text": "会话、历史记录和设置都存在你电脑上的本地数据库里。"
+  },
+  "faq": {
+    "eyebrow": "常见问题",
+    "title": "下载之前，<br /><span class=\"muted\">你可能想知道。</span>",
+    "q1": "它只是给 Claude Code 套了一层壳吗？",
+    "a1": "不是。Claude Code、Codex 和其他 CLI 在 Cadente 的终端里按原样运行，用的是你的账户。Cadente 是包在它们外面的窗口：把屏幕拆分成窗格，给每个任务一个 worktree，把等你的智能体汇集起来，并把终端、数据库、API、笔记和日程放在旁边。",
+    "q2": "和直接在终端里运行 Claude Code 有什么区别？",
+    "a2": "对智能体本身来说没有区别：是同一个 CLI。区别在它周围。多个智能体并排工作，各自在自己的 worktree 里，⌘⇧A 显示谁在等你，其他工作也都在同一个窗口里。",
+    "q3": "我的调用会经过你们的服务器吗？",
+    "a3": "不会。Cadente 直接与你选的提供方通信，用的是你的订阅或密钥。Cadente 的服务器只保存你的账户。",
+    "q4": "不用 AI 也能用吗？",
+    "a4": "能。AI 和其他插件一样，也是插件：关掉它，留下终端、workspaces、笔记、数据库和日程。",
+    "q5": "既然免费，你们怎么赚钱？",
+    "a5": "靠插件商店，等它开放以后：Cadente 抽取销售和订阅收入的 30%，以及捐赠的 10%。应用本身一直免费。",
+    "q6": "支持哪些语言？",
+    "a6": "15 种：葡萄牙语、英语、西班牙语、法语、德语、意大利语、俄语、土耳其语、阿拉伯语、印地语、印尼语、越南语、日语、韩语和简体中文。即时切换，无需重启。部分新界面会先提供葡萄牙语和英语版本。",
+    "q7": "支持哪些系统？",
+    "a7": "macOS（Apple Silicon 和 Intel），以及 Windows 和 Linux（均为 x64）。"
+  },
+  "lang": {
+    "label": "语言",
+    "notice": "此页面也有简体中文版。",
+    "go": "查看简体中文版",
+    "close": "关闭"
+  },
+  "langs": {
+    "eyebrow": "15 种语言",
+    "title": "说你的语言。<br /><span class=\"violet-text\">还有另外 14 种。</span>",
+    "lede": "从菜单到终端，Cadente 提供 15 种语言，即时切换，无需重启。选一种语言，看看窗口怎么变。",
+    "pick": "窗口语言",
+    "note": "部分新界面会先提供葡萄牙语和英语版本。"
+  },
+  "dl": {
+    "metaTitle": "下载 Cadente",
+    "metaDescription": "下载适用于 macOS（Apple Silicon 和 Intel）、Windows 和 Linux 的 Cadente。免费。",
+    "eyebrow": "下载",
+    "title": "下载 <span class=\"violet-text\">Cadente</span>。",
+    "lede": "免费，支持 macOS、Windows 和 Linux。",
+    "version": "版本",
+    "others": "其他系统",
+    "fallback": "无法读取最新版本。文件都在 <a href=\"https://github.com/cadente-hub/cadente-hub.github.io/releases\" target=\"_blank\" rel=\"noopener noreferrer\">releases 页面</a>上。",
+    "installTitle": "如何安装",
+    "oneLine": "一行命令",
+    "orHomebrew": "或使用 Homebrew",
+    "orDmg": "或使用 .dmg",
+    "mac1": "打开 <code>.dmg</code>，把 Cadente 拖到“应用程序”文件夹。",
+    "mac2": "如果 macOS 提示应用已损坏，请看下面的修复方法。",
+    "orPackages": "或使用软件包",
+    "powershell": "在 PowerShell 中",
+    "orInstaller": "或使用安装程序",
+    "win1": "下载 <code>.exe</code> 或 <code>.msi</code>，按安装程序的提示操作。",
+    "win2": "如果 SmartScreen 发出警告，点击<b>更多信息</b>，再点击<b>仍要运行</b>。",
+    "fixTitle": "macOS 提示 Cadente 已损坏？",
+    "fixText": "macOS 会拦截还没有 Apple 付费签名的应用。在终端里粘贴这条命令运行一次，Cadente 就能正常打开。",
+    "fixNote": "一行命令和 Homebrew 安装会自动帮你处理这一步。"
+  },
+  "rn": {
+    "metaTitle": "Cadente 更新说明",
+    "metaDescription": "Cadente 每个版本的变化，包括稳定版和测试版渠道。",
+    "eyebrow": "更新说明",
+    "title": "Cadente 的<br /><span class=\"violet-text\">每一个版本。</span>",
+    "lede": "稳定版和测试版渠道，读取的是应用自己使用的同一批更新文件。",
+    "inEnglish": "每个版本的说明都用英文撰写。",
+    "stable": "稳定版",
+    "beta": "测试版",
+    "stableTitle": "经过测试的版本",
+    "betaTitle": "抢先体验",
+    "download": "下载稳定版",
+    "loading": "加载中…"
+  },
+  "terms": {
+    "metaTitle": "条款、隐私与退款 — Cadente",
+    "metaDescription": "Cadente 的条款与条件、隐私政策和退款政策。",
+    "title": "条款、隐私与退款",
+    "updated": "更新于 2026 年 10 月 30 日",
+    "notice": "这是译文。如有出入，以<a href=\"/en/terms-and-conditions.html\">英文版本</a>为准。"
+  },
+  "blog": {
+    "metaTitle": "博客",
+    "metaDescription": "来自 Cadente 的产品、工程与实践笔记。",
+    "eyebrow": "Cadente 日志",
+    "title": "让工作<br /><span class=\"violet-text\">更顺手的想法。</span>",
+    "lede": "产品、工程与实践笔记，帮你更清晰、更可控、更快地使用 AI。",
+    "feed": "订阅 JSON feed",
+    "count": {
+      "other": "{count} 篇文章"
+    },
+    "empty": "新文章即将发布。",
+    "read": "阅读",
+    "back": "全部文章",
+    "updated": "更新于 {date}"
+  },
+  "cmp": {
+    "metaTitle": "Cadente 与其他智能体 harness",
+    "metaDescription": "Cadente 与 Conductor、Orca、Paradev 和 Warp 的对比，每条信息都附有来源。",
+    "eyebrow": "对比",
+    "title": "Cadente 与其他 harness<br /><span class=\"violet-text\">并排对比。</span>",
+    "lede": "各家在自己网站上的说法，每一行都附上出处链接。网站上没说的，标为“未说明”。",
+    "checked": "核对于 {date}。",
+    "unknown": "未说明",
+    "source": "来源",
+    "feature": "对比项",
+    "row": {
+      "systems": "系统",
+      "price": "价格",
+      "agents": "智能体",
+      "isolation": "按任务隔离",
+      "noAi": "关掉 AI 仍可使用",
+      "languages": "界面语言",
+      "data": "数据存放位置"
+    },
+    "cell": {
+      "cadente": {
+        "systems": "macOS、Windows 和 Linux",
+        "price": "免费，没有付费套餐",
+        "agents": "Claude Code、Codex、Gemini CLI、OpenCode 及任意 CLI",
+        "isolation": "每个任务一个 Git worktree",
+        "noAi": "是：AI 是一个插件",
+        "languages": "15",
+        "data": "在你的机器上；调用直连提供方"
+      },
+      "conductor": {
+        "agents": "Claude Code、Codex、Cursor 和 OpenCode",
+        "isolation": "每个智能体一个云端 microVM",
+        "data": "在 Conductor 的云端（Conductor Cloud）"
+      },
+      "orca": {
+        "agents": "Claude Code、Codex、OpenCode、Grok 和其他 CLI",
+        "isolation": "相互隔离的 workspace"
+      },
+      "paradev": {
+        "systems": "macOS；Linux 为实验性支持；不支持 Windows",
+        "price": "有免费套餐",
+        "agents": "Claude Code、Codex、OpenCode 及任意 CLI",
+        "isolation": "每个智能体一个 Git worktree",
+        "data": "在你的机器上；云端只保存账户元数据"
+      },
+      "warp": {
+        "price": "按用量计费，按智能体运行次数收费（Factories）",
+        "agents": "Warp、Claude Code、Codex、Cursor 及支持 MCP 的智能体",
+        "data": "Warp 的云端或你自己的（自托管）"
+      }
+    },
+    "note": "名称和商标归各自所有者所有。发现内容过时了？<a href=\"https://github.com/cadente-hub/cadente-hub.github.io/issues\" target=\"_blank\" rel=\"noopener noreferrer\">提交 issue</a>。",
+    "link": "与其他 harness 对比"
+  }
+}

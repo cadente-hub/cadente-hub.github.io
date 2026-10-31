@@ -1,0 +1,1080 @@
+{
+  "meta": {
+    "title": "Cadente — hub nơi mọi thứ đều là plugin, kể cả AI",
+    "description": "Cadente là ứng dụng desktop miễn phí, gom các agent như Claude Code và Codex, terminal, API, cơ sở dữ liệu, ghi chú và lịch vào một cửa sổ chia ô. Mọi thứ đều là plugin, kể cả AI. Viết bằng Rust, cho Mac, Windows và Linux, với 15 ngôn ngữ.",
+    "ogDescription": "Hub nơi mọi thứ đều là plugin, kể cả AI: agent, terminal, cơ sở dữ liệu và ghi chú trong một cửa sổ.",
+    "skip": "Bỏ qua, tới nội dung"
+  },
+  "nav": {
+    "label": "Điều hướng chính",
+    "home": "Cadente, trang chủ",
+    "how": "Cách hoạt động",
+    "plugins": "Plugin",
+    "store": "Cửa hàng",
+    "blog": "Blog",
+    "download": "Tải miễn phí",
+    "menu": "Mở menu",
+    "agents": "Agent",
+    "faq": "Hỏi đáp"
+  },
+  "hero": {
+    "eyebrow": "Miễn phí · Mac, Windows và Linux · viết bằng Rust · 15 ngôn ngữ",
+    "lede": "Agent, terminal, cơ sở dữ liệu, ghi chú và lịch trong cùng một cửa sổ, tất cả bằng bàn phím. Mỗi phần là một plugin: giữ cái bạn dùng, đổi cái bạn muốn và tắt phần còn lại, kể cả AI. Và không tốn đồng nào.",
+    "watch": "Xem một ngày làm việc",
+    "anyCli": "bất kỳ CLI nào",
+    "before": "Cadente là",
+    "hub": "một hub",
+    "after": ".",
+    "sub": "Mọi thứ đều là plugin. Kể cả AI."
+  },
+  "theater": {
+    "label": "Cadente khi làm việc",
+    "intro": "Một ngày làm việc trong Cadente, từ 9 giờ sáng đến hết giờ làm",
+    "chapters": "Các chương"
+  },
+  "creator": {
+    "eyebrow": "Creator mode · sắp ra mắt",
+    "title": "Plugin của bạn<br /><span class=\"violet-text\">có thể thành thu nhập.</span>",
+    "lede": "Bạn có ý tưởng giúp ngày làm việc của mình dễ hơn? Rất có thể nó cũng giúp được nhiều người khác. Mô tả cho agent, agent viết plugin, bạn đăng lên cửa hàng và chọn cách thu phí. Bạn giữ 90% tiền ủng hộ và 70% doanh thu bán hàng, kể cả mỗi lần gia hạn gói đăng ký.",
+    "forYou": "cho bạn",
+    "donation": "Ủng hộ",
+    "donationText": "Plugin miễn phí, ai thích thì có thể ủng hộ bạn.",
+    "subscription": "Gói đăng ký",
+    "subscriptionText": "Theo tháng hoặc theo năm. Bạn nhận tiền ở mọi lần gia hạn, không chỉ lần đầu.",
+    "once": "Mua một lần",
+    "onceText": "Người dùng trả một lần và dùng trên tối đa 5 máy tính.",
+    "trialCut": "7 ngày",
+    "trialExample": "ví dụ",
+    "trial": "Dùng thử miễn phí",
+    "trialText": "Cho dùng thử vài ngày trước khi thu phí.",
+    "calc": {
+      "model": "Hình thức tính giá",
+      "pricePerMonth": "Giá mỗi tháng",
+      "subscribers": "Người đăng ký",
+      "youGet": "Bạn nhận tối đa",
+      "perMonth": "mỗi tháng",
+      "note": "Đây là con số ước tính, chưa trừ thuế và phí thẻ. Phần chia được tính trên số tiền thực nhận, và mọi giao dịch đều đi qua trang thanh toán của Cadente."
+    },
+    "makerTitle": "Từ ý tưởng đến cửa hàng, không cần rời Cadente.",
+    "makerLede": "Ba yêu cầu mẫu, mỗi cái kiếm tiền theo một cách: một chú Cadu thú cưng thả tự do trên màn hình, một bảng doanh thu trong ngày và một status page báo khi GitHub, Cloudflare hay AWS gặp sự cố. Bạn có thể kéo Cadu đi, cho ăn và tắm cho nó.",
+    "examples": "Plugin mẫu",
+    "step1": "Kể ý tưởng",
+    "step1Text": "Một Chat mở ra với yêu cầu. Không có gì được gửi đi cho đến khi bạn nhấn <kbd>↵</kbd>.",
+    "step2": "Agent viết",
+    "step2Text": "Manifest, mã và test, trong một ô ngay cạnh chỗ bạn đang làm.",
+    "step3": "Thử ngay",
+    "step3Text": "<code>cadente plugin dev</code> chạy plugin ngay tại đó, cạnh cuộc trò chuyện. Cadu sống tự do phía trên ứng dụng: kéo nó đi, nhấn <kbd>f</kbd> để cho ăn và <kbd>b</kbd> để tắm.",
+    "step4": "Đăng",
+    "step4Text": "<code>/publish</code> là xong, plugin đã lên cửa hàng với giá bạn chọn."
+  },
+  "rust": {
+    "eyebrow": "Viết bằng Rust",
+    "title": "Rust từ lõi<br /><span class=\"muted\">đến màn hình.</span><br /><span class=\"violet-text\">Quạt còn chẳng buồn quay.</span>",
+    "lede": "Không có trình duyệt ẩn, không có Node chạy phía sau. Cadente là ứng dụng native, Rust từ lõi đến giao diện, và do GPU vẽ.",
+    "stackLabel": "Cadente được làm từ gì",
+    "stack": "<span class=\"stack__root\">cadente</span>\n├─ core       <b>rust</b>\n├─ giao diện  <b>rust</b> · slint, do GPU vẽ\n├─ terminal   <b>rust</b> · pty native\n├─ agent      <b>rust</b> · claude, codex, agy và mọi cli\n└─ plugin     <b>rust</b> · webassembly cho plugin cộng đồng",
+    "memory": "Ít bộ nhớ hơn",
+    "memoryText": "Lịch sử nằm trên ổ đĩa và chỉ được nạp khi bạn mở. Ứng dụng không phình ra theo thời gian.",
+    "battery": "Chỉ một tiến trình",
+    "batteryText": "Giao diện nói chuyện thẳng với lõi, không có server cục bộ hay trình duyệt ở giữa.",
+    "hidden": "Không gì chạy ngầm",
+    "hiddenText": "Đóng ô là xong. Không terminal, agent hay plugin nào còn chạy phía sau."
+  },
+  "plugins": {
+    "eyebrow": "Plugin có sẵn",
+    "title": "Mỗi ô trở thành<br /><span class=\"muted\">thứ bạn cần.</span>",
+    "lede": "Chat, Terminal, Workspaces, Requests, Lịch, Tập trung: các plugin có sẵn đều hoạt động như nhau. <kbd>↵</kbd> mở, <kbd>.</kbd> cho thấy bạn làm được gì, <kbd>/</kbd> liệt kê lệnh, <kbd>⇥</kbd> đổi chế độ xem. Biết một cái là biết tất cả. Bấm vào một cái để xem.",
+    "gridLabel": "Plugin có sẵn",
+    "communityBig": "<span class=\"violet-text\">Và những plugin</span><br />cộng đồng làm ra.",
+    "communityText": "Cửa hàng sắp mở: ai cũng đăng được, và cài luôn miễn phí. Không dùng AI? Chỉ giữ các plugin năng suất.",
+    "seeStore": "Xem cửa hàng",
+    "namesLabel": "Một số plugin cộng đồng",
+    "names": {
+      "board": "Bảng vẽ",
+      "docs": "Tài liệu",
+      "browser": "Trình duyệt",
+      "radio": "Radio lo-fi",
+      "neon": "Chủ đề Neon",
+      "rag": "RAG cục bộ",
+      "habits": "Thói quen",
+      "stars": "Mưa sao băng",
+      "chess": "Cờ vua",
+      "yours": "…và thứ bạn tạo ra"
+    }
+  },
+  "owner": {
+    "eyebrow": "Mọi thứ đều là plugin",
+    "title": "Kể cả AI<br /><span class=\"violet-text\">cũng là plugin.</span>",
+    "lede": "Chat, Terminal, thanh bên, provider AI, cả chủ đề nữa: mọi phần của Cadente đều là plugin, giống hệt plugin cộng đồng. Đổi provider, tắt cái bạn không dùng và, nếu muốn, tắt luôn AI để giữ một hub gồm terminal, cơ sở dữ liệu, ghi chú và lịch.",
+    "plugins": "Plugin",
+    "installKanban": "cài Kanban từ cộng đồng",
+    "services": "Dịch vụ",
+    "clickToSwap": "bấm để đổi",
+    "always": "Luôn giữ lại",
+    "forSafety": "để bạn an toàn",
+    "base": "trình quản lý plugin · shell · bộ chọn",
+    "install": "Cài",
+    "installText": "Từ một liên kết hoặc một thư mục, không cần khởi động lại gì.",
+    "remove": "Tắt",
+    "removeText": "Plugin có sẵn cũng tắt được.",
+    "swap": "Đổi",
+    "swapText": "Đổi provider, và các plugin phụ thuộc vào nó khởi động lại trên provider mới.",
+    "layersLabel": "Các lớp bạn tự chọn",
+    "layer1": "Agent",
+    "layer1Text": "Claude Code, Codex, Gemini CLI, OpenCode hoặc CLI bạn đang dùng.",
+    "layer2": "Mô hình",
+    "layer2Text": "Gói đăng ký của bạn, một khóa API hoặc một mô hình cục bộ trong Ollama.",
+    "layer3": "Từng plugin",
+    "layer3Text": "Bật, tắt và đổi mà không cần khởi động lại ứng dụng.",
+    "layer4": "Giao diện",
+    "layer4Text": "Cả thanh bên và chủ đề cũng là plugin.",
+    "noAi": "Không AI cũng được",
+    "noAiText": "Tắt AI và mọi thứ khác vẫn chạy: terminal, workspaces, ghi chú, cơ sở dữ liệu và lịch."
+  },
+  "store": {
+    "eyebrow": "Cửa hàng plugin · sắp ra mắt",
+    "title": "Có người cần,<br /><span class=\"violet-text\">là có người làm.</span>",
+    "lede": "Kanban, Kubernetes, radio lo-fi, một bảng vẽ sơ đồ. Cửa hàng sắp mở, cài không tốn đồng nào và phần lớn plugin sẽ miễn phí. Các plugin bên dưới chỉ là ví dụ.",
+    "search": "Tìm plugin",
+    "placeholder": "tìm một plugin",
+    "categories": "Danh mục",
+    "empty": "Chưa có plugin nào tên như vậy. Sao không tự làm một cái?",
+    "oneClick": "Một ↵",
+    "oneClickText": "Nó tải xuống, kiểm tra đúng tệp rồi cài.",
+    "open": "Mở cho mọi người",
+    "openText": "Đã đăng lên GitHub với topic <code>cadente-plugin</code>? Plugin của bạn có mặt trong cửa hàng.",
+    "watched": "Được giám sát",
+    "watchedText": "Nếu xuất hiện plugin độc hại, nó bị chặn và tự tắt trên mọi máy."
+  },
+  "finale": {
+    "title": "Sẵn sàng mở<br /><span class=\"muted\">ô đầu tiên?</span>",
+    "lede": "Miễn phí, có cho Mac, Windows và Linux, nói 15 ngôn ngữ và không đòi thẻ.",
+    "copyLabel": "Sao chép lệnh cài",
+    "copy": "sao chép"
+  },
+  "foot": {
+    "tagline": "Hub nơi mọi thứ đều là plugin, kể cả AI.",
+    "label": "Chân trang",
+    "product": "Sản phẩm",
+    "resources": "Tài nguyên",
+    "legal": "Pháp lý",
+    "terms": "Điều khoản và điều kiện",
+    "copy": "© 2026 Cadente. Viết bằng Rust.",
+    "langs": "Ngôn ngữ"
+  },
+  "js": {
+    "theater": {
+      "chapters": {
+        "morning": {
+          "step": "Buổi sáng",
+          "title": "9 giờ. Ngày đã sắp sẵn.",
+          "text": "Bạn mở Cadente và ô đầu tiên đã hiện cả ngày: daily lúc 9:30, họp thiết kế lúc 14:00 và một xung đột merge đang chờ. Không cần mở năm ứng dụng để biết bắt đầu từ đâu. <kbd>⇥</kbd> chuyển sang mục gần đây và việc cần làm."
+        },
+        "claude": {
+          "step": "Claude",
+          "title": "Trước tiên, một test cho Claude.",
+          "text": "<kbd>⌘O</kbd> và bốn chữ cái biến ô thành Terminal. Bạn mở Claude Code bằng gói đăng ký đang trả và nhờ viết một test cho <code>focus_neighbor</code>. Nó bắt đầu viết, còn bạn chuyển sang việc tiếp theo."
+        },
+        "agents": {
+          "step": "Agent",
+          "title": "Ba agent, không thêm cửa sổ nào.",
+          "text": "<kbd>⌘D</kbd> chia màn hình sang bên cạnh và <kbd>⌘⇧D</kbd> xuống dưới. Codex chạy test, agy giải thích <code>layout.rs</code>, và bên dưới Claude vẫn còn một Terminal cho bạn. Tất cả cùng làm, tất cả trong tầm mắt."
+        },
+        "ci": {
+          "step": "CI",
+          "title": "Rồi CI của login hỏng.",
+          "text": "Một trang mới hiện bốn branch đang mở và trạng thái của từng PR. Login đang đỏ. Bạn mở branch đó và <kbd>⌘J</kbd> gọi một Chat đã biết bạn đang ở đâu, nên chỉ cần hỏi lý do. Diff mở ngay bên cạnh."
+        },
+        "api": {
+          "step": "API",
+          "title": "Giờ đến tính năng của ngày.",
+          "text": "Việc hôm nay là API dự án. Trong Requests, bạn mở <code>GET /v1/projects</code>, đổi <code>limit</code> thành 5 rồi gửi. Sau đó, POST tạo dự án trưng bày. Các agent vẫn chạy ở trang đầu tiên, và bạn chưa mở thêm chương trình nào."
+        },
+        "store": {
+          "step": "Cửa hàng",
+          "title": "Còn thiếu một trình khách cơ sở dữ liệu.",
+          "text": "Để xem POST đã lưu chưa, cần nhìn vào cơ sở dữ liệu. Cửa hàng mở ngay bên dưới: bạn tìm Postgres, lướt qua ảnh, xem nó xin quyền truy cập gì và cài bằng <kbd>↵</kbd>, miễn phí."
+        },
+        "db": {
+          "step": "Cơ sở dữ liệu",
+          "title": "Cơ sở dữ liệu xác nhận POST.",
+          "text": "<kbd>⌘↵</kbd> chạy select tại con trỏ. Trong truy vấn dự án, dự án trưng bày đã xuất hiện. Bạn đổi thứ tự ngay trên dòng, chạy lại và mở bảng phiên từ trình điều hướng của cơ sở dữ liệu."
+        },
+        "app": {
+          "step": "Trong ứng dụng",
+          "title": "Và nó đã có trong ứng dụng.",
+          "text": "Trên một trang mới, Trình duyệt mở ứng dụng bạn đang làm, tại <code>localhost:5173</code>. Dự án trưng bày đã nằm trong danh sách. <kbd>↓</kbd> đi qua các liên kết, <kbd>↵</kbd> mở dự án và <kbd>⌫</kbd> quay lại."
+        },
+        "diagram": {
+          "step": "Sơ đồ",
+          "title": "Một sơ đồ cho cuộc họp.",
+          "text": "14:00 có họp thiết kế. Ngay cạnh trang web, bạn cài Bảng vẽ từ Cửa hàng và vẽ đường đi của dữ liệu, không cần mở công cụ khác. <kbd>r</kbd> vẽ hình chữ nhật, <kbd>o</kbd> vẽ hình elip và <kbd>a</kbd> nối hai hình."
+        },
+        "meeting": {
+          "step": "Cuộc họp",
+          "title": "Trong cuộc họp, biên bản thành việc cần làm.",
+          "text": "Biên bản nằm trong Tài liệu, là một tệp .md trong thư mục của bạn. Bạn viết các việc tiếp theo ngay trong văn bản, <kbd>↵</kbd> thêm việc kế tiếp và <kbd>space</kbd> đánh dấu việc đã xong: bài thông báo trên blog."
+        },
+        "focus": {
+          "step": "Tập trung",
+          "title": "Sau đó, 25 phút tập trung.",
+          "text": "Một trang của riêng bạn: lịch, một pomodoro 25 phút, bộ nhớ của máy và lượng Claude bạn đã dùng. <kbd>⌘1</kbd> đến <kbd>⌘6</kbd> nhảy giữa sáu trang của ngày."
+        },
+        "accounts": {
+          "step": "Tài khoản",
+          "title": "Dùng các gói đăng ký bạn đang trả tiền.",
+          "text": "Mức dùng cho thấy Claude đã tới 58% giới hạn. Trong Cài đặt có các tài khoản bạn đã có: Claude Max, ChatGPT Plus, một khóa Gemini, OpenRouter và một mô hình cục bộ trong Ollama. Mỗi cuộc hội thoại chọn tài khoản riêng, và Cadente không thu thêm đồng nào."
+        },
+        "plugins": {
+          "step": "Plugin",
+          "title": "Không dùng thì bỏ.",
+          "text": "Trong Plugin, cả plugin có sẵn cũng bỏ được. <kbd>space</kbd> tắt Liên kết và Công cụ. Provider AI cũng đổi được: nó chuyển sang Ollama, trên laptop của bạn, và bạn xem trước những gì sẽ thay đổi. Bạn có thể tắt hẳn AI."
+        },
+        "end": {
+          "step": "Cuối ngày",
+          "title": "Cuối ngày. Ai còn đang chờ?",
+          "text": "<kbd>⌘⇧A</kbd> gom agent từ mọi trang, ai đang chờ thì lên đầu. Claude vẫn xin quyền ghi test: <kbd>↵</kbd> đưa bạn tới đó và <kbd>y</kbd> cho phép. Mỗi plugin bạn dùng hôm nay đều do ai đó làm ra, và plugin tiếp theo có thể là của bạn."
+        }
+      },
+      "typed": {
+        "ciQuestion": "sao CI thất bại?",
+        "boardWeb": "ứng dụng web",
+        "task1": "gửi changelog cho nhóm",
+        "task2": "xem lại [[Lançamento]]",
+        "claude": "thêm một test cho focus_neighbor ở cuối layout.rs, không chạy gì cả",
+        "codex": "chạy cargo test rồi cho tôi biết kết quả",
+        "agy": "giải thích trong một câu layout.rs làm gì"
+      },
+      "hud": {
+        "mandarATarefa": "gửi việc",
+        "proximaVista": "chế độ xem sau",
+        "vistaAnterior": "chế độ xem trước",
+        "rodarOsTestes": "chạy test",
+        "voltarAoLogin": "về login",
+        "abrirOWorkspaceLogin": "mở workspace login",
+        "chatAoLadoLigadoAoWorkspace": "Chat bên cạnh, gắn với workspace",
+        "perguntar": "hỏi",
+        "abrirODiffDoLado": "mở diff bên cạnh",
+        "alteracoes": "thay đổi",
+        "descer": "xuống",
+        "abrirODiff": "mở diff",
+        "requisicao": "request",
+        "colecoes": "bộ sưu tập",
+        "colecaoProjetos": "bộ sưu tập dự án",
+        "abrirORequest": "mở request",
+        "descerAteOLimit": "xuống tới limit",
+        "editarOLimit": "sửa limit",
+        "apagarOValor": "xóa giá trị",
+        "gravar": "lưu",
+        "voltarAoEnviar": "về nút gửi",
+        "enviarOGet": "gửi GET",
+        "enviarOPost": "gửi POST",
+        "ampliarAFolha": "phóng to ô",
+        "abrirAPaginaDoPostgres": "mở trang Postgres",
+        "voltarAoTopo": "lên đầu trang",
+        "instalarGratis": "cài, miễn phí",
+        "rodarOSelectDoCursor": "chạy select tại con trỏ",
+        "descerPeloScript": "xuống theo script",
+        "rodarEsteSelect": "chạy select này",
+        "ateOOrderBy": "tới order by",
+        "editarALinhaAliMesmo": "sửa dòng ngay tại chỗ",
+        "apagarAUltimaPalavra": "xóa từ cuối",
+        "gravarERodar": "lưu và chạy",
+        "navegadorDoBanco": "trình điều hướng cơ sở dữ liệu",
+        "verOsDadosDaTabela": "xem dữ liệu của bảng",
+        "voltarAsDuasFolhas": "về hai ô",
+        "irAoEndereco": "tới địa chỉ",
+        "abrirOSite": "mở trang web",
+        "abrirOProjetoVitrine": "mở dự án trưng bày",
+        "voltar": "quay lại",
+        "abrirAPaginaDoQuadro": "mở trang Bảng vẽ",
+        "proximaFoto": "ảnh tiếp theo",
+        "guardarOTexto": "lưu văn bản",
+        "ligarComUmaSeta": "nối bằng một mũi tên",
+        "elipse": "elip",
+        "maisUmaSeta": "thêm một mũi tên",
+        "abrirANota": "mở ghi chú",
+        "descerPelaNota": "xuống theo ghi chú",
+        "novaTarefa": "việc mới",
+        "aListaContinua": "danh sách tiếp tục",
+        "fecharALista": "đóng danh sách",
+        "subir": "lên",
+        "marcarComoFeita": "đánh dấu đã xong",
+        "comecarUmPomodoro": "bắt đầu một pomodoro",
+        "pagina1OsAgentes": "trang 1: các agent",
+        "pagina3AApiEO": "trang 3: API và cơ sở dữ liệu",
+        "pagina5AAta": "trang 5: biên bản",
+        "pagina6DeVoltaAoSeu": "trang 6: trở lại ngày của bạn",
+        "proximaConta": "tài khoản tiếp theo",
+        "desligarLinks": "tắt Liên kết",
+        "desligarFerramentas": "tắt Công cụ",
+        "ultimoItem": "mục cuối",
+        "providerDeIa": "provider AI",
+        "trocarProvider": "đổi provider",
+        "ollamaNoSeuComputador": "Ollama, trên máy của bạn",
+        "verAPrevia": "xem trước",
+        "aplicar": "áp dụng",
+        "irAteQuemEspera": "tới chỗ đang chờ",
+        "permitir": "cho phép",
+        "saltarParaOCalendarioNaPagina": "nhảy tới Lịch, ở trang của ngày",
+        "abrirOTerminal": "mở Terminal",
+        "outroTerminal": "một Terminal khác",
+        "maisUm": "thêm một",
+        "umTerminalParaVoce": "một Terminal cho bạn",
+        "abrirWorkspaces": "mở Workspaces",
+        "workspacesNasAlteracoes": "Workspaces, ở phần thay đổi",
+        "abrirORequests": "mở Requests",
+        "abrirALoja": "mở Cửa hàng",
+        "abrirONavegador": "mở Trình duyệt",
+        "abrirDocumentos": "mở Tài liệu",
+        "abrirOCalendario": "mở Lịch",
+        "abrirOFoco": "mở Tập trung",
+        "abrirOSistema": "mở Hệ thống",
+        "abrirOUso": "mở Mức dùng",
+        "abrirPlugins": "mở Plugin",
+        "abrirOClaudeCode": "mở Claude Code",
+        "abrirOCodex": "mở Codex",
+        "abrirOAgy": "mở agy",
+        "loginOCiFalhou": "login · CI thất bại",
+        "paineisProntoParaOMerge": "ô · sẵn sàng merge",
+        "buscaOClaudeTrabalhando": "tìm kiếm · Claude đang làm việc",
+        "temaEsperandoRevisao": "chủ đề · chờ duyệt",
+        "quadro": "Bảng vẽ",
+        "radioLoFi": "Radio lo-fi",
+        "maisUma": "thêm một",
+        "asFotos": "các ảnh",
+        "sobre": "giới thiệu",
+        "oQueEleFaz": "chức năng",
+        "atalhos": "phím tắt",
+        "mapa": "bản đồ",
+        "vitrine": "trưng bày",
+        "lancamento": "Lançamento",
+        "retangulo": "hình chữ nhật",
+        "outroRetangulo": "một hình chữ nhật khác"
+      }
+    },
+    "plugins": {
+      "title": {
+        "inicio": "Trang chủ",
+        "chat": "Chat",
+        "terminal": "Terminal",
+        "workspaces": "Workspaces",
+        "pr": "PR Reviews",
+        "requests": "Requests",
+        "calendario": "Lịch",
+        "sistema": "Hệ thống",
+        "uso": "Mức dùng",
+        "foco": "Tập trung",
+        "automacoes": "Tự động hóa",
+        "prompts": "Prompts",
+        "projetos": "Dự án",
+        "recursos": "Tài nguyên",
+        "links": "Liên kết",
+        "ferramentas": "Công cụ",
+        "config": "Cài đặt",
+        "plugins": "Plugin"
+      },
+      "desc": {
+        "inicio": "Ngày của bạn: lịch, việc cần làm, ghi chú, thời tiết và những gì còn mở.",
+        "chat": "Mọi mô hình, có kế hoạch, hàng đợi, phiên và ngữ cảnh luôn trong tầm mắt.",
+        "terminal": "Khối lệnh, gợi ý từ AI và các agent như Claude Code và Codex.",
+        "workspaces": "Kho mã, thay đổi và worktree, có diff và commit.",
+        "pr": "PR của bạn và của nhóm: diff, checks, thread và duyệt bằng AI.",
+        "requests": "Trình khách HTTP với bộ sưu tập, môi trường và lịch sử.",
+        "calendario": "Ngày, tháng và sự kiện sắp tới. Gõ “Reunião amanhã 10h” rồi ↵.",
+        "sistema": "Bộ nhớ, CPU, cổng và Docker, theo thời gian thực.",
+        "uso": "Giới hạn, chi phí và dự báo mức dùng của các tài khoản.",
+        "foco": "Pomodoro kèm việc cần làm và ghi chú.",
+        "automacoes": "Tác vụ AI theo lịch, có lịch sử.",
+        "prompts": "Thư viện prompt và kỹ thuật, có phiên Chat ở bên cạnh.",
+        "projetos": "Dự án và phiên: thêm, clone và đánh dấu yêu thích.",
+        "recursos": "Skills, bộ nhớ, agents, MCP và chỉ dẫn.",
+        "links": "Liên kết có thẻ. Dán URL rồi ↵.",
+        "ferramentas": "JSON, và Markdown sang Word.",
+        "config": "Tài khoản, provider, phím tắt, quyền truy cập và giao diện.",
+        "plugins": "Danh mục, đồ thị và đổi provider có xem trước."
+      }
+    },
+    "rack": {
+      "service": {
+        "ai": "provider AI",
+        "compaction": "nén ngữ cảnh",
+        "pty": "terminal (pty)",
+        "theme": "chủ đề"
+      },
+      "noAi": "không có · AI đã tắt",
+      "plugin": {
+        "chat": "Chat",
+        "terminal": "Terminal",
+        "pr": "PR Reviews",
+        "automacoes": "Tự động hóa",
+        "workspaces": "Workspaces",
+        "sidebar": "Thanh bên",
+        "tray": "Khay hệ thống"
+      },
+      "meta": {
+        "community": "cộng đồng",
+        "on": "bật",
+        "off": "tắt"
+      },
+      "removeKanban": "Gỡ Kanban",
+      "count": {
+        "other": "{count} đang bật"
+      },
+      "svc": {
+        "again": "bấm lần nữa để bật lại",
+        "usedBy": "dùng bởi {users}",
+        "nobody": "hiện không ai dùng"
+      },
+      "log": {
+        "hint": "Thử xem: bấm một plugin để tắt, bấm một dịch vụ để đổi, hoặc cài một plugin từ cộng đồng.",
+        "on": "<b>{name}</b> đã bật lại, không cần khởi động lại gì.",
+        "off": "<b>{name}</b> đã tắt. Nếu nó đang mở trong một ô, ô đó vẫn nằm đó chờ plugin khác.",
+        "noAi": "<b>AI đã tắt.</b> {users} chờ một provider; Terminal, Workspaces, ghi chú, cơ sở dữ liệu và lịch vẫn chạy như cũ.",
+        "swap": "xem trước · {service}: <b>{from} → {to}</b>",
+        "swapUsers": "xem trước · {service}: <b>{from} → {to}</b> · {users} làm nốt việc đang dở rồi khởi động lại trên provider mới",
+        "install": "Xong, đã cài <b>Kanban của @ana</b>. Nó chỉ xin quyền truy cập api.github.com.",
+        "remove": "Đã gỡ <b>Kanban</b>. Dữ liệu của nó vẫn nằm trong hồ sơ của bạn, phòng khi bạn đổi ý."
+      }
+    },
+    "store": {
+      "cat": {
+        "all": "Tất cả",
+        "dev": "Dev",
+        "ai": "AI",
+        "productivity": "Năng suất",
+        "data": "Dữ liệu",
+        "themes": "Chủ đề",
+        "fun": "Giải trí"
+      },
+      "app": {
+        "kanban": {
+          "name": "Kanban",
+          "desc": "Bảng chứa các issue của kho mã, chia ba cột."
+        },
+        "board": {
+          "name": "Bảng vẽ",
+          "desc": "Sơ đồ trông như vẽ tay, vẽ bằng bàn phím."
+        },
+        "postgres": {
+          "name": "Postgres",
+          "desc": "Script, bảng và kết quả trong một ô."
+        },
+        "docs": {
+          "name": "Tài liệu",
+          "desc": "Ghi chú markdown, có [[liên kết]] và việc cần làm."
+        },
+        "browser": {
+          "name": "Trình duyệt",
+          "desc": "Một trang web trong một ô, đi qua liên kết bằng bàn phím."
+        },
+        "testWriter": {
+          "name": "Người viết test",
+          "desc": "Một agent viết test cho diff hiện tại."
+        },
+        "neon": {
+          "name": "Chủ đề Neon",
+          "desc": "Điểm nhấn tím và hồng trên nền đen."
+        },
+        "kubernetes": {
+          "name": "Kubernetes",
+          "desc": "Pod, log và sự kiện của cluster, không cần rời bàn phím."
+        },
+        "meetingSummary": {
+          "name": "Tóm tắt cuộc họp",
+          "desc": "Chép lời cuộc họp và trả lại danh sách việc cần làm."
+        },
+        "radio": {
+          "name": "Radio lo-fi",
+          "desc": "Nhạc cho Tập trung, kèm hẹn giờ trên màn hình."
+        },
+        "regex": {
+          "name": "Regex",
+          "desc": "Thử biểu thức chính quy, tô sáng trực tiếp."
+        },
+        "sheets": {
+          "name": "Bảng tính",
+          "desc": "Mở CSV và XLSX, có lọc và tính tổng."
+        },
+        "rag": {
+          "name": "RAG cục bộ",
+          "desc": "Hỏi về tài liệu của bạn với một mô hình chạy trên máy."
+        },
+        "habits": {
+          "name": "Thói quen",
+          "desc": "Đánh dấu thói quen trong ngày và xem chuỗi ngày liên tiếp."
+        },
+        "sqlite": {
+          "name": "SQLite",
+          "desc": "Mở bất kỳ tệp .db nào và duyệt các bảng."
+        },
+        "cron": {
+          "name": "Cron",
+          "desc": "Tạo biểu thức cron và xem các lần chạy tiếp theo."
+        },
+        "contrast": {
+          "name": "Chủ đề Tương phản cao",
+          "desc": "Đen trắng thuần, dễ đọc hơn."
+        },
+        "promptJudge": {
+          "name": "Giám khảo prompt",
+          "desc": "So sánh câu trả lời của các mô hình cạnh nhau."
+        },
+        "compose": {
+          "name": "Docker Compose",
+          "desc": "Khởi động, dừng và theo dõi các dịch vụ compose."
+        },
+        "journal": {
+          "name": "Nhật ký",
+          "desc": "Mỗi ngày một ghi chú, có tìm kiếm."
+        },
+        "chess": {
+          "name": "Cờ vua",
+          "desc": "Mỗi ngày một ván đấu với agent."
+        },
+        "jsonSchema": {
+          "name": "JSON Schema",
+          "desc": "Kiểm tra JSON theo schema và xem lỗi theo từng dòng."
+        },
+        "commitWriter": {
+          "name": "Người viết commit",
+          "desc": "Thông điệp commit từ những gì đã stage."
+        },
+        "exchange": {
+          "name": "Tỷ giá",
+          "desc": "Tỷ giá trong ngày và quy đổi nhanh."
+        },
+        "sepia": {
+          "name": "Chủ đề Sepia",
+          "desc": "Tông màu ấm cho những phiên làm việc dài."
+        },
+        "logs": {
+          "name": "Log",
+          "desc": "Theo dõi tệp log với bộ lọc và màu sắc."
+        },
+        "finance": {
+          "name": "Tài chính",
+          "desc": "Chi tiêu trong tháng theo danh mục, từ một tệp CSV."
+        },
+        "graphql": {
+          "name": "GraphQL",
+          "desc": "Khám phá schema và chạy truy vấn với biến."
+        },
+        "explainer": {
+          "name": "Người giải thích",
+          "desc": "Giải thích tệp đang mở, từng hàm một."
+        },
+        "stars": {
+          "name": "Mưa sao băng",
+          "desc": "Một ngôi sao băng cho mỗi build xanh."
+        },
+        "gitGraph": {
+          "name": "Git graph",
+          "desc": "Đồ thị branch và commit, dạng văn bản."
+        },
+        "rss": {
+          "name": "Trình đọc RSS",
+          "desc": "Feed dạng danh sách, đọc ngay trong ô."
+        },
+        "charts": {
+          "name": "Biểu đồ",
+          "desc": "Biểu đồ dạng văn bản từ CSV hoặc SQL."
+        },
+        "retro": {
+          "name": "Chủ đề Terminal cổ điển",
+          "desc": "Xanh lân quang và con trỏ khối."
+        },
+        "flags": {
+          "name": "Feature flags",
+          "desc": "Bật và tắt flag trên nhiều môi trường."
+        },
+        "translator": {
+          "name": "Trình dịch",
+          "desc": "Dịch văn bản và tệp i18n."
+        },
+        "timesheet": {
+          "name": "Bảng chấm công",
+          "desc": "Số giờ theo dự án, dựa trên các ô bạn đã dùng."
+        },
+        "migrations": {
+          "name": "Migrations",
+          "desc": "Chạy và hoàn tác migration, có xem trước SQL."
+        },
+        "mascot": {
+          "name": "Linh vật",
+          "desc": "Một người bạn phản ứng theo kết quả test của bạn."
+        },
+        "coverage": {
+          "name": "Độ phủ",
+          "desc": "Độ phủ test theo từng tệp, kèm phần còn thiếu."
+        },
+        "email": {
+          "name": "Email",
+          "desc": "Hộp thư đến theo dòng, thao tác bằng bàn phím."
+        },
+        "weather": {
+          "name": "Thời tiết",
+          "desc": "Dự báo trong tuần cho các thành phố của bạn."
+        },
+        "secrets": {
+          "name": "Bí mật",
+          "desc": "Tìm khóa và mật khẩu bị bỏ quên trước khi commit."
+        },
+        "mindMap": {
+          "name": "Sơ đồ tư duy",
+          "desc": "Ý tưởng dạng cây, chỉ cần bàn phím."
+        },
+        "typing": {
+          "name": "Gõ phím",
+          "desc": "Luyện tốc độ với các đoạn mã của chính bạn."
+        },
+        "uptime": {
+          "name": "Uptime",
+          "desc": "Trạng thái dịch vụ của bạn, cảnh báo ngay trên tiêu đề ô."
+        },
+        "benchmarks": {
+          "name": "Benchmarks",
+          "desc": "So sánh các lần chạy và phát hiện chỗ chậm đi."
+        },
+        "changelog": {
+          "name": "Changelog",
+          "desc": "Tạo changelog từ các commit."
+        },
+        "snippets": {
+          "name": "Snippets",
+          "desc": "Đoạn văn bản và mã, chỉ cách một phím tắt."
+        }
+      },
+      "price": {
+        "free": "miễn phí",
+        "donation": "miễn phí · ủng hộ",
+        "perMonth": "{price}/tháng",
+        "trial": "{days} ngày miễn phí",
+        "once": "{price} · một lần"
+      },
+      "action": {
+        "free": "cài",
+        "donation": "cài",
+        "subscription": "đăng ký",
+        "once": "mua",
+        "trial": "dùng thử"
+      },
+      "installed": "đã cài",
+      "stepsFree": [
+        "đang tải xuống…",
+        "sha256 ok",
+        "quyền ok"
+      ],
+      "stepsPaid": [
+        "thanh toán Cadente…",
+        "giấy phép ok",
+        "sha256 ok"
+      ],
+      "empty": "Chưa có plugin nào tên như vậy. <a href=\"#creator\">Sao không tự làm một cái?</a>",
+      "demoSearches": [
+        "chủ đề",
+        "sql",
+        "agent"
+      ],
+      "wall": [
+        "Pomodoro+",
+        "Ghi chú nhanh",
+        "Webhooks",
+        "Mock server",
+        "WebSocket",
+        "gRPC",
+        "MQTT",
+        "OpenAPI",
+        "Giấy phép",
+        "Phụ thuộc",
+        "Lỗ hổng",
+        ".env",
+        "SSH",
+        "Máy chủ",
+        "Chi phí cloud",
+        "Seeds",
+        "Fixtures",
+        "Bundle size",
+        "Web vitals",
+        "Trợ năng",
+        "i18n",
+        "Semver",
+        "Releases",
+        "Status page",
+        "Chỉ số",
+        "Flamegraph",
+        "Profiler",
+        "Test chập chờn",
+        "Xung đột",
+        "Blame",
+        "Từ điển",
+        "Biểu tượng",
+        "Màu sắc",
+        "Phông chữ",
+        "Slides",
+        "Trình đọc PDF",
+        "Chép lời",
+        "Embeddings",
+        "Agent",
+        "Ngân sách",
+        "Hóa đơn",
+        "Danh bạ",
+        "Lịch của nhóm",
+        "Du lịch",
+        "Công thức nấu ăn",
+        "Sách",
+        "Phim",
+        "Podcasts",
+        "Bảng điểm",
+        "Sudoku",
+        "Trò chơi chữ",
+        "Quiz",
+        "Tranh ASCII",
+        "Kanban của nhóm",
+        "Scrum",
+        "Retro",
+        "OKRs",
+        "Pull request hôm nay",
+        "Duyệt SQL",
+        "Lint",
+        "Định dạng mã",
+        "Diff ảnh",
+        "Bảng màu",
+        "Máy tính",
+        "Đổi đơn vị",
+        "Múi giờ",
+        "Mã QR",
+        "UUID",
+        "Base64",
+        "JWT"
+      ]
+    },
+    "calc": {
+      "subscription": {
+        "price": "Giá mỗi tháng",
+        "people": "Người đăng ký",
+        "per": "mỗi tháng"
+      },
+      "once": {
+        "price": "Giá",
+        "people": "Người mua",
+        "per": "tổng cộng"
+      },
+      "donation": {
+        "price": "Ủng hộ trung bình mỗi tháng",
+        "people": "Người ủng hộ",
+        "per": "mỗi tháng"
+      }
+    },
+    "oneliner": {
+      "copied": "đã sao chép",
+      "select": "chọn rồi sao chép",
+      "copy": "sao chép"
+    },
+    "maker": {
+      "intro": "creator mode · agent dùng SDK",
+      "nothingSent": "không gì được gửi đi cho tới khi bạn nhấn ↵",
+      "newPane": "ô mới",
+      "waiting": "đang chờ agent",
+      "codeHere": "mã sẽ hiện ở đây",
+      "lines": {
+        "other": "{count} dòng"
+      },
+      "writing": "đang viết",
+      "inDev": "đang phát triển",
+      "running": "đang chạy",
+      "chatTitle": "Chat · creator mode",
+      "terminalTitle": "Terminal · cadente plugin dev",
+      "placeholder": "tin nhắn · @ đính kèm · / lệnh",
+      "writingToml": "đang viết cadente-plugin.toml",
+      "wroteToml": "đã viết cadente-plugin.toml",
+      "writingLib": "đang viết src/lib.rs",
+      "runningTests": "đang chạy cargo test",
+      "testsOk": {
+        "other": "test ok · {count} đạt"
+      },
+      "compiling": "đang biên dịch sang webassembly · 0,8 s",
+      "permissions": "quyền: {perms}",
+      "devRunning": "{id} 0.1.0 đang chạy",
+      "inDevAt": "{where} · đang phát triển",
+      "floatingLayer": "lớp nổi",
+      "publishDesc": "release, sha256 và chỉ mục cửa hàng",
+      "publishing": "đang đăng",
+      "released": "release v0.1.0 · đã tải lên artifact và sha256",
+      "manifestOk": "manifest hợp lệ · topic cadente-plugin",
+      "published": "đã đăng · lên cửa hàng ở lần lập chỉ mục tới",
+      "inStore": "trên cửa hàng",
+      "ex": {
+        "pet": {
+          "tab": "Cadu thú cưng",
+          "ask": "tạo một tamagotchi Cadu bay lơ lửng trên ứng dụng, biết đói và bị bẩn",
+          "keyFeed": "cho ăn",
+          "keyBath": "tắm",
+          "plan": "Tôi sẽ tạo gói ana.cadu-tamagotchi trên lớp nổi: nó bay quanh màn hình, theo thời gian sẽ đói và bẩn; f cho ăn và b tắm cho nó.",
+          "file": "đã viết src/lib.rs · Cadu bằng ANSI, cơn đói và việc tắm",
+          "perms": "không cần gì ngoài Core",
+          "ready": "Xong. Cadu đang tự do trong ứng dụng, đói và bẩn. Kéo nó đi; f cho ăn và b tắm cho nó.",
+          "hint": "f cho ăn · b tắm · kéo Cadu",
+          "price": "giá: miễn phí kèm ủng hộ · bạn nhận 90%"
+        },
+        "sales": {
+          "title": "Doanh thu hôm nay",
+          "ask": "tạo một plugin hiển thị doanh thu hôm nay của cửa hàng tôi, kèm biểu đồ theo giờ",
+          "viewToday": "hôm nay",
+          "viewTodayText": "tổng, biểu đồ và đơn hàng",
+          "viewWeek": "tuần",
+          "viewWeekText": "so với tuần trước",
+          "plan": "Tôi sẽ tạo leo.vendas-do-dia: một ô có tổng doanh thu hôm nay, biểu đồ theo giờ và các đơn hàng mới nhất. Nó chỉ kết nối tới api.stripe.com.",
+          "file": "đã viết src/lib.rs · tổng, biểu đồ và đơn hàng",
+          "today": "hôm nay",
+          "todayMeta": "3.482,90 US$ · 27 đơn hàng",
+          "perHour": "theo giờ",
+          "peak": "cao điểm lúc 11 giờ",
+          "latest": "đơn hàng mới nhất",
+          "order1": "129,90 US$ · đã thanh toán",
+          "order2": "49,00 US$ · đã thanh toán",
+          "order3": "310,00 US$ · đang chờ",
+          "ready": "Xong. Ô hiển thị doanh thu hôm nay và tự cập nhật mỗi phút.",
+          "hint": "⇥ tuần · ↵ mở đơn hàng",
+          "price": "giá: 4 US$ mỗi tháng · bạn nhận 70% mỗi lần gia hạn"
+        },
+        "status": {
+          "title": "Status page",
+          "ask": "tạo một status page cho biết khi GitHub, Cloudflare, AWS và các dịch vụ khác gặp sự cố",
+          "when": "một dịch vụ sập hoặc hoạt động trở lại",
+          "plan": "Tôi sẽ tạo orbita.status-page: một ô với GitHub, Cloudflare, AWS và các dịch vụ khác, đọc từ trang trạng thái chính thức mỗi phút. Khi một dịch vụ sập, tiêu đề ô chuyển đỏ và bạn nhận được thông báo.",
+          "file": "đã viết src/lib.rs · đọc trang trạng thái và gửi cảnh báo",
+          "perms": "mạng · 7 trang trạng thái",
+          "signal": "1 dịch vụ sập",
+          "now": "bây giờ",
+          "nowMeta": "1 sập · 1 chập chờn · 5 ok",
+          "aws": "sập · us-east-1 · 4 phút",
+          "github": "chậm · hàng đợi bị trễ",
+          "operational": "hoạt động bình thường",
+          "day": "24 giờ",
+          "incidents": "2 sự cố",
+          "ready": "Xong. Ô kiểm tra các trang trạng thái mỗi phút. Trong ví dụ này, CloudFront của AWS đang sập ở us-east-1 và GitHub Actions đang chậm.",
+          "hint": "↵ mở sự cố · ⇥ lịch sử",
+          "price": "giá: 12 US$, mua một lần · bạn nhận 70%"
+        }
+      }
+    },
+    "tama": {
+      "feedButton": "ăn",
+      "bathButton": "tắm",
+      "hello": "chào! mình đói quá…",
+      "drag": "ối! mình đi đâu đây?",
+      "starving": "đói… đói lắm",
+      "hungry": "mình đói rồi",
+      "dirty": "mình cần tắm",
+      "aria": "Cadu: {mood}. Kéo để di chuyển, f cho ăn, b tắm.",
+      "mood": {
+        "hungry": "đói",
+        "dirty": "bẩn",
+        "happy": "vui"
+      },
+      "full": "mình no rồi, cảm ơn!",
+      "eating": "măm măm!",
+      "thanks": "cảm ơn ✦",
+      "clean": "mình sạch sẽ rồi",
+      "splash": "bì bõm!",
+      "fresh": "thơm tho ✦"
+    },
+    "hero": {
+      "words": [
+        "một harness cho agent",
+        "một terminal",
+        "một trình quản lý worktree",
+        "một trình khách API",
+        "một trình khách cơ sở dữ liệu",
+        "một ứng dụng ghi chú",
+        "một ứng dụng lịch"
+      ],
+      "stars": [
+        "agent",
+        "terminal",
+        "worktree",
+        "API",
+        "cơ sở dữ liệu",
+        "ghi chú",
+        "lịch"
+      ]
+    },
+    "dl": {
+      "detected": "Tệp đúng cho {os} của bạn đã ở ngay đây.",
+      "pick": "Chọn tệp cho hệ điều hành của bạn.",
+      "downloadFor": "Tải cho {os}",
+      "macNote": "Lần đầu mở, macOS có thể cần <a href=\"#macos-danificado\">cách sửa bên dưới</a>."
+    },
+    "rn": {
+      "latest": "mới nhất",
+      "onGitHub": "Xem trên GitHub",
+      "none": "Chưa có phiên bản nào.",
+      "failed": "Không tải được ghi chú. Xem trên <a href=\"{url}\" target=\"_blank\" rel=\"noopener noreferrer\">GitHub</a>."
+    }
+  },
+  "agents": {
+    "eyebrow": "Agent",
+    "title": "Các agent của bạn,<br /><span class=\"violet-text\">đặt cạnh nhau.</span>",
+    "lede": "Cadente không thay agent của bạn. Claude Code, Codex và các CLI khác chạy nguyên bản, bằng tài khoản của bạn. Cadente sắp xếp công việc xung quanh: mỗi việc một worktree riêng, tất cả trong tầm mắt, và agent nào cần bạn sẽ hiện lên trước.",
+    "wallLabel": "Các agent chạy trong Cadente",
+    "known": "Cadente nhận diện được",
+    "any": "Và mọi CLI khác chạy trong terminal.",
+    "yours": "của bạn",
+    "p1": "Mỗi việc một worktree",
+    "p1Text": "Mỗi agent làm trên branch và thư mục riêng, không đụng vào tệp của agent khác.",
+    "p2": "Ai đang chờ bạn thì lên trước",
+    "p2Text": "<kbd>⌘⇧A</kbd> gom agent từ mọi trang, agent nào cần bạn thì nằm trên cùng.",
+    "p3": "Gói đăng ký bạn đang trả",
+    "p3Text": "Claude Max, ChatGPT Plus, một khóa API hoặc một mô hình cục bộ. Cadente không thu thêm đồng nào.",
+    "p4": "Thẳng tới nhà cung cấp",
+    "p4Text": "Các lệnh gọi đi từ máy của bạn tới nhà cung cấp bạn chọn. Không có server nào của Cadente đứng giữa.",
+    "p5": "Mọi thứ trên máy của bạn",
+    "p5Text": "Phiên, lịch sử và cài đặt nằm trong một cơ sở dữ liệu cục bộ, trên máy tính của bạn."
+  },
+  "faq": {
+    "eyebrow": "Câu hỏi",
+    "title": "Trước khi<br /><span class=\"muted\">tải về.</span>",
+    "q1": "Nó chỉ là lớp vỏ bọc Claude Code thôi à?",
+    "a1": "Không. Claude Code, Codex và các CLI khác chạy nguyên bản trong terminal của Cadente, bằng tài khoản của bạn. Cadente là cửa sổ bao quanh: chia màn hình thành các ô, cho mỗi việc một worktree, gom các agent đang chờ bạn và đặt terminal, cơ sở dữ liệu, API, ghi chú và lịch ngay bên cạnh.",
+    "q2": "Khác gì so với chạy Claude Code thẳng trong terminal?",
+    "a2": "Về agent thì không khác: vẫn là CLI đó. Khác biệt nằm ở xung quanh. Nhiều agent làm việc cạnh nhau, mỗi agent trong worktree riêng, ⌘⇧A cho thấy ai đang chờ bạn, và phần việc còn lại nằm trong cùng một cửa sổ.",
+    "q3": "Các lệnh gọi của tôi có đi qua server của các bạn không?",
+    "a3": "Không. Cadente nói chuyện thẳng với nhà cung cấp bạn chọn, bằng gói đăng ký hoặc khóa của bạn. Server của Cadente chỉ lưu tài khoản của bạn.",
+    "q4": "Không có AI có dùng được không?",
+    "a4": "Được. AI là một plugin như mọi plugin khác: tắt đi và giữ lại terminal, workspaces, ghi chú, cơ sở dữ liệu và lịch.",
+    "q5": "Miễn phí thì các bạn kiếm tiền bằng cách nào?",
+    "a5": "Từ cửa hàng plugin, khi cửa hàng mở: Cadente giữ 30% doanh thu bán hàng và gói đăng ký, và 10% tiền ủng hộ. Ứng dụng vẫn miễn phí.",
+    "q6": "Có những ngôn ngữ nào?",
+    "a6": "15 ngôn ngữ: tiếng Bồ Đào Nha, tiếng Anh, tiếng Tây Ban Nha, tiếng Pháp, tiếng Đức, tiếng Ý, tiếng Nga, tiếng Thổ Nhĩ Kỳ, tiếng Ả Rập, tiếng Hindi, tiếng Indonesia, tiếng Việt, tiếng Nhật, tiếng Hàn và tiếng Trung giản thể. Đổi ngôn ngữ có hiệu lực ngay, không cần khởi động lại. Một số màn hình mới có tiếng Bồ Đào Nha và tiếng Anh trước.",
+    "q7": "Chạy trên những hệ điều hành nào?",
+    "a7": "macOS, trên Apple Silicon và Intel, cùng Windows và Linux, cả hai trên x64."
+  },
+  "lang": {
+    "label": "Ngôn ngữ",
+    "notice": "Trang này cũng có bằng tiếng Việt.",
+    "go": "Xem bằng tiếng Việt",
+    "close": "Đóng"
+  },
+  "langs": {
+    "eyebrow": "15 ngôn ngữ",
+    "title": "Nói ngôn ngữ của bạn.<br /><span class=\"violet-text\">Và 14 ngôn ngữ khác.</span>",
+    "lede": "Từ menu đến terminal, Cadente có 15 ngôn ngữ, và đổi ngôn ngữ có hiệu lực ngay, không cần khởi động lại. Chọn một ngôn ngữ và xem cửa sổ thay đổi.",
+    "pick": "Ngôn ngữ của cửa sổ",
+    "note": "Một số màn hình mới có tiếng Bồ Đào Nha và tiếng Anh trước."
+  },
+  "dl": {
+    "metaTitle": "Tải Cadente",
+    "metaDescription": "Tải Cadente cho macOS (Apple Silicon và Intel), Windows và Linux. Miễn phí.",
+    "eyebrow": "Tải về",
+    "title": "Tải <span class=\"violet-text\">Cadente</span>.",
+    "lede": "Miễn phí, cho macOS, Windows và Linux.",
+    "version": "Phiên bản",
+    "others": "Hệ điều hành khác",
+    "fallback": "Không đọc được phiên bản mới nhất. Các tệp có trên <a href=\"https://github.com/cadente-hub/cadente-hub.github.io/releases\" target=\"_blank\" rel=\"noopener noreferrer\">trang releases</a>.",
+    "installTitle": "Cách cài",
+    "oneLine": "Bằng một dòng lệnh",
+    "orHomebrew": "Hoặc qua Homebrew",
+    "orDmg": "Hoặc qua tệp .dmg",
+    "mac1": "Mở tệp <code>.dmg</code> và kéo Cadente vào thư mục Ứng dụng.",
+    "mac2": "Nếu macOS báo ứng dụng bị hỏng, xem cách sửa bên dưới.",
+    "orPackages": "Hoặc qua gói cài",
+    "powershell": "Trong PowerShell",
+    "orInstaller": "Hoặc qua trình cài đặt",
+    "win1": "Tải tệp <code>.exe</code> hoặc <code>.msi</code> rồi làm theo trình cài đặt.",
+    "win2": "Nếu SmartScreen cảnh báo, bấm <b>Thông tin thêm</b> rồi <b>Vẫn chạy</b>.",
+    "fixTitle": "macOS báo Cadente bị hỏng?",
+    "fixText": "macOS chặn các ứng dụng chưa có chữ ký trả phí của Apple. Dán lệnh này vào Terminal một lần và Cadente sẽ mở bình thường.",
+    "fixNote": "Lệnh một dòng và Homebrew đã làm việc này giúp bạn."
+  },
+  "rn": {
+    "metaTitle": "Ghi chú phát hành của Cadente",
+    "metaDescription": "Những thay đổi trong từng phiên bản Cadente, trên kênh ổn định và beta.",
+    "eyebrow": "Ghi chú phát hành",
+    "title": "Từng phiên bản<br /><span class=\"violet-text\">của Cadente.</span>",
+    "lede": "Kênh ổn định và beta, đọc từ chính các tệp cập nhật mà ứng dụng dùng.",
+    "inEnglish": "Ghi chú của từng phiên bản được viết bằng tiếng Anh.",
+    "stable": "Ổn định",
+    "beta": "Beta",
+    "stableTitle": "Các phiên bản đã kiểm thử",
+    "betaTitle": "Dùng trước mọi người",
+    "download": "Tải bản ổn định",
+    "loading": "Đang tải…"
+  },
+  "terms": {
+    "metaTitle": "Điều khoản, quyền riêng tư và hoàn tiền — Cadente",
+    "metaDescription": "Điều khoản và điều kiện, chính sách quyền riêng tư và chính sách hoàn tiền của Cadente.",
+    "title": "Điều khoản, quyền riêng tư và hoàn tiền",
+    "updated": "Cập nhật ngày 30 tháng 10 năm 2026",
+    "notice": "Đây là bản dịch. Nếu có khác biệt, <a href=\"/en/terms-and-conditions.html\">bản tiếng Anh</a> sẽ được áp dụng."
+  },
+  "blog": {
+    "metaTitle": "Blog",
+    "metaDescription": "Ghi chép về sản phẩm, kỹ thuật và cách làm việc từ Cadente.",
+    "eyebrow": "Nhật ký Cadente",
+    "title": "Ý tưởng để<br /><span class=\"violet-text\">làm việc tốt hơn.</span>",
+    "lede": "Ghi chép về sản phẩm, kỹ thuật và cách làm việc để dùng AI rõ ràng hơn, chủ động hơn và nhanh hơn.",
+    "feed": "Theo dõi feed JSON",
+    "count": {
+      "other": "{count} bài viết"
+    },
+    "empty": "Sắp có bài viết mới.",
+    "read": "Đọc",
+    "back": "Tất cả bài viết",
+    "updated": "Cập nhật ngày {date}"
+  },
+  "cmp": {
+    "metaTitle": "Cadente và các harness agent khác",
+    "metaDescription": "Cadente so với Conductor, Orca, Paradev và Warp, kèm nguồn của từng thông tin.",
+    "eyebrow": "So sánh",
+    "title": "Cadente đặt cạnh<br /><span class=\"violet-text\">các harness khác.</span>",
+    "lede": "Những gì mỗi bên tự nói trên trang web của mình, kèm liên kết tới nguồn của từng dòng. Điều gì trang web không nói sẽ hiện là “không công bố”.",
+    "checked": "Kiểm tra ngày {date}.",
+    "unknown": "không công bố",
+    "source": "nguồn",
+    "feature": "Tiêu chí so sánh",
+    "row": {
+      "systems": "Hệ điều hành",
+      "price": "Giá",
+      "agents": "Agent",
+      "isolation": "Cô lập theo việc",
+      "noAi": "Tắt AI mà vẫn dùng tiếp",
+      "languages": "Ngôn ngữ giao diện",
+      "data": "Dữ liệu nằm ở đâu"
+    },
+    "cell": {
+      "cadente": {
+        "systems": "macOS, Windows và Linux",
+        "price": "Miễn phí, không có gói trả phí",
+        "agents": "Claude Code, Codex, Gemini CLI, OpenCode và mọi CLI",
+        "isolation": "Mỗi việc một worktree Git",
+        "noAi": "Có: AI là một plugin",
+        "languages": "15",
+        "data": "Trên máy của bạn; lệnh gọi đi thẳng tới nhà cung cấp"
+      },
+      "conductor": {
+        "agents": "Claude Code, Codex, Cursor và OpenCode",
+        "isolation": "Mỗi agent một microVM trên cloud",
+        "data": "Trên cloud của Conductor (Conductor Cloud)"
+      },
+      "orca": {
+        "agents": "Claude Code, Codex, OpenCode, Grok và các CLI khác",
+        "isolation": "Workspace tách biệt"
+      },
+      "paradev": {
+        "systems": "macOS; Linux thử nghiệm; không có Windows",
+        "price": "Có gói miễn phí",
+        "agents": "Claude Code, Codex, OpenCode và mọi CLI",
+        "isolation": "Mỗi agent một worktree Git",
+        "data": "Trên máy của bạn; cloud chỉ lưu metadata tài khoản"
+      },
+      "warp": {
+        "price": "Theo mức dùng, tính phí theo mỗi lần agent chạy (Factories)",
+        "agents": "Warp, Claude Code, Codex, Cursor và các agent hỗ trợ MCP",
+        "data": "Cloud của Warp hoặc của riêng bạn (self-hosted)"
+      }
+    },
+    "note": "Tên và thương hiệu thuộc về chủ sở hữu. Thấy thông tin nào đã cũ? <a href=\"https://github.com/cadente-hub/cadente-hub.github.io/issues\" target=\"_blank\" rel=\"noopener noreferrer\">Mở một issue</a>.",
+    "link": "So sánh với các harness khác"
+  }
+}

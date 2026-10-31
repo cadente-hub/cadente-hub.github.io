@@ -1,0 +1,1080 @@
+{
+  "meta": {
+    "title": "Cadente — AI まで、すべてがプラグインのハブ",
+    "description": "Cadente は、Claude Code や Codex などのエージェント、ターミナル、API、データベース、ノート、カレンダーをひとつの分割ウィンドウにまとめる無料のデスクトップアプリです。すべてがプラグインで、AI もそのひとつ。Rust 製で、Mac、Windows、Linux に対応し、15 言語で使えます。",
+    "ogDescription": "AI まで、すべてがプラグインのハブ。エージェント、ターミナル、データベース、ノートをひとつのウィンドウに。",
+    "skip": "本文へスキップ"
+  },
+  "nav": {
+    "label": "メインナビゲーション",
+    "home": "Cadente ホーム",
+    "how": "使い方",
+    "plugins": "プラグイン",
+    "store": "ストア",
+    "blog": "ブログ",
+    "download": "無料ダウンロード",
+    "menu": "メニューを開く",
+    "agents": "エージェント",
+    "faq": "よくある質問"
+  },
+  "hero": {
+    "eyebrow": "無料 · Mac、Windows、Linux · Rust 製 · 15 言語",
+    "lede": "エージェント、ターミナル、データベース、ノート、カレンダーをひとつのウィンドウに。操作はすべてキーボードで完結します。どの部分もプラグインなので、使うものはオンに、好きなものに入れ替えて、残りはオフに。AI もオフにできます。しかも無料です。",
+    "watch": "ある1日の作業を見る",
+    "anyCli": "あらゆる CLI",
+    "before": "Cadente は",
+    "hub": "ハブ",
+    "after": "です。",
+    "sub": "すべてがプラグイン。AI さえも。"
+  },
+  "theater": {
+    "label": "Cadente の使用例",
+    "intro": "Cadente での1日。朝9時から終業まで",
+    "chapters": "チャプター"
+  },
+  "creator": {
+    "eyebrow": "Creator mode · 近日公開",
+    "title": "あなたのプラグインが<br /><span class=\"violet-text\">収入になる。</span>",
+    "lede": "自分の1日を楽にするアイデアは、きっとほかの誰かの役にも立ちます。エージェントに説明すればプラグインを書いてくれるので、あとはストアで公開して課金方法を選ぶだけ。寄付の 90%、販売とサブスクリプション更新ごとの 70% があなたの取り分です。",
+    "forYou": "あなたの取り分",
+    "donation": "寄付",
+    "donationText": "プラグインは無料。気に入った人があなたを支援できます。",
+    "subscription": "サブスクリプション",
+    "subscriptionText": "月額または年額。初回だけでなく、更新のたびに収入になります。",
+    "once": "買い切り",
+    "onceText": "一度の支払いで、最大 5 台のコンピュータで使えます。",
+    "trialCut": "7日間",
+    "trialExample": "たとえば",
+    "trial": "無料トライアル",
+    "trialText": "課金の前に、数日間試してもらえます。",
+    "calc": {
+      "model": "料金モデル",
+      "pricePerMonth": "月額",
+      "subscribers": "購読者",
+      "youGet": "最大受取額",
+      "perMonth": "月あたり",
+      "note": "税金とカード手数料を引く前の概算です。計算は純額をもとに行われ、すべての販売は Cadente のチェックアウトを通ります。"
+    },
+    "makerTitle": "アイデアからストアまで、Cadente の中で。",
+    "makerLede": "稼ぎ方がそれぞれ違う、3つの依頼例です。画面を自由に動き回るペットの Cadu、その日の売上を表示するパネル、そして GitHub や Cloudflare、AWS が落ちたら知らせるステータスページ。Cadu はドラッグしたり、ごはんをあげたり、お風呂に入れたりできます。",
+    "examples": "プラグインの例",
+    "step1": "アイデアを伝える",
+    "step1Text": "依頼が入った状態でチャットが開きます。<kbd>↵</kbd> を押すまで何も送信されません。",
+    "step2": "エージェントが書く",
+    "step2Text": "マニフェスト、コード、テストを、今いる場所の隣のペインに。",
+    "step3": "その場で試す",
+    "step3Text": "<code>cadente plugin dev</code> で、会話の隣でそのままプラグインが動きます。Cadu はアプリの上を自由に動き回ります。ドラッグで動かし、<kbd>f</kbd> でごはん、<kbd>b</kbd> でお風呂です。",
+    "step4": "公開する",
+    "step4Text": "<code>/publish</code> で完了。選んだ価格で、ストアに並びます。"
+  },
+  "rust": {
+    "eyebrow": "Rust 製",
+    "title": "コアから<br /><span class=\"muted\">画面まで Rust。</span><br /><span class=\"violet-text\">ファンも回りません。</span>",
+    "lede": "隠れたブラウザも、裏で動く Node もありません。Cadente はコアから UI まで Rust で書かれたネイティブアプリで、描画は GPU が担います。",
+    "stackLabel": "Cadente の構成",
+    "stack": "<span class=\"stack__root\">cadente</span>\n├─ コア         <b>rust</b>\n├─ UI           <b>rust</b> · slint、GPU で描画\n├─ ターミナル   <b>rust</b> · ネイティブ pty\n├─ エージェント <b>rust</b> · claude、codex、agy、あらゆる cli\n└─ プラグイン   <b>rust</b> · コミュニティ製は webassembly",
+    "memory": "省メモリ",
+    "memoryText": "履歴はディスクに置かれ、開いたときだけ読み込まれます。使い続けても重くなりません。",
+    "battery": "プロセスはひとつ",
+    "batteryText": "UI はコアと直接やりとりします。間にローカルサーバーもブラウザもありません。",
+    "hidden": "隠れた処理なし",
+    "hiddenText": "ペインを閉じれば、それで終わり。ターミナルもエージェントもプラグインも、裏で動き続けることはありません。"
+  },
+  "plugins": {
+    "eyebrow": "標準プラグイン",
+    "title": "どのペインも<br /><span class=\"muted\">必要なものになる。</span>",
+    "lede": "チャット、ターミナル、ワークスペース、リクエスト、カレンダー、フォーカス。標準プラグインはどれも同じ操作です。<kbd>↵</kbd> で開く、<kbd>.</kbd> でできることを表示、<kbd>/</kbd> でコマンド一覧、<kbd>⇥</kbd> でビューを切り替え。ひとつ覚えれば、全部使えます。クリックして試してみてください。",
+    "gridLabel": "標準プラグイン",
+    "communityBig": "<span class=\"violet-text\">そして、</span><br />コミュニティが作るもの。",
+    "communityText": "ストアはまもなく公開です。誰でもプラグインを公開でき、インストールはいつでも無料。AI を使わないなら、生産性系のプラグインだけを使うこともできます。",
+    "seeStore": "ストアを見る",
+    "namesLabel": "コミュニティプラグインの例",
+    "names": {
+      "board": "ボード",
+      "docs": "ドキュメント",
+      "browser": "ブラウザ",
+      "radio": "Lo-fi ラジオ",
+      "neon": "ネオンテーマ",
+      "rag": "ローカル RAG",
+      "habits": "習慣",
+      "stars": "流星群",
+      "chess": "チェス",
+      "yours": "…そして、あなたが作るもの"
+    }
+  },
+  "owner": {
+    "eyebrow": "すべてがプラグイン",
+    "title": "AI さえも<br /><span class=\"violet-text\">プラグインです。</span>",
+    "lede": "チャット、ターミナル、サイドバー、AI プロバイダ、テーマまで。Cadente のどの部分もプラグインで、コミュニティ製と同じ仕組みで動きます。プロバイダを入れ替え、使わないものはオフに。AI をオフにして、ターミナル、データベース、ノート、カレンダーのハブとして使うこともできます。",
+    "plugins": "プラグイン",
+    "installKanban": "コミュニティの Kanban をインストール",
+    "services": "サービス",
+    "clickToSwap": "クリックで切り替え",
+    "always": "常に残るもの",
+    "forSafety": "安全のため",
+    "base": "プラグインマネージャー · シェル · セレクター",
+    "install": "インストール",
+    "installText": "リンクやフォルダから。再起動は不要です。",
+    "remove": "オフにする",
+    "removeText": "標準プラグインもオフにできます。",
+    "swap": "入れ替える",
+    "swapText": "プロバイダを替えると、それに依存するプラグインは新しいプロバイダで再起動します。",
+    "layersLabel": "選べるレイヤー",
+    "layer1": "エージェント",
+    "layer1Text": "Claude Code、Codex、Gemini CLI、OpenCode、またはいつも使っている CLI。",
+    "layer2": "モデル",
+    "layer2Text": "お手持ちのサブスクリプション、API キー、または Ollama のローカルモデル。",
+    "layer3": "各プラグイン",
+    "layer3Text": "アプリを再起動せずに、オン・オフ・入れ替えができます。",
+    "layer4": "UI",
+    "layer4Text": "サイドバーやテーマまでプラグインです。",
+    "noAi": "AI なしでも",
+    "noAiText": "AI をオフにしても、ターミナル、ワークスペース、ノート、データベース、カレンダーはそのまま使えます。"
+  },
+  "store": {
+    "eyebrow": "プラグインストア · 近日公開",
+    "title": "誰かが必要としたものは、<br /><span class=\"violet-text\">誰かが作っている。</span>",
+    "lede": "Kanban、Kubernetes、Lo-fi ラジオ、図を描くボード。ストアはまもなく公開です。インストールは無料で、ほとんどのプラグインは無料になる予定です。下のプラグインは例です。",
+    "search": "プラグインを検索",
+    "placeholder": "プラグインを探す",
+    "categories": "カテゴリ",
+    "empty": "その名前のプラグインはまだありません。自分で作ってみませんか?",
+    "oneClick": "↵ ひとつで",
+    "oneClickText": "ダウンロードし、ファイルが正しいかを確認してからインストールします。",
+    "open": "オープン",
+    "openText": "topic <code>cadente-plugin</code> を付けて GitHub に公開すれば、あなたのプラグインがストアに並びます。",
+    "watched": "監視つき",
+    "watchedText": "悪意のあるプラグインが見つかると、ブロックされ、すべてのマシンで自動的にオフになります。"
+  },
+  "finale": {
+    "title": "最初のペインを<br /><span class=\"muted\">開いてみませんか?</span>",
+    "lede": "無料で、Mac、Windows、Linux に対応。15 言語で使え、カード登録も不要です。",
+    "copyLabel": "インストールコマンドをコピー",
+    "copy": "コピー"
+  },
+  "foot": {
+    "tagline": "AI まで、すべてがプラグインのハブ。",
+    "label": "フッター",
+    "product": "製品",
+    "resources": "リソース",
+    "legal": "法的情報",
+    "terms": "利用規約",
+    "copy": "© 2026 Cadente. Rust 製。",
+    "langs": "言語"
+  },
+  "js": {
+    "theater": {
+      "chapters": {
+        "morning": {
+          "step": "朝",
+          "title": "9:00。1日の準備はもうできています。",
+          "text": "Cadente を開くと、最初のペインにもうその日の予定が並んでいます。9:30 のデイリー、14:00 のデザイン会議、そして待ったなしのマージコンフリクト。どこから始めるかを知るために、5つのアプリを開く必要はありません。<kbd>⇥</kbd> で最近の項目とタスクに切り替わります。"
+        },
+        "claude": {
+          "step": "Claude",
+          "title": "まずは Claude にテストを頼む。",
+          "text": "<kbd>⌘O</kbd> と4文字で、ペインがターミナルになります。すでに払っているサブスクリプションで Claude Code を開き、<code>focus_neighbor</code> のテストを頼みます。Claude が書き始めたら、あなたは次へ。"
+        },
+        "agents": {
+          "step": "エージェント",
+          "title": "エージェントは3つ、ウィンドウは増えない。",
+          "text": "<kbd>⌘D</kbd> で横に、<kbd>⌘⇧D</kbd> で下に画面を分割。Codex がテストを実行し、agy が <code>layout.rs</code> を説明し、Claude の下にはあなた用のターミナルも残ります。全員が作業中で、全員が見えています。"
+        },
+        "ci": {
+          "step": "CI",
+          "title": "そこへ、login の CI が落ちる。",
+          "text": "新しいページには、開いている4つのブランチと、各 PR の状態。login が赤くなっています。ブランチを開いて <kbd>⌘J</kbd> を押すと、今いる場所を把握したチャットが開くので、原因を聞くだけです。diff は隣に開きます。"
+        },
+        "api": {
+          "step": "API",
+          "title": "さて、今日の機能。",
+          "text": "今日のタスクはプロジェクト API です。リクエストで <code>GET /v1/projects</code> を開き、<code>limit</code> を 5 に変えて送信。続いて POST でショーケースプロジェクトを作成します。エージェントは最初のページで作業を続けていて、ほかのプログラムは開いていません。"
+        },
+        "store": {
+          "step": "ストア",
+          "title": "データベースクライアントが足りない。",
+          "text": "POST が保存されたかを見るには、データベースの確認が必要です。すぐ下にストアが開きます。Postgres を見つけて写真をめくり、要求されるアクセスを確認したら、<kbd>↵</kbd> で無料でインストール。"
+        },
+        "db": {
+          "step": "データベース",
+          "title": "データベースが POST を確認。",
+          "text": "<kbd>⌘↵</kbd> でカーソル位置の select を実行。プロジェクトのクエリに、もうショーケースが出ています。その場で行を書き換えて並び順を変え、もう一度実行。データベースブラウザからセッションのテーブルも開きます。"
+        },
+        "app": {
+          "step": "アプリで",
+          "title": "アプリにも、もう出ている。",
+          "text": "新しいページで、ブラウザが開発中のアプリを <code>localhost:5173</code> で開きます。一覧にはショーケースがあります。<kbd>↓</kbd> でリンクを移動、<kbd>↵</kbd> でプロジェクトを開き、<kbd>⌫</kbd> で戻ります。"
+        },
+        "diagram": {
+          "step": "図",
+          "title": "会議のための図をひとつ。",
+          "text": "14:00 からはデザイン会議。サイトの隣に、ストアからボードをインストールして、データの流れを描きます。別のツールは開きません。<kbd>r</kbd> で長方形、<kbd>o</kbd> で楕円、<kbd>a</kbd> で2つをつなぎます。"
+        },
+        "meeting": {
+          "step": "会議",
+          "title": "会議の議事録が、そのままタスクに。",
+          "text": "議事録はドキュメントに、あなたのフォルダの .md ファイルとして残ります。次のタスクは本文に直接書き、<kbd>↵</kbd> で次の項目を追加。<kbd>スペース</kbd> で、もう済んだブログでの告知にチェックを付けます。"
+        },
+        "focus": {
+          "step": "フォーカス",
+          "title": "それから、25分間の集中。",
+          "text": "自分だけのページです。予定、25分のポモドーロ、コンピュータのメモリ、そして Claude をどれだけ使ったか。<kbd>⌘1</kbd>〜<kbd>⌘6</kbd> で、その日の6つのページを行き来できます。"
+        },
+        "accounts": {
+          "step": "アカウント",
+          "title": "すでに払っているサブスクリプションを使う。",
+          "text": "使用量を見ると、Claude は上限の 58%。設定には、すでにお持ちのアカウントが並んでいます。Claude Max、ChatGPT Plus、Gemini のキー、OpenRouter、そして Ollama のローカルモデル。会話ごとに使うアカウントを選べ、Cadente が上乗せで料金を取ることはありません。"
+        },
+        "plugins": {
+          "step": "プラグイン",
+          "title": "使わないものは、外す。",
+          "text": "プラグインでは、標準のものまで外せます。<kbd>スペース</kbd> でリンクとツールをオフに。AI プロバイダも入れ替えられます。ノートパソコン上の Ollama に切り替える前に、何が変わるかを確認できます。AI を丸ごとオフにすることもできます。"
+        },
+        "end": {
+          "step": "終業",
+          "title": "1日の終わり。まだ待っているのは?",
+          "text": "<kbd>⌘⇧A</kbd> で全ページのエージェントを集め、待っているものを先頭に表示します。Claude がまだテストの書き込み許可を求めています。<kbd>↵</kbd> でそこへ移動し、<kbd>y</kbd> で許可。今日使ったプラグインはどれも誰かが作ったもので、次はあなたのプラグインかもしれません。"
+        }
+      },
+      "typed": {
+        "ciQuestion": "CI が失敗した理由は?",
+        "boardWeb": "Web アプリ",
+        "task1": "チームに changelog を送る",
+        "task2": "レビュー: [[リリース]]",
+        "claude": "layout.rs の末尾に focus_neighbor のテストを追加して。何も実行しないで",
+        "codex": "cargo test を実行して結果を教えて",
+        "agy": "layout.rs が何をするか一文で説明して"
+      },
+      "hud": {
+        "mandarATarefa": "タスクを送る",
+        "proximaVista": "次のビュー",
+        "vistaAnterior": "前のビュー",
+        "rodarOsTestes": "テストを実行",
+        "voltarAoLogin": "login に戻る",
+        "abrirOWorkspaceLogin": "login ワークスペースを開く",
+        "chatAoLadoLigadoAoWorkspace": "隣にチャット、ワークスペースと連携",
+        "perguntar": "質問する",
+        "abrirODiffDoLado": "隣に diff を開く",
+        "alteracoes": "変更",
+        "descer": "下へ",
+        "abrirODiff": "diff を開く",
+        "requisicao": "リクエスト",
+        "colecoes": "コレクション",
+        "colecaoProjetos": "プロジェクトのコレクション",
+        "abrirORequest": "このリクエストを開く",
+        "descerAteOLimit": "limit まで下へ",
+        "editarOLimit": "limit を編集",
+        "apagarOValor": "値を消す",
+        "gravar": "保存",
+        "voltarAoEnviar": "送信に戻る",
+        "enviarOGet": "GET を送信",
+        "enviarOPost": "POST を送信",
+        "ampliarAFolha": "ペインを最大化",
+        "abrirAPaginaDoPostgres": "Postgres のページを開く",
+        "voltarAoTopo": "先頭に戻る",
+        "instalarGratis": "インストール、無料",
+        "rodarOSelectDoCursor": "カーソル位置の select を実行",
+        "descerPeloScript": "スクリプトを下へ",
+        "rodarEsteSelect": "この select を実行",
+        "ateOOrderBy": "order by まで",
+        "editarALinhaAliMesmo": "その場で行を編集",
+        "apagarAUltimaPalavra": "最後の単語を消す",
+        "gravarERodar": "保存して実行",
+        "navegadorDoBanco": "データベースブラウザ",
+        "verOsDadosDaTabela": "テーブルのデータを見る",
+        "voltarAsDuasFolhas": "2つのペインに戻る",
+        "irAoEndereco": "アドレスへ移動",
+        "abrirOSite": "サイトを開く",
+        "abrirOProjetoVitrine": "ショーケースプロジェクトを開く",
+        "voltar": "戻る",
+        "abrirAPaginaDoQuadro": "ボードのページを開く",
+        "proximaFoto": "次の写真",
+        "guardarOTexto": "テキストを確定",
+        "ligarComUmaSeta": "矢印でつなぐ",
+        "elipse": "楕円",
+        "maisUmaSeta": "もうひとつ矢印",
+        "abrirANota": "ノートを開く",
+        "descerPelaNota": "ノートを下へ",
+        "novaTarefa": "新しいタスク",
+        "aListaContinua": "リストが続く",
+        "fecharALista": "リストを閉じる",
+        "subir": "上へ",
+        "marcarComoFeita": "完了にする",
+        "comecarUmPomodoro": "ポモドーロを開始",
+        "pagina1OsAgentes": "ページ 1: エージェント",
+        "pagina3AApiEO": "ページ 3: API とデータベース",
+        "pagina5AAta": "ページ 5: 議事録",
+        "pagina6DeVoltaAoSeu": "ページ 6: いつもの1日に戻る",
+        "proximaConta": "次のアカウント",
+        "desligarLinks": "リンクをオフ",
+        "desligarFerramentas": "ツールをオフ",
+        "ultimoItem": "最後の項目",
+        "providerDeIa": "AI プロバイダ",
+        "trocarProvider": "プロバイダを変更",
+        "ollamaNoSeuComputador": "Ollama、あなたのコンピュータで",
+        "verAPrevia": "プレビューを見る",
+        "aplicar": "適用",
+        "irAteQuemEspera": "待っているエージェントへ",
+        "permitir": "許可",
+        "saltarParaOCalendarioNaPagina": "その日のページのカレンダーへ移動",
+        "abrirOTerminal": "ターミナルを開く",
+        "outroTerminal": "もうひとつターミナル",
+        "maisUm": "もうひとつ",
+        "umTerminalParaVoce": "あなた用のターミナル",
+        "abrirWorkspaces": "ワークスペースを開く",
+        "workspacesNasAlteracoes": "ワークスペース、変更ビュー",
+        "abrirORequests": "リクエストを開く",
+        "abrirALoja": "ストアを開く",
+        "abrirONavegador": "ブラウザを開く",
+        "abrirDocumentos": "ドキュメントを開く",
+        "abrirOCalendario": "カレンダーを開く",
+        "abrirOFoco": "フォーカスを開く",
+        "abrirOSistema": "システムを開く",
+        "abrirOUso": "使用量を開く",
+        "abrirPlugins": "プラグインを開く",
+        "abrirOClaudeCode": "Claude Code を開く",
+        "abrirOCodex": "Codex を開く",
+        "abrirOAgy": "agy を開く",
+        "loginOCiFalhou": "login · CI が失敗",
+        "paineisProntoParaOMerge": "ペイン · マージ準備完了",
+        "buscaOClaudeTrabalhando": "検索 · Claude が作業中",
+        "temaEsperandoRevisao": "テーマ · レビュー待ち",
+        "quadro": "ボード",
+        "radioLoFi": "Lo-fi ラジオ",
+        "maisUma": "もうひとつ",
+        "asFotos": "写真",
+        "sobre": "概要",
+        "oQueEleFaz": "できること",
+        "atalhos": "ショートカット",
+        "mapa": "マップ",
+        "vitrine": "ショーケース",
+        "lancamento": "リリース",
+        "retangulo": "長方形",
+        "outroRetangulo": "もうひとつ長方形"
+      }
+    },
+    "plugins": {
+      "title": {
+        "inicio": "ホーム",
+        "chat": "チャット",
+        "terminal": "ターミナル",
+        "workspaces": "ワークスペース",
+        "pr": "PR レビュー",
+        "requests": "リクエスト",
+        "calendario": "カレンダー",
+        "sistema": "システム",
+        "uso": "使用量",
+        "foco": "フォーカス",
+        "automacoes": "自動化",
+        "prompts": "プロンプト",
+        "projetos": "プロジェクト",
+        "recursos": "リソース",
+        "links": "リンク",
+        "ferramentas": "ツール",
+        "config": "設定",
+        "plugins": "プラグイン"
+      },
+      "desc": {
+        "inicio": "あなたの1日。予定、タスク、ノート、天気、開いたままのもの。",
+        "chat": "どのモデルでも。プラン、キュー、セッション、コンテキストを一目で。",
+        "terminal": "コマンドブロック、AI の提案、Claude Code や Codex などのエージェント。",
+        "workspaces": "リポジトリ、変更、worktree。diff とコミットも。",
+        "pr": "自分とチームの PR。diff、チェック、スレッド、AI によるレビュー。",
+        "requests": "コレクション、環境、履歴を備えた HTTP クライアント。",
+        "calendario": "日、月、これからの予定。「明日 10時 会議」と入力して ↵。",
+        "sistema": "メモリ、CPU、ポート、Docker をリアルタイムで。",
+        "uso": "アカウントごとの上限、コスト、使用量の予測。",
+        "foco": "タスクとノートつきのポモドーロ。",
+        "automacoes": "スケジュール実行される AI タスク。履歴つき。",
+        "prompts": "プロンプトとテクニックのライブラリ。隣のチャットでセッションも。",
+        "projetos": "プロジェクトとセッション。追加、クローン、お気に入り。",
+        "recursos": "スキル、メモリ、agents、MCP、指示。",
+        "links": "タグつきのリンク。URL を貼り付けて ↵。",
+        "ferramentas": "JSON、そして Markdown から Word への変換。",
+        "config": "アカウント、プロバイダ、ショートカット、アクセス、外観。",
+        "plugins": "カタログ、グラフ、プレビューつきのプロバイダ切り替え。"
+      }
+    },
+    "rack": {
+      "service": {
+        "ai": "AI プロバイダ",
+        "compaction": "コンテキスト圧縮",
+        "pty": "ターミナル (pty)",
+        "theme": "テーマ"
+      },
+      "noAi": "なし · AI オフ",
+      "plugin": {
+        "chat": "チャット",
+        "terminal": "ターミナル",
+        "pr": "PR レビュー",
+        "automacoes": "自動化",
+        "workspaces": "ワークスペース",
+        "sidebar": "サイドバー",
+        "tray": "システムトレイ"
+      },
+      "meta": {
+        "community": "コミュニティ",
+        "on": "オン",
+        "off": "オフ"
+      },
+      "removeKanban": "Kanban を削除",
+      "count": {
+        "other": "{count} 個がオン"
+      },
+      "svc": {
+        "again": "もう一度クリックでオンに戻す",
+        "usedBy": "{users} が使用中",
+        "nobody": "今は使われていません"
+      },
+      "log": {
+        "hint": "試してみてください。プラグインをクリックするとオフに、サービスをクリックすると切り替わります。コミュニティのプラグインもインストールできます。",
+        "on": "<b>{name}</b> が戻りました。再起動は不要です。",
+        "off": "<b>{name}</b> をオフにしました。ペインで開いていた場合、そのペインは別のプラグインを待ちます。",
+        "noAi": "<b>AI をオフにしました。</b>{users} はプロバイダを待ちます。ターミナル、ワークスペース、ノート、データベース、カレンダーはそのままです。",
+        "swap": "プレビュー · {service}: <b>{from} → {to}</b>",
+        "swapUsers": "プレビュー · {service}: <b>{from} → {to}</b> · {users} は処理中の作業を終えてから、新しいプロバイダで再起動します",
+        "install": "<b>@ana の Kanban</b> をインストールしました。要求されたアクセスは api.github.com だけです。",
+        "remove": "<b>Kanban</b> を削除しました。気が変わったときのために、データはプロフィールに残っています。"
+      }
+    },
+    "store": {
+      "cat": {
+        "all": "すべて",
+        "dev": "開発",
+        "ai": "AI",
+        "productivity": "生産性",
+        "data": "データ",
+        "themes": "テーマ",
+        "fun": "遊び"
+      },
+      "app": {
+        "kanban": {
+          "name": "Kanban",
+          "desc": "リポジトリの issue を3列で並べるボード。"
+        },
+        "board": {
+          "name": "ボード",
+          "desc": "手描き風の図を、キーボードで描けます。"
+        },
+        "postgres": {
+          "name": "Postgres",
+          "desc": "スクリプト、テーブル、結果をひとつのペインに。"
+        },
+        "docs": {
+          "name": "ドキュメント",
+          "desc": "[[リンク]] とタスクが使える Markdown ノート。"
+        },
+        "browser": {
+          "name": "ブラウザ",
+          "desc": "サイトをペインで開き、リンクはキーボードで。"
+        },
+        "testWriter": {
+          "name": "テストライター",
+          "desc": "現在の diff のテストを書くエージェント。"
+        },
+        "neon": {
+          "name": "ネオンテーマ",
+          "desc": "黒地に紫とピンクのアクセント。"
+        },
+        "kubernetes": {
+          "name": "Kubernetes",
+          "desc": "クラスタの Pod、ログ、イベントを、キーボードから手を離さずに。"
+        },
+        "meetingSummary": {
+          "name": "会議まとめ",
+          "desc": "会議を文字起こしして、タスクにまとめます。"
+        },
+        "radio": {
+          "name": "Lo-fi ラジオ",
+          "desc": "フォーカス用の音楽、タイマーも表示。"
+        },
+        "regex": {
+          "name": "Regex",
+          "desc": "正規表現を、リアルタイムのハイライトでテスト。"
+        },
+        "sheets": {
+          "name": "スプレッドシート",
+          "desc": "CSV と XLSX を、フィルタと合計つきで開けます。"
+        },
+        "rag": {
+          "name": "ローカル RAG",
+          "desc": "自分のコンピュータのモデルで、ドキュメントについて質問。"
+        },
+        "habits": {
+          "name": "習慣",
+          "desc": "その日の習慣をチェックして連続記録を確認。"
+        },
+        "sqlite": {
+          "name": "SQLite",
+          "desc": "どんな .db も開いて、テーブルを閲覧。"
+        },
+        "cron": {
+          "name": "Cron",
+          "desc": "cron 式を組み立てて、次の実行日時を確認。"
+        },
+        "contrast": {
+          "name": "ハイコントラストテーマ",
+          "desc": "読みやすさのための、純粋な黒と白。"
+        },
+        "promptJudge": {
+          "name": "プロンプト評価",
+          "desc": "モデルの回答を並べて比較。"
+        },
+        "compose": {
+          "name": "Docker Compose",
+          "desc": "compose のサービスを起動、停止して、状態を追えます。"
+        },
+        "journal": {
+          "name": "日記",
+          "desc": "1日1ノート。検索つき。"
+        },
+        "chess": {
+          "name": "チェス",
+          "desc": "エージェントと1日1局。"
+        },
+        "jsonSchema": {
+          "name": "JSON Schema",
+          "desc": "JSON をスキーマで検証し、エラーを行ごとに表示。"
+        },
+        "commitWriter": {
+          "name": "コミットライター",
+          "desc": "ステージした内容から、コミットメッセージを作成。"
+        },
+        "exchange": {
+          "name": "為替",
+          "desc": "今日のレートと、すばやい換算。"
+        },
+        "sepia": {
+          "name": "セピアテーマ",
+          "desc": "長時間の作業にやさしい、暖かな色調。"
+        },
+        "logs": {
+          "name": "ログ",
+          "desc": "フィルタと色付きでログファイルを追跡。"
+        },
+        "finance": {
+          "name": "家計",
+          "desc": "CSV から、その月の支出をカテゴリ別に。"
+        },
+        "graphql": {
+          "name": "GraphQL",
+          "desc": "スキーマを探索し、変数つきでクエリを実行。"
+        },
+        "explainer": {
+          "name": "コード解説",
+          "desc": "開いているファイルを、関数ごとに解説。"
+        },
+        "stars": {
+          "name": "流星群",
+          "desc": "ビルドが成功するたびに流れ星。"
+        },
+        "gitGraph": {
+          "name": "Git graph",
+          "desc": "ブランチとコミットのグラフを、テキストで。"
+        },
+        "rss": {
+          "name": "RSS リーダー",
+          "desc": "フィードを一覧で表示し、ペインの中で読めます。"
+        },
+        "charts": {
+          "name": "グラフ",
+          "desc": "CSV や SQL から、テキストのグラフを作成。"
+        },
+        "retro": {
+          "name": "レトロターミナルテーマ",
+          "desc": "蛍光グリーンとブロックカーソル。"
+        },
+        "flags": {
+          "name": "Feature flags",
+          "desc": "複数の環境で、フラグをオン・オフ。"
+        },
+        "translator": {
+          "name": "翻訳",
+          "desc": "テキストや i18n ファイルを翻訳。"
+        },
+        "timesheet": {
+          "name": "タイムシート",
+          "desc": "使ったペインから、プロジェクトごとの作業時間を集計。"
+        },
+        "migrations": {
+          "name": "マイグレーション",
+          "desc": "SQL をプレビューしながら、マイグレーションを実行・取り消し。"
+        },
+        "mascot": {
+          "name": "マスコット",
+          "desc": "テストの結果に反応する相棒。"
+        },
+        "coverage": {
+          "name": "カバレッジ",
+          "desc": "ファイルごとのテストカバレッジと、足りない部分。"
+        },
+        "email": {
+          "name": "メール",
+          "desc": "受信トレイを行で表示、キーボードで操作。"
+        },
+        "weather": {
+          "name": "天気",
+          "desc": "登録した都市の週間予報。"
+        },
+        "secrets": {
+          "name": "シークレット",
+          "desc": "置き忘れたシークレットを、コミット前に見つけます。"
+        },
+        "mindMap": {
+          "name": "マインドマップ",
+          "desc": "アイデアをツリーで。キーボードだけで操作。"
+        },
+        "typing": {
+          "name": "タイピング",
+          "desc": "自分のコードの一部で、タイピングの速さを鍛えます。"
+        },
+        "uptime": {
+          "name": "Uptime",
+          "desc": "サービスの稼働状況。異常はペインのヘッダーでお知らせ。"
+        },
+        "benchmarks": {
+          "name": "ベンチマーク",
+          "desc": "実行結果を比べて、性能の低下を見つけます。"
+        },
+        "changelog": {
+          "name": "Changelog",
+          "desc": "コミットから changelog を生成。"
+        },
+        "snippets": {
+          "name": "スニペット",
+          "desc": "テキストやコードの断片を、ショートカットひとつで。"
+        }
+      },
+      "price": {
+        "free": "無料",
+        "donation": "無料 · 寄付",
+        "perMonth": "{price}/月",
+        "trial": "{days} 日間無料",
+        "once": "{price} · 買い切り"
+      },
+      "action": {
+        "free": "インストール",
+        "donation": "インストール",
+        "subscription": "購読する",
+        "once": "購入",
+        "trial": "無料で試す"
+      },
+      "installed": "インストール済み",
+      "stepsFree": [
+        "ダウンロード中…",
+        "sha256 ok",
+        "権限 ok"
+      ],
+      "stepsPaid": [
+        "Cadente のチェックアウト…",
+        "ライセンス ok",
+        "sha256 ok"
+      ],
+      "empty": "その名前のプラグインはまだありません。<a href=\"#creator\">自分で作ってみませんか?</a>",
+      "demoSearches": [
+        "テーマ",
+        "sql",
+        "エージェント"
+      ],
+      "wall": [
+        "ポモドーロ+",
+        "クイックメモ",
+        "Webhooks",
+        "モックサーバー",
+        "WebSocket",
+        "gRPC",
+        "MQTT",
+        "OpenAPI",
+        "ライセンス",
+        "依存関係",
+        "脆弱性",
+        ".env",
+        "SSH",
+        "サーバー",
+        "クラウド費用",
+        "シード",
+        "フィクスチャ",
+        "バンドルサイズ",
+        "Web Vitals",
+        "アクセシビリティ",
+        "i18n",
+        "Semver",
+        "リリース",
+        "ステータスページ",
+        "メトリクス",
+        "フレームグラフ",
+        "プロファイラ",
+        "不安定なテスト",
+        "コンフリクト",
+        "Blame",
+        "辞書",
+        "アイコン",
+        "カラー",
+        "フォント",
+        "スライド",
+        "PDF ビューア",
+        "文字起こし",
+        "Embeddings",
+        "エージェント",
+        "予算",
+        "請求書",
+        "連絡先",
+        "チームの予定",
+        "旅行",
+        "レシピ",
+        "読書",
+        "映画",
+        "ポッドキャスト",
+        "スコアボード",
+        "数独",
+        "ワードゲーム",
+        "クイズ",
+        "ASCII アート",
+        "チームの Kanban",
+        "スクラム",
+        "ふりかえり",
+        "OKR",
+        "今日の Pull request",
+        "SQL レビュー",
+        "Lint",
+        "フォーマッタ",
+        "画像 diff",
+        "カラーパレット",
+        "電卓",
+        "単位換算",
+        "タイムゾーン",
+        "QR コード",
+        "UUID",
+        "Base64",
+        "JWT"
+      ]
+    },
+    "calc": {
+      "subscription": {
+        "price": "月額",
+        "people": "購読者",
+        "per": "月あたり"
+      },
+      "once": {
+        "price": "価格",
+        "people": "購入者",
+        "per": "合計"
+      },
+      "donation": {
+        "price": "月の平均寄付額",
+        "people": "支援者",
+        "per": "月あたり"
+      }
+    },
+    "oneliner": {
+      "copied": "コピーしました",
+      "select": "選択してコピー",
+      "copy": "コピー"
+    },
+    "maker": {
+      "intro": "creator mode · エージェントが SDK を使用",
+      "nothingSent": "↵ を押すまで何も送信されません",
+      "newPane": "新しいペイン",
+      "waiting": "エージェントを待っています",
+      "codeHere": "ここにコードが表示されます",
+      "lines": {
+        "other": "{count} 行"
+      },
+      "writing": "書き込み中",
+      "inDev": "開発中",
+      "running": "実行中",
+      "chatTitle": "チャット · creator mode",
+      "terminalTitle": "ターミナル · cadente plugin dev",
+      "placeholder": "メッセージ · @ 添付 · / コマンド",
+      "writingToml": "cadente-plugin.toml を書き込み中",
+      "wroteToml": "cadente-plugin.toml を書き込みました",
+      "writingLib": "src/lib.rs を書き込み中",
+      "runningTests": "cargo test を実行中",
+      "testsOk": {
+        "other": "テスト ok · {count} 件成功"
+      },
+      "compiling": "webassembly にコンパイル中 · 0.8 s",
+      "permissions": "権限: {perms}",
+      "devRunning": "{id} 0.1.0 実行中",
+      "inDevAt": "{where} · 開発中",
+      "floatingLayer": "フローティングレイヤー",
+      "publishDesc": "リリース、sha256、ストアのインデックス",
+      "publishing": "公開中",
+      "released": "release v0.1.0 · アーティファクトと sha256 を送信済み",
+      "manifestOk": "マニフェストは有効 · topic cadente-plugin",
+      "published": "公開済み · 次のインデックス更新でストアに掲載",
+      "inStore": "ストアに掲載中",
+      "ex": {
+        "pet": {
+          "tab": "ペットの Cadu",
+          "ask": "アプリの上をふわふわ飛んで、お腹がすいたり汚れたりする Cadu のたまごっちを作って",
+          "keyFeed": "ごはん",
+          "keyBath": "お風呂",
+          "plan": "フローティングレイヤーに ana.cadu-tamagotchi パッケージを作ります。Cadu は画面を飛び回り、時間とともにお腹がすいて汚れていきます。f でごはん、b でお風呂です。",
+          "file": "src/lib.rs を書き込みました · ANSI の Cadu、空腹、お風呂",
+          "perms": "Core 以外はなし",
+          "ready": "完了です。Cadu がアプリの上に出てきました。お腹をすかせて、汚れています。ドラッグで動かし、f でごはん、b でお風呂です。",
+          "hint": "f ごはん · b お風呂 · Cadu をドラッグ",
+          "price": "価格: 無料、寄付あり · あなたの取り分 90%"
+        },
+        "sales": {
+          "title": "今日の売上",
+          "ask": "自分のストアの今日の売上を、時間別のグラフつきで表示するプラグインを作って",
+          "viewToday": "今日",
+          "viewTodayText": "合計、グラフ、注文",
+          "viewWeek": "週",
+          "viewWeekText": "先週との比較",
+          "plan": "leo.vendas-do-dia を作ります。今日の合計、時間別のグラフ、最新の注文を表示するペインです。通信先は api.stripe.com だけです。",
+          "file": "src/lib.rs を書き込みました · 合計、グラフ、注文",
+          "today": "今日",
+          "todayMeta": "¥94,030 · 注文 27 件",
+          "perHour": "時間別",
+          "peak": "ピークは 11 時",
+          "latest": "最新の注文",
+          "order1": "¥3,480 · 支払い済み",
+          "order2": "¥1,320 · 支払い済み",
+          "order3": "¥8,370 · 保留中",
+          "ready": "完了です。ペインに今日の売上が表示され、1分ごとに自動で更新されます。",
+          "hint": "⇥ 週 · ↵ 注文を開く",
+          "price": "価格: 月額 US$4 · 更新ごとに 70% があなたの取り分"
+        },
+        "status": {
+          "title": "ステータスページ",
+          "ask": "GitHub、Cloudflare、AWS などのサービスが落ちたらわかるステータスページを作って",
+          "when": "サービスが落ちたとき、または復旧したとき",
+          "plan": "orbita.status-page を作ります。GitHub、Cloudflare、AWS などのサービスを、公式のステータスページから1分ごとに読み込むペインです。どれかが落ちるとペインのヘッダーが赤くなり、通知が届きます。",
+          "file": "src/lib.rs を書き込みました · ステータスページの読み込みと通知",
+          "perms": "ネットワーク · ステータスページ 7 件",
+          "signal": "1 件ダウン",
+          "now": "現在",
+          "nowMeta": "ダウン 1 · 不安定 1 · 正常 5",
+          "aws": "ダウン · us-east-1 · 4 分",
+          "github": "低速 · キューに遅延",
+          "operational": "稼働中",
+          "day": "24 時間",
+          "incidents": "インシデント 2 件",
+          "ready": "完了です。ペインは1分ごとにステータスページを確認します。この例では、AWS の CloudFront が us-east-1 でダウン、GitHub Actions が低速と表示されています。",
+          "hint": "↵ インシデントを開く · ⇥ 履歴",
+          "price": "価格: US$12、買い切り · あなたの取り分 70%"
+        }
+      }
+    },
+    "tama": {
+      "feedButton": "ごはん",
+      "bathButton": "お風呂",
+      "hello": "やあ! お腹すいた…",
+      "drag": "わあ! どこ行くの?",
+      "starving": "お腹すいた… ぺこぺこ",
+      "hungry": "お腹すいた",
+      "dirty": "お風呂に入りたい",
+      "aria": "Cadu: {mood}。ドラッグで移動、f でごはん、b でお風呂。",
+      "mood": {
+        "hungry": "お腹がすいている",
+        "dirty": "汚れている",
+        "happy": "ごきげん"
+      },
+      "full": "もう食べたよ、ありがとう!",
+      "eating": "もぐもぐ!",
+      "thanks": "ありがとう ✦",
+      "clean": "もうきれいだよ",
+      "splash": "ぱしゃっ!",
+      "fresh": "いい匂い ✦"
+    },
+    "hero": {
+      "words": [
+        "エージェントハーネス",
+        "ターミナル",
+        "worktree マネージャー",
+        "API クライアント",
+        "データベースクライアント",
+        "ノートアプリ",
+        "カレンダー"
+      ],
+      "stars": [
+        "エージェント",
+        "ターミナル",
+        "worktree",
+        "API",
+        "データベース",
+        "ノート",
+        "カレンダー"
+      ]
+    },
+    "dl": {
+      "detected": "お使いの {os} 用のファイルをご用意しました。",
+      "pick": "お使いのシステム用のファイルを選んでください。",
+      "downloadFor": "{os} 用をダウンロード",
+      "macNote": "初回は、macOS で<a href=\"#macos-danificado\">下記の対処</a>が必要になる場合があります。"
+    },
+    "rn": {
+      "latest": "最新",
+      "onGitHub": "GitHub で見る",
+      "none": "まだリリースはありません。",
+      "failed": "リリースノートを読み込めませんでした。<a href=\"{url}\" target=\"_blank\" rel=\"noopener noreferrer\">GitHub</a> でご覧ください。"
+    }
+  },
+  "agents": {
+    "eyebrow": "エージェント",
+    "title": "あなたのエージェントを、<br /><span class=\"violet-text\">横に並べて。</span>",
+    "lede": "Cadente はエージェントを置き換えません。Claude Code、Codex などの CLI は、あなたのアカウントでそのまま動きます。Cadente が整えるのはその周りの作業です。タスクごとに worktree を用意し、すべてを見える場所に置き、あなたを必要としているものを先頭に出します。",
+    "wallLabel": "Cadente で動くエージェント",
+    "known": "Cadente が認識するエージェント",
+    "any": "ほかにも、ターミナルで動くあらゆる CLI。",
+    "yours": "あなたの CLI",
+    "p1": "タスクごとに worktree",
+    "p1Text": "各エージェントは自分のブランチとディレクトリで作業し、ほかのエージェントのファイルには触れません。",
+    "p2": "あなたを待つものが先頭に",
+    "p2Text": "<kbd>⌘⇧A</kbd> で全ページのエージェントを集め、あなたを必要としているものを先頭に表示します。",
+    "p3": "すでに払っているサブスクリプションで",
+    "p3Text": "Claude Max、ChatGPT Plus、API キー、またはローカルモデル。Cadente が上乗せで料金を取ることはありません。",
+    "p4": "プロバイダへ直接",
+    "p4Text": "呼び出しはあなたのマシンから、選んだプロバイダへ直接送られます。間に Cadente のサーバーは入りません。",
+    "p5": "すべてあなたのマシンに",
+    "p5Text": "セッション、履歴、設定は、あなたのコンピュータ内のローカルデータベースに保存されます。"
+  },
+  "faq": {
+    "eyebrow": "よくある質問",
+    "title": "ダウンロードの<br /><span class=\"muted\">前に。</span>",
+    "q1": "Claude Code のラッパーにすぎないのでは?",
+    "a1": "いいえ。Claude Code、Codex などの CLI は、Cadente のターミナルの中で、あなたのアカウントのまま動きます。Cadente はその周りのウィンドウです。画面をペインに分割し、タスクごとに worktree を用意し、あなたを待っているエージェントを集め、ターミナル、データベース、API、ノート、カレンダーを隣に置きます。",
+    "q2": "ターミナルで直接 Claude Code を動かすのと、何が違うのですか?",
+    "a2": "エージェント自体は同じ CLI なので、違いはありません。違うのはその周りです。複数のエージェントがそれぞれの worktree で並んで作業し、⌘⇧A で誰があなたを待っているかがわかり、ほかの作業も同じウィンドウで完結します。",
+    "q3": "API の呼び出しは Cadente のサーバーを経由しますか?",
+    "a3": "いいえ。Cadente は、あなたのサブスクリプションやキーを使って、選んだプロバイダと直接通信します。Cadente のサーバーが保存するのは、あなたのアカウントだけです。",
+    "q4": "AI なしでも使えますか?",
+    "a4": "使えます。AI はほかと同じプラグインのひとつです。オフにすれば、ターミナル、ワークスペース、ノート、データベース、カレンダーが残ります。",
+    "q5": "無料なら、どうやって収益を得ているのですか?",
+    "a5": "公開予定のプラグインストアからです。Cadente の取り分は、販売とサブスクリプションの 30%、寄付の 10% です。アプリは無料のままです。",
+    "q6": "対応言語は?",
+    "a6": "15 言語です。ポルトガル語、英語、スペイン語、フランス語、ドイツ語、イタリア語、ロシア語、トルコ語、アラビア語、ヒンディー語、インドネシア語、ベトナム語、日本語、韓国語、簡体字中国語。切り替えは即時で、再起動は不要です。一部の新しい画面は、ポルトガル語と英語で先に提供されます。",
+    "q7": "対応 OS は?",
+    "a7": "macOS(Apple Silicon と Intel)、Windows と Linux(いずれも x64)です。"
+  },
+  "lang": {
+    "label": "言語",
+    "notice": "このページは日本語でもご覧いただけます。",
+    "go": "日本語で見る",
+    "close": "閉じる"
+  },
+  "langs": {
+    "eyebrow": "15 言語",
+    "title": "あなたの言語で。<br /><span class=\"violet-text\">ほかに 14 言語も。</span>",
+    "lede": "メニューからターミナルまで、Cadente は 15 言語で表示できます。切り替えは即時で、再起動は不要です。言語を選んで、ウィンドウが変わるのを見てください。",
+    "pick": "ウィンドウの言語",
+    "note": "一部の新しい画面は、ポルトガル語と英語で先に提供されます。"
+  },
+  "dl": {
+    "metaTitle": "Cadente をダウンロード",
+    "metaDescription": "macOS(Apple Silicon と Intel)、Windows、Linux 用の Cadente をダウンロード。無料です。",
+    "eyebrow": "ダウンロード",
+    "title": "<span class=\"violet-text\">Cadente</span> をダウンロード。",
+    "lede": "無料。macOS、Windows、Linux に対応しています。",
+    "version": "バージョン",
+    "others": "ほかのシステム",
+    "fallback": "最新バージョンを読み込めませんでした。ファイルは<a href=\"https://github.com/cadente-hub/cadente-hub.github.io/releases\" target=\"_blank\" rel=\"noopener noreferrer\">リリースページ</a>にあります。",
+    "installTitle": "インストール方法",
+    "oneLine": "1行で",
+    "orHomebrew": "または Homebrew で",
+    "orDmg": "または .dmg で",
+    "mac1": "<code>.dmg</code> を開き、Cadente を「アプリケーション」にドラッグします。",
+    "mac2": "macOS にアプリが壊れていると表示された場合は、下の対処法をご覧ください。",
+    "orPackages": "またはパッケージで",
+    "powershell": "PowerShell で",
+    "orInstaller": "またはインストーラで",
+    "win1": "<code>.exe</code> または <code>.msi</code> をダウンロードし、インストーラの指示に従います。",
+    "win2": "SmartScreen の警告が出たら、<b>詳細情報</b>をクリックし、続けて<b>実行</b>をクリックします。",
+    "fixTitle": "macOS で Cadente が壊れていると表示されたら?",
+    "fixText": "macOS は、Apple の有料署名がまだないアプリをブロックします。このコマンドをターミナルに一度貼り付けて実行すれば、Cadente は普通に開きます。",
+    "fixNote": "1行のインストールコマンドと Homebrew では、この処理が自動で行われます。"
+  },
+  "rn": {
+    "metaTitle": "Cadente のリリースノート",
+    "metaDescription": "Cadente の各バージョンの変更点。安定版とベータ版のチャンネル。",
+    "eyebrow": "リリースノート",
+    "title": "Cadente の<br /><span class=\"violet-text\">すべてのバージョン。</span>",
+    "lede": "安定版とベータ版のチャンネル。アプリが使うのと同じアップデートファイルから読み込んでいます。",
+    "inEnglish": "各バージョンのノートは英語で書かれています。",
+    "stable": "安定版",
+    "beta": "ベータ版",
+    "stableTitle": "テスト済みのバージョン",
+    "betaTitle": "誰よりも早く",
+    "download": "安定版をダウンロード",
+    "loading": "読み込み中…"
+  },
+  "terms": {
+    "metaTitle": "利用規約、プライバシー、返金 — Cadente",
+    "metaDescription": "Cadente の利用規約、プライバシーポリシー、返金ポリシー。",
+    "title": "利用規約、プライバシー、返金",
+    "updated": "2026年10月30日更新",
+    "notice": "これは翻訳です。内容に違いがある場合は、<a href=\"/en/terms-and-conditions.html\">英語の原文</a>が優先されます。"
+  },
+  "blog": {
+    "metaTitle": "ブログ",
+    "metaDescription": "Cadente のプロダクト、エンジニアリング、実践についてのノート。",
+    "eyebrow": "Cadente の日誌",
+    "title": "よりよく働くための<br /><span class=\"violet-text\">アイデア。</span>",
+    "lede": "AI を、よりわかりやすく、思いどおりに、速く使うための、プロダクト、エンジニアリング、実践のノート。",
+    "feed": "JSON フィードを購読",
+    "count": {
+      "other": "{count} 件の投稿"
+    },
+    "empty": "新しい投稿はまもなく公開します。",
+    "read": "読む",
+    "back": "すべての投稿",
+    "updated": "{date} 更新"
+  },
+  "cmp": {
+    "metaTitle": "Cadente とほかのエージェントハーネス",
+    "metaDescription": "Cadente を Conductor、Orca、Paradev、Warp と比較。各情報の出典つき。",
+    "eyebrow": "比較",
+    "title": "Cadente を<br /><span class=\"violet-text\">ほかのハーネスと並べて。</span>",
+    "lede": "それぞれが自社サイトで述べている内容を、各行の出典リンクつきでまとめました。サイトに記載がないものは「記載なし」としています。",
+    "checked": "{date} 時点で確認。",
+    "unknown": "記載なし",
+    "source": "出典",
+    "feature": "比較項目",
+    "row": {
+      "systems": "対応 OS",
+      "price": "価格",
+      "agents": "エージェント",
+      "isolation": "タスクごとの分離",
+      "noAi": "AI をオフにしても使える",
+      "languages": "UI の言語",
+      "data": "データの保存場所"
+    },
+    "cell": {
+      "cadente": {
+        "systems": "macOS、Windows、Linux",
+        "price": "無料。有料プランなし",
+        "agents": "Claude Code、Codex、Gemini CLI、OpenCode、あらゆる CLI",
+        "isolation": "タスクごとに Git の worktree",
+        "noAi": "はい。AI はプラグインです",
+        "languages": "15",
+        "data": "あなたのマシン上。呼び出しはプロバイダへ直接"
+      },
+      "conductor": {
+        "agents": "Claude Code、Codex、Cursor、OpenCode",
+        "isolation": "エージェントごとにクラウドの microVM",
+        "data": "Conductor のクラウド (Conductor Cloud)"
+      },
+      "orca": {
+        "agents": "Claude Code、Codex、OpenCode、Grok、ほかの CLI",
+        "isolation": "分離されたワークスペース"
+      },
+      "paradev": {
+        "systems": "macOS。Linux は実験的。Windows は非対応",
+        "price": "無料プランあり",
+        "agents": "Claude Code、Codex、OpenCode、あらゆる CLI",
+        "isolation": "エージェントごとに Git の worktree",
+        "data": "あなたのマシン上。クラウドにはアカウントのメタデータのみ"
+      },
+      "warp": {
+        "price": "従量課金。エージェントの実行ごとに課金 (Factories)",
+        "agents": "Warp、Claude Code、Codex、Cursor、MCP 対応エージェント",
+        "data": "Warp のクラウド、または自前の環境 (self-hosted)"
+      }
+    },
+    "note": "名称と商標は各所有者に帰属します。古くなった情報を見つけたら、<a href=\"https://github.com/cadente-hub/cadente-hub.github.io/issues\" target=\"_blank\" rel=\"noopener noreferrer\">issue を作成</a>してください。",
+    "link": "ほかのハーネスと比較"
+  }
+}

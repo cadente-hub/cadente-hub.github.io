@@ -1,0 +1,1084 @@
+{
+  "meta": {
+    "title": "Cadente — her şeyin, yapay zekânın bile eklenti olduğu merkez",
+    "description": "Cadente; Claude Code ve Codex gibi ajanları, terminali, API'yi, veritabanını, notları ve takvimi bölünmüş tek bir pencerede toplayan ücretsiz bir masaüstü uygulamasıdır. Her şey eklentidir, yapay zekâ bile. Rust ile yazıldı; Mac, Windows ve Linux için, 15 dilde.",
+    "ogDescription": "Her şeyin, yapay zekânın bile eklenti olduğu merkez: ajanlar, terminal, veritabanı ve notlar tek pencerede.",
+    "skip": "İçeriğe geç"
+  },
+  "nav": {
+    "label": "Ana gezinme",
+    "home": "Cadente, ana sayfa",
+    "how": "Nasıl çalışır",
+    "plugins": "Eklentiler",
+    "store": "Mağaza",
+    "blog": "Blog",
+    "download": "Ücretsiz indir",
+    "menu": "Menüyü aç",
+    "agents": "Ajanlar",
+    "faq": "Sorular"
+  },
+  "hero": {
+    "eyebrow": "Ücretsiz · Mac, Windows ve Linux · Rust ile yazıldı · 15 dil",
+    "lede": "Ajanlar, terminal, veritabanı, notlar ve takvim aynı pencerede, hepsi klavyeden. Her parça bir eklenti: kullandığınızı tutun, istediğinizi değiştirin, gerisini kapatın, yapay zekâyı bile. Üstelik hiçbir ücreti yok.",
+    "watch": "Bir iş gününü izleyin",
+    "anyCli": "herhangi bir CLI",
+    "before": "Cadente",
+    "hub": "bir merkez",
+    "after": ".",
+    "sub": "Her şey eklenti. Yapay zekâ bile."
+  },
+  "theater": {
+    "label": "Cadente kullanımda",
+    "intro": "Cadente'de bir iş günü, saat 9'dan mesai bitimine kadar",
+    "chapters": "Bölümler"
+  },
+  "creator": {
+    "eyebrow": "Creator mode · yakında",
+    "title": "Eklentiniz<br /><span class=\"violet-text\">gelire dönüşebilir.</span>",
+    "lede": "Gününüzü kolaylaştıran bir fikriniz mi var? Büyük ihtimalle başkalarının da işine yarar. Ajana anlatın, eklentiyi o yazsın; siz de mağazada yayımlayıp nasıl ücret alacağınızı seçin. Bağışların %90'ı, satışların ve her abonelik yenilemesinin %70'i sizin.",
+    "forYou": "sizin",
+    "donation": "Bağış",
+    "donationText": "Eklenti ücretsizdir, beğenenler size destek olabilir.",
+    "subscription": "Abonelik",
+    "subscriptionText": "Aylık ya da yıllık. Yalnızca ilkinde değil, her yenilemede kazanırsınız.",
+    "once": "Tek seferlik satın alma",
+    "onceText": "Kişi bir kez öder ve 5 bilgisayara kadar kullanır.",
+    "trialCut": "7 gün",
+    "trialExample": "örneğin",
+    "trial": "Ücretsiz deneme",
+    "trialText": "Ücret almadan önce birkaç gün denemeye izin verin.",
+    "calc": {
+      "model": "Fiyat modeli",
+      "pricePerMonth": "Aylık fiyat",
+      "subscribers": "Aboneler",
+      "youGet": "Kazancınız en fazla",
+      "perMonth": "ayda",
+      "note": "Vergiler ve kart komisyonu düşülmeden önceki bir tahmindir. Hesap net tutar üzerinden yapılır ve her satış Cadente'nin ödeme sayfasından geçer."
+    },
+    "makerTitle": "Fikirden mağazaya, Cadente'den çıkmadan.",
+    "makerLede": "Her biri farklı yoldan kazanan üç örnek istek: ekranda serbestçe dolaşan evcil bir Cadu, günün satışlarını gösteren bir panel ve GitHub, Cloudflare ya da AWS çöktüğünde haber veren bir durum sayfası. Cadu'yu sürükleyebilir, besleyebilir ve yıkayabilirsiniz.",
+    "examples": "Eklenti örnekleri",
+    "step1": "Fikri anlatın",
+    "step1Text": "İsteğinizle bir Chat açılır. Siz <kbd>↵</kbd> tuşuna basana kadar hiçbir şey gönderilmez.",
+    "step2": "Ajan yazar",
+    "step2Text": "Manifest, kod ve testler, bulunduğunuz yerin yanındaki bir bölmede.",
+    "step3": "Hemen deneyin",
+    "step3Text": "<code>cadente plugin dev</code> eklentiyi orada, sohbetin yanında çalıştırır. Cadu uygulamanın üstünde serbestçe dolaşır: onu sürükleyin, beslemek için <kbd>f</kbd>, yıkamak için <kbd>b</kbd> tuşuna basın.",
+    "step4": "Yayımlayın",
+    "step4Text": "<code>/publish</code> ve hepsi bu: eklentiniz seçtiğiniz fiyatla mağazada."
+  },
+  "rust": {
+    "eyebrow": "Rust ile yazıldı",
+    "title": "Çekirdekten ekrana<br /><span class=\"muted\">baştan sona Rust.</span><br /><span class=\"violet-text\">Fan devreye bile girmez.</span>",
+    "lede": "Arkada gizli bir tarayıcı da, çalışan bir Node da yok. Cadente yerel bir uygulamadır; çekirdekten arayüze kadar Rust ile yazılmıştır ve GPU ile çizilir.",
+    "stackLabel": "Cadente neyden yapılmış",
+    "stack": "<span class=\"stack__root\">cadente</span>\n├─ core        <b>rust</b>\n├─ arayüz      <b>rust</b> · slint, GPU ile çizilir\n├─ terminal    <b>rust</b> · yerel pty\n├─ ajanlar     <b>rust</b> · claude, codex, agy ve herhangi bir cli\n└─ eklentiler  <b>rust</b> · topluluk eklentileri için webassembly",
+    "memory": "Daha az bellek",
+    "memoryText": "Geçmiş diskte durur ve yalnızca siz açtığınızda yüklenir. Uygulama zamanla şişmez.",
+    "battery": "Tek bir süreç",
+    "batteryText": "Arayüz doğrudan çekirdekle konuşur; arada ne yerel bir sunucu ne de tarayıcı var.",
+    "hidden": "Gizli hiçbir şey yok",
+    "hiddenText": "Bölmeyi kapattınız mı, iş biter. Terminal, ajan ya da eklenti arkada çalışmaya devam etmez."
+  },
+  "plugins": {
+    "eyebrow": "Yerleşik eklentiler",
+    "title": "Her bölme<br /><span class=\"muted\">neye ihtiyacınız varsa o olur.</span>",
+    "lede": "Chat, Terminal, Workspaces, Requests, Takvim, Odak: yerleşik eklentilerin hepsi aynı şekilde çalışır. <kbd>↵</kbd> açar, <kbd>.</kbd> neler yapabileceğinizi gösterir, <kbd>/</kbd> komutları listeler, <kbd>⇥</kbd> görünümü değiştirir. Birini öğrenen hepsini öğrenir. Görmek için birine tıklayın.",
+    "gridLabel": "Yerleşik eklentiler",
+    "communityBig": "<span class=\"violet-text\">Bir de topluluğun</span><br />yapacakları.",
+    "communityText": "Mağaza yakında açılıyor: herkes yayımlayabilir ve kurmak her zaman ücretsiz. Yapay zekâ kullanmıyor musunuz? Yalnızca üretkenlik eklentilerini tutun.",
+    "seeStore": "Mağazayı görün",
+    "namesLabel": "Topluluktan bazı eklentiler",
+    "names": {
+      "board": "Pano",
+      "docs": "Belgeler",
+      "browser": "Tarayıcı",
+      "radio": "Lo-fi radyo",
+      "neon": "Neon tema",
+      "rag": "Yerel RAG",
+      "habits": "Alışkanlıklar",
+      "stars": "Yıldız yağmuru",
+      "chess": "Satranç",
+      "yours": "…ve sizin yapacağınız"
+    }
+  },
+  "owner": {
+    "eyebrow": "Her şey eklenti",
+    "title": "Yapay zekâ bile<br /><span class=\"violet-text\">bir eklenti.</span>",
+    "lede": "Chat, Terminal, kenar çubuğu, YZ sağlayıcısı, hatta tema: Cadente'nin her parçası, topluluğunkiler gibi bir eklentidir. Sağlayıcıyı değiştirin, kullanmadığınızı kapatın; isterseniz yapay zekâyı da kapatıp terminal, veritabanı, notlar ve takvimden oluşan bir merkezle devam edin.",
+    "plugins": "Eklentiler",
+    "installKanban": "topluluktan Kanban kur",
+    "services": "Servisler",
+    "clickToSwap": "değiştirmek için tıklayın",
+    "always": "Hep kalanlar",
+    "forSafety": "güvenliğiniz için",
+    "base": "eklenti yöneticisi · kabuk · seçici",
+    "install": "Kurun",
+    "installText": "Bir bağlantıdan ya da klasörden, hiçbir şeyi yeniden başlatmadan.",
+    "remove": "Kapatın",
+    "removeText": "Yerleşik eklentiler de kapatılabilir.",
+    "swap": "Değiştirin",
+    "swapText": "Sağlayıcıyı değiştirin; ona bağlı eklentiler yenisinde yeniden başlar.",
+    "layersLabel": "Seçtiğiniz katmanlar",
+    "layer1": "Ajan",
+    "layer1Text": "Claude Code, Codex, Gemini CLI, OpenCode ya da zaten kullandığınız CLI.",
+    "layer2": "Model",
+    "layer2Text": "Aboneliğiniz, bir API anahtarı ya da Ollama'da yerel bir model.",
+    "layer3": "Her eklenti",
+    "layer3Text": "Uygulamayı yeniden başlatmadan açılır, kapanır ve değişir.",
+    "layer4": "Arayüz",
+    "layer4Text": "Kenar çubuğu ve tema bile birer eklenti.",
+    "noAi": "Yapay zekâ olmadan da",
+    "noAiText": "Yapay zekâyı kapatın, gerisi çalışmaya devam eder: terminal, workspaces, notlar, veritabanı ve takvim."
+  },
+  "store": {
+    "eyebrow": "Eklenti mağazası · yakında",
+    "title": "Birinin ihtiyacı olduysa,<br /><span class=\"violet-text\">biri yapmıştır.</span>",
+    "lede": "Kanban, Kubernetes, lo-fi radyo, diyagramlar için bir pano. Mağaza yakında açılıyor; kurmak ücretsiz ve eklentilerin çoğu ücretsiz olacak. Aşağıdaki eklentiler örnektir.",
+    "search": "Eklenti ara",
+    "placeholder": "bir eklenti arayın",
+    "categories": "Kategoriler",
+    "empty": "Bu adla henüz bir eklenti yok. Kendinizinkini yapmaya ne dersiniz?",
+    "oneClick": "Tek ↵",
+    "oneClickText": "İndirir, dosyanın doğru dosya olduğunu kontrol eder ve kurar.",
+    "open": "Açık",
+    "openText": "GitHub'da <code>cadente-plugin</code> konusuyla mı yayımladınız? Eklentiniz mağazaya girer.",
+    "watched": "Gözetimde",
+    "watchedText": "Kötü amaçlı bir eklenti ortaya çıkarsa engellenir ve bütün makinelerde kendiliğinden kapanır."
+  },
+  "finale": {
+    "title": "İlk bölmeyi<br /><span class=\"muted\">açalım mı?</span>",
+    "lede": "Ücretsiz; Mac, Windows ve Linux'ta çalışır, 15 dil konuşur ve kart istemez.",
+    "copyLabel": "Kurulum komutunu kopyala",
+    "copy": "kopyala"
+  },
+  "foot": {
+    "tagline": "Her şeyin, yapay zekânın bile eklenti olduğu merkez.",
+    "label": "Alt bilgi",
+    "product": "Ürün",
+    "resources": "Kaynaklar",
+    "legal": "Yasal",
+    "terms": "Şartlar ve koşullar",
+    "copy": "© 2026 Cadente. Rust ile yazıldı.",
+    "langs": "Diller"
+  },
+  "js": {
+    "theater": {
+      "chapters": {
+        "morning": {
+          "step": "Sabah",
+          "title": "Saat 9. Gün zaten hazır.",
+          "text": "Cadente'yi açtığınızda ilk bölme günü zaten gösteriyor: 9.30'da daily, 14.00'te tasarım toplantısı ve bekleyen bir birleştirme çakışması. Nereden başlayacağınızı görmek için beş uygulama açmanız gerekmez. <kbd>⇥</kbd> son kullanılanlara ve görevlere geçer."
+        },
+        "claude": {
+          "step": "Claude",
+          "title": "Önce Claude'a bir test.",
+          "text": "<kbd>⌘O</kbd> ve dört harf bölmeyi bir Terminal'e çevirir. Claude Code'u zaten ödediğiniz abonelikle açar ve <code>focus_neighbor</code> için bir test istersiniz. O yazmaya başlar, siz de sıradakine geçersiniz."
+        },
+        "agents": {
+          "step": "Ajanlar",
+          "title": "Üç ajan, fazladan tek pencere yok.",
+          "text": "<kbd>⌘D</kbd> ekranı yana, <kbd>⌘⇧D</kbd> aşağı doğru böler. Codex testleri çalıştırır, agy <code>layout.rs</code> dosyasını açıklar, Claude'un altında da size bir Terminal kalır. Hepsi çalışıyor, hepsi göz önünde."
+        },
+        "ci": {
+          "step": "CI",
+          "title": "Derken login'in CI'ı kırılıyor.",
+          "text": "Yeni bir sayfada açık dört branch ve her PR'ın durumu duruyor. Login kırmızı. Branch'i açarsınız; <kbd>⌘J</kbd> nerede olduğunuzu zaten bilen bir Chat çağırır, size de yalnızca nedenini sormak kalır. Diff hemen yanda açılır."
+        },
+        "api": {
+          "step": "API",
+          "title": "Şimdi sıra günün özelliğinde.",
+          "text": "Bugünün görevi projeler API'si. Requests'te <code>GET /v1/projects</code> isteğini açar, <code>limit</code> değerini 5 yapar ve gönderirsiniz. Ardından POST vitrin projesini oluşturur. Ajanlar ilk sayfada çalışmayı sürdürüyor ve siz başka bir program açmadınız."
+        },
+        "store": {
+          "step": "Mağaza",
+          "title": "Bir veritabanı istemcisi eksik.",
+          "text": "POST'un kaydedilip kaydedilmediğini görmek için veritabanına bakmak gerek. Mağaza hemen altta açılır: Postgres'i bulur, fotoğraflara göz atar, neye erişmek istediğine bakar ve <kbd>↵</kbd> ile ücretsiz kurarsınız."
+        },
+        "db": {
+          "step": "Veritabanı",
+          "title": "Veritabanı POST'u doğruluyor.",
+          "text": "<kbd>⌘↵</kbd> imleçteki select'i çalıştırır. Projeler sorgusunda vitrin zaten görünüyor. Sıralamayı orada, satırın içinde değiştirir, yeniden çalıştırır ve oturumlar tablosunu veritabanı gezgininden açarsınız."
+        },
+        "app": {
+          "step": "Uygulamada",
+          "title": "Ve uygulamada da görünüyor.",
+          "text": "Yeni bir sayfada Tarayıcı, geliştirdiğiniz uygulamayı <code>localhost:5173</code> adresinde açar. Vitrin listede. <kbd>↓</kbd> bağlantılar arasında gezer, <kbd>↵</kbd> projeyi açar, <kbd>⌫</kbd> geri döner."
+        },
+        "diagram": {
+          "step": "Diyagram",
+          "title": "Toplantı için bir diyagram.",
+          "text": "Saat 14.00'te tasarım toplantısı var. Sitenin yanına Mağaza'dan Pano'yu kurar ve verinin izlediği yolu, başka bir araç açmadan çizersiniz. <kbd>r</kbd> bir dikdörtgen, <kbd>o</kbd> bir elips çizer, <kbd>a</kbd> ikisini birbirine bağlar."
+        },
+        "meeting": {
+          "step": "Toplantı",
+          "title": "Toplantıda notlar göreve dönüşür.",
+          "text": "Toplantı notu Belgeler'de, klasörünüzde bir .md dosyası olarak durur. Sıradaki görevleri doğrudan metne yazarsınız; <kbd>↵</kbd> bir sonrakini açar, <kbd>boşluk</kbd> biteni işaretler: blog duyurusu."
+        },
+        "focus": {
+          "step": "Odak",
+          "title": "Sonra 25 dakika odak.",
+          "text": "Yalnızca size ait bir sayfa: takvim, 25 dakikalık bir pomodoro, bilgisayarın belleği ve Claude'dan ne kadar kullandığınız. <kbd>⌘1</kbd> ile <kbd>⌘6</kbd> arasındaki tuşlar günün altı sayfası arasında geçiş yapar."
+        },
+        "accounts": {
+          "step": "Hesaplar",
+          "title": "Zaten ödediğiniz abonelikleri kullanın.",
+          "text": "Kullanım, Claude'u limitin %58'inde gösterdi. Ayarlar'da zaten sahip olduğunuz hesaplar var: Claude Max, ChatGPT Plus, bir Gemini anahtarı, OpenRouter ve Ollama'da yerel bir model. Her sohbet kendi hesabını seçer ve Cadente üstüne hiçbir ücret almaz."
+        },
+        "plugins": {
+          "step": "Eklentiler",
+          "title": "Kullanmadığınız gider.",
+          "text": "Plugins'te yerleşik olanlar bile kaldırılabilir. <kbd>boşluk</kbd> Links'i ve Araçlar'ı kapatır. YZ sağlayıcısı da değiştirilebilir: dizüstünüzdeki Ollama'ya geçer ve neyin değişeceğini önceden görürsünüz. Yapay zekâyı tamamen kapatmak da mümkün."
+        },
+        "end": {
+          "step": "Gün sonu",
+          "title": "Gün bitti. Kim hâlâ bekliyor?",
+          "text": "<kbd>⌘⇧A</kbd> bütün sayfalardaki ajanları toplar, bekleyenler en üstte. Claude testi kaydetmek için hâlâ izin istiyor: <kbd>↵</kbd> sizi ona götürür, <kbd>y</kbd> izin verir. Bugün kullandığınız her eklentiyi biri yaptı; sıradaki sizinki olabilir."
+        }
+      },
+      "typed": {
+        "ciQuestion": "CI neden başarısız oldu?",
+        "boardWeb": "web uygulaması",
+        "task1": "değişiklik günlüğünü ekibe gönder",
+        "task2": "gözden geçir: [[Lansman]]",
+        "claude": "layout.rs dosyasının sonuna focus_neighbor için bir test ekle, hiçbir şey çalıştırma",
+        "codex": "cargo test çalıştır ve sonucu söyle",
+        "agy": "layout.rs ne yapıyor, tek cümleyle açıkla"
+      },
+      "hud": {
+        "mandarATarefa": "görevi gönder",
+        "proximaVista": "sonraki görünüm",
+        "vistaAnterior": "önceki görünüm",
+        "rodarOsTestes": "testleri çalıştır",
+        "voltarAoLogin": "login'e dön",
+        "abrirOWorkspaceLogin": "login workspace'ini aç",
+        "chatAoLadoLigadoAoWorkspace": "Chat yanda, workspace'e bağlı",
+        "perguntar": "sor",
+        "abrirODiffDoLado": "diff'i yanda aç",
+        "alteracoes": "değişiklikler",
+        "descer": "aşağı",
+        "abrirODiff": "diff'i aç",
+        "requisicao": "istek",
+        "colecoes": "koleksiyonlar",
+        "colecaoProjetos": "projeler koleksiyonu",
+        "abrirORequest": "isteği aç",
+        "descerAteOLimit": "limit'e in",
+        "editarOLimit": "limit'i düzenle",
+        "apagarOValor": "değeri sil",
+        "gravar": "kaydet",
+        "voltarAoEnviar": "gönder düğmesine dön",
+        "enviarOGet": "GET'i gönder",
+        "enviarOPost": "POST'u gönder",
+        "ampliarAFolha": "bölmeyi büyüt",
+        "abrirAPaginaDoPostgres": "Postgres sayfasını aç",
+        "voltarAoTopo": "başa dön",
+        "instalarGratis": "kur, ücretsiz",
+        "rodarOSelectDoCursor": "imleçteki select'i çalıştır",
+        "descerPeloScript": "betikte aşağı in",
+        "rodarEsteSelect": "bu select'i çalıştır",
+        "ateOOrderBy": "order by'a kadar",
+        "editarALinhaAliMesmo": "satırı yerinde düzenle",
+        "apagarAUltimaPalavra": "son kelimeyi sil",
+        "gravarERodar": "kaydet ve çalıştır",
+        "navegadorDoBanco": "veritabanı gezgini",
+        "verOsDadosDaTabela": "tablonun verilerini gör",
+        "voltarAsDuasFolhas": "iki bölmeye dön",
+        "irAoEndereco": "adrese git",
+        "abrirOSite": "siteyi aç",
+        "abrirOProjetoVitrine": "vitrin projesini aç",
+        "voltar": "geri",
+        "abrirAPaginaDoQuadro": "Pano sayfasını aç",
+        "proximaFoto": "sonraki fotoğraf",
+        "guardarOTexto": "metni kaydet",
+        "ligarComUmaSeta": "okla bağla",
+        "elipse": "elips",
+        "maisUmaSeta": "bir ok daha",
+        "abrirANota": "notu aç",
+        "descerPelaNota": "notta aşağı in",
+        "novaTarefa": "yeni görev",
+        "aListaContinua": "liste sürüyor",
+        "fecharALista": "listeyi kapat",
+        "subir": "yukarı",
+        "marcarComoFeita": "bitti olarak işaretle",
+        "comecarUmPomodoro": "bir pomodoro başlat",
+        "pagina1OsAgentes": "sayfa 1: ajanlar",
+        "pagina3AApiEO": "sayfa 3: API ve veritabanı",
+        "pagina5AAta": "sayfa 5: toplantı notu",
+        "pagina6DeVoltaAoSeu": "sayfa 6: gününüze dönüş",
+        "proximaConta": "sonraki hesap",
+        "desligarLinks": "Links'i kapat",
+        "desligarFerramentas": "Araçlar'ı kapat",
+        "ultimoItem": "son öğe",
+        "providerDeIa": "YZ sağlayıcısı",
+        "trocarProvider": "sağlayıcıyı değiştir",
+        "ollamaNoSeuComputador": "Ollama, bilgisayarınızda",
+        "verAPrevia": "önizlemeyi gör",
+        "aplicar": "uygula",
+        "irAteQuemEspera": "bekleyene git",
+        "permitir": "izin ver",
+        "saltarParaOCalendarioNaPagina": "günün sayfasındaki Takvim'e atla",
+        "abrirOTerminal": "Terminal'i aç",
+        "outroTerminal": "bir Terminal daha",
+        "maisUm": "bir tane daha",
+        "umTerminalParaVoce": "size bir Terminal",
+        "abrirWorkspaces": "Workspaces'i aç",
+        "workspacesNasAlteracoes": "Workspaces, değişikliklerde",
+        "abrirORequests": "Requests'i aç",
+        "abrirALoja": "Mağaza'yı aç",
+        "abrirONavegador": "Tarayıcı'yı aç",
+        "abrirDocumentos": "Belgeler'i aç",
+        "abrirOCalendario": "Takvim'i aç",
+        "abrirOFoco": "Odak'ı aç",
+        "abrirOSistema": "Sistem'i aç",
+        "abrirOUso": "Kullanım'ı aç",
+        "abrirPlugins": "Plugins'i aç",
+        "abrirOClaudeCode": "Claude Code'u aç",
+        "abrirOCodex": "Codex'i aç",
+        "abrirOAgy": "agy'yi aç",
+        "loginOCiFalhou": "login · CI başarısız",
+        "paineisProntoParaOMerge": "bölmeler · birleştirmeye hazır",
+        "buscaOClaudeTrabalhando": "arama · Claude çalışıyor",
+        "temaEsperandoRevisao": "tema · inceleme bekliyor",
+        "quadro": "Pano",
+        "radioLoFi": "Lo-fi radyo",
+        "maisUma": "bir tane daha",
+        "asFotos": "fotoğraflar",
+        "sobre": "hakkında",
+        "oQueEleFaz": "ne yapar",
+        "atalhos": "kısayollar",
+        "mapa": "harita",
+        "vitrine": "vitrin",
+        "lancamento": "Lansman",
+        "retangulo": "dikdörtgen",
+        "outroRetangulo": "bir dikdörtgen daha"
+      }
+    },
+    "plugins": {
+      "title": {
+        "inicio": "Ana sayfa",
+        "chat": "Chat",
+        "terminal": "Terminal",
+        "workspaces": "Workspaces",
+        "pr": "PR Reviews",
+        "requests": "Requests",
+        "calendario": "Takvim",
+        "sistema": "Sistem",
+        "uso": "Kullanım",
+        "foco": "Odak",
+        "automacoes": "Otomasyonlar",
+        "prompts": "Prompts",
+        "projetos": "Projeler",
+        "recursos": "Kaynaklar",
+        "links": "Links",
+        "ferramentas": "Araçlar",
+        "config": "Ayarlar",
+        "plugins": "Plugins"
+      },
+      "desc": {
+        "inicio": "Gününüz: takvim, görevler, notlar, hava durumu ve açık kalanlar.",
+        "chat": "Herhangi bir model; plan, kuyruk, oturumlar ve bağlam göz önünde.",
+        "terminal": "Komut blokları, YZ önerileri ve Claude Code, Codex gibi ajanlar.",
+        "workspaces": "Depolar, değişiklikler ve worktree'ler; diff ve commit ile.",
+        "pr": "Sizin ve ekibin PR'ları: diff, kontroller, yorum dizileri ve YZ ile inceleme.",
+        "requests": "Koleksiyonlar, ortamlar ve geçmişle HTTP istemcisi.",
+        "calendario": "Gün, ay ve yaklaşan etkinlikler. “Reunião amanhã 10h” yazın ve ↵.",
+        "sistema": "Bellek, CPU, portlar ve Docker, canlı.",
+        "uso": "Hesaplarınızın limitleri, maliyeti ve kullanım tahmini.",
+        "foco": "Görevler ve notlarla pomodoro.",
+        "automacoes": "Zamanlanmış YZ görevleri, geçmişiyle.",
+        "prompts": "Prompt ve teknik kütüphanesi, yanda bir Chat oturumuyla.",
+        "projetos": "Projeler ve oturumlar: ekleyin, klonlayın, favorilere ekleyin.",
+        "recursos": "Skills, bellek, agents, MCP'ler ve talimatlar.",
+        "links": "Etiketli bağlantılar. Bir URL yapıştırın ve ↵.",
+        "ferramentas": "JSON araçları ve Markdown'dan Word'e.",
+        "config": "Hesaplar, sağlayıcılar, kısayollar, erişim ve görünüş.",
+        "plugins": "Katalog, graf ve önizlemeli sağlayıcı değişimi."
+      }
+    },
+    "rack": {
+      "service": {
+        "ai": "YZ sağlayıcısı",
+        "compaction": "bağlam sıkıştırma",
+        "pty": "terminal (pty)",
+        "theme": "tema"
+      },
+      "noAi": "yok · YZ kapalı",
+      "plugin": {
+        "chat": "Chat",
+        "terminal": "Terminal",
+        "pr": "PR Reviews",
+        "automacoes": "Otomasyonlar",
+        "workspaces": "Workspaces",
+        "sidebar": "Kenar çubuğu",
+        "tray": "Sistem tepsisi"
+      },
+      "meta": {
+        "community": "topluluk",
+        "on": "açık",
+        "off": "kapalı"
+      },
+      "removeKanban": "Kanban'ı kaldır",
+      "count": {
+        "one": "{count} açık",
+        "other": "{count} açık"
+      },
+      "svc": {
+        "again": "yeniden açmak için tekrar tıklayın",
+        "usedBy": "kullananlar: {users}",
+        "nobody": "şu an kimse kullanmıyor"
+      },
+      "log": {
+        "hint": "Deneyin: kapatmak için bir eklentiye, değiştirmek için bir servise tıklayın ya da topluluktan bir eklenti kurun.",
+        "on": "<b>{name}</b> geri geldi, hiçbir şey yeniden başlatılmadan.",
+        "off": "<b>{name}</b> kapatıldı. Bir bölmede açıksa, bölme başka bir eklentiyi bekleyerek yerinde kalır.",
+        "noAi": "<b>YZ kapalı.</b> {users} bir sağlayıcı bekliyor; Terminal, Workspaces, notlar, veritabanı ve takvim aynen çalışmaya devam ediyor.",
+        "swap": "önizleme · {service}: <b>{from} → {to}</b>",
+        "swapUsers": "önizleme · {service}: <b>{from} → {to}</b> · {users} ellerindeki işi bitirip yeni sağlayıcıda yeniden başlar",
+        "install": "Tamam, <b>@ana'nın Kanban'ı</b> kuruldu. Yalnızca api.github.com'a erişim istedi.",
+        "remove": "<b>Kanban</b> kaldırıldı. Fikrinizi değiştirirseniz diye verileri profilinizde duruyor."
+      }
+    },
+    "store": {
+      "cat": {
+        "all": "Tümü",
+        "dev": "Geliştirme",
+        "ai": "YZ",
+        "productivity": "Üretkenlik",
+        "data": "Veri",
+        "themes": "Temalar",
+        "fun": "Eğlence"
+      },
+      "app": {
+        "kanban": {
+          "name": "Kanban",
+          "desc": "Deponun issue'larını üç sütunda gösteren bir pano."
+        },
+        "board": {
+          "name": "Pano",
+          "desc": "El çizimi görünümlü, klavyeyle çizilen diyagramlar."
+        },
+        "postgres": {
+          "name": "Postgres",
+          "desc": "Betik, tablolar ve sonuç tek bölmede."
+        },
+        "docs": {
+          "name": "Belgeler",
+          "desc": "[[Bağlantılar]] ve görevlerle markdown notlar."
+        },
+        "browser": {
+          "name": "Tarayıcı",
+          "desc": "Bir bölmede bir web sitesi, bağlantılar klavyede."
+        },
+        "testWriter": {
+          "name": "Test yazarı",
+          "desc": "Geçerli diff için test yazan bir ajan."
+        },
+        "neon": {
+          "name": "Neon tema",
+          "desc": "Siyah üzerine mor ve pembe ayrıntılar."
+        },
+        "kubernetes": {
+          "name": "Kubernetes",
+          "desc": "Kümedeki pod'lar, loglar ve olaylar, klavyeden ayrılmadan."
+        },
+        "meetingSummary": {
+          "name": "Toplantı özeti",
+          "desc": "Toplantıyı yazıya döker ve görevleri çıkarır."
+        },
+        "radio": {
+          "name": "Lo-fi radyo",
+          "desc": "Odak için müzik, zamanlayıcı ekranda."
+        },
+        "regex": {
+          "name": "Regex",
+          "desc": "Düzenli ifadeleri canlı vurgulamayla test edin."
+        },
+        "sheets": {
+          "name": "E-tablolar",
+          "desc": "CSV ve XLSX dosyalarını filtre ve toplamla açın."
+        },
+        "rag": {
+          "name": "Yerel RAG",
+          "desc": "Bilgisayarınızdaki bir modelle belgeleriniz hakkında soru sorun."
+        },
+        "habits": {
+          "name": "Alışkanlıklar",
+          "desc": "Günün alışkanlıklarını işaretleyin, serinizi izleyin."
+        },
+        "sqlite": {
+          "name": "SQLite",
+          "desc": "Herhangi bir .db dosyasını açın ve tablolarında gezinin."
+        },
+        "cron": {
+          "name": "Cron",
+          "desc": "Cron ifadeleri oluşturun ve sonraki çalıştırmaları görün."
+        },
+        "contrast": {
+          "name": "Yüksek kontrast tema",
+          "desc": "Daha rahat okumak için saf siyah ve beyaz."
+        },
+        "promptJudge": {
+          "name": "Prompt değerlendirici",
+          "desc": "Modellerin yanıtlarını yan yana karşılaştırın."
+        },
+        "compose": {
+          "name": "Docker Compose",
+          "desc": "Compose servislerini başlatın, durdurun ve izleyin."
+        },
+        "journal": {
+          "name": "Günlük",
+          "desc": "Her güne bir not, aramayla."
+        },
+        "chess": {
+          "name": "Satranç",
+          "desc": "Ajana karşı günde bir oyun."
+        },
+        "jsonSchema": {
+          "name": "JSON Schema",
+          "desc": "JSON'u bir şemaya göre doğrulayın, hataları satır satır görün."
+        },
+        "commitWriter": {
+          "name": "Commit yazarı",
+          "desc": "Hazırlanan değişikliklerden commit mesajları."
+        },
+        "exchange": {
+          "name": "Döviz kurları",
+          "desc": "Günün kurları ve hızlı dönüştürme."
+        },
+        "sepia": {
+          "name": "Sepya tema",
+          "desc": "Uzun oturumlar için sıcak tonlar."
+        },
+        "logs": {
+          "name": "Logs",
+          "desc": "Log dosyalarını filtre ve renklerle izleyin."
+        },
+        "finance": {
+          "name": "Finans",
+          "desc": "Bir CSV'den, kategoriye göre aylık harcamalar."
+        },
+        "graphql": {
+          "name": "GraphQL",
+          "desc": "Şemaları keşfedin, değişkenlerle sorgular çalıştırın."
+        },
+        "explainer": {
+          "name": "Açıklayıcı",
+          "desc": "Açık dosyayı fonksiyon fonksiyon açıklar."
+        },
+        "stars": {
+          "name": "Yıldız yağmuru",
+          "desc": "Her yeşil build'de bir kayan yıldız."
+        },
+        "gitGraph": {
+          "name": "Git grafiği",
+          "desc": "Branch ve commit grafiği, metin olarak."
+        },
+        "rss": {
+          "name": "RSS okuyucu",
+          "desc": "Liste hâlinde akışlar, okuması bölmenin içinde."
+        },
+        "charts": {
+          "name": "Grafikler",
+          "desc": "CSV ya da SQL'den metin grafikler."
+        },
+        "retro": {
+          "name": "Retro terminal tema",
+          "desc": "Fosfor yeşili ve blok imleç."
+        },
+        "flags": {
+          "name": "Feature flags",
+          "desc": "Flag'leri farklı ortamlarda açıp kapatın."
+        },
+        "translator": {
+          "name": "Çevirmen",
+          "desc": "Metinleri ve i18n dosyalarını çevirin."
+        },
+        "timesheet": {
+          "name": "Zaman çizelgesi",
+          "desc": "Kullandığınız bölmelerden proje başına saatler."
+        },
+        "migrations": {
+          "name": "Geçişler",
+          "desc": "Veritabanı geçişlerini SQL önizlemesiyle çalıştırın ve geri alın."
+        },
+        "mascot": {
+          "name": "Maskot",
+          "desc": "Testlerinize tepki veren bir arkadaş."
+        },
+        "coverage": {
+          "name": "Kapsam",
+          "desc": "Dosya başına test kapsamı ve eksik kalanlar."
+        },
+        "email": {
+          "name": "E-posta",
+          "desc": "Satır satır gelen kutusu, klavyeden eylemlerle."
+        },
+        "weather": {
+          "name": "Hava durumu",
+          "desc": "Şehirleriniz için haftalık tahmin."
+        },
+        "secrets": {
+          "name": "Gizli anahtarlar",
+          "desc": "Unutulan anahtarları ve parolaları commit'ten önce bulur."
+        },
+        "mindMap": {
+          "name": "Zihin haritası",
+          "desc": "Ağaç biçiminde fikirler, yalnızca klavyeyle."
+        },
+        "typing": {
+          "name": "Yazma hızı",
+          "desc": "Kendi kodunuzdan parçalarla hız çalışın."
+        },
+        "uptime": {
+          "name": "Uptime",
+          "desc": "Servislerinizin durumu, bölme başlığında uyarıyla."
+        },
+        "benchmarks": {
+          "name": "Benchmarks",
+          "desc": "Çalıştırmaları karşılaştırın, gerilemeleri görün."
+        },
+        "changelog": {
+          "name": "Değişiklik günlüğü",
+          "desc": "Commit'lerden değişiklik günlüğünü oluşturur."
+        },
+        "snippets": {
+          "name": "Parçacıklar",
+          "desc": "Tek kısayolla erişilen metin ve kod parçacıkları."
+        }
+      },
+      "price": {
+        "free": "ücretsiz",
+        "donation": "ücretsiz · bağış",
+        "perMonth": "{price}/ay",
+        "trial": "{days} gün ücretsiz",
+        "once": "{price} · tek sefer"
+      },
+      "action": {
+        "free": "kur",
+        "donation": "kur",
+        "subscription": "abone ol",
+        "once": "satın al",
+        "trial": "ücretsiz dene"
+      },
+      "installed": "kuruldu",
+      "stepsFree": [
+        "indiriliyor…",
+        "sha256 tamam",
+        "izinler tamam"
+      ],
+      "stepsPaid": [
+        "Cadente ödeme sayfası…",
+        "lisans tamam",
+        "sha256 tamam"
+      ],
+      "empty": "Bu adla henüz bir eklenti yok. <a href=\"#creator\">Kendinizinkini yapmaya ne dersiniz?</a>",
+      "demoSearches": [
+        "tema",
+        "sql",
+        "ajan"
+      ],
+      "wall": [
+        "Pomodoro+",
+        "Hızlı notlar",
+        "Webhooks",
+        "Mock server",
+        "WebSocket",
+        "gRPC",
+        "MQTT",
+        "OpenAPI",
+        "Lisanslar",
+        "Bağımlılıklar",
+        "Güvenlik açıkları",
+        ".env",
+        "SSH",
+        "Sunucular",
+        "Bulut maliyetleri",
+        "Seeds",
+        "Fixtures",
+        "Paket boyutu",
+        "Web vitals",
+        "Erişilebilirlik",
+        "i18n",
+        "Semver",
+        "Sürümler",
+        "Durum sayfası",
+        "Metrikler",
+        "Flamegraph",
+        "Profiler",
+        "Kararsız testler",
+        "Çakışmalar",
+        "Blame",
+        "Sözlük",
+        "Simgeler",
+        "Renkler",
+        "Yazı tipleri",
+        "Slaytlar",
+        "PDF okuyucu",
+        "Transkripsiyon",
+        "Embeddings",
+        "Ajanlar",
+        "Bütçe",
+        "Faturalar",
+        "Kişiler",
+        "Ekip takvimi",
+        "Seyahatler",
+        "Tarifler",
+        "Kitaplar",
+        "Filmler",
+        "Podcast'ler",
+        "Skor tablosu",
+        "Sudoku",
+        "Kelimeler",
+        "Quiz",
+        "ASCII sanatı",
+        "Ekip Kanban'ı",
+        "Scrum",
+        "Retro",
+        "OKR'ler",
+        "Günün pull request'leri",
+        "SQL denetçisi",
+        "Lint",
+        "Biçimlendirici",
+        "Görsel diff",
+        "Renk paleti",
+        "Hesap makinesi",
+        "Birim dönüştürücü",
+        "Saat dilimleri",
+        "QR kod",
+        "UUID",
+        "Base64",
+        "JWT"
+      ]
+    },
+    "calc": {
+      "subscription": {
+        "price": "Aylık fiyat",
+        "people": "Aboneler",
+        "per": "ayda"
+      },
+      "once": {
+        "price": "Fiyat",
+        "people": "Alıcılar",
+        "per": "toplam"
+      },
+      "donation": {
+        "price": "Aylık ortalama bağış",
+        "people": "Destekçiler",
+        "per": "ayda"
+      }
+    },
+    "oneliner": {
+      "copied": "kopyalandı",
+      "select": "seçin ve kopyalayın",
+      "copy": "kopyala"
+    },
+    "maker": {
+      "intro": "creator mode · ajan SDK'yı kullanıyor",
+      "nothingSent": "siz ↵ tuşuna basmadan hiçbir şey gitmez",
+      "newPane": "yeni bölme",
+      "waiting": "ajan bekleniyor",
+      "codeHere": "kod burada görünecek",
+      "lines": {
+        "one": "{count} satır",
+        "other": "{count} satır"
+      },
+      "writing": "yazıyor",
+      "inDev": "geliştiriliyor",
+      "running": "çalışıyor",
+      "chatTitle": "Chat · creator mode",
+      "terminalTitle": "Terminal · cadente plugin dev",
+      "placeholder": "mesaj · @ ekler · / komutlar",
+      "writingToml": "cadente-plugin.toml yazılıyor",
+      "wroteToml": "cadente-plugin.toml yazıldı",
+      "writingLib": "src/lib.rs yazılıyor",
+      "runningTests": "cargo test çalışıyor",
+      "testsOk": {
+        "one": "testler tamam · {count} geçti",
+        "other": "testler tamam · {count} geçti"
+      },
+      "compiling": "webassembly'ye derleniyor · 0,8 sn",
+      "permissions": "izinler: {perms}",
+      "devRunning": "{id} 0.1.0 çalışıyor",
+      "inDevAt": "{where} · geliştiriliyor",
+      "floatingLayer": "yüzen katman",
+      "publishDesc": "sürüm, sha256 ve mağaza dizini",
+      "publishing": "yayımlanıyor",
+      "released": "sürüm v0.1.0 · paket ve sha256 yüklendi",
+      "manifestOk": "manifest geçerli · konu cadente-plugin",
+      "published": "yayımlandı · bir sonraki dizinde mağazaya girer",
+      "inStore": "mağazada",
+      "ex": {
+        "pet": {
+          "tab": "Evcil Cadu",
+          "ask": "uygulamanın üstünde uçan, acıkan ve kirlenen bir Cadu tamagotchi'si oluştur",
+          "keyFeed": "besle",
+          "keyBath": "yıka",
+          "plan": "ana.cadu-tamagotchi paketini yüzen katmanda oluşturacağım: ekranda uçacak, zamanla acıkıp kirlenecek; f yemek verir, b yıkar.",
+          "file": "src/lib.rs yazıldı · ANSI ile Cadu, açlık ve banyo",
+          "perms": "Core dışında hiçbiri",
+          "ready": "Tamam. Cadu uygulamada serbest; aç ve kirli. Onu sürükleyin, f yemek verir, b yıkar.",
+          "hint": "f besle · b yıka · Cadu'yu sürükle",
+          "price": "fiyat: bağışla ücretsiz · %90'ı sizin"
+        },
+        "sales": {
+          "title": "Günün satışları",
+          "ask": "mağazamın bugünkü satışlarını saatlik bir grafikle gösteren bir eklenti oluştur",
+          "viewToday": "bugün",
+          "viewTodayText": "toplam, grafik ve siparişler",
+          "viewWeek": "hafta",
+          "viewWeekText": "geçen haftayla karşılaştırma",
+          "plan": "leo.vendas-do-dia eklentisini oluşturacağım: bugünün toplamını, saatlik grafiği ve son siparişleri gösteren bir bölme. Yalnızca api.stripe.com ile konuşur.",
+          "file": "src/lib.rs yazıldı · toplam, grafik ve siparişler",
+          "today": "bugün",
+          "todayMeta": "₺3.482,90 · 27 sipariş",
+          "perHour": "saatlik",
+          "peak": "zirve saat 11'de",
+          "latest": "son siparişler",
+          "order1": "₺129,90 · ödendi",
+          "order2": "₺49,00 · ödendi",
+          "order3": "₺310,00 · bekliyor",
+          "ready": "Tamam. Bölme bugünün satışlarını gösteriyor ve her dakika kendini güncelliyor.",
+          "hint": "⇥ hafta · ↵ siparişi aç",
+          "price": "fiyat: ayda US$ 4 · her yenilemenin %70'i sizin"
+        },
+        "status": {
+          "title": "Durum sayfası",
+          "ask": "GitHub, Cloudflare, AWS ve diğer servisler çöktüğünde bunu gösteren bir durum sayfası oluştur",
+          "when": "bir servis çöktüğünde ya da geri geldiğinde",
+          "plan": "orbita.status-page eklentisini oluşturacağım: GitHub, Cloudflare, AWS ve diğer servisleri resmî durum sayfalarından her dakika okuyan bir bölme. Biri çöktüğünde bölmenin başlığı kırmızıya döner ve size bildirim gelir.",
+          "file": "src/lib.rs yazıldı · durum sayfalarını okuma ve uyarılar",
+          "perms": "ağ · 7 durum sayfası",
+          "signal": "1 kesinti",
+          "now": "şimdi",
+          "nowMeta": "1 kesinti · 1 kararsız · 5 normal",
+          "aws": "kesinti · us-east-1 · 4 dk",
+          "github": "yavaş · kuyruklar gecikmeli",
+          "operational": "çalışıyor",
+          "day": "24 saat",
+          "incidents": "2 olay",
+          "ready": "Tamam. Bölme durum sayfalarını her dakika kontrol ediyor. Bu örnekte AWS CloudFront us-east-1'de kesintide görünüyor, GitHub Actions da yavaş.",
+          "hint": "↵ olayı aç · ⇥ geçmiş",
+          "price": "fiyat: US$ 12, tek seferlik satın alma · %70'i sizin"
+        }
+      }
+    },
+    "tama": {
+      "feedButton": "yemek",
+      "bathButton": "banyo",
+      "hello": "selam! karnım aç…",
+      "drag": "vay! nereye gidiyoruz?",
+      "starving": "açım… çok açım",
+      "hungry": "karnım aç",
+      "dirty": "banyo yapmam lazım",
+      "aria": "Cadu: {mood}. Sürükleyin; f yemek verir, b yıkar.",
+      "mood": {
+        "hungry": "aç",
+        "dirty": "kirli",
+        "happy": "mutlu"
+      },
+      "full": "tokum, teşekkürler!",
+      "eating": "ham ham!",
+      "thanks": "teşekkürler ✦",
+      "clean": "zaten tertemizim",
+      "splash": "şıpır şıpır!",
+      "fresh": "mis gibi ✦"
+    },
+    "hero": {
+      "words": [
+        "bir ajan harness'ı",
+        "bir terminal",
+        "bir worktree yöneticisi",
+        "bir API istemcisi",
+        "bir veritabanı istemcisi",
+        "bir not uygulaması",
+        "bir takvim"
+      ],
+      "stars": [
+        "ajanlar",
+        "terminal",
+        "worktree",
+        "API",
+        "veritabanı",
+        "notlar",
+        "takvim"
+      ]
+    },
+    "dl": {
+      "detected": "{os} için doğru dosya burada.",
+      "pick": "Sisteminize uygun dosyayı seçin.",
+      "downloadFor": "{os} için indir",
+      "macNote": "İlk açılışta macOS <a href=\"#macos-danificado\">aşağıdaki düzeltmeyi</a> isteyebilir."
+    },
+    "rn": {
+      "latest": "en yeni",
+      "onGitHub": "GitHub'da görün",
+      "none": "Burada henüz bir sürüm yok.",
+      "failed": "Notlar yüklenemedi. <a href=\"{url}\" target=\"_blank\" rel=\"noopener noreferrer\">GitHub</a> üzerinden bakabilirsiniz."
+    }
+  },
+  "agents": {
+    "eyebrow": "Ajanlar",
+    "title": "Ajanlarınız<br /><span class=\"violet-text\">yan yana.</span>",
+    "lede": "Cadente ajanınızın yerini almaz. Claude Code, Codex ve diğer CLI'lar olduğu gibi, sizin hesabınızla çalışır. Cadente işi onların etrafında düzenler: her görev kendi worktree'sinde, hepsi göz önünde ve size ihtiyacı olan önce görünür.",
+    "wallLabel": "Cadente'de çalışan ajanlar",
+    "known": "Cadente'nin tanıdıkları",
+    "any": "Ve terminalde çalışan diğer her CLI.",
+    "yours": "sizinki",
+    "p1": "Görev başına bir worktree",
+    "p1Text": "Her ajan kendi branch'inde ve kendi dizininde çalışır, diğerinin dosyalarına dokunmaz.",
+    "p2": "Sizi bekleyen önce",
+    "p2Text": "<kbd>⌘⇧A</kbd> bütün sayfalardaki ajanları toplar, size ihtiyacı olanlar en üstte.",
+    "p3": "Zaten ödediğiniz abonelik",
+    "p3Text": "Claude Max, ChatGPT Plus, bir API anahtarı ya da yerel bir model. Cadente üstüne hiçbir ücret almaz.",
+    "p4": "Doğrudan sağlayıcıya",
+    "p4Text": "Çağrılar makinenizden seçtiğiniz sağlayıcıya gider. Arada hiçbir Cadente sunucusu yoktur.",
+    "p5": "Her şey makinenizde",
+    "p5Text": "Oturumlar, geçmiş ve ayarlar bilgisayarınızdaki yerel bir veritabanında durur."
+  },
+  "faq": {
+    "eyebrow": "Sorular",
+    "title": "İndirmeden<br /><span class=\"muted\">önce.</span>",
+    "q1": "Yalnızca bir Claude Code sarmalayıcısı mı?",
+    "a1": "Hayır. Claude Code, Codex ve diğer CLI'lar Cadente'nin terminalinde olduğu gibi, sizin hesabınızla çalışır. Cadente onları çevreleyen penceredir: ekranı bölmelere ayırır, her göreve bir worktree verir, sizi bekleyen ajanları toplar; terminali, veritabanını, API'yi, notları ve takvimi de yanlarına koyar.",
+    "q2": "Claude Code'u doğrudan terminalde çalıştırmaktan farkı ne?",
+    "a2": "Ajan açısından hiçbir fark yok: aynı CLI. Fark onun etrafında. Birkaç ajan, her biri kendi worktree'sinde yan yana çalışır, ⌘⇧A sizi kimin beklediğini gösterir ve işinizin geri kalanı aynı pencerede durur.",
+    "q3": "Çağrılarım sizin sunucularınızdan geçiyor mu?",
+    "a3": "Hayır. Cadente, seçtiğiniz sağlayıcıyla aboneliğiniz ya da anahtarınızla doğrudan konuşur. Cadente'nin sunucusu yalnızca hesabınızı tutar.",
+    "q4": "Yapay zekâ olmadan çalışır mı?",
+    "a4": "Çalışır. Yapay zekâ da diğerleri gibi bir eklenti: kapatın; terminal, workspaces, notlar, veritabanı ve takvimle devam edin.",
+    "q5": "Ücretsizse nasıl para kazanıyorsunuz?",
+    "a5": "Açıldığında eklenti mağazasından: Cadente satışların ve aboneliklerin %30'unu, bağışların %10'unu alır. Uygulama ücretsiz kalır.",
+    "q6": "Hangi dillerde?",
+    "a6": "15 dilde: Portekizce, İngilizce, İspanyolca, Fransızca, Almanca, İtalyanca, Rusça, Türkçe, Arapça, Hintçe, Endonezce, Vietnamca, Japonca, Korece ve Basitleştirilmiş Çince. Dil anında değişir, yeniden başlatmak gerekmez. Bazı yeni ekranlar önce Portekizce ve İngilizce gelir.",
+    "q7": "Hangi sistemlerde?",
+    "a7": "Apple Silicon ve Intel'de macOS; ayrıca Windows ve Linux, ikisi de x64'te."
+  },
+  "lang": {
+    "label": "Dil",
+    "notice": "Bu sayfa Türkçe olarak da mevcut.",
+    "go": "Türkçe görüntüle",
+    "close": "Kapat"
+  },
+  "langs": {
+    "eyebrow": "15 dil",
+    "title": "Sizin dilinizi konuşur.<br /><span class=\"violet-text\">14 dili daha.</span>",
+    "lede": "Menülerden terminale kadar Cadente 15 dilde çalışır ve dil, yeniden başlatmadan anında değişir. Bir dil seçin ve pencerenin değişmesini izleyin.",
+    "pick": "Pencere dili",
+    "note": "Bazı yeni ekranlar önce Portekizce ve İngilizce gelir."
+  },
+  "dl": {
+    "metaTitle": "Cadente'yi indirin",
+    "metaDescription": "Cadente'yi macOS (Apple Silicon ve Intel), Windows ve Linux için indirin. Ücretsiz.",
+    "eyebrow": "İndirmeler",
+    "title": "<span class=\"violet-text\">Cadente</span>'yi indirin.",
+    "lede": "Ücretsiz; macOS, Windows ve Linux için.",
+    "version": "Sürüm",
+    "others": "Diğer sistemler",
+    "fallback": "En son sürüm okunamadı. Dosyalar <a href=\"https://github.com/cadente-hub/cadente-hub.github.io/releases\" target=\"_blank\" rel=\"noopener noreferrer\">sürümler sayfasında</a>.",
+    "installTitle": "Nasıl kurulur",
+    "oneLine": "Tek satırda",
+    "orHomebrew": "Ya da Homebrew ile",
+    "orDmg": "Ya da .dmg ile",
+    "mac1": "<code>.dmg</code> dosyasını açın ve Cadente'yi Uygulamalar klasörüne sürükleyin.",
+    "mac2": "macOS uygulamanın hasarlı olduğunu söylerse aşağıdaki düzeltmeye bakın.",
+    "orPackages": "Ya da paketle",
+    "powershell": "PowerShell'de",
+    "orInstaller": "Ya da yükleyiciyle",
+    "win1": "<code>.exe</code> ya da <code>.msi</code> dosyasını indirin ve yükleyicinin adımlarını izleyin.",
+    "win2": "SmartScreen uyarırsa <b>Ek bilgi</b> bağlantısına, ardından <b>Yine de çalıştır</b> düğmesine tıklayın.",
+    "fixTitle": "macOS, Cadente'nin hasarlı olduğunu mu söylüyor?",
+    "fixText": "macOS, henüz Apple'ın ücretli imzasını taşımayan uygulamaları engeller. Bu komutu bir kez Terminal'e yapıştırın; Cadente normal şekilde açılır.",
+    "fixNote": "Tek satırlık komut ve Homebrew bunu sizin yerinize zaten yapar."
+  },
+  "rn": {
+    "metaTitle": "Cadente sürüm notları",
+    "metaDescription": "Kararlı ve beta kanallarında her Cadente sürümünde neyin değiştiği.",
+    "eyebrow": "Sürüm notları",
+    "title": "Cadente'nin<br /><span class=\"violet-text\">her sürümü.</span>",
+    "lede": "Kararlı ve beta kanalları, uygulamanın kullandığı güncelleme dosyalarının aynısından okunur.",
+    "inEnglish": "Her sürümün notları İngilizce yazılır.",
+    "stable": "Kararlı",
+    "beta": "Beta",
+    "stableTitle": "Test edilmiş sürümler",
+    "betaTitle": "Herkesten önce",
+    "download": "Kararlı sürümü indir",
+    "loading": "Yükleniyor…"
+  },
+  "terms": {
+    "metaTitle": "Şartlar, gizlilik ve iade — Cadente",
+    "metaDescription": "Cadente'nin şartları ve koşulları, gizlilik politikası ve iade politikası.",
+    "title": "Şartlar, gizlilik ve iade",
+    "updated": "Son güncelleme: 30 Ekim 2026",
+    "notice": "Bu bir çeviridir. Farklılık olması hâlinde <a href=\"/en/terms-and-conditions.html\">İngilizce metin</a> geçerlidir."
+  },
+  "blog": {
+    "metaTitle": "Blog",
+    "metaDescription": "Cadente'den ürün, mühendislik ve uygulama notları.",
+    "eyebrow": "Cadente günlüğü",
+    "title": "Daha iyi çalışmak<br /><span class=\"violet-text\">için fikirler.</span>",
+    "lede": "Yapay zekâyı daha net, daha kontrollü ve daha hızlı kullanmak için ürün, mühendislik ve uygulama notları.",
+    "feed": "JSON akışına abone olun",
+    "count": {
+      "one": "{count} yazı",
+      "other": "{count} yazı"
+    },
+    "empty": "Yeni yazılar yakında.",
+    "read": "Oku",
+    "back": "Tüm yazılar",
+    "updated": "Güncelleme: {date}"
+  },
+  "cmp": {
+    "metaTitle": "Cadente ve diğer ajan harness'ları",
+    "metaDescription": "Cadente'nin Conductor, Orca, Paradev ve Warp ile karşılaştırması, her bilginin kaynağıyla.",
+    "eyebrow": "Karşılaştır",
+    "title": "Cadente, diğer harness'larla<br /><span class=\"violet-text\">yan yana.</span>",
+    "lede": "Her biri kendi sitesinde ne diyor; her satırın nereden alındığının bağlantısıyla. Bir sitenin söylemediği şey “belirtilmemiş” olarak görünür.",
+    "checked": "{date} tarihinde kontrol edildi.",
+    "unknown": "belirtilmemiş",
+    "source": "kaynak",
+    "feature": "Karşılaştırılan",
+    "row": {
+      "systems": "Sistemler",
+      "price": "Fiyat",
+      "agents": "Ajanlar",
+      "isolation": "Görev başına yalıtım",
+      "noAi": "Yapay zekâyı kapatıp kullanmayı sürdürme",
+      "languages": "Arayüz dilleri",
+      "data": "Veriler nerede durur"
+    },
+    "cell": {
+      "cadente": {
+        "systems": "macOS, Windows ve Linux",
+        "price": "Ücretsiz, ücretli plan yok",
+        "agents": "Claude Code, Codex, Gemini CLI, OpenCode ve herhangi bir CLI",
+        "isolation": "Görev başına bir Git worktree'si",
+        "noAi": "Evet: yapay zekâ bir eklenti",
+        "languages": "15",
+        "data": "Makinenizde; çağrılar doğrudan sağlayıcıya gider"
+      },
+      "conductor": {
+        "agents": "Claude Code, Codex, Cursor ve OpenCode",
+        "isolation": "Ajan başına bulutta bir microVM",
+        "data": "Conductor'ın bulutunda (Conductor Cloud)"
+      },
+      "orca": {
+        "agents": "Claude Code, Codex, OpenCode, Grok ve diğer CLI'lar",
+        "isolation": "Yalıtılmış workspace'ler"
+      },
+      "paradev": {
+        "systems": "macOS; Linux deneysel; Windows yok",
+        "price": "Ücretsiz planı var",
+        "agents": "Claude Code, Codex, OpenCode ve herhangi bir CLI",
+        "isolation": "Ajan başına bir Git worktree'si",
+        "data": "Makinenizde; bulut yalnızca hesap meta verilerini tutar"
+      },
+      "warp": {
+        "price": "Kullanıma göre, ajan çalıştırması başına ücret (Factories)",
+        "agents": "Warp, Claude Code, Codex, Cursor ve MCP destekli ajanlar",
+        "data": "Warp'ın bulutu ya da kendi sunucunuz (self-hosted)"
+      }
+    },
+    "note": "Adlar ve markalar sahiplerine aittir. Güncel olmayan bir şey mi buldunuz? <a href=\"https://github.com/cadente-hub/cadente-hub.github.io/issues\" target=\"_blank\" rel=\"noopener noreferrer\">Bir issue açın</a>.",
+    "link": "Diğer harness'larla karşılaştırın"
+  }
+}

@@ -1,0 +1,1080 @@
+{
+  "meta": {
+    "title": "Cadente — hub tempat semuanya adalah plugin, bahkan AI",
+    "description": "Cadente adalah aplikasi desktop gratis yang menyatukan agen seperti Claude Code dan Codex, terminal, API, database, catatan, dan agenda dalam satu jendela terbagi. Semuanya plugin, bahkan AI. Dibuat dengan Rust, untuk Mac, Windows, dan Linux, dalam 15 bahasa.",
+    "ogDescription": "Hub tempat semuanya adalah plugin, bahkan AI: agen, terminal, database, dan catatan dalam satu jendela.",
+    "skip": "Langsung ke konten"
+  },
+  "nav": {
+    "label": "Navigasi utama",
+    "home": "Cadente, beranda",
+    "how": "Cara kerja",
+    "plugins": "Plugin",
+    "store": "Toko",
+    "blog": "Blog",
+    "download": "Unduh gratis",
+    "menu": "Buka menu",
+    "agents": "Agen",
+    "faq": "Tanya jawab"
+  },
+  "hero": {
+    "eyebrow": "Gratis · Mac, Windows, dan Linux · dibuat dengan Rust · 15 bahasa",
+    "lede": "Agen, terminal, database, catatan, dan agenda dalam satu jendela, semuanya dari keyboard. Setiap bagian adalah plugin: nyalakan yang kamu pakai, ganti yang kamu mau, dan matikan sisanya, bahkan AI. Dan semuanya gratis.",
+    "watch": "Lihat satu hari kerja",
+    "anyCli": "CLI apa pun",
+    "before": "Cadente adalah",
+    "hub": "hub",
+    "after": ".",
+    "sub": "Semuanya plugin. Bahkan AI."
+  },
+  "theater": {
+    "label": "Cadente saat dipakai",
+    "intro": "Satu hari kerja di Cadente, dari jam 9 pagi sampai jam pulang",
+    "chapters": "Bab"
+  },
+  "creator": {
+    "eyebrow": "Creator mode · segera hadir",
+    "title": "Plugin kamu<br /><span class=\"violet-text\">bisa jadi penghasilan.</span>",
+    "lede": "Punya ide yang membereskan harimu? Kemungkinan besar ide itu juga membereskan hari orang lain. Ceritakan ke agen, dia menulis plugin-nya, kamu menerbitkannya di toko dan menentukan cara menagihnya. Kamu dapat 90% dari donasi dan 70% dari penjualan serta dari setiap perpanjangan langganan.",
+    "forYou": "untuk kamu",
+    "donation": "Donasi",
+    "donationText": "Plugin-nya gratis, dan yang suka bisa mendukungmu.",
+    "subscription": "Langganan",
+    "subscriptionText": "Bulanan atau tahunan. Kamu dapat bagian di setiap perpanjangan, bukan cuma yang pertama.",
+    "once": "Beli sekali",
+    "onceText": "Orang membayar sekali dan bisa memakainya di maksimal 5 komputer.",
+    "trialCut": "7 hari",
+    "trialExample": "misalnya",
+    "trial": "Uji coba gratis",
+    "trialText": "Biarkan orang mencobanya beberapa hari sebelum kamu menagih.",
+    "calc": {
+      "model": "Model harga",
+      "pricePerMonth": "Harga per bulan",
+      "subscribers": "Pelanggan",
+      "youGet": "Kamu menerima hingga",
+      "perMonth": "per bulan",
+      "note": "Ini perkiraan, sebelum pajak dan biaya kartu. Hitungannya dari nilai bersih, dan setiap penjualan lewat checkout Cadente."
+    },
+    "makerTitle": "Dari ide ke toko, tanpa keluar dari Cadente.",
+    "makerLede": "Tiga contoh permintaan, masing-masing menghasilkan dengan cara berbeda: Cadu peliharaan yang bebas berkeliaran di layar, dasbor penjualan hari ini, dan status page yang memberi tahu saat GitHub, Cloudflare, atau AWS down. Cadu bisa kamu seret, beri makan, dan mandikan.",
+    "examples": "Contoh plugin",
+    "step1": "Ceritakan idemu",
+    "step1Text": "Sebuah Chat terbuka dengan permintaanmu. Tidak ada yang dikirim sampai kamu menekan <kbd>↵</kbd>.",
+    "step2": "Agen menulisnya",
+    "step2Text": "Manifes, kode, dan tes, di panel sebelah tempatmu bekerja.",
+    "step3": "Langsung coba",
+    "step3Text": "<code>cadente plugin dev</code> menjalankan plugin-nya di situ juga, di samping percakapan. Cadu hidup bebas di atas aplikasi: seret dia, tekan <kbd>f</kbd> untuk memberi makan dan <kbd>b</kbd> untuk memandikannya.",
+    "step4": "Terbitkan",
+    "step4Text": "<code>/publish</code> dan selesai: plugin-nya sudah ada di toko, dengan harga yang kamu pilih."
+  },
+  "rust": {
+    "eyebrow": "Dibuat dengan Rust",
+    "title": "Rust dari inti<br /><span class=\"muted\">sampai layar.</span><br /><span class=\"violet-text\">Kipasnya bahkan tak menyala.</span>",
+    "lede": "Tanpa peramban tersembunyi dan tanpa Node yang berjalan di belakang. Cadente native, Rust dari inti sampai antarmuka, dan digambar oleh GPU.",
+    "stackLabel": "Cadente dibuat dari apa",
+    "stack": "<span class=\"stack__root\">cadente</span>\n├─ core       <b>rust</b>\n├─ antarmuka  <b>rust</b> · slint, digambar oleh GPU\n├─ terminal   <b>rust</b> · pty native\n├─ agen       <b>rust</b> · claude, codex, agy, dan cli apa pun\n└─ plugin     <b>rust</b> · webassembly untuk plugin komunitas",
+    "memory": "Lebih hemat memori",
+    "memoryText": "Riwayat tersimpan di disk dan baru dimuat saat kamu membukanya. Aplikasinya tidak makin berat seiring waktu.",
+    "battery": "Satu proses saja",
+    "batteryText": "Antarmuka bicara langsung dengan inti, tanpa server lokal atau peramban di tengahnya.",
+    "hidden": "Tak ada yang tersembunyi",
+    "hiddenText": "Panel ditutup, selesai. Tidak ada terminal, agen, atau plugin yang tetap berjalan di belakang."
+  },
+  "plugins": {
+    "eyebrow": "Plugin bawaan",
+    "title": "Setiap panel bisa jadi<br /><span class=\"muted\">apa pun yang kamu butuhkan.</span>",
+    "lede": "Chat, Terminal, Workspaces, Requests, Kalender, Fokus: semua plugin bawaan bekerja dengan cara yang sama. <kbd>↵</kbd> membuka, <kbd>.</kbd> menampilkan apa yang bisa dilakukan, <kbd>/</kbd> menampilkan daftar perintah, <kbd>⇥</kbd> berganti tampilan. Kuasai satu, kamu kuasai semuanya. Klik salah satu untuk melihatnya.",
+    "gridLabel": "Plugin bawaan",
+    "communityBig": "<span class=\"violet-text\">Dan yang</span><br />dibuat komunitas.",
+    "communityText": "Toko segera dibuka: siapa pun bisa menerbitkan, dan menginstal selalu gratis. Tidak pakai AI? Pakai saja yang untuk produktivitas.",
+    "seeStore": "Lihat toko",
+    "namesLabel": "Beberapa plugin komunitas",
+    "names": {
+      "board": "Papan",
+      "docs": "Dokumen",
+      "browser": "Peramban",
+      "radio": "Radio lo-fi",
+      "neon": "Tema Neon",
+      "rag": "RAG lokal",
+      "habits": "Kebiasaan",
+      "stars": "Hujan meteor",
+      "chess": "Catur",
+      "yours": "…dan apa pun yang kamu buat"
+    }
+  },
+  "owner": {
+    "eyebrow": "Semuanya plugin",
+    "title": "Bahkan AI<br /><span class=\"violet-text\">adalah plugin.</span>",
+    "lede": "Chat, Terminal, bilah samping, provider AI, bahkan tema: setiap bagian Cadente adalah plugin, sama seperti plugin komunitas. Ganti provider-nya, matikan yang tidak kamu pakai, dan kalau mau, matikan AI dan tetap punya hub berisi terminal, database, catatan, dan agenda.",
+    "plugins": "Plugin",
+    "installKanban": "instal Kanban dari komunitas",
+    "services": "Layanan",
+    "clickToSwap": "klik untuk mengganti",
+    "always": "Selalu ada",
+    "forSafety": "demi keamananmu",
+    "base": "pengelola plugin · shell · pemilih",
+    "install": "Instal",
+    "installText": "Dari tautan atau folder, tanpa memulai ulang apa pun.",
+    "remove": "Matikan",
+    "removeText": "Plugin bawaan juga bisa dimatikan.",
+    "swap": "Ganti",
+    "swapText": "Ganti provider-nya, dan plugin yang bergantung padanya mulai ulang di provider baru.",
+    "layersLabel": "Lapisan yang kamu pilih",
+    "layer1": "Agennya",
+    "layer1Text": "Claude Code, Codex, Gemini CLI, OpenCode, atau CLI yang sudah kamu pakai.",
+    "layer2": "Modelnya",
+    "layer2Text": "Langgananmu, kunci API, atau model lokal di Ollama.",
+    "layer3": "Setiap plugin",
+    "layer3Text": "Nyalakan, matikan, dan ganti tanpa memulai ulang aplikasi.",
+    "layer4": "Antarmukanya",
+    "layer4Text": "Bahkan bilah samping dan tema adalah plugin.",
+    "noAi": "Tanpa AI juga bisa",
+    "noAiText": "Matikan AI dan sisanya tetap jalan: terminal, workspaces, catatan, database, dan agenda."
+  },
+  "store": {
+    "eyebrow": "Toko plugin · segera hadir",
+    "title": "Kalau ada yang butuh,<br /><span class=\"violet-text\">ada yang sudah bikin.</span>",
+    "lede": "Kanban, Kubernetes, radio lo-fi, papan untuk diagram. Toko segera dibuka, menginstal tidak dipungut biaya, dan sebagian besar plugin akan gratis. Plugin di bawah ini hanya contoh.",
+    "search": "Cari plugin",
+    "placeholder": "cari plugin",
+    "categories": "Kategori",
+    "empty": "Belum ada plugin dengan nama itu. Bagaimana kalau kamu buat sendiri?",
+    "oneClick": "Satu ↵",
+    "oneClickText": "Plugin diunduh, dicek apakah filenya benar, lalu diinstal.",
+    "open": "Terbuka",
+    "openText": "Sudah terbit di GitHub dengan topic <code>cadente-plugin</code>? Plugin-mu masuk ke toko.",
+    "watched": "Diawasi",
+    "watchedText": "Kalau muncul plugin berbahaya, plugin itu diblokir dan mati sendiri di semua mesin."
+  },
+  "finale": {
+    "title": "Siap buka<br /><span class=\"muted\">panel pertama?</span>",
+    "lede": "Gratis, ada untuk Mac, Windows, dan Linux, tersedia dalam 15 bahasa, dan tidak minta kartu kredit.",
+    "copyLabel": "Salin perintah instalasi",
+    "copy": "salin"
+  },
+  "foot": {
+    "tagline": "Hub tempat semuanya adalah plugin, bahkan AI.",
+    "label": "Kaki halaman",
+    "product": "Produk",
+    "resources": "Sumber daya",
+    "legal": "Legal",
+    "terms": "Syarat dan ketentuan",
+    "copy": "© 2026 Cadente. Dibuat dengan Rust.",
+    "langs": "Bahasa"
+  },
+  "js": {
+    "theater": {
+      "chapters": {
+        "morning": {
+          "step": "Pagi",
+          "title": "Jam 9. Harimu sudah tertata.",
+          "text": "Kamu membuka Cadente dan panel pertama langsung menampilkan harimu: daily jam 9.30, rapat desain jam 14.00, dan satu konflik merge yang menunggu. Tak perlu membuka lima aplikasi untuk tahu harus mulai dari mana. <kbd>⇥</kbd> pindah ke yang terbaru dan ke tugas."
+        },
+        "claude": {
+          "step": "Claude",
+          "title": "Pertama, tes untuk Claude.",
+          "text": "<kbd>⌘O</kbd> dan empat huruf mengubah panel jadi Terminal. Kamu membuka Claude Code dengan langganan yang sudah kamu bayar dan minta tes untuk <code>focus_neighbor</code>. Dia mulai menulis, dan kamu lanjut ke yang berikutnya."
+        },
+        "agents": {
+          "step": "Agen",
+          "title": "Tiga agen, tanpa jendela tambahan.",
+          "text": "<kbd>⌘D</kbd> membagi layar ke samping dan <kbd>⌘⇧D</kbd> ke bawah. Codex menjalankan tes, agy menjelaskan <code>layout.rs</code>, dan di bawah Claude masih ada satu Terminal untukmu. Semuanya bekerja, semuanya terlihat."
+        },
+        "ci": {
+          "step": "CI",
+          "title": "Lalu CI login gagal.",
+          "text": "Di halaman baru ada empat branch yang terbuka dan status tiap PR. Login merah. Kamu membuka branch-nya dan <kbd>⌘J</kbd> memanggil Chat yang sudah tahu posisimu, jadi tinggal tanya penyebabnya. Diff-nya terbuka di samping."
+        },
+        "api": {
+          "step": "API",
+          "title": "Sekarang, fitur hari ini.",
+          "text": "Tugas hari ini adalah API proyek. Di Requests kamu membuka <code>GET /v1/projects</code>, mengganti <code>limit</code> jadi 5, lalu mengirimnya. Setelah itu, POST membuat proyek etalase. Para agen tetap bekerja di halaman pertama, dan kamu tidak membuka program lain."
+        },
+        "store": {
+          "step": "Toko",
+          "title": "Klien database belum ada.",
+          "text": "Untuk memastikan POST tersimpan, kamu perlu melihat database. Toko terbuka tepat di bawah: kamu menemukan Postgres, menggeser foto-fotonya, memeriksa akses yang dimintanya, lalu menginstalnya dengan <kbd>↵</kbd>, gratis."
+        },
+        "db": {
+          "step": "Database",
+          "title": "Database mengonfirmasi POST.",
+          "text": "<kbd>⌘↵</kbd> menjalankan select di kursor. Di kueri proyek, etalase sudah muncul. Kamu mengubah urutannya langsung di baris itu, menjalankannya lagi, dan membuka tabel sesi lewat navigator database."
+        },
+        "app": {
+          "step": "Di aplikasi",
+          "title": "Dan langsung muncul di aplikasi.",
+          "text": "Di halaman baru, Peramban membuka aplikasi yang sedang kamu buat, di <code>localhost:5173</code>. Etalase ada di daftar. <kbd>↓</kbd> menelusuri tautan, <kbd>↵</kbd> membuka proyeknya, dan <kbd>⌫</kbd> kembali."
+        },
+        "diagram": {
+          "step": "Diagram",
+          "title": "Diagram untuk rapat.",
+          "text": "Jam 14.00 ada rapat desain. Di samping situs, kamu menginstal Papan dari Toko dan menggambar alur datanya, tanpa membuka alat lain. <kbd>r</kbd> membuat persegi panjang, <kbd>o</kbd> elips, dan <kbd>a</kbd> menghubungkan keduanya."
+        },
+        "meeting": {
+          "step": "Rapat",
+          "title": "Di rapat, notulen jadi tugas.",
+          "text": "Notulennya ada di Dokumen, sebagai file .md di foldermu. Kamu menulis tugas berikutnya langsung di teks, <kbd>↵</kbd> menambah yang berikutnya, dan <kbd>spasi</kbd> mencentang yang sudah beres: pengumuman di blog."
+        },
+        "focus": {
+          "step": "Fokus",
+          "title": "Lalu, 25 menit fokus.",
+          "text": "Halaman khusus untukmu: agenda, pomodoro 25 menit, memori komputer, dan seberapa banyak Claude yang sudah kamu pakai. <kbd>⌘1</kbd> sampai <kbd>⌘6</kbd> melompat di antara enam halaman hari ini."
+        },
+        "accounts": {
+          "step": "Akun",
+          "title": "Pakai langganan yang sudah kamu bayar.",
+          "text": "Penggunaan menunjukkan Claude di 58% dari batasnya. Di Pengaturan ada akun yang sudah kamu punya: Claude Max, ChatGPT Plus, kunci Gemini, OpenRouter, dan model lokal di Ollama. Tiap percakapan memilih akunnya sendiri, dan Cadente tidak menarik biaya tambahan."
+        },
+        "plugins": {
+          "step": "Plugin",
+          "title": "Yang tidak kamu pakai, keluar.",
+          "text": "Di Plugin, bahkan yang bawaan bisa dimatikan. <kbd>spasi</kbd> mematikan Links dan Alat. Provider AI juga bisa diganti: pindah ke Ollama, di laptopmu, dan kamu melihat dulu apa yang berubah. AI bisa dimatikan sepenuhnya."
+        },
+        "end": {
+          "step": "Akhir hari",
+          "title": "Akhir hari. Siapa yang masih menunggu?",
+          "text": "<kbd>⌘⇧A</kbd> mengumpulkan agen dari semua halaman, dengan yang menunggu di paling atas. Claude masih minta izin untuk menyimpan tes: <kbd>↵</kbd> membawamu ke sana dan <kbd>y</kbd> mengizinkannya. Setiap plugin yang kamu pakai hari ini dibuat oleh seseorang, dan berikutnya bisa jadi buatanmu."
+        }
+      },
+      "typed": {
+        "ciQuestion": "kenapa CI gagal?",
+        "boardWeb": "aplikasi web",
+        "task1": "kirim changelog ke tim",
+        "task2": "review [[Peluncuran]]",
+        "claude": "tambahkan tes untuk focus_neighbor di akhir layout.rs, jangan jalankan apa pun",
+        "codex": "jalankan cargo test dan beri tahu hasilnya",
+        "agy": "jelaskan dalam satu kalimat apa fungsi layout.rs"
+      },
+      "hud": {
+        "mandarATarefa": "kirim tugas",
+        "proximaVista": "tampilan berikutnya",
+        "vistaAnterior": "tampilan sebelumnya",
+        "rodarOsTestes": "jalankan tes",
+        "voltarAoLogin": "kembali ke login",
+        "abrirOWorkspaceLogin": "buka workspace login",
+        "chatAoLadoLigadoAoWorkspace": "Chat di samping, terhubung ke workspace",
+        "perguntar": "tanya",
+        "abrirODiffDoLado": "buka diff di samping",
+        "alteracoes": "perubahan",
+        "descer": "turun",
+        "abrirODiff": "buka diff",
+        "requisicao": "permintaan",
+        "colecoes": "koleksi",
+        "colecaoProjetos": "koleksi proyek",
+        "abrirORequest": "buka request",
+        "descerAteOLimit": "turun ke limit",
+        "editarOLimit": "edit limit",
+        "apagarOValor": "hapus nilainya",
+        "gravar": "simpan",
+        "voltarAoEnviar": "kembali ke kirim",
+        "enviarOGet": "kirim GET",
+        "enviarOPost": "kirim POST",
+        "ampliarAFolha": "perbesar panel",
+        "abrirAPaginaDoPostgres": "buka halaman Postgres",
+        "voltarAoTopo": "kembali ke atas",
+        "instalarGratis": "instal, gratis",
+        "rodarOSelectDoCursor": "jalankan select di kursor",
+        "descerPeloScript": "turun di skrip",
+        "rodarEsteSelect": "jalankan select ini",
+        "ateOOrderBy": "sampai order by",
+        "editarALinhaAliMesmo": "edit barisnya, di tempat",
+        "apagarAUltimaPalavra": "hapus kata terakhir",
+        "gravarERodar": "simpan dan jalankan",
+        "navegadorDoBanco": "navigator database",
+        "verOsDadosDaTabela": "lihat data tabel",
+        "voltarAsDuasFolhas": "kembali ke dua panel",
+        "irAoEndereco": "ke alamat",
+        "abrirOSite": "buka situs",
+        "abrirOProjetoVitrine": "buka proyek etalase",
+        "voltar": "kembali",
+        "abrirAPaginaDoQuadro": "buka halaman Papan",
+        "proximaFoto": "foto berikutnya",
+        "guardarOTexto": "simpan teks",
+        "ligarComUmaSeta": "hubungkan dengan panah",
+        "elipse": "elips",
+        "maisUmaSeta": "satu panah lagi",
+        "abrirANota": "buka catatan",
+        "descerPelaNota": "turun di catatan",
+        "novaTarefa": "tugas baru",
+        "aListaContinua": "daftarnya berlanjut",
+        "fecharALista": "tutup daftar",
+        "subir": "naik",
+        "marcarComoFeita": "tandai selesai",
+        "comecarUmPomodoro": "mulai pomodoro",
+        "pagina1OsAgentes": "halaman 1: para agen",
+        "pagina3AApiEO": "halaman 3: API dan database",
+        "pagina5AAta": "halaman 5: notulen",
+        "pagina6DeVoltaAoSeu": "halaman 6: kembali ke harimu",
+        "proximaConta": "akun berikutnya",
+        "desligarLinks": "matikan Links",
+        "desligarFerramentas": "matikan Alat",
+        "ultimoItem": "item terakhir",
+        "providerDeIa": "provider AI",
+        "trocarProvider": "ganti provider",
+        "ollamaNoSeuComputador": "Ollama, di komputermu",
+        "verAPrevia": "lihat pratinjau",
+        "aplicar": "terapkan",
+        "irAteQuemEspera": "ke yang menunggu",
+        "permitir": "izinkan",
+        "saltarParaOCalendarioNaPagina": "lompat ke Kalender, di halaman hari ini",
+        "abrirOTerminal": "buka Terminal",
+        "outroTerminal": "Terminal lain",
+        "maisUm": "satu lagi",
+        "umTerminalParaVoce": "Terminal untukmu",
+        "abrirWorkspaces": "buka Workspaces",
+        "workspacesNasAlteracoes": "Workspaces, di perubahan",
+        "abrirORequests": "buka Requests",
+        "abrirALoja": "buka Toko",
+        "abrirONavegador": "buka Peramban",
+        "abrirDocumentos": "buka Dokumen",
+        "abrirOCalendario": "buka Kalender",
+        "abrirOFoco": "buka Fokus",
+        "abrirOSistema": "buka Sistem",
+        "abrirOUso": "buka Penggunaan",
+        "abrirPlugins": "buka Plugin",
+        "abrirOClaudeCode": "buka Claude Code",
+        "abrirOCodex": "buka Codex",
+        "abrirOAgy": "buka agy",
+        "loginOCiFalhou": "login · CI gagal",
+        "paineisProntoParaOMerge": "panel · siap di-merge",
+        "buscaOClaudeTrabalhando": "cari · Claude bekerja",
+        "temaEsperandoRevisao": "tema · menunggu review",
+        "quadro": "Papan",
+        "radioLoFi": "Radio lo-fi",
+        "maisUma": "satu lagi",
+        "asFotos": "foto",
+        "sobre": "tentang",
+        "oQueEleFaz": "apa fungsinya",
+        "atalhos": "pintasan",
+        "mapa": "peta",
+        "vitrine": "etalase",
+        "lancamento": "Peluncuran",
+        "retangulo": "persegi panjang",
+        "outroRetangulo": "persegi panjang lain"
+      }
+    },
+    "plugins": {
+      "title": {
+        "inicio": "Beranda",
+        "chat": "Chat",
+        "terminal": "Terminal",
+        "workspaces": "Workspaces",
+        "pr": "PR Reviews",
+        "requests": "Requests",
+        "calendario": "Kalender",
+        "sistema": "Sistem",
+        "uso": "Penggunaan",
+        "foco": "Fokus",
+        "automacoes": "Otomasi",
+        "prompts": "Prompts",
+        "projetos": "Proyek",
+        "recursos": "Sumber Daya",
+        "links": "Links",
+        "ferramentas": "Alat",
+        "config": "Pengaturan",
+        "plugins": "Plugin"
+      },
+      "desc": {
+        "inicio": "Harimu: agenda, tugas, catatan, cuaca, dan apa yang masih terbuka.",
+        "chat": "Model apa pun, dengan rencana, antrean, sesi, dan konteks yang terlihat.",
+        "terminal": "Blok perintah, saran AI, dan agen seperti Claude Code dan Codex.",
+        "workspaces": "Repositori, perubahan, dan worktree, dengan diff dan commit.",
+        "pr": "PR kamu dan tim: diff, checks, threads, dan review dengan AI.",
+        "requests": "Klien HTTP dengan koleksi, lingkungan, dan riwayat.",
+        "calendario": "Hari, bulan, dan acara mendatang. Ketik “Reunião amanhã 10h” lalu ↵.",
+        "sistema": "Memori, CPU, port, dan Docker, secara real-time.",
+        "uso": "Batas, biaya, dan prakiraan penggunaan akun-akunmu.",
+        "foco": "Pomodoro dengan tugas dan catatan.",
+        "automacoes": "Tugas AI terjadwal, dengan riwayat.",
+        "prompts": "Pustaka prompt dan teknik, dengan sesi Chat di samping.",
+        "projetos": "Proyek dan sesi: tambah, kloning, dan jadikan favorit.",
+        "recursos": "Skills, memori, agents, MCP, dan instruksi.",
+        "links": "Tautan dengan tag. Tempel URL lalu ↵.",
+        "ferramentas": "JSON, dan Markdown ke Word.",
+        "config": "Akun, provider, pintasan, akses, dan tampilan.",
+        "plugins": "Katalog, graf, dan penggantian provider dengan pratinjau."
+      }
+    },
+    "rack": {
+      "service": {
+        "ai": "provider AI",
+        "compaction": "pemadatan konteks",
+        "pty": "terminal (pty)",
+        "theme": "tema"
+      },
+      "noAi": "tidak ada · AI mati",
+      "plugin": {
+        "chat": "Chat",
+        "terminal": "Terminal",
+        "pr": "PR Reviews",
+        "automacoes": "Otomasi",
+        "workspaces": "Workspaces",
+        "sidebar": "Bilah samping",
+        "tray": "Baki sistem"
+      },
+      "meta": {
+        "community": "komunitas",
+        "on": "nyala",
+        "off": "mati"
+      },
+      "removeKanban": "Hapus Kanban",
+      "count": {
+        "other": "{count} nyala"
+      },
+      "svc": {
+        "again": "klik lagi untuk menyalakan kembali",
+        "usedBy": "dipakai oleh {users}",
+        "nobody": "tidak ada yang memakai sekarang"
+      },
+      "log": {
+        "hint": "Coba: klik plugin untuk mematikannya, klik layanan untuk menggantinya, atau instal satu dari komunitas.",
+        "on": "<b>{name}</b> kembali, tanpa memulai ulang apa pun.",
+        "off": "<b>{name}</b> dimatikan. Kalau tadi terbuka di sebuah panel, panel itu tetap di sana menunggu plugin lain.",
+        "noAi": "<b>AI dimatikan.</b> {users} menunggu provider; Terminal, Workspaces, catatan, database, dan agenda tetap seperti biasa.",
+        "swap": "pratinjau · {service}: <b>{from} → {to}</b>",
+        "swapUsers": "pratinjau · {service}: <b>{from} → {to}</b> · {users} menyelesaikan pekerjaannya lalu mulai ulang di provider baru",
+        "install": "Beres, <b>Kanban dari @ana</b> terinstal. Dia hanya minta akses ke api.github.com.",
+        "remove": "<b>Kanban</b> dihapus. Datanya tetap ada di profilmu, kalau-kalau kamu berubah pikiran."
+      }
+    },
+    "store": {
+      "cat": {
+        "all": "Semua",
+        "dev": "Dev",
+        "ai": "AI",
+        "productivity": "Produktivitas",
+        "data": "Data",
+        "themes": "Tema",
+        "fun": "Hiburan"
+      },
+      "app": {
+        "kanban": {
+          "name": "Kanban",
+          "desc": "Papan berisi issue repositori, dalam tiga kolom."
+        },
+        "board": {
+          "name": "Papan",
+          "desc": "Diagram bergaya gambar tangan, digambar dari keyboard."
+        },
+        "postgres": {
+          "name": "Postgres",
+          "desc": "Skrip, tabel, dan hasil dalam satu panel."
+        },
+        "docs": {
+          "name": "Dokumen",
+          "desc": "Catatan markdown, dengan [[tautan]] dan tugas."
+        },
+        "browser": {
+          "name": "Peramban",
+          "desc": "Situs web dalam satu panel, dengan tautan di keyboard."
+        },
+        "testWriter": {
+          "name": "Penulis tes",
+          "desc": "Agen yang menulis tes untuk diff saat ini."
+        },
+        "neon": {
+          "name": "Tema Neon",
+          "desc": "Aksen ungu dan merah muda di atas hitam."
+        },
+        "kubernetes": {
+          "name": "Kubernetes",
+          "desc": "Pod, log, dan event cluster tanpa melepas keyboard."
+        },
+        "meetingSummary": {
+          "name": "Ringkasan rapat",
+          "desc": "Mentranskripsi rapat dan mengembalikan daftar tugas."
+        },
+        "radio": {
+          "name": "Radio lo-fi",
+          "desc": "Musik untuk Fokus, dengan timer di layar."
+        },
+        "regex": {
+          "name": "Regex",
+          "desc": "Uji ekspresi reguler dengan sorotan langsung."
+        },
+        "sheets": {
+          "name": "Spreadsheet",
+          "desc": "Buka CSV dan XLSX dengan filter dan penjumlahan."
+        },
+        "rag": {
+          "name": "RAG lokal",
+          "desc": "Tanyakan soal dokumenmu dengan model di komputermu."
+        },
+        "habits": {
+          "name": "Kebiasaan",
+          "desc": "Centang kebiasaan hari ini dan lihat rentetannya."
+        },
+        "sqlite": {
+          "name": "SQLite",
+          "desc": "Buka file .db apa pun dan telusuri tabelnya."
+        },
+        "cron": {
+          "name": "Cron",
+          "desc": "Susun ekspresi cron dan lihat jadwal eksekusi berikutnya."
+        },
+        "contrast": {
+          "name": "Tema Kontras tinggi",
+          "desc": "Hitam dan putih murni, supaya lebih mudah dibaca."
+        },
+        "promptJudge": {
+          "name": "Penilai prompt",
+          "desc": "Bandingkan jawaban model secara berdampingan."
+        },
+        "compose": {
+          "name": "Docker Compose",
+          "desc": "Jalankan, hentikan, dan pantau layanan compose."
+        },
+        "journal": {
+          "name": "Jurnal",
+          "desc": "Satu catatan per hari, dengan pencarian."
+        },
+        "chess": {
+          "name": "Catur",
+          "desc": "Satu partai sehari melawan agen."
+        },
+        "jsonSchema": {
+          "name": "JSON Schema",
+          "desc": "Validasi JSON terhadap schema dan lihat error per baris."
+        },
+        "commitWriter": {
+          "name": "Penulis commit",
+          "desc": "Pesan commit dari apa yang ada di stage."
+        },
+        "exchange": {
+          "name": "Kurs",
+          "desc": "Kurs hari ini dan konversi cepat."
+        },
+        "sepia": {
+          "name": "Tema Sepia",
+          "desc": "Nuansa hangat untuk sesi panjang."
+        },
+        "logs": {
+          "name": "Logs",
+          "desc": "Ikuti file log dengan filter dan warna."
+        },
+        "finance": {
+          "name": "Keuangan",
+          "desc": "Pengeluaran bulan ini per kategori, dari CSV."
+        },
+        "graphql": {
+          "name": "GraphQL",
+          "desc": "Jelajahi skema dan jalankan kueri dengan variabel."
+        },
+        "explainer": {
+          "name": "Penjelas",
+          "desc": "Menjelaskan file yang terbuka, fungsi demi fungsi."
+        },
+        "stars": {
+          "name": "Hujan meteor",
+          "desc": "Satu bintang jatuh untuk tiap build hijau."
+        },
+        "gitGraph": {
+          "name": "Git graph",
+          "desc": "Graf branch dan commit, dalam bentuk teks."
+        },
+        "rss": {
+          "name": "Pembaca RSS",
+          "desc": "Feed dalam daftar, dibaca langsung di panel."
+        },
+        "charts": {
+          "name": "Grafik",
+          "desc": "Grafik teks dari CSV atau SQL."
+        },
+        "retro": {
+          "name": "Tema Terminal retro",
+          "desc": "Hijau fosfor dan kursor blok."
+        },
+        "flags": {
+          "name": "Feature flags",
+          "desc": "Nyalakan dan matikan flag di berbagai lingkungan."
+        },
+        "translator": {
+          "name": "Penerjemah",
+          "desc": "Terjemahkan teks dan file i18n."
+        },
+        "timesheet": {
+          "name": "Timesheet",
+          "desc": "Jam kerja per proyek, dari panel yang kamu pakai."
+        },
+        "migrations": {
+          "name": "Migrations",
+          "desc": "Jalankan dan batalkan migration dengan pratinjau SQL."
+        },
+        "mascot": {
+          "name": "Maskot",
+          "desc": "Teman yang bereaksi pada tes-tesmu."
+        },
+        "coverage": {
+          "name": "Cakupan tes",
+          "desc": "Cakupan tes per file, beserta yang masih kurang."
+        },
+        "email": {
+          "name": "Email",
+          "desc": "Kotak masuk dalam baris, dengan aksi dari keyboard."
+        },
+        "weather": {
+          "name": "Cuaca",
+          "desc": "Prakiraan seminggu untuk kota-kotamu."
+        },
+        "secrets": {
+          "name": "Rahasia",
+          "desc": "Menemukan rahasia yang terlupa sebelum commit."
+        },
+        "mindMap": {
+          "name": "Peta pikiran",
+          "desc": "Ide dalam bentuk pohon, hanya dengan keyboard."
+        },
+        "typing": {
+          "name": "Mengetik",
+          "desc": "Latih kecepatan dengan potongan kodemu sendiri."
+        },
+        "uptime": {
+          "name": "Uptime",
+          "desc": "Status layananmu, dengan peringatan di kepala panel."
+        },
+        "benchmarks": {
+          "name": "Benchmarks",
+          "desc": "Bandingkan eksekusi dan temukan regresi."
+        },
+        "changelog": {
+          "name": "Changelog",
+          "desc": "Membuat changelog dari commit."
+        },
+        "snippets": {
+          "name": "Snippets",
+          "desc": "Potongan teks dan kode, cukup satu pintasan."
+        }
+      },
+      "price": {
+        "free": "gratis",
+        "donation": "gratis · donasi",
+        "perMonth": "{price}/bulan",
+        "trial": "gratis {days} hari",
+        "once": "{price} · sekali bayar"
+      },
+      "action": {
+        "free": "instal",
+        "donation": "instal",
+        "subscription": "langganan",
+        "once": "beli",
+        "trial": "coba gratis"
+      },
+      "installed": "terinstal",
+      "stepsFree": [
+        "mengunduh…",
+        "sha256 ok",
+        "izin ok"
+      ],
+      "stepsPaid": [
+        "checkout Cadente…",
+        "lisensi ok",
+        "sha256 ok"
+      ],
+      "empty": "Belum ada plugin dengan nama itu. <a href=\"#creator\">Bagaimana kalau kamu buat sendiri?</a>",
+      "demoSearches": [
+        "tema",
+        "sql",
+        "agen"
+      ],
+      "wall": [
+        "Pomodoro+",
+        "Catatan cepat",
+        "Webhooks",
+        "Mock server",
+        "WebSocket",
+        "gRPC",
+        "MQTT",
+        "OpenAPI",
+        "Lisensi",
+        "Dependensi",
+        "Kerentanan",
+        ".env",
+        "SSH",
+        "Server",
+        "Biaya cloud",
+        "Seeds",
+        "Fixtures",
+        "Bundle size",
+        "Web vitals",
+        "Aksesibilitas",
+        "i18n",
+        "Semver",
+        "Rilis",
+        "Status page",
+        "Metrik",
+        "Flamegraph",
+        "Profiler",
+        "Tes tidak stabil",
+        "Konflik",
+        "Blame",
+        "Kamus",
+        "Ikon",
+        "Warna",
+        "Font",
+        "Slide",
+        "Pembaca PDF",
+        "Transkripsi",
+        "Embeddings",
+        "Agen",
+        "Anggaran",
+        "Faktur",
+        "Kontak",
+        "Agenda tim",
+        "Perjalanan",
+        "Resep",
+        "Buku",
+        "Film",
+        "Podcast",
+        "Papan skor",
+        "Sudoku",
+        "Kata",
+        "Kuis",
+        "Seni ASCII",
+        "Kanban tim",
+        "Scrum",
+        "Retro",
+        "OKR",
+        "Pull request hari ini",
+        "Peninjau SQL",
+        "Lint",
+        "Formatter",
+        "Diff gambar",
+        "Palet warna",
+        "Kalkulator",
+        "Konversi satuan",
+        "Zona waktu",
+        "QR code",
+        "UUID",
+        "Base64",
+        "JWT"
+      ]
+    },
+    "calc": {
+      "subscription": {
+        "price": "Harga per bulan",
+        "people": "Pelanggan",
+        "per": "per bulan"
+      },
+      "once": {
+        "price": "Harga",
+        "people": "Pembeli",
+        "per": "total"
+      },
+      "donation": {
+        "price": "Rata-rata donasi per bulan",
+        "people": "Pendukung",
+        "per": "per bulan"
+      }
+    },
+    "oneliner": {
+      "copied": "tersalin",
+      "select": "pilih dan salin",
+      "copy": "salin"
+    },
+    "maker": {
+      "intro": "creator mode · agen memakai SDK",
+      "nothingSent": "tidak ada yang terkirim sebelum kamu menekan ↵",
+      "newPane": "panel baru",
+      "waiting": "menunggu agen",
+      "codeHere": "kodenya muncul di sini",
+      "lines": {
+        "other": "{count} baris"
+      },
+      "writing": "menulis",
+      "inDev": "dalam pengembangan",
+      "running": "berjalan",
+      "chatTitle": "Chat · creator mode",
+      "terminalTitle": "Terminal · cadente plugin dev",
+      "placeholder": "pesan · @ lampiran · / perintah",
+      "writingToml": "menulis cadente-plugin.toml",
+      "wroteToml": "telah menulis cadente-plugin.toml",
+      "writingLib": "menulis src/lib.rs",
+      "runningTests": "menjalankan cargo test",
+      "testsOk": {
+        "other": "tes ok · {count} lulus"
+      },
+      "compiling": "mengompilasi ke webassembly · 0,8 dtk",
+      "permissions": "izin: {perms}",
+      "devRunning": "{id} 0.1.0 berjalan",
+      "inDevAt": "{where} · dalam pengembangan",
+      "floatingLayer": "lapisan mengambang",
+      "publishDesc": "rilis, sha256, dan indeks toko",
+      "publishing": "menerbitkan",
+      "released": "rilis v0.1.0 · artefak dan sha256 terunggah",
+      "manifestOk": "manifes valid · topic cadente-plugin",
+      "published": "terbit · masuk toko di indeks berikutnya",
+      "inStore": "di toko",
+      "ex": {
+        "pet": {
+          "tab": "Cadu peliharaan",
+          "ask": "buat tamagotchi Cadu yang melayang di aplikasi, bisa lapar dan jadi kotor",
+          "keyFeed": "beri makan",
+          "keyBath": "mandikan",
+          "plan": "Saya akan membuat paket ana.cadu-tamagotchi di lapisan mengambang: dia terbang di layar, lama-lama lapar dan kotor; f memberi makan dan b memandikannya.",
+          "file": "telah menulis src/lib.rs · Cadu dalam ANSI, rasa lapar, dan mandi",
+          "perms": "tidak ada selain Core",
+          "ready": "Selesai. Cadu sudah bebas di aplikasi, lapar dan kotor. Seret dia; f memberi makan dan b memandikannya.",
+          "hint": "f beri makan · b mandikan · seret Cadu",
+          "price": "harga: gratis dengan donasi · kamu menerima 90%"
+        },
+        "sales": {
+          "title": "Penjualan hari ini",
+          "ask": "buat plugin yang menampilkan penjualan hari ini dari tokoku, dengan grafik per jam",
+          "viewToday": "hari ini",
+          "viewTodayText": "total, grafik, dan pesanan",
+          "viewWeek": "minggu",
+          "viewWeekText": "dibandingkan minggu lalu",
+          "plan": "Saya akan membuat leo.vendas-do-dia: panel berisi total hari ini, grafik per jam, dan pesanan terbaru. Plugin ini hanya terhubung ke api.stripe.com.",
+          "file": "telah menulis src/lib.rs · total, grafik, dan pesanan",
+          "today": "hari ini",
+          "todayMeta": "US$ 3.482,90 · 27 pesanan",
+          "perHour": "per jam",
+          "peak": "puncak jam 11.00",
+          "latest": "pesanan terbaru",
+          "order1": "US$ 129,90 · dibayar",
+          "order2": "US$ 49,00 · dibayar",
+          "order3": "US$ 310,00 · menunggu",
+          "ready": "Selesai. Panel menampilkan penjualan hari ini dan diperbarui sendiri setiap menit.",
+          "hint": "⇥ minggu · ↵ buka pesanan",
+          "price": "harga: US$ 4 per bulan · kamu menerima 70% dari setiap perpanjangan"
+        },
+        "status": {
+          "title": "Status page",
+          "ask": "buat status page yang menunjukkan kapan GitHub, Cloudflare, AWS, dan layanan lain down",
+          "when": "ada layanan yang down atau pulih",
+          "plan": "Saya akan membuat orbita.status-page: panel berisi GitHub, Cloudflare, AWS, dan layanan lain, dibaca dari halaman status resminya setiap menit. Kalau ada yang down, kepala panel berubah merah dan kamu dapat notifikasi.",
+          "file": "telah menulis src/lib.rs · pembacaan halaman status dan notifikasinya",
+          "perms": "jaringan · 7 halaman status",
+          "signal": "1 down",
+          "now": "sekarang",
+          "nowMeta": "1 down · 1 tidak stabil · 5 ok",
+          "aws": "down · us-east-1 · 4 mnt",
+          "github": "lambat · antrean tertunda",
+          "operational": "operasional",
+          "day": "24 jam",
+          "incidents": "2 insiden",
+          "ready": "Selesai. Panel memeriksa halaman status setiap menit. Di contoh ini, CloudFront AWS tampil down di us-east-1 dan GitHub Actions lambat.",
+          "hint": "↵ buka insiden · ⇥ riwayat",
+          "price": "harga: US$ 12, beli sekali · kamu menerima 70%"
+        }
+      }
+    },
+    "tama": {
+      "feedButton": "makan",
+      "bathButton": "mandi",
+      "hello": "hai! aku lapar…",
+      "drag": "wah! kita mau ke mana?",
+      "starving": "lapar… lapar sekali",
+      "hungry": "aku lapar",
+      "dirty": "aku perlu mandi",
+      "aria": "Cadu: {mood}. Seret dia; f memberi makan, b memandikannya.",
+      "mood": {
+        "hungry": "lapar",
+        "dirty": "kotor",
+        "happy": "senang"
+      },
+      "full": "aku sudah makan, makasih!",
+      "eating": "nyam nyam!",
+      "thanks": "makasih ✦",
+      "clean": "aku sudah bersih",
+      "splash": "byur!",
+      "fresh": "wangi ✦"
+    },
+    "hero": {
+      "words": [
+        "harness agen",
+        "terminal",
+        "pengelola worktree",
+        "klien API",
+        "klien database",
+        "aplikasi catatan",
+        "kalender"
+      ],
+      "stars": [
+        "agen",
+        "terminal",
+        "worktree",
+        "API",
+        "database",
+        "catatan",
+        "kalender"
+      ]
+    },
+    "dl": {
+      "detected": "File yang tepat untuk {os} kamu sudah ada di sini.",
+      "pick": "Pilih file untuk sistemmu.",
+      "downloadFor": "Unduh untuk {os}",
+      "macNote": "Saat pertama kali, macOS mungkin perlu <a href=\"#macos-danificado\">perbaikan di bawah</a>."
+    },
+    "rn": {
+      "latest": "terbaru",
+      "onGitHub": "Lihat di GitHub",
+      "none": "Belum ada versi di sini.",
+      "failed": "Catatan rilis gagal dimuat. Lihat di <a href=\"{url}\" target=\"_blank\" rel=\"noopener noreferrer\">GitHub</a>."
+    }
+  },
+  "agents": {
+    "eyebrow": "Agen",
+    "title": "Agen-agenmu,<br /><span class=\"violet-text\">berdampingan.</span>",
+    "lede": "Cadente tidak menggantikan agenmu. Claude Code, Codex, dan CLI lain berjalan apa adanya, dengan akunmu. Cadente mengatur pekerjaan di sekitarnya: tiap tugas di worktree-nya sendiri, semuanya terlihat, dan yang butuh kamu muncul lebih dulu.",
+    "wallLabel": "Agen yang berjalan di Cadente",
+    "known": "Dikenali oleh Cadente",
+    "any": "Dan CLI lain apa pun yang berjalan di terminal.",
+    "yours": "punyamu",
+    "p1": "Satu worktree per tugas",
+    "p1Text": "Setiap agen bekerja di branch dan direktorinya sendiri, tanpa menyentuh file agen lain.",
+    "p2": "Yang menunggumu, duluan",
+    "p2Text": "<kbd>⌘⇧A</kbd> mengumpulkan agen dari semua halaman, dengan yang butuh kamu di paling atas.",
+    "p3": "Langganan yang sudah kamu bayar",
+    "p3Text": "Claude Max, ChatGPT Plus, kunci API, atau model lokal. Cadente tidak menarik biaya tambahan.",
+    "p4": "Langsung ke provider",
+    "p4Text": "Panggilan keluar dari mesinmu ke provider yang kamu pilih. Tidak ada server Cadente di tengahnya.",
+    "p5": "Semuanya di mesinmu",
+    "p5Text": "Sesi, riwayat, dan pengaturan tersimpan di database lokal, di komputermu."
+  },
+  "faq": {
+    "eyebrow": "Tanya jawab",
+    "title": "Sebelum<br /><span class=\"muted\">mengunduh.</span>",
+    "q1": "Apa ini cuma wrapper untuk Claude Code?",
+    "a1": "Bukan. Claude Code, Codex, dan CLI lain berjalan di terminal Cadente apa adanya, dengan akunmu. Cadente adalah jendela di sekelilingnya: membagi layar jadi panel, memberi tiap tugas worktree sendiri, mengumpulkan agen yang menunggumu, dan menaruh terminal, database, API, catatan, dan agenda di sampingnya.",
+    "q2": "Apa bedanya dengan menjalankan Claude Code langsung di terminal?",
+    "a2": "Untuk agennya, tidak ada: CLI-nya sama. Bedanya ada di sekelilingnya. Beberapa agen bekerja berdampingan, masing-masing di worktree-nya sendiri, ⌘⇧A menunjukkan siapa yang menunggumu, dan sisa pekerjaanmu tetap di jendela yang sama.",
+    "q3": "Apakah panggilanku lewat server kalian?",
+    "a3": "Tidak. Cadente bicara langsung dengan provider yang kamu pilih, memakai langganan atau kuncimu. Server Cadente hanya menyimpan akunmu.",
+    "q4": "Bisa dipakai tanpa AI?",
+    "a4": "Bisa. AI adalah plugin seperti yang lain: matikan saja dan tetap pakai terminal, workspaces, catatan, database, dan agenda.",
+    "q5": "Kalau gratis, dari mana kalian dapat uang?",
+    "a5": "Dari toko plugin, setelah dibuka: Cadente mengambil 30% dari penjualan dan langganan, serta 10% dari donasi. Aplikasinya tetap gratis.",
+    "q6": "Tersedia dalam bahasa apa saja?",
+    "a6": "Ada 15: Portugis, Inggris, Spanyol, Prancis, Jerman, Italia, Rusia, Turki, Arab, Hindi, Indonesia, Vietnam, Jepang, Korea, dan Mandarin Sederhana. Gantinya langsung, tanpa memulai ulang. Beberapa layar baru hadir lebih dulu dalam bahasa Portugis dan Inggris.",
+    "q7": "Untuk sistem apa saja?",
+    "a7": "macOS, dengan Apple Silicon dan Intel, serta Windows dan Linux, keduanya x64."
+  },
+  "lang": {
+    "label": "Bahasa",
+    "notice": "Halaman ini juga tersedia dalam Bahasa Indonesia.",
+    "go": "Lihat dalam Bahasa Indonesia",
+    "close": "Tutup"
+  },
+  "langs": {
+    "eyebrow": "15 bahasa",
+    "title": "Bicara dalam bahasamu.<br /><span class=\"violet-text\">Dan 14 lainnya.</span>",
+    "lede": "Dari menu sampai terminal, Cadente hadir dalam 15 bahasa, dan gantinya langsung, tanpa memulai ulang. Pilih bahasa dan lihat jendelanya berubah.",
+    "pick": "Bahasa jendela",
+    "note": "Beberapa layar baru hadir lebih dulu dalam bahasa Portugis dan Inggris."
+  },
+  "dl": {
+    "metaTitle": "Unduh Cadente",
+    "metaDescription": "Unduh Cadente untuk macOS (Apple Silicon dan Intel), Windows, dan Linux. Gratis.",
+    "eyebrow": "Unduhan",
+    "title": "Unduh <span class=\"violet-text\">Cadente</span>.",
+    "lede": "Gratis, untuk macOS, Windows, dan Linux.",
+    "version": "Versi",
+    "others": "Sistem lain",
+    "fallback": "Versi terbaru gagal dibaca. File-nya ada di <a href=\"https://github.com/cadente-hub/cadente-hub.github.io/releases\" target=\"_blank\" rel=\"noopener noreferrer\">halaman rilis</a>.",
+    "installTitle": "Cara instal",
+    "oneLine": "Dalam satu baris",
+    "orHomebrew": "Atau lewat Homebrew",
+    "orDmg": "Atau lewat .dmg",
+    "mac1": "Buka <code>.dmg</code> dan seret Cadente ke Aplikasi.",
+    "mac2": "Kalau macOS bilang aplikasinya rusak, lihat perbaikan di bawah.",
+    "orPackages": "Atau lewat paket",
+    "powershell": "Di PowerShell",
+    "orInstaller": "Atau lewat installer",
+    "win1": "Unduh <code>.exe</code> atau <code>.msi</code> dan ikuti installer-nya.",
+    "win2": "Kalau SmartScreen memberi peringatan, klik <b>Info selengkapnya</b> lalu <b>Tetap jalankan</b>.",
+    "fixTitle": "macOS bilang Cadente rusak?",
+    "fixText": "macOS memblokir aplikasi yang belum punya tanda tangan berbayar dari Apple. Tempel perintah ini di Terminal sekali saja, dan Cadente akan terbuka seperti biasa.",
+    "fixNote": "Perintah satu baris dan Homebrew sudah melakukan ini untukmu."
+  },
+  "rn": {
+    "metaTitle": "Catatan rilis Cadente",
+    "metaDescription": "Apa yang berubah di setiap versi Cadente, di kanal stabil dan beta.",
+    "eyebrow": "Catatan rilis",
+    "title": "Setiap versi<br /><span class=\"violet-text\">Cadente.</span>",
+    "lede": "Kanal stabil dan beta, dibaca dari file pembaruan yang sama dengan yang dipakai aplikasi.",
+    "inEnglish": "Catatan tiap versi ditulis dalam bahasa Inggris.",
+    "stable": "Stabil",
+    "beta": "Beta",
+    "stableTitle": "Versi yang sudah diuji",
+    "betaTitle": "Lebih dulu dari yang lain",
+    "download": "Unduh versi stabil",
+    "loading": "Memuat…"
+  },
+  "terms": {
+    "metaTitle": "Ketentuan, privasi, dan pengembalian dana — Cadente",
+    "metaDescription": "Syarat dan ketentuan, kebijakan privasi, dan kebijakan pengembalian dana Cadente.",
+    "title": "Ketentuan, privasi, dan pengembalian dana",
+    "updated": "Diperbarui pada 30 Oktober 2026",
+    "notice": "Ini adalah terjemahan. Jika ada perbedaan, yang berlaku adalah <a href=\"/en/terms-and-conditions.html\">teks bahasa Inggris</a>."
+  },
+  "blog": {
+    "metaTitle": "Blog",
+    "metaDescription": "Catatan produk, engineering, dan praktik dari Cadente.",
+    "eyebrow": "Jurnal Cadente",
+    "title": "Ide untuk<br /><span class=\"violet-text\">bekerja lebih baik.</span>",
+    "lede": "Catatan produk, engineering, dan praktik untuk memakai AI dengan lebih jelas, lebih terkendali, dan lebih cepat.",
+    "feed": "Langganan feed JSON",
+    "count": {
+      "other": "{count} tulisan"
+    },
+    "empty": "Tulisan baru segera hadir.",
+    "read": "Baca",
+    "back": "Semua tulisan",
+    "updated": "Diperbarui pada {date}"
+  },
+  "cmp": {
+    "metaTitle": "Cadente dan harness agen lainnya",
+    "metaDescription": "Perbandingan Cadente dengan Conductor, Orca, Paradev, dan Warp, beserta sumber setiap informasi.",
+    "eyebrow": "Bandingkan",
+    "title": "Cadente berdampingan<br /><span class=\"violet-text\">dengan harness lain.</span>",
+    "lede": "Apa yang dikatakan masing-masing di situsnya sendiri, dengan tautan ke sumber setiap baris. Yang tidak disebutkan situsnya tampil sebagai “tidak disebutkan”.",
+    "checked": "Dicek pada {date}.",
+    "unknown": "tidak disebutkan",
+    "source": "sumber",
+    "feature": "Yang dibandingkan",
+    "row": {
+      "systems": "Sistem",
+      "price": "Harga",
+      "agents": "Agen",
+      "isolation": "Isolasi per tugas",
+      "noAi": "Matikan AI dan tetap bisa dipakai",
+      "languages": "Bahasa antarmuka",
+      "data": "Lokasi data"
+    },
+    "cell": {
+      "cadente": {
+        "systems": "macOS, Windows, dan Linux",
+        "price": "Gratis, tanpa paket berbayar",
+        "agents": "Claude Code, Codex, Gemini CLI, OpenCode, dan CLI apa pun",
+        "isolation": "Satu worktree Git per tugas",
+        "noAi": "Ya: AI adalah plugin",
+        "languages": "15",
+        "data": "Di mesinmu; panggilan langsung ke provider"
+      },
+      "conductor": {
+        "agents": "Claude Code, Codex, Cursor, dan OpenCode",
+        "isolation": "Satu microVM cloud per agen",
+        "data": "Di cloud Conductor (Conductor Cloud)"
+      },
+      "orca": {
+        "agents": "Claude Code, Codex, OpenCode, Grok, dan CLI lain",
+        "isolation": "Workspace terisolasi"
+      },
+      "paradev": {
+        "systems": "macOS; Linux eksperimental; tanpa Windows",
+        "price": "Ada paket gratis",
+        "agents": "Claude Code, Codex, OpenCode, dan CLI apa pun",
+        "isolation": "Satu worktree Git per agen",
+        "data": "Di mesinmu; cloud hanya menyimpan metadata akun"
+      },
+      "warp": {
+        "price": "Berbasis pemakaian, ditagih per eksekusi agen (Factories)",
+        "agents": "Warp, Claude Code, Codex, Cursor, dan agen dengan MCP",
+        "data": "Cloud Warp atau milikmu sendiri (self-hosted)"
+      }
+    },
+    "note": "Nama dan merek milik pemiliknya masing-masing. Menemukan info yang sudah usang? <a href=\"https://github.com/cadente-hub/cadente-hub.github.io/issues\" target=\"_blank\" rel=\"noopener noreferrer\">Buka issue</a>.",
+    "link": "Bandingkan dengan harness lain"
+  }
+}
