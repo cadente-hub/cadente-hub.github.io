@@ -50,15 +50,26 @@ function draw(primaryId, assets = {}) {
 
 async function json(url) {
   const r = await fetch(url, { cache: 'no-store' });
-  if (!r.ok) throw new Error(`${url}: ${r.status}`);
+  if (!r.ok) throw Object.assign(new Error(`${url}: ${r.status}`), { status: r.status });
   return r.json();
 }
+// The release files keep the same names in every version (cadente-0.2.93-macos-arm64.dmg…), so the links still work
+// when the GitHub API says no: it answers 60 calls an hour per address, and an office shares one address.
+const NAMES = { 'macos-arm64': 'macos-arm64.dmg', 'macos-x64': 'macos-x64.dmg', 'windows-exe': 'windows-x64.exe', 'windows-msi': 'windows-x64.msi', 'linux-deb': 'linux-x64.deb', 'linux-rpm': 'linux-x64.rpm', 'linux-appimage': 'linux-x64.AppImage' };
+const byName = version => ({
+  tag_name: `v${version}`,
+  assets: Object.values(NAMES).map(suffix => ({ name: `cadente-${version}-${suffix}`, browser_download_url: `${RELEASES}/download/v${encodeURIComponent(version)}/cadente-${version}-${suffix}` })),
+});
+const limited = e => e?.status === 403 || e?.status === 429;
 async function release() {
-  try {
-    const { version } = await json('/update.json');
-    if (/^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/.test(version)) return await json(`https://api.github.com/repos/${REPO}/releases/tags/v${encodeURIComponent(version)}`);
-  } catch { /* falls back to the latest release */ }
-  return json(`https://api.github.com/repos/${REPO}/releases/latest`);
+  const version = await json('/update.json').then(u => u.version, () => null);
+  const known = /^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/.test(version ?? '');
+  if (known) {
+    try { return await json(`https://api.github.com/repos/${REPO}/releases/tags/v${encodeURIComponent(version)}`); }
+    catch (e) { if (limited(e)) return byName(version); /* else the latest release */ }
+  }
+  try { return await json(`https://api.github.com/repos/${REPO}/releases/latest`); }
+  catch (e) { if (known) return byName(version); throw e; }
 }
 
 initPage();
