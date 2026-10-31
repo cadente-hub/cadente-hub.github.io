@@ -4,6 +4,9 @@
 // from the app's sprite sheet in the site palette.
 import sheet from './cadu.sprites.json' with { type: 'json' };
 import { COLORS, MUD } from './cadu-colors.mjs';
+import { t as tr } from './i18n.js';
+
+const say = key => tr(`tama.${key}`);
 
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const color = ch => (ch === '.' ? null : MUD[ch] ?? COLORS[sheet.palette[ch]]);
@@ -39,7 +42,7 @@ export class Tama {
     this.el.tabIndex = 0;
     this.el.setAttribute('role', 'img');
     this.el.innerHTML = `<p class="cadu-pet__say" aria-live="polite"></p><pre class="cadu-pet__fx" aria-hidden="true"></pre><pre class="cadu-pet__art" aria-hidden="true"></pre>
-      <div class="cadu-pet__acts"><button type="button" data-act="feed"><b>f</b> comer</button><button type="button" data-act="bath"><b>b</b> banho</button></div>`;
+      <div class="cadu-pet__acts"><button type="button" data-act="feed"><b>f</b> ${say('feedButton')}</button><button type="button" data-act="bath"><b>b</b> ${say('bathButton')}</button></div>`;
     host.append(this.el);
     this.art = this.el.querySelector('.cadu-pet__art');
     this.fx = this.el.querySelector('.cadu-pet__fx');
@@ -63,7 +66,7 @@ export class Tama {
     this.el.hidden = false;
     this.place(this.host.clientWidth - this.el.offsetWidth - 40, this.host.clientHeight - this.el.offsetHeight - 70, false);
     if (!REDUCED) this.el.animate([{ opacity: 0, translate: '0 24px', scale: '.6' }, { opacity: 1, translate: '0 -10px', scale: '1.05', offset: 0.7 }, { opacity: 1, translate: '0 0', scale: '1' }], { duration: 700, easing: 'cubic-bezier(.2,.8,.2,1)' });
-    this.say('oi! estou com fome…');
+    this.say(say('hello'));
   }
   hide() { this.el.hidden = true; }
   place(x, y, glide) {
@@ -91,7 +94,7 @@ export class Tama {
       this.el.setPointerCapture(e.pointerId);
       this.el.classList.add('is-drag');
       this.drawRows(FRAMES.happy);
-      this.say('uou! para onde vamos?');
+      this.say(say('drag'));
     });
     this.el.addEventListener('pointermove', e => { if (start) this.place(start.x + e.clientX - start.px, start.y + e.clientY - start.py, false); });
     const end = () => {
@@ -112,9 +115,9 @@ export class Tama {
   mood() {
     if (this.busy) return;
     const s = this.state();
-    this.say(this.food === 0 ? 'fome… muita fome' : s === 'hungry' ? 'estou com fome' : s === 'dirty' ? 'preciso de um banho' : '');
+    this.say(this.food === 0 ? say('starving') : s === 'hungry' ? say('hungry') : s === 'dirty' ? say('dirty') : '');
     this.el.classList.toggle('is-hungry', s === 'hungry');
-    this.el.setAttribute('aria-label', `Cadu: ${s === 'hungry' ? 'com fome' : s === 'dirty' ? 'sujo' : 'feliz'}. Arraste, f dá comida, b dá banho.`);
+    this.el.setAttribute('aria-label', tr('tama.aria', { mood: say(`mood.${s}`) }));
     this.breathe();
   }
   breathe() {
@@ -137,20 +140,20 @@ export class Tama {
   }
   async feed() {
     if (this.busy) return;
-    if (this.food >= MAX) { this.say('já comi, obrigado!'); return; }
-    this.say('nham nham!');
+    if (this.food >= MAX) { this.say(say('full')); return; }
+    this.say(say('eating'));
     await this.act(['happy', 'cheer_crouch', 'happy', 'cheer_crouch', 'happy', 'cheer_a', 'cheer_b', 'cheer_a', 'happy'], 'crumbs', 130);
     this.food = Math.min(MAX, this.food + 2);
     this.mood();
-    if (this.food >= MAX && this.dirt < 3) this.say('obrigado ✦');
+    if (this.food >= MAX && this.dirt < 3) this.say(say('thanks'));
   }
   async bath() {
     if (this.busy) return;
-    if (this.dirt === 0) { this.say('já estou limpinho'); return; }
-    this.say('splash!');
+    if (this.dirt === 0) { this.say(say('clean')); return; }
+    this.say(say('splash'));
     await this.act(['blink', 'rest', 'blink', 'float', 'blink', 'rest', 'float', 'rest'], 'bubbles', 150);
     this.dirt = 0;
     this.mood();
-    if (this.state() === 'happy') this.say('cheirosinho ✦');
+    if (this.state() === 'happy') this.say(say('fresh'));
   }
 }

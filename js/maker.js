@@ -4,6 +4,7 @@
 // by subscription and a status page of outside services sold once. Panes use the prototype's line classes.
 import { REDUCED } from './stage.js';
 import { Tama } from './tama.js';
+import { t } from './i18n.js';
 
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 const ln = (cls, g, html, meta = '') => `<div class="ln ${cls}"><i class="g">${g}</i><span class="tx">${html}</span>${meta ? `<span class="mt">${meta}</span>` : ''}</div>`;
@@ -12,49 +13,51 @@ const status = (tone, name, meta) => `<div class="ln row"><i class="g ${tone}">�
 const CANCEL = Symbol('cancel');
 // The examples play at TEMPO of their written waits, like the theater, so three plugins fit in a short look.
 const TEMPO = 0.7;
-const str = t => `<span class="s">"${t}"</span>`;
+const str = s => `<span class="s">"${s}"</span>`;
+const M = (key, vars) => esc(t(`maker.${key}`, vars));
 const head = (id, name) => [['k', '[plugin]'], ['', `id = ${str(id)}`], ['', `name = ${str(name)}`], ['', `version = ${str('0.1.0')}`], ['', ''], ['k', '[engines]'], ['', `cadente = ${str('&gt;=1.2')}`], ['', '']];
-const dev = (id, perms, where) => [['cmd', '$', 'cadente plugin dev'], ['out', '', 'compilando para webassembly · 0,8 s'], ['out', '', `permissões: ${perms}`], ['ok', '✓', `${id} 0.1.0 rodando`], ['out', '', `${where} · em desenvolvimento`]];
+const dev = (id, perms, where) => [['cmd', '$', 'cadente plugin dev'], ['out', '', M('compiling')], ['out', '', M('permissions', { perms })], ['ok', '✓', M('devRunning', { id })], ['out', '', M('inDevAt', { where })]];
+const X = (ex, key, vars) => M(`ex.${ex}.${key}`, vars);
 
 const EXAMPLES = [
   {
-    tab: '◕ Cadu de estimação', id: 'ana.cadu-tamagotchi', dir: '~/dev/cadu-tamagotchi', pet: true,
-    ask: 'crie um tamagotchi do Cadu que flutua no app, sente fome e fica sujo',
-    toml: [...head('ana.cadu-tamagotchi', 'Cadu Tamagotchi'), ['k', '[overlay]'], ['', `slot = ${str('shell.overlay')}`], ['', 'draggable = <span class="k">true</span>'], ['', ''], ['k', '[keys]'], ['', `f = ${str('alimentar')}`], ['', `b = ${str('dar banho')}`]],
-    plan: 'Vou criar o pacote ana.cadu-tamagotchi na camada flutuante: ele voa pela tela, sente fome e se suja com o tempo; f dá comida e b dá banho.',
-    files: ['escreveu src/lib.rs · o Cadu em ANSI, a fome e o banho', 'testes ok · 5 passaram'],
-    dev: dev('ana.cadu-tamagotchi', 'nenhuma além do Core', 'camada flutuante'),
-    ready: 'Pronto. O Cadu está solto no app, com fome e sujo. Arraste ele, f dá comida e b dá banho.',
-    hint: 'f alimenta · b dá banho · arraste o Cadu',
-    price: 'preço: grátis com doação · você recebe 90%',
+    tab: `◕ ${t('maker.ex.pet.tab')}`, id: 'ana.cadu-tamagotchi', dir: '~/dev/cadu-tamagotchi', pet: true,
+    ask: t('maker.ex.pet.ask'),
+    toml: [...head('ana.cadu-tamagotchi', 'Cadu Tamagotchi'), ['k', '[overlay]'], ['', `slot = ${str('shell.overlay')}`], ['', 'draggable = <span class="k">true</span>'], ['', ''], ['k', '[keys]'], ['', `f = ${str(X('pet', 'keyFeed'))}`], ['', `b = ${str(X('pet', 'keyBath'))}`]],
+    plan: t('maker.ex.pet.plan'),
+    files: [X('pet', 'file'), M('testsOk', { count: 5 })],
+    dev: dev('ana.cadu-tamagotchi', X('pet', 'perms'), M('floatingLayer')),
+    ready: t('maker.ex.pet.ready'),
+    hint: X('pet', 'hint'),
+    price: t('maker.ex.pet.price'),
   },
   {
-    tab: '$ Vendas do dia', id: 'leo.vendas-do-dia', dir: '~/dev/vendas-do-dia', glyph: '$', title: 'Vendas do dia',
-    ask: 'crie um plugin que mostra as vendas de hoje da minha loja, com um gráfico por hora',
-    toml: [...head('leo.vendas-do-dia', 'Vendas do dia'), ['k', '[permissions]'], ['', `net = [${str('api.stripe.com')}]`], ['', ''], ['k', '[views]'], ['', `hoje = ${str('total, gráfico e pedidos')}`], ['', `semana = ${str('comparação com a semana passada')}`]],
-    plan: 'Vou criar o leo.vendas-do-dia: uma folha com o total de hoje, um gráfico por hora e os últimos pedidos. Ele só fala com api.stripe.com.',
-    files: ['escreveu src/lib.rs · o total, o gráfico e os pedidos', 'testes ok · 4 passaram'],
-    dev: dev('leo.vendas-do-dia', 'api.stripe.com', 'folha nova'),
-    view: [ln('h', '', 'hoje', 'R$ 3.482,90 · 27 pedidos'), `<div class="ln spark"><span class="lb">por hora</span><span class="sk">▁▁▂▃▅▇█▆▅▄▃▂</span><span class="mt">pico às 11h</span></div>`,
-      ln('h', '', 'últimos pedidos'), ln('row', '●', '#1042 · Marina', 'R$ 129,90 · pago'), ln('row', '●', '#1041 · Kenji', 'R$ 49,00 · pago'), ln('row', '○', '#1040 · Sofia', 'R$ 310,00 · aguardando')],
-    ready: 'Pronto. A folha mostra as vendas de hoje e se atualiza sozinha a cada minuto.',
-    hint: '⇥ semana · ↵ abre o pedido',
-    price: 'preço: US$ 4 por mês · você recebe 70% de cada renovação',
+    tab: `$ ${t('maker.ex.sales.title')}`, id: 'leo.vendas-do-dia', dir: '~/dev/vendas-do-dia', glyph: '$', title: X('sales', 'title'),
+    ask: t('maker.ex.sales.ask'),
+    toml: [...head('leo.vendas-do-dia', X('sales', 'title')), ['k', '[permissions]'], ['', `net = [${str('api.stripe.com')}]`], ['', ''], ['k', '[views]'], ['', `${X('sales', 'viewToday')} = ${str(X('sales', 'viewTodayText'))}`], ['', `${X('sales', 'viewWeek')} = ${str(X('sales', 'viewWeekText'))}`]],
+    plan: t('maker.ex.sales.plan'),
+    files: [X('sales', 'file'), M('testsOk', { count: 4 })],
+    dev: dev('leo.vendas-do-dia', 'api.stripe.com', M('newPane')),
+    view: [ln('h', '', X('sales', 'today'), X('sales', 'todayMeta')), `<div class="ln spark"><span class="lb">${X('sales', 'perHour')}</span><span class="sk">▁▁▂▃▅▇█▆▅▄▃▂</span><span class="mt">${X('sales', 'peak')}</span></div>`,
+      ln('h', '', X('sales', 'latest')), ln('row', '●', '#1042 · Marina', X('sales', 'order1')), ln('row', '●', '#1041 · Kenji', X('sales', 'order2')), ln('row', '○', '#1040 · Sofia', X('sales', 'order3'))],
+    ready: t('maker.ex.sales.ready'),
+    hint: X('sales', 'hint'),
+    price: t('maker.ex.sales.price'),
   },
   {
-    tab: '↯ Status page', id: 'orbita.status-page', dir: '~/dev/status-page', glyph: '↯', title: 'Status page',
-    ask: 'crie uma status page que mostra quando o GitHub, a Cloudflare, a AWS e outros serviços caem',
-    toml: [...head('orbita.status-page', 'Status page'), ['k', '[permissions]'], ['', `net = [${str('githubstatus.com')}, ${str('cloudflarestatus.com')},`], ['', `       ${str('health.aws.amazon.com')}, …]`], ['', ''], ['k', '[schedule]'], ['', `every = ${str('1m')}`], ['', ''], ['k', '[notify]'], ['', `when = ${str('um serviço cair ou voltar')}`]],
-    plan: 'Vou criar o orbita.status-page: uma folha com o GitHub, a Cloudflare, a AWS e outros serviços, lidos das páginas de status oficiais a cada minuto. Quando um cai, o cabeçalho da folha fica vermelho e você recebe um aviso.',
-    files: ['escreveu src/lib.rs · leitura das páginas de status e os avisos', 'testes ok · 6 passaram'],
-    dev: dev('orbita.status-page', 'rede · 7 páginas de status', 'folha nova'),
-    signal: '<span class="err">● 1 fora do ar</span>',
-    view: [ln('h', '', 'agora', '1 fora · 1 instável · 5 ok'), status('err', 'AWS · CloudFront', 'fora · us-east-1 · 4 min'), status('warn', 'GitHub · Actions', 'lento · filas com atraso'),
-      status('ok', 'Cloudflare', 'operacional'), status('ok', 'Vercel', 'operacional'), status('ok', 'OpenAI', 'operacional'), status('ok', 'Anthropic', 'operacional'), status('ok', 'Stripe', 'operacional'),
-      `<div class="ln spark"><span class="lb">24 horas</span><span class="sk">▁▁▁▁▁▁▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▆█</span><span class="mt">2 incidentes</span></div>`],
-    ready: 'Pronto. A folha checa as páginas de status a cada minuto. Neste exemplo, o CloudFront da AWS aparece fora em us-east-1 e o GitHub Actions está lento.',
-    hint: '↵ abre o incidente · ⇥ histórico',
-    price: 'preço: US$ 12, compra única · você recebe 70%',
+    tab: `↯ ${t('maker.ex.status.title')}`, id: 'orbita.status-page', dir: '~/dev/status-page', glyph: '↯', title: X('status', 'title'),
+    ask: t('maker.ex.status.ask'),
+    toml: [...head('orbita.status-page', 'Status page'), ['k', '[permissions]'], ['', `net = [${str('githubstatus.com')}, ${str('cloudflarestatus.com')},`], ['', `       ${str('health.aws.amazon.com')}, …]`], ['', ''], ['k', '[schedule]'], ['', `every = ${str('1m')}`], ['', ''], ['k', '[notify]'], ['', `when = ${str(X('status', 'when'))}`]],
+    plan: t('maker.ex.status.plan'),
+    files: [X('status', 'file'), M('testsOk', { count: 6 })],
+    dev: dev('orbita.status-page', X('status', 'perms'), M('newPane')),
+    signal: `<span class="err">● ${X('status', 'signal')}</span>`,
+    view: [ln('h', '', X('status', 'now'), X('status', 'nowMeta')), status('err', 'AWS · CloudFront', X('status', 'aws')), status('warn', 'GitHub · Actions', X('status', 'github')),
+      ...['Cloudflare', 'Vercel', 'OpenAI', 'Anthropic', 'Stripe'].map(n => status('ok', n, X('status', 'operational'))),
+      `<div class="ln spark"><span class="lb">${X('status', 'day')}</span><span class="sk">▁▁▁▁▁▁▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▆█</span><span class="mt">${X('status', 'incidents')}</span></div>`],
+    ready: t('maker.ex.status.ready'),
+    hint: X('status', 'hint'),
+    price: t('maker.ex.status.price'),
   },
 ];
 
@@ -71,7 +74,7 @@ export class Maker {
   }
   get x() { return EXAMPLES[this.ex]; }
   reset() {
-    this.a = { lines: [ln('note dim', '◆', 'creator mode · o agente usa o SDK'), ln('note dim', '└', 'nada sai sem você apertar ↵')], input: '', cmp: '', signal: '', status: 'creator mode' };
+    this.a = { lines: [ln('note dim', '◆', M('intro')), ln('note dim', '└', M('nothingSent'))], input: '', cmp: '', signal: '', status: 'creator mode' };
     this.b = { mode: 'empty', code: 0, dev: 0 };
     this.step = -1;
     for (const b of this.tabs.children) b.setAttribute('aria-selected', String(Number(b.dataset.ex) === this.ex));
@@ -86,18 +89,18 @@ export class Maker {
   }
   paneB() {
     const b = this.b, x = this.x;
-    if (b.mode === 'empty') return { g: '+', title: 'folha nova', signal: '', status: '', hint: 'aguardando o agente', body: ln('note dim', '', 'o código aparece aqui') };
+    if (b.mode === 'empty') return { g: '+', title: M('newPane'), signal: '', status: '', hint: M('waiting'), body: ln('note dim', '', M('codeHere')) };
     const code = x.toml.slice(0, b.code).map(([k, t]) => `<div class="ln note code"><span class="tx">${k ? `<span class="k">${t}</span>` : t || ' '}</span></div>`).join('');
-    if (b.mode === 'code') return { g: '#', title: 'cadente-plugin.toml', signal: `${b.code} linhas`, status: 'escrevendo', hint: '', body: code };
-    if (b.mode === 'run') return { g: x.glyph, title: x.title, signal: x.signal ?? 'em desenvolvimento', status: 'cadente plugin dev', hint: x.hint, body: x.view.join('') };
+    if (b.mode === 'code') return { g: '#', title: 'cadente-plugin.toml', signal: M('lines', { count: b.code }), status: M('writing'), hint: '', body: code };
+    if (b.mode === 'run') return { g: x.glyph, title: x.title, signal: x.signal ?? M('inDev'), status: 'cadente plugin dev', hint: x.hint, body: x.view.join('') };
     const out = x.dev.slice(0, b.dev).map(([k, g, t]) => (k === 'cmd' ? ln('cmd', g, t) : k === 'ok' ? ln('out ok', '', `${g} ${t}`) : ln('out', '', t))).join('');
-    return { g: '$', title: 'Terminal · cadente plugin dev', signal: b.dev >= 4 ? 'rodando' : '', status: 'cadente plugin dev', hint: x.pet ? x.hint : '', body: `<div class="blk">${out}</div>` };
+    return { g: '$', title: M('terminalTitle'), signal: b.dev >= 4 ? M('running') : '', status: 'cadente plugin dev', hint: x.pet ? x.hint : '', body: `<div class="blk">${out}</div>` };
   }
   draw() {
     const a = this.a, b = this.paneB(), dir = this.x.dir;
-    const caretA = `${esc(a.input)}<b class="cur"> </b>${a.input ? '' : '<span class="hint">mensagem · @ anexos · / comandos</span>'}`;
+    const caretA = `${esc(a.input)}<b class="cur"> </b>${a.input ? '' : `<span class="hint">${M('placeholder')}</span>`}`;
     this.win.innerHTML = `<div class="win"><span class="tl float"><i></i><i></i><i></i></span><main class="tree"><div class="split row" style="flex-grow:1">`
-      + `<div class="cell" style="flex-grow:.54"><section class="pane" data-focused="true"><header class="ph inset"><span class="pl">»</span><span class="pt">Chat · creator mode</span><span class="ps">${a.signal}</span></header>`
+      + `<div class="cell" style="flex-grow:.54"><section class="pane" data-focused="true"><header class="ph inset"><span class="pl">»</span><span class="pt">${M('chatTitle')}</span><span class="ps">${a.signal}</span></header>`
       + `<div class="pc">${a.lines.join('')}</div><footer class="pp">${a.cmp}<div class="ln ctx"><span class="cwd">${dir}</span><span class="br"> main</span><span class="mt">${a.status}</span></div><div class="ln in"><i class="g">›</i><span class="tx">${caretA}</span></div></footer></section></div>`
       + `<div class="sp"></div>`
       + `<div class="cell" style="flex-grow:.46"><section class="pane" data-focused="false"><header class="ph"><span class="pl">${b.g}</span><span class="pt">${b.title}</span><span class="ps">${b.signal}</span></header>`
@@ -144,10 +147,10 @@ export class Maker {
       },
       async w => {
         await w(600);
-        this.a.signal = 'escrevendo';
+        this.a.signal = M('writing');
         this.say('msg agent', '◆', esc(x.plan));
         this.b.mode = 'code';
-        const files = [['escrevendo cadente-plugin.toml', 'note dim', '└', 'escreveu cadente-plugin.toml'], ['escrevendo src/lib.rs', 'note dim', '└', x.files[0]], ['rodando cargo test', 'note ok', '✓', x.files[1]]];
+        const files = [[M('writingToml'), 'note dim', '└', M('wroteToml')], [M('writingLib'), 'note dim', '└', x.files[0]], [M('runningTests'), 'note ok', '✓', x.files[1]]];
         for (const [i, [doing, cls, g, done]] of files.entries()) {
           this.say('note', '<i class="spin"></i>', doing);
           if (i === 0) for (let n = 1; n <= x.toml.length; n++) { this.b.code = n; this.draw(); await w(90); }
@@ -167,17 +170,17 @@ export class Maker {
       async (w, type) => {
         await w(1600);
         await type('/pub');
-        this.a.cmp = `<div class="cmp"><div class="ln row" data-sel="true"><i class="g">/</i><span class="tx">publish</span><span class="mt">release, sha256 e índice da loja</span></div></div>`;
+        this.a.cmp = `<div class="cmp"><div class="ln row" data-sel="true"><i class="g">/</i><span class="tx">publish</span><span class="mt">${M('publishDesc')}</span></div></div>`;
         this.draw();
         await w(500);
         await type('lish');
         await w(400);
-        this.a.input = ''; this.a.cmp = ''; this.a.status = 'publicando';
-        this.a.lines.push(`<div class="blk">${ln('cmd', '$', '/publish')}${ln('out', '', 'release v0.1.0 · artefato e sha256 enviados')}${ln('out', '', 'manifesto válido · topic cadente-plugin')}</div>`);
+        this.a.input = ''; this.a.cmp = ''; this.a.status = M('publishing');
+        this.a.lines.push(`<div class="blk">${ln('cmd', '$', '/publish')}${ln('out', '', M('released'))}${ln('out', '', M('manifestOk'))}</div>`);
         this.draw();
         await w(1100);
-        this.a.lines.push(ln('note ok', '✓', 'publicado · entra na loja no próximo índice'), ln('note dim', '└', esc(x.price)));
-        this.a.status = 'na loja';
+        this.a.lines.push(ln('note ok', '✓', M('published')), ln('note dim', '└', esc(x.price)));
+        this.a.status = M('inStore');
         this.draw();
       },
     ];

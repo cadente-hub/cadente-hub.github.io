@@ -4,6 +4,11 @@
 // noted in the meeting minutes, followed by focus time, accounts, plugins, and the agents still waiting at the end. Each chapter is a script of real keystrokes played on the v4 prototype; played in
 // order they build one session.
 import { createState, leaves, activeTab, jumpLabels } from './v4/model.mjs';
+import { t } from './i18n.js';
+
+// The words of each chapter (js.theater.chapters.<id>) and of the keycaps under the window (js.theater.hud.<key>).
+const chapter = id => ({ id, step: t(`theater.chapters.${id}.step`), title: t(`theater.chapters.${id}.title`), text: t(`theater.chapters.${id}.text`) });
+const L = key => t(`theater.hud.${key}`);
 
 // Accounts shown in Configurações › contas: subscriptions, an API key and a local model.
 const ACCOUNTS = [
@@ -34,7 +39,7 @@ async function cli(s, id, name, label, task) {
   await s.key('↵', id, { label });
   await s.wait(700, id);
   await s.type(task, id, { speed: 3.2 });
-  await s.key('↵', id, { label: 'mandar a tarefa' });
+  await s.key('↵', id, { label: L('mandarATarefa') });
 }
 
 // Pacing: every wait, keystroke and tick of the scripts below is played at TEMPO of its written length, so the
@@ -59,313 +64,285 @@ export async function durations() {
 
 export const CHAPTERS = [
   {
-    step: 'Manhã',
-    title: '9h. O dia já está montado.',
-    text: 'Você abre o Cadente e a primeira folha já mostra o dia: a daily às 9h30, a reunião de design às 14h e um conflito de merge esperando. Sem abrir cinco apps para saber por onde começar. <kbd>⇥</kbd> passa para os recentes e as tarefas.',
+    ...chapter('morning'),
     async run(s, id) {
       s.boot();
       await s.wait(900, id);
-      await s.key('⇥', id, { label: 'próxima vista' });
+      await s.key('⇥', id, { label: L('proximaVista') });
       await s.wait(500, id);
-      await s.key('⇥', id, { label: 'próxima vista' });
+      await s.key('⇥', id, { label: L('proximaVista') });
       await s.wait(500, id);
-      await s.key('⇧⇥', id, { hold: 300, label: 'vista anterior' });
-      await s.key('⇧⇥', id, { label: 'vista anterior' });
+      await s.key('⇧⇥', id, { hold: 300, label: L('vistaAnterior') });
+      await s.key('⇧⇥', id, { label: L('vistaAnterior') });
     },
   },
   {
-    step: 'Claude',
-    title: 'Primeiro, um teste para o Claude.',
-    text: '<kbd>⌘O</kbd> e quatro letras transformam a folha num Terminal. Você abre o Claude Code com a assinatura que já paga e pede um teste para <code>focus_neighbor</code>. Ele começa a escrever, e você segue para a próxima.',
+    ...chapter('claude'),
     async run(s, id) {
       await s.key('⌘O', id);
-      await pick(s, id, 'term', 'abrir o Terminal');
-      await cli(s, id, 'claude', 'abrir o Claude Code', 'adicione um teste para focus_neighbor no fim de layout.rs, sem rodar nada');
+      await pick(s, id, 'term', L('abrirOTerminal'));
+      await cli(s, id, 'claude', L('abrirOClaudeCode'), t('theater.typed.claude'));
       await s.ticks(2, id);
     },
   },
   {
-    step: 'Agentes',
-    title: 'Três agentes, nenhuma janela a mais.',
-    text: '<kbd>⌘D</kbd> divide a tela para o lado e <kbd>⌘⇧D</kbd> para baixo. O Codex roda os testes, o agy explica o <code>layout.rs</code>, e embaixo do Claude ainda sobra um Terminal para você. Todos trabalhando, todos à vista.',
+    ...chapter('agents'),
     async run(s, id) {
       await s.key('⌘D', id);
-      await pick(s, id, 'term', 'outro Terminal');
-      await cli(s, id, 'codex', 'abrir o Codex', 'rode cargo test e me diga o resultado');
+      await pick(s, id, 'term', L('outroTerminal'));
+      await cli(s, id, 'codex', L('abrirOCodex'), t('theater.typed.codex'));
       await s.key('⌘⇧D', id);
-      await pick(s, id, 'term', 'mais um');
-      await cli(s, id, 'agy', 'abrir o agy', 'explique em uma frase o que layout.rs faz');
+      await pick(s, id, 'term', L('maisUm'));
+      await cli(s, id, 'agy', L('abrirOAgy'), t('theater.typed.agy'));
       await s.key('⌘⌥←', id);
       await s.key('⌘⇧D', id);
-      await pick(s, id, 'term', 'um Terminal para você');
+      await pick(s, id, 'term', L('umTerminalParaVoce'));
       await s.wait(200, id);
       await s.type('cargo test', id, { speed: 1.8 });
-      await s.key('↵', id, { label: 'rodar os testes' });
+      await s.key('↵', id, { label: L('rodarOsTestes') });
       await s.ticks(2, id);
     },
   },
   {
-    step: 'CI',
-    title: 'Aí o CI do login quebra.',
-    text: 'Numa página nova estão os quatro branches abertos e o estado de cada PR. O login está vermelho. Você abre o branch e <kbd>⌘J</kbd> chama um Chat que já sabe onde você está, então é só perguntar o motivo. O diff abre do lado.',
+    ...chapter('ci'),
     async run(s, id) {
       await s.key('⌘T', id);
-      await pick(s, id, 'work', 'abrir Workspaces');
+      await pick(s, id, 'work', L('abrirWorkspaces'));
       await s.wait(500, id);
-      for (const label of ['login · o CI falhou', 'painéis · pronto para o merge', 'busca · o Claude trabalhando', 'tema · esperando revisão']) await s.key('↓', id, { hold: 560, label });
-      await s.key('Home', id, { label: 'voltar ao login' });
-      await s.key('↵', id, { label: 'abrir o workspace login' });
-      await s.key('⌘J', id, { label: 'Chat ao lado, ligado ao workspace' });
+      for (const label of [L('loginOCiFalhou'), L('paineisProntoParaOMerge'), L('buscaOClaudeTrabalhando'), L('temaEsperandoRevisao')]) await s.key('↓', id, { hold: 560, label });
+      await s.key('Home', id, { label: L('voltarAoLogin') });
+      await s.key('↵', id, { label: L('abrirOWorkspaceLogin') });
+      await s.key('⌘J', id, { label: L('chatAoLadoLigadoAoWorkspace') });
       await s.wait(250, id);
-      await s.type('por que o CI falhou?', id, { speed: 2.4 });
-      await s.key('↵', id, { label: 'perguntar' });
-      await s.key('⌘D', id, { label: 'abrir o diff do lado' });
-      await pick(s, id, 'work', 'Workspaces, nas alterações');
-      await s.key('⇥', id, { label: 'alterações' });
-      await s.key('↓', id, { hold: 300, label: 'descer' });
-      await s.key('↵', id, { label: 'abrir o diff' });
+      await s.type(t('theater.typed.ciQuestion'), id, { speed: 2.4 });
+      await s.key('↵', id, { label: L('perguntar') });
+      await s.key('⌘D', id, { label: L('abrirODiffDoLado') });
+      await pick(s, id, 'work', L('workspacesNasAlteracoes'));
+      await s.key('⇥', id, { label: L('alteracoes') });
+      await s.key('↓', id, { hold: 300, label: L('descer') });
+      await s.key('↵', id, { label: L('abrirODiff') });
       await s.ticks(1, id);
     },
   },
   {
-    step: 'API',
-    title: 'Agora, a feature do dia.',
-    text: 'A tarefa de hoje é a API de projetos. No Requests você abre o <code>GET /v1/projects</code>, troca o <code>limit</code> para 5 e envia. Depois, o POST cria o projeto vitrine. Os agentes seguem na primeira página, e você não abriu outro programa.',
+    ...chapter('api'),
     async run(s, id) {
       await s.key('⌘T', id);
-      await pick(s, id, 'req', 'abrir o Requests');
-      await s.key('⇥', id, { hold: 300, label: 'requisição' });
-      await s.key('⇥', id, { label: 'coleções' });
-      await s.key('↓', id, { hold: 300, label: 'coleção projetos' });
+      await pick(s, id, 'req', L('abrirORequests'));
+      await s.key('⇥', id, { hold: 300, label: L('requisicao') });
+      await s.key('⇥', id, { label: L('colecoes') });
+      await s.key('↓', id, { hold: 300, label: L('colecaoProjetos') });
       await s.key('↓', id, { label: 'GET /v1/projects' });
-      await s.key('↵', id, { label: 'abrir o request' });
-      for (let i = 0; i < 3; i++) await s.key('↓', id, { hold: 260, label: 'descer até o limit' });
-      await s.key('↵', id, { label: 'editar o limit' });
-      await s.key('⌘⌫', id, { label: 'apagar o valor' });
+      await s.key('↵', id, { label: L('abrirORequest') });
+      for (let i = 0; i < 3; i++) await s.key('↓', id, { hold: 260, label: L('descerAteOLimit') });
+      await s.key('↵', id, { label: L('editarOLimit') });
+      await s.key('⌘⌫', id, { label: L('apagarOValor') });
       await s.type('5', id);
-      await s.key('↵', id, { label: 'gravar' });
-      await s.key('Home', id, { label: 'voltar ao enviar' });
-      await s.key('↵', id, { label: 'enviar o GET' });
+      await s.key('↵', id, { label: L('gravar') });
+      await s.key('Home', id, { label: L('voltarAoEnviar') });
+      await s.key('↵', id, { label: L('enviarOGet') });
       await s.wait(1000, id);
-      await s.key('⇥', id, { hold: 260, label: 'requisição' });
-      await s.key('⇥', id, { label: 'coleções' });
-      for (let i = 0; i < 2; i++) await s.key('↓', id, { hold: 260, label: 'descer' });
+      await s.key('⇥', id, { hold: 260, label: L('requisicao') });
+      await s.key('⇥', id, { label: L('colecoes') });
+      for (let i = 0; i < 2; i++) await s.key('↓', id, { hold: 260, label: L('descer') });
       await s.key('↓', id, { label: 'POST /v1/projects' });
-      await s.key('↵', id, { label: 'abrir o request' });
-      await s.key('↵', id, { label: 'enviar o POST' });
+      await s.key('↵', id, { label: L('abrirORequest') });
+      await s.key('↵', id, { label: L('enviarOPost') });
       await s.wait(900, id);
     },
   },
   {
-    step: 'Loja',
-    title: 'Falta um cliente de banco.',
-    text: 'Para ver se o POST salvou, falta olhar o banco. A Loja abre logo abaixo: você acha o Postgres, passa as fotos, confere o que ele pede para acessar e instala com <kbd>↵</kbd>, de graça.',
+    ...chapter('store'),
     async run(s, id) {
       await s.key('⌘⇧D', id);
-      await pick(s, id, 'loja', 'abrir a Loja');
-      await s.key('⌘⇧↵', id, { label: 'ampliar a folha' });
+      await pick(s, id, 'loja', L('abrirALoja'));
+      await s.key('⌘⇧↵', id, { label: L('ampliarAFolha') });
       await s.wait(700, id);
-      for (const label of ['Quadro', 'Kanban', 'Rádio lo-fi']) await s.key('↓', id, { hold: 380, label });
+      for (const label of [L('quadro'), 'Kanban', L('radioLoFi')]) await s.key('↓', id, { hold: 380, label });
       await s.type('postgres', id, { speed: 2 });
       await s.wait(300, id);
-      await s.key('↵', id, { label: 'abrir a página do Postgres' });
+      await s.key('↵', id, { label: L('abrirAPaginaDoPostgres') });
       await s.wait(500, id);
       s.shot('.pg-shots', 1.22);
       await s.wait(300, id);
-      for (const label of ['próxima foto', 'mais uma']) await s.key('→', id, { hold: 950, label });
-      for (const label of ['as fotos', 'sobre', 'o que ele faz', 'atalhos']) await s.key('↓', id, { hold: 480, label });
-      await s.key('Home', id, { label: 'voltar ao topo' });
+      for (const label of [L('proximaFoto'), L('maisUma')]) await s.key('→', id, { hold: 950, label });
+      for (const label of [L('asFotos'), L('sobre'), L('oQueEleFaz'), L('atalhos')]) await s.key('↓', id, { hold: 480, label });
+      await s.key('Home', id, { label: L('voltarAoTopo') });
       s.shot('.pg-top', 1.35);
-      await s.key('↵', id, { label: 'instalar, grátis' });
+      await s.key('↵', id, { label: L('instalarGratis') });
       await s.ticks(2, id);
       s.wide();
       await s.wait(700, id);
     },
   },
   {
-    step: 'Banco',
-    title: 'O banco confirma o POST.',
-    text: '<kbd>⌘↵</kbd> roda o select do cursor. Na consulta dos projetos, o vitrine já aparece. Você troca a ordem ali mesmo na linha, roda de novo e abre a tabela de sessões pelo navegador do banco.',
+    ...chapter('db'),
     async run(s, id) {
       await s.wait(500, id);
-      await s.key('⌘↵', id, { label: 'rodar o select do cursor' });
+      await s.key('⌘↵', id, { label: L('rodarOSelectDoCursor') });
       await s.ticks(1, id);
       await s.wait(500, id);
-      for (let i = 0; i < 5; i++) await s.key('↓', id, { hold: 180, label: 'descer pelo script' });
-      await s.key('⌘↵', id, { label: 'rodar este select' });
+      for (let i = 0; i < 5; i++) await s.key('↓', id, { hold: 180, label: L('descerPeloScript') });
+      await s.key('⌘↵', id, { label: L('rodarEsteSelect') });
       await s.ticks(1, id);
       await s.wait(500, id);
-      for (let i = 0; i < 2; i++) await s.key('↓', id, { hold: 300, label: 'até o order by' });
+      for (let i = 0; i < 2; i++) await s.key('↓', id, { hold: 300, label: L('ateOOrderBy') });
       s.shot('.dbv-ed', 1.35);
-      await s.key('End', id, { label: 'editar a linha, ali mesmo' });
-      await s.key('⌥⌫', id, { label: 'apagar a última palavra' });
+      await s.key('End', id, { label: L('editarALinhaAliMesmo') });
+      await s.key('⌥⌫', id, { label: L('apagarAUltimaPalavra') });
       await s.type('paineis desc;', id, { speed: 1.8 });
-      await s.key('⌘↵', id, { label: 'gravar e rodar' });
+      await s.key('⌘↵', id, { label: L('gravarERodar') });
       s.shot('.dbv-res', 1.35);
       await s.ticks(1, id);
       await s.wait(500, id);
       s.shot('.dbv-nav', 1.4);
-      await s.key('⇥', id, { label: 'navegador do banco' });
+      await s.key('⇥', id, { label: L('navegadorDoBanco') });
       for (const label of ['usuarios', 'sessoes']) await s.key('↓', id, { hold: 320, label });
-      await s.key('↵', id, { label: 'ver os dados da tabela' });
+      await s.key('↵', id, { label: L('verOsDadosDaTabela') });
       s.shot('.dbv-res', 1.35);
       await s.ticks(1, id);
       await s.wait(700, id);
-      await s.key('⌘⇧↵', id, { label: 'voltar às duas folhas' });
+      await s.key('⌘⇧↵', id, { label: L('voltarAsDuasFolhas') });
     },
   },
   {
-    step: 'No app',
-    title: 'E já aparece no app.',
-    text: 'Numa nova página, o Navegador abre o app que você está fazendo, em <code>localhost:5173</code>. O vitrine está na lista. <kbd>↓</kbd> anda pelos links, <kbd>↵</kbd> abre o projeto e <kbd>⌫</kbd> volta.',
+    ...chapter('app'),
     async run(s, id) {
       await s.key('⌘T', id);
-      await pick(s, id, 'naveg', 'abrir o Navegador');
+      await pick(s, id, 'naveg', L('abrirONavegador'));
       await s.wait(500, id);
-      await s.key('⌘L', id, { label: 'ir ao endereço' });
+      await s.key('⌘L', id, { label: L('irAoEndereco') });
       await s.type('localhost:5173', id, { speed: 2 });
-      await s.key('↵', id, { label: 'abrir o site' });
+      await s.key('↵', id, { label: L('abrirOSite') });
       await s.ticks(1, id);
       s.shot('.wb-body', 1.3);
       await s.wait(600, id);
-      for (const label of ['mapa', 'vitrine']) await s.key('↓', id, { hold: 420, label });
-      await s.key('↵', id, { label: 'abrir o projeto vitrine' });
+      for (const label of [L('mapa'), L('vitrine')]) await s.key('↓', id, { hold: 420, label });
+      await s.key('↵', id, { label: L('abrirOProjetoVitrine') });
       await s.ticks(1, id);
       await s.wait(700, id);
-      await s.key('⌫', id, { label: 'voltar' });
+      await s.key('⌫', id, { label: L('voltar') });
       await s.ticks(1, id);
       await s.wait(300, id);
     },
   },
   {
-    step: 'Diagrama',
-    title: 'Um diagrama para a reunião.',
-    text: 'Às 14h tem reunião de design. Do lado do site, você instala o Quadro pela Loja e desenha o caminho do dado, sem abrir outra ferramenta. <kbd>r</kbd> faz um retângulo, <kbd>o</kbd> uma elipse e <kbd>a</kbd> liga os dois.',
+    ...chapter('diagram'),
     async run(s, id) {
       await s.key('⌘D', id);
-      await pick(s, id, 'loja', 'abrir a Loja');
+      await pick(s, id, 'loja', L('abrirALoja'));
       await s.type('quadro', id, { speed: 2 });
       await s.wait(250, id);
-      await s.key('↵', id, { label: 'abrir a página do Quadro' });
+      await s.key('↵', id, { label: L('abrirAPaginaDoQuadro') });
       await s.wait(500, id);
-      await s.key('→', id, { hold: 900, label: 'próxima foto' });
-      await s.key('↵', id, { label: 'instalar, grátis' });
+      await s.key('→', id, { hold: 900, label: L('proximaFoto') });
+      await s.key('↵', id, { label: L('instalarGratis') });
       await s.ticks(2, id);
       s.shot('.xd-svg', 1.2);
       await s.wait(400, id);
-      for (const [key, label, text] of [['r', 'retângulo', 'app web'], ['r', 'outro retângulo', 'API /v1/projects']]) {
+      for (const [key, label, text] of [['r', L('retangulo'), t('theater.typed.boardWeb')], ['r', L('outroRetangulo'), 'API /v1/projects']]) {
         await s.key(key, id, { label });
         await s.type(text, id, { speed: 2.3 });
-        await s.key('↵', id, { hold: 300, label: 'guardar o texto' });
+        await s.key('↵', id, { hold: 300, label: L('guardarOTexto') });
       }
-      await s.key('a', id, { label: 'ligar com uma seta' });
-      await s.key('o', id, { label: 'elipse' });
+      await s.key('a', id, { label: L('ligarComUmaSeta') });
+      await s.key('o', id, { label: L('elipse') });
       await s.type('Postgres', id, { speed: 2.3 });
-      await s.key('↵', id, { hold: 300, label: 'guardar o texto' });
-      await s.key('a', id, { label: 'mais uma seta' });
+      await s.key('↵', id, { hold: 300, label: L('guardarOTexto') });
+      await s.key('a', id, { label: L('maisUmaSeta') });
       await s.wait(1100, id);
     },
   },
   {
-    step: 'Reunião',
-    title: 'Na reunião, a ata vira tarefa.',
-    text: 'A ata fica no Documentos, como um arquivo .md na sua pasta. Você escreve as próximas tarefas direto no texto, <kbd>↵</kbd> puxa a seguinte e <kbd>espaço</kbd> marca a que já saiu: o anúncio no blog.',
+    ...chapter('meeting'),
     async run(s, id) {
       await s.key('⌘T', id);
-      await pick(s, id, 'doc', 'abrir Documentos');
+      await pick(s, id, 'doc', L('abrirDocumentos'));
       await s.wait(600, id);
-      for (const label of ['2026-10-30', 'Lançamento', 'Site', 'Design 30-10']) await s.key('↓', id, { hold: 340, label });
-      await s.key('↵', id, { label: 'abrir a nota' });
+      for (const label of ['2026-10-30', L('lancamento'), 'Site', 'Design 30-10']) await s.key('↓', id, { hold: 340, label });
+      await s.key('↵', id, { label: L('abrirANota') });
       s.shot('.mdv-note', 1.3);
       await s.wait(450, id);
-      for (let i = 0; i < 9; i++) await s.key('↓', id, { hold: 110, label: 'descer pela nota' });
-      await s.key('↵', id, { label: 'nova tarefa' });
-      await s.type('mandar o changelog para o time', id, { speed: 2.6 });
-      await s.key('↵', id, { label: 'a lista continua' });
-      await s.type('revisar o [[Lançamento]]', id, { speed: 2.6 });
-      await s.key('↵', id, { hold: 300, label: 'a lista continua' });
-      await s.key('↵', id, { label: 'fechar a lista' });
-      for (let i = 0; i < 4; i++) await s.key('↑', id, { hold: 160, label: 'subir' });
-      await s.key('espaço', id, { label: 'marcar como feita' });
+      for (let i = 0; i < 9; i++) await s.key('↓', id, { hold: 110, label: L('descerPelaNota') });
+      await s.key('↵', id, { label: L('novaTarefa') });
+      await s.type(t('theater.typed.task1'), id, { speed: 2.6 });
+      await s.key('↵', id, { label: L('aListaContinua') });
+      await s.type(t('theater.typed.task2'), id, { speed: 2.6 });
+      await s.key('↵', id, { hold: 300, label: L('aListaContinua') });
+      await s.key('↵', id, { label: L('fecharALista') });
+      for (let i = 0; i < 4; i++) await s.key('↑', id, { hold: 160, label: L('subir') });
+      await s.key('espaço', id, { label: L('marcarComoFeita') });
       await s.wait(700, id);
     },
   },
   {
-    step: 'Foco',
-    title: 'Depois, 25 minutos de foco.',
-    text: 'Uma página só sua: a agenda, um pomodoro de 25 minutos, a memória do computador e quanto você já usou do Claude. <kbd>⌘1</kbd> a <kbd>⌘6</kbd> pulam entre as seis páginas do dia.',
+    ...chapter('focus'),
     async run(s, id) {
       await s.key('⌘T', id);
-      await pick(s, id, 'cal', 'abrir o Calendário');
+      await pick(s, id, 'cal', L('abrirOCalendario'));
       await s.key('⌘D', id);
-      await pick(s, id, 'foco', 'abrir o Foco');
-      await s.key('espaço', id, { label: 'começar um pomodoro' });
+      await pick(s, id, 'foco', L('abrirOFoco'));
+      await s.key('espaço', id, { label: L('comecarUmPomodoro') });
       await s.key('⌘⇧D', id);
-      await pick(s, id, 'sis', 'abrir o Sistema');
+      await pick(s, id, 'sis', L('abrirOSistema'));
       await s.key('⌘⌥←', id);
       await s.key('⌘⇧D', id);
-      await pick(s, id, 'uso', 'abrir o Uso');
+      await pick(s, id, 'uso', L('abrirOUso'));
       await s.wait(600, id);
-      await s.key('⌘1', id, { hold: 850, label: 'página 1: os agentes' });
-      await s.key('⌘3', id, { hold: 850, label: 'página 3: a API e o banco' });
-      await s.key('⌘5', id, { hold: 850, label: 'página 5: a ata' });
-      await s.key('⌘6', id, { label: 'página 6: de volta ao seu dia' });
+      await s.key('⌘1', id, { hold: 850, label: L('pagina1OsAgentes') });
+      await s.key('⌘3', id, { hold: 850, label: L('pagina3AApiEO') });
+      await s.key('⌘5', id, { hold: 850, label: L('pagina5AAta') });
+      await s.key('⌘6', id, { label: L('pagina6DeVoltaAoSeu') });
     },
   },
   {
-    step: 'Contas',
-    title: 'Use as assinaturas que você já paga.',
-    text: 'O Uso mostrou o Claude em 58% do limite. Em Configurações estão as contas que você já tem: Claude Max, ChatGPT Plus, uma chave do Gemini, o OpenRouter e um modelo local no Ollama. Cada conversa escolhe a sua, e o Cadente não cobra nada por cima.',
+    ...chapter('accounts'),
     async run(s, id) {
       await s.key('⌘,', id);
       await s.wait(250, id);
       await s.key('⌘⇧↵', id);
-      for (let i = 0; i < 4; i++) await s.key('⇥', id, { hold: 200, label: 'próxima vista' });
+      for (let i = 0; i < 4; i++) await s.key('⇥', id, { hold: 200, label: L('proximaVista') });
       await s.wait(400, id);
-      for (let i = 0; i < 4; i++) await s.key('↓', id, { hold: 380, label: 'próxima conta' });
+      for (let i = 0; i < 4; i++) await s.key('↓', id, { hold: 380, label: L('proximaConta') });
       await s.wait(300, id);
     },
   },
   {
-    step: 'Plugins',
-    title: 'O que você não usa, sai.',
-    text: 'No Plugins, até o que vem de fábrica pode sair. <kbd>espaço</kbd> desliga o Links e as Ferramentas. O provider de IA também se troca: ele passa para o Ollama, no seu notebook, e você vê antes o que muda. Dá para desligar a IA inteira.',
+    ...chapter('plugins'),
     async run(s, id) {
       await s.key('⌘O', id);
-      await pick(s, id, 'plug', 'abrir Plugins');
+      await pick(s, id, 'plug', L('abrirPlugins'));
       await s.wait(500, id);
-      for (let i = 0; i < 14; i++) await s.key('↓', id, { hold: 60, label: 'descer' });
-      await s.key('espaço', id, { label: 'desligar Links' });
-      await s.key('↓', id, { label: 'descer' });
-      await s.key('espaço', id, { label: 'desligar Ferramentas' });
+      for (let i = 0; i < 14; i++) await s.key('↓', id, { hold: 60, label: L('descer') });
+      await s.key('espaço', id, { label: L('desligarLinks') });
+      await s.key('↓', id, { label: L('descer') });
+      await s.key('espaço', id, { label: L('desligarFerramentas') });
       await s.wait(300, id);
-      await s.key('End', id, { label: 'último item' });
-      await s.key('↑', id, { label: 'provider de IA' });
-      await s.key('↵', id, { label: 'trocar provider' });
+      await s.key('End', id, { label: L('ultimoItem') });
+      await s.key('↑', id, { label: L('providerDeIa') });
+      await s.key('↵', id, { label: L('trocarProvider') });
       await s.wait(500, id);
-      await s.key('↓', id, { label: 'Ollama, no seu computador' });
-      await s.key('↵', id, { label: 'ver a prévia' });
+      await s.key('↓', id, { label: L('ollamaNoSeuComputador') });
+      await s.key('↵', id, { label: L('verAPrevia') });
       await s.wait(900, id);
-      await s.key('y', id, { label: 'aplicar' });
+      await s.key('y', id, { label: L('aplicar') });
       await s.wait(800, id);
       await s.key('⌘⇧↵', id);
     },
   },
   {
-    step: 'Fim do dia',
-    title: 'Fim do dia. Quem ainda espera?',
-    text: '<kbd>⌘⇧A</kbd> junta os agentes de todas as páginas, com quem espera no topo. O Claude ainda pede permissão para gravar o teste: <kbd>↵</kbd> leva até ele e <kbd>y</kbd> libera. Cada plugin que você usou hoje foi feito por alguém, e o próximo pode ser o seu.',
+    ...chapter('end'),
     async run(s, id) {
       await s.key('⌘⇧A', id);
       await s.wait(1200, id);
-      await s.key('↵', id, { label: 'ir até quem espera' });
+      await s.key('↵', id, { label: L('irAteQuemEspera') });
       await s.wait(600, id);
-      await s.key('y', id, { label: 'permitir' });
+      await s.key('y', id, { label: L('permitir') });
       await s.wait(900, id);
       await s.key('⌘;', id);
       await s.wait(1100, id);
       const cal = jumpLabels(s.S).find(l => leaves(s.S.tabs.find(t => t.id === l.tab)?.tree ?? { kind: 'leaf' }).find(x => x.id === l.leaf)?.plugin === 'calendario');
-      if (cal) await s.key(cal.label, id, { label: 'saltar para o Calendário, na página do dia' });
+      if (cal) await s.key(cal.label, id, { label: L('saltarParaOCalendarioNaPagina') });
       else await s.key('esc', id);
       await s.wait(800, id);
     },

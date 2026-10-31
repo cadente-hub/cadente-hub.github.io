@@ -151,5 +151,727 @@
     "legal": "Legal",
     "terms": "Termos e condições",
     "copy": "© 2026 Cadente. Feito em Rust."
+  },
+  "js": {
+    "theater": {
+      "chapters": {
+        "morning": {
+          "step": "Manhã",
+          "title": "9h. O dia já está montado.",
+          "text": "Você abre o Cadente e a primeira folha já mostra o dia: a daily às 9h30, a reunião de design às 14h e um conflito de merge esperando. Sem abrir cinco apps para saber por onde começar. <kbd>⇥</kbd> passa para os recentes e as tarefas."
+        },
+        "claude": {
+          "step": "Claude",
+          "title": "Primeiro, um teste para o Claude.",
+          "text": "<kbd>⌘O</kbd> e quatro letras transformam a folha num Terminal. Você abre o Claude Code com a assinatura que já paga e pede um teste para <code>focus_neighbor</code>. Ele começa a escrever, e você segue para a próxima."
+        },
+        "agents": {
+          "step": "Agentes",
+          "title": "Três agentes, nenhuma janela a mais.",
+          "text": "<kbd>⌘D</kbd> divide a tela para o lado e <kbd>⌘⇧D</kbd> para baixo. O Codex roda os testes, o agy explica o <code>layout.rs</code>, e embaixo do Claude ainda sobra um Terminal para você. Todos trabalhando, todos à vista."
+        },
+        "ci": {
+          "step": "CI",
+          "title": "Aí o CI do login quebra.",
+          "text": "Numa página nova estão os quatro branches abertos e o estado de cada PR. O login está vermelho. Você abre o branch e <kbd>⌘J</kbd> chama um Chat que já sabe onde você está, então é só perguntar o motivo. O diff abre do lado."
+        },
+        "api": {
+          "step": "API",
+          "title": "Agora, a feature do dia.",
+          "text": "A tarefa de hoje é a API de projetos. No Requests você abre o <code>GET /v1/projects</code>, troca o <code>limit</code> para 5 e envia. Depois, o POST cria o projeto vitrine. Os agentes seguem na primeira página, e você não abriu outro programa."
+        },
+        "store": {
+          "step": "Loja",
+          "title": "Falta um cliente de banco.",
+          "text": "Para ver se o POST salvou, falta olhar o banco. A Loja abre logo abaixo: você acha o Postgres, passa as fotos, confere o que ele pede para acessar e instala com <kbd>↵</kbd>, de graça."
+        },
+        "db": {
+          "step": "Banco",
+          "title": "O banco confirma o POST.",
+          "text": "<kbd>⌘↵</kbd> roda o select do cursor. Na consulta dos projetos, o vitrine já aparece. Você troca a ordem ali mesmo na linha, roda de novo e abre a tabela de sessões pelo navegador do banco."
+        },
+        "app": {
+          "step": "No app",
+          "title": "E já aparece no app.",
+          "text": "Numa nova página, o Navegador abre o app que você está fazendo, em <code>localhost:5173</code>. O vitrine está na lista. <kbd>↓</kbd> anda pelos links, <kbd>↵</kbd> abre o projeto e <kbd>⌫</kbd> volta."
+        },
+        "diagram": {
+          "step": "Diagrama",
+          "title": "Um diagrama para a reunião.",
+          "text": "Às 14h tem reunião de design. Do lado do site, você instala o Quadro pela Loja e desenha o caminho do dado, sem abrir outra ferramenta. <kbd>r</kbd> faz um retângulo, <kbd>o</kbd> uma elipse e <kbd>a</kbd> liga os dois."
+        },
+        "meeting": {
+          "step": "Reunião",
+          "title": "Na reunião, a ata vira tarefa.",
+          "text": "A ata fica no Documentos, como um arquivo .md na sua pasta. Você escreve as próximas tarefas direto no texto, <kbd>↵</kbd> puxa a seguinte e <kbd>espaço</kbd> marca a que já saiu: o anúncio no blog."
+        },
+        "focus": {
+          "step": "Foco",
+          "title": "Depois, 25 minutos de foco.",
+          "text": "Uma página só sua: a agenda, um pomodoro de 25 minutos, a memória do computador e quanto você já usou do Claude. <kbd>⌘1</kbd> a <kbd>⌘6</kbd> pulam entre as seis páginas do dia."
+        },
+        "accounts": {
+          "step": "Contas",
+          "title": "Use as assinaturas que você já paga.",
+          "text": "O Uso mostrou o Claude em 58% do limite. Em Configurações estão as contas que você já tem: Claude Max, ChatGPT Plus, uma chave do Gemini, o OpenRouter e um modelo local no Ollama. Cada conversa escolhe a sua, e o Cadente não cobra nada por cima."
+        },
+        "plugins": {
+          "step": "Plugins",
+          "title": "O que você não usa, sai.",
+          "text": "No Plugins, até o que vem de fábrica pode sair. <kbd>espaço</kbd> desliga o Links e as Ferramentas. O provider de IA também se troca: ele passa para o Ollama, no seu notebook, e você vê antes o que muda. Dá para desligar a IA inteira."
+        },
+        "end": {
+          "step": "Fim do dia",
+          "title": "Fim do dia. Quem ainda espera?",
+          "text": "<kbd>⌘⇧A</kbd> junta os agentes de todas as páginas, com quem espera no topo. O Claude ainda pede permissão para gravar o teste: <kbd>↵</kbd> leva até ele e <kbd>y</kbd> libera. Cada plugin que você usou hoje foi feito por alguém, e o próximo pode ser o seu."
+        }
+      },
+      "typed": {
+        "ciQuestion": "por que o CI falhou?",
+        "boardWeb": "app web",
+        "task1": "mandar o changelog para o time",
+        "task2": "revisar o [[Lançamento]]",
+        "claude": "adicione um teste para focus_neighbor no fim de layout.rs, sem rodar nada",
+        "codex": "rode cargo test e me diga o resultado",
+        "agy": "explique em uma frase o que layout.rs faz"
+      },
+      "hud": {
+        "mandarATarefa": "mandar a tarefa",
+        "proximaVista": "próxima vista",
+        "vistaAnterior": "vista anterior",
+        "rodarOsTestes": "rodar os testes",
+        "voltarAoLogin": "voltar ao login",
+        "abrirOWorkspaceLogin": "abrir o workspace login",
+        "chatAoLadoLigadoAoWorkspace": "Chat ao lado, ligado ao workspace",
+        "perguntar": "perguntar",
+        "abrirODiffDoLado": "abrir o diff do lado",
+        "alteracoes": "alterações",
+        "descer": "descer",
+        "abrirODiff": "abrir o diff",
+        "requisicao": "requisição",
+        "colecoes": "coleções",
+        "colecaoProjetos": "coleção projetos",
+        "abrirORequest": "abrir o request",
+        "descerAteOLimit": "descer até o limit",
+        "editarOLimit": "editar o limit",
+        "apagarOValor": "apagar o valor",
+        "gravar": "gravar",
+        "voltarAoEnviar": "voltar ao enviar",
+        "enviarOGet": "enviar o GET",
+        "enviarOPost": "enviar o POST",
+        "ampliarAFolha": "ampliar a folha",
+        "abrirAPaginaDoPostgres": "abrir a página do Postgres",
+        "voltarAoTopo": "voltar ao topo",
+        "instalarGratis": "instalar, grátis",
+        "rodarOSelectDoCursor": "rodar o select do cursor",
+        "descerPeloScript": "descer pelo script",
+        "rodarEsteSelect": "rodar este select",
+        "ateOOrderBy": "até o order by",
+        "editarALinhaAliMesmo": "editar a linha, ali mesmo",
+        "apagarAUltimaPalavra": "apagar a última palavra",
+        "gravarERodar": "gravar e rodar",
+        "navegadorDoBanco": "navegador do banco",
+        "verOsDadosDaTabela": "ver os dados da tabela",
+        "voltarAsDuasFolhas": "voltar às duas folhas",
+        "irAoEndereco": "ir ao endereço",
+        "abrirOSite": "abrir o site",
+        "abrirOProjetoVitrine": "abrir o projeto vitrine",
+        "voltar": "voltar",
+        "abrirAPaginaDoQuadro": "abrir a página do Quadro",
+        "proximaFoto": "próxima foto",
+        "guardarOTexto": "guardar o texto",
+        "ligarComUmaSeta": "ligar com uma seta",
+        "elipse": "elipse",
+        "maisUmaSeta": "mais uma seta",
+        "abrirANota": "abrir a nota",
+        "descerPelaNota": "descer pela nota",
+        "novaTarefa": "nova tarefa",
+        "aListaContinua": "a lista continua",
+        "fecharALista": "fechar a lista",
+        "subir": "subir",
+        "marcarComoFeita": "marcar como feita",
+        "comecarUmPomodoro": "começar um pomodoro",
+        "pagina1OsAgentes": "página 1: os agentes",
+        "pagina3AApiEO": "página 3: a API e o banco",
+        "pagina5AAta": "página 5: a ata",
+        "pagina6DeVoltaAoSeu": "página 6: de volta ao seu dia",
+        "proximaConta": "próxima conta",
+        "desligarLinks": "desligar Links",
+        "desligarFerramentas": "desligar Ferramentas",
+        "ultimoItem": "último item",
+        "providerDeIa": "provider de IA",
+        "trocarProvider": "trocar provider",
+        "ollamaNoSeuComputador": "Ollama, no seu computador",
+        "verAPrevia": "ver a prévia",
+        "aplicar": "aplicar",
+        "irAteQuemEspera": "ir até quem espera",
+        "permitir": "permitir",
+        "saltarParaOCalendarioNaPagina": "saltar para o Calendário, na página do dia",
+        "abrirOTerminal": "abrir o Terminal",
+        "outroTerminal": "outro Terminal",
+        "maisUm": "mais um",
+        "umTerminalParaVoce": "um Terminal para você",
+        "abrirWorkspaces": "abrir Workspaces",
+        "workspacesNasAlteracoes": "Workspaces, nas alterações",
+        "abrirORequests": "abrir o Requests",
+        "abrirALoja": "abrir a Loja",
+        "abrirONavegador": "abrir o Navegador",
+        "abrirDocumentos": "abrir Documentos",
+        "abrirOCalendario": "abrir o Calendário",
+        "abrirOFoco": "abrir o Foco",
+        "abrirOSistema": "abrir o Sistema",
+        "abrirOUso": "abrir o Uso",
+        "abrirPlugins": "abrir Plugins",
+        "abrirOClaudeCode": "abrir o Claude Code",
+        "abrirOCodex": "abrir o Codex",
+        "abrirOAgy": "abrir o agy",
+        "loginOCiFalhou": "login · o CI falhou",
+        "paineisProntoParaOMerge": "painéis · pronto para o merge",
+        "buscaOClaudeTrabalhando": "busca · o Claude trabalhando",
+        "temaEsperandoRevisao": "tema · esperando revisão",
+        "quadro": "Quadro",
+        "radioLoFi": "Rádio lo-fi",
+        "maisUma": "mais uma",
+        "asFotos": "as fotos",
+        "sobre": "sobre",
+        "oQueEleFaz": "o que ele faz",
+        "atalhos": "atalhos",
+        "mapa": "mapa",
+        "vitrine": "vitrine",
+        "lancamento": "Lançamento",
+        "retangulo": "retângulo",
+        "outroRetangulo": "outro retângulo"
+      }
+    },
+    "plugins": {
+      "title": {
+        "inicio": "Início",
+        "chat": "Chat",
+        "terminal": "Terminal",
+        "workspaces": "Workspaces",
+        "pr": "PR Reviews",
+        "requests": "Requests",
+        "calendario": "Calendário",
+        "sistema": "Sistema",
+        "uso": "Uso",
+        "foco": "Foco",
+        "automacoes": "Automações",
+        "prompts": "Prompts",
+        "projetos": "Projetos",
+        "recursos": "Recursos",
+        "links": "Links",
+        "ferramentas": "Ferramentas",
+        "config": "Configurações",
+        "plugins": "Plugins"
+      },
+      "desc": {
+        "inicio": "Seu dia: agenda, tarefas, notas, clima e o que ficou aberto.",
+        "chat": "Qualquer modelo, com plano, fila, sessões e o contexto à vista.",
+        "terminal": "Blocos de comando, sugestão de IA e agentes como Claude Code e Codex.",
+        "workspaces": "Repositórios, alterações e worktrees, com diff e commit.",
+        "pr": "Seus PRs e os do time: diff, checks, threads e revisão com IA.",
+        "requests": "Cliente HTTP com coleções, ambientes e histórico.",
+        "calendario": "Dia, mês e próximos eventos. Digite “Reunião amanhã 10h” e ↵.",
+        "sistema": "Memória, CPU, portas e Docker, ao vivo.",
+        "uso": "Limites, custo e previsão de uso das suas contas.",
+        "foco": "Pomodoro com tarefas e notas.",
+        "automacoes": "Tarefas de IA agendadas, com histórico.",
+        "prompts": "Biblioteca de prompts e técnicas, com sessão no Chat ao lado.",
+        "projetos": "Projetos e sessões: adicionar, clonar e favoritar.",
+        "recursos": "Skills, memória, agents, MCPs e instruções.",
+        "links": "Links com tags. Cole uma URL e ↵.",
+        "ferramentas": "JSON e Markdown para Word.",
+        "config": "Contas, providers, atalhos, acesso e aparência.",
+        "plugins": "Catálogo, grafo e troca de provider com prévia."
+      }
+    },
+    "rack": {
+      "service": {
+        "ai": "provider de IA",
+        "compaction": "compactação do contexto",
+        "pty": "terminal (pty)",
+        "theme": "tema"
+      },
+      "noAi": "nenhum · IA desligada",
+      "plugin": {
+        "chat": "Chat",
+        "terminal": "Terminal",
+        "pr": "PR Reviews",
+        "automacoes": "Automações",
+        "workspaces": "Workspaces",
+        "sidebar": "Barra lateral",
+        "tray": "Barra do sistema"
+      },
+      "meta": {
+        "community": "comunidade",
+        "on": "ligado",
+        "off": "desligado"
+      },
+      "removeKanban": "Remover Kanban",
+      "count": {
+        "one": "{count} ligado",
+        "other": "{count} ligados"
+      },
+      "svc": {
+        "again": "clique de novo para religar",
+        "usedBy": "usado por {users}",
+        "nobody": "ninguém usa agora"
+      },
+      "log": {
+        "hint": "Experimente: clique num plugin para desligar, num serviço para trocar, ou instale um da comunidade.",
+        "on": "<b>{name}</b> voltou, sem reiniciar nada.",
+        "off": "<b>{name}</b> desligado. Se ele estava aberto numa folha, ela fica lá esperando outro plugin.",
+        "noAi": "<b>IA desligada.</b> {users} ficam esperando um provider; Terminal, Workspaces, notas, banco e agenda seguem iguais.",
+        "swap": "prévia · {service}: <b>{from} → {to}</b>",
+        "swapUsers": "prévia · {service}: <b>{from} → {to}</b> · {users} terminam o que estão fazendo e reiniciam no novo provider",
+        "install": "Pronto, <b>Kanban da @ana</b> instalado. Ele só pediu para acessar api.github.com.",
+        "remove": "<b>Kanban</b> removido. Os dados dele continuam no seu perfil, caso você mude de ideia."
+      }
+    },
+    "store": {
+      "cat": {
+        "all": "Todos",
+        "dev": "Dev",
+        "ai": "IA",
+        "productivity": "Produtividade",
+        "data": "Dados",
+        "themes": "Temas",
+        "fun": "Diversão"
+      },
+      "app": {
+        "kanban": {
+          "name": "Kanban",
+          "desc": "Quadro com as issues do repositório, em três colunas."
+        },
+        "board": {
+          "name": "Quadro",
+          "desc": "Diagramas com cara de feitos à mão, desenhados pelo teclado."
+        },
+        "postgres": {
+          "name": "Postgres",
+          "desc": "Script, tabelas e resultado numa folha só."
+        },
+        "docs": {
+          "name": "Documentos",
+          "desc": "Notas em markdown, com [[links]] e tarefas."
+        },
+        "browser": {
+          "name": "Navegador",
+          "desc": "Um site numa folha, com os links no teclado."
+        },
+        "testWriter": {
+          "name": "Escritor de testes",
+          "desc": "Um agente que escreve testes para o diff atual."
+        },
+        "neon": {
+          "name": "Tema Neon",
+          "desc": "Detalhes em roxo e rosa sobre o preto."
+        },
+        "kubernetes": {
+          "name": "Kubernetes",
+          "desc": "Pods, logs e eventos do cluster sem sair do teclado."
+        },
+        "meetingSummary": {
+          "name": "Resumo de reunião",
+          "desc": "Transcreve a reunião e devolve as tarefas."
+        },
+        "radio": {
+          "name": "Rádio lo-fi",
+          "desc": "Música para o Foco, com o timer na tela."
+        },
+        "regex": {
+          "name": "Regex",
+          "desc": "Teste expressões regulares com destaque ao vivo."
+        },
+        "sheets": {
+          "name": "Planilhas",
+          "desc": "Abra CSV e XLSX com filtro e soma."
+        },
+        "rag": {
+          "name": "RAG local",
+          "desc": "Pergunte sobre seus documentos com um modelo no seu computador."
+        },
+        "habits": {
+          "name": "Hábitos",
+          "desc": "Marque os hábitos do dia e veja a sequência."
+        },
+        "sqlite": {
+          "name": "SQLite",
+          "desc": "Abra qualquer .db e navegue pelas tabelas."
+        },
+        "cron": {
+          "name": "Cron",
+          "desc": "Monte expressões cron e veja as próximas execuções."
+        },
+        "contrast": {
+          "name": "Tema Alto contraste",
+          "desc": "Preto e branco puros, para ler melhor."
+        },
+        "promptJudge": {
+          "name": "Avaliador de prompts",
+          "desc": "Compare respostas de modelos lado a lado."
+        },
+        "compose": {
+          "name": "Docker Compose",
+          "desc": "Suba, pare e acompanhe os serviços do compose."
+        },
+        "journal": {
+          "name": "Diário",
+          "desc": "Uma nota por dia, com busca."
+        },
+        "chess": {
+          "name": "Xadrez",
+          "desc": "Uma partida por dia contra o agente."
+        },
+        "jsonSchema": {
+          "name": "JSON Schema",
+          "desc": "Valide JSON contra um schema e veja os erros por linha."
+        },
+        "commitWriter": {
+          "name": "Escritor de commits",
+          "desc": "Mensagens de commit a partir do que está no stage."
+        },
+        "exchange": {
+          "name": "Câmbio",
+          "desc": "Cotações do dia e conversão rápida."
+        },
+        "sepia": {
+          "name": "Tema Sépia",
+          "desc": "Tons quentes para sessões longas."
+        },
+        "logs": {
+          "name": "Logs",
+          "desc": "Siga arquivos de log com filtro e cores."
+        },
+        "finance": {
+          "name": "Finanças",
+          "desc": "Gastos do mês por categoria, a partir de um CSV."
+        },
+        "graphql": {
+          "name": "GraphQL",
+          "desc": "Explore schemas e rode queries com variáveis."
+        },
+        "explainer": {
+          "name": "Explicador",
+          "desc": "Explica o arquivo aberto, função por função."
+        },
+        "stars": {
+          "name": "Chuva de estrelas",
+          "desc": "Uma estrela cadente a cada build verde."
+        },
+        "gitGraph": {
+          "name": "Git graph",
+          "desc": "O grafo de branches e commits, em texto."
+        },
+        "rss": {
+          "name": "Leitor RSS",
+          "desc": "Feeds em lista, com leitura na própria folha."
+        },
+        "charts": {
+          "name": "Gráficos",
+          "desc": "Gráficos de texto a partir de CSV ou SQL."
+        },
+        "retro": {
+          "name": "Tema Terminal retrô",
+          "desc": "Verde fósforo e cursor em bloco."
+        },
+        "flags": {
+          "name": "Feature flags",
+          "desc": "Ligue e desligue flags em vários ambientes."
+        },
+        "translator": {
+          "name": "Tradutor",
+          "desc": "Traduza textos e arquivos de i18n."
+        },
+        "timesheet": {
+          "name": "Timesheet",
+          "desc": "Horas por projeto, a partir das folhas que você usou."
+        },
+        "migrations": {
+          "name": "Migrations",
+          "desc": "Rode e desfaça migrations com prévia do SQL."
+        },
+        "mascot": {
+          "name": "Mascote",
+          "desc": "Um companheiro que reage aos seus testes."
+        },
+        "coverage": {
+          "name": "Cobertura",
+          "desc": "Cobertura de testes por arquivo, com o que falta."
+        },
+        "email": {
+          "name": "E-mail",
+          "desc": "Caixa de entrada em linhas, com ações no teclado."
+        },
+        "weather": {
+          "name": "Clima",
+          "desc": "Previsão da semana para as suas cidades."
+        },
+        "secrets": {
+          "name": "Segredos",
+          "desc": "Encontra segredos esquecidos antes do commit."
+        },
+        "mindMap": {
+          "name": "Mapa mental",
+          "desc": "Ideias em árvore, só com o teclado."
+        },
+        "typing": {
+          "name": "Digitação",
+          "desc": "Treine velocidade com trechos do seu código."
+        },
+        "uptime": {
+          "name": "Uptime",
+          "desc": "Status dos seus serviços, com alerta no cabeçalho da folha."
+        },
+        "benchmarks": {
+          "name": "Benchmarks",
+          "desc": "Compare execuções e veja regressões."
+        },
+        "changelog": {
+          "name": "Changelog",
+          "desc": "Gera o changelog a partir dos commits."
+        },
+        "snippets": {
+          "name": "Snippets",
+          "desc": "Trechos de texto e código a um atalho."
+        }
+      },
+      "price": {
+        "free": "grátis",
+        "donation": "grátis · doação",
+        "perMonth": "{price}/mês",
+        "trial": "{days} dias grátis",
+        "once": "{price} · uma vez"
+      },
+      "action": {
+        "free": "instalar",
+        "donation": "instalar",
+        "subscription": "assinar",
+        "once": "comprar",
+        "trial": "testar grátis"
+      },
+      "installed": "instalado",
+      "stepsFree": [
+        "baixando…",
+        "sha256 ok",
+        "permissões ok"
+      ],
+      "stepsPaid": [
+        "checkout do Cadente…",
+        "licença ok",
+        "sha256 ok"
+      ],
+      "empty": "Nenhum plugin com esse nome ainda. <a href=\"#creator\">Que tal criar o seu?</a>",
+      "demoSearches": [
+        "tema",
+        "sql",
+        "agente"
+      ],
+      "wall": [
+        "Pomodoro+",
+        "Notas rápidas",
+        "Webhooks",
+        "Mock server",
+        "WebSocket",
+        "gRPC",
+        "MQTT",
+        "OpenAPI",
+        "Licenças",
+        "Dependências",
+        "Vulnerabilidades",
+        ".env",
+        "SSH",
+        "Servidores",
+        "Custos de nuvem",
+        "Seeds",
+        "Fixtures",
+        "Bundle size",
+        "Web vitals",
+        "Acessibilidade",
+        "i18n",
+        "Semver",
+        "Releases",
+        "Status page",
+        "Métricas",
+        "Flamegraph",
+        "Profiler",
+        "Testes instáveis",
+        "Conflitos",
+        "Blame",
+        "Dicionário",
+        "Ícones",
+        "Cores",
+        "Fontes",
+        "Slides",
+        "Leitor de PDF",
+        "Transcrição",
+        "Embeddings",
+        "Agentes",
+        "Orçamento",
+        "Faturas",
+        "Contatos",
+        "Agenda do time",
+        "Viagens",
+        "Receitas",
+        "Livros",
+        "Filmes",
+        "Podcasts",
+        "Placar",
+        "Sudoku",
+        "Palavras",
+        "Quiz",
+        "Arte ASCII",
+        "Kanban do time",
+        "Scrum",
+        "Retro",
+        "OKRs",
+        "Pull requests do dia",
+        "Revisor de SQL",
+        "Lint",
+        "Formatador",
+        "Diff de imagens",
+        "Paleta de cores",
+        "Calculadora",
+        "Conversor de unidades",
+        "Fuso horário",
+        "QR code",
+        "UUID",
+        "Base64",
+        "JWT"
+      ]
+    },
+    "calc": {
+      "subscription": {
+        "price": "Preço por mês",
+        "people": "Assinantes",
+        "per": "por mês"
+      },
+      "once": {
+        "price": "Preço",
+        "people": "Compradores",
+        "per": "no total"
+      },
+      "donation": {
+        "price": "Doação média por mês",
+        "people": "Apoiadores",
+        "per": "por mês"
+      }
+    },
+    "oneliner": {
+      "copied": "copiado",
+      "select": "selecione e copie",
+      "copy": "copiar"
+    },
+    "maker": {
+      "intro": "creator mode · o agente usa o SDK",
+      "nothingSent": "nada sai sem você apertar ↵",
+      "newPane": "folha nova",
+      "waiting": "aguardando o agente",
+      "codeHere": "o código aparece aqui",
+      "lines": {
+        "one": "{count} linha",
+        "other": "{count} linhas"
+      },
+      "writing": "escrevendo",
+      "inDev": "em desenvolvimento",
+      "running": "rodando",
+      "chatTitle": "Chat · creator mode",
+      "terminalTitle": "Terminal · cadente plugin dev",
+      "placeholder": "mensagem · @ anexos · / comandos",
+      "writingToml": "escrevendo cadente-plugin.toml",
+      "wroteToml": "escreveu cadente-plugin.toml",
+      "writingLib": "escrevendo src/lib.rs",
+      "runningTests": "rodando cargo test",
+      "testsOk": {
+        "one": "testes ok · {count} passou",
+        "other": "testes ok · {count} passaram"
+      },
+      "compiling": "compilando para webassembly · 0,8 s",
+      "permissions": "permissões: {perms}",
+      "devRunning": "{id} 0.1.0 rodando",
+      "inDevAt": "{where} · em desenvolvimento",
+      "floatingLayer": "camada flutuante",
+      "publishDesc": "release, sha256 e índice da loja",
+      "publishing": "publicando",
+      "released": "release v0.1.0 · artefato e sha256 enviados",
+      "manifestOk": "manifesto válido · topic cadente-plugin",
+      "published": "publicado · entra na loja no próximo índice",
+      "inStore": "na loja",
+      "ex": {
+        "pet": {
+          "tab": "Cadu de estimação",
+          "ask": "crie um tamagotchi do Cadu que flutua no app, sente fome e fica sujo",
+          "keyFeed": "alimentar",
+          "keyBath": "dar banho",
+          "plan": "Vou criar o pacote ana.cadu-tamagotchi na camada flutuante: ele voa pela tela, sente fome e se suja com o tempo; f dá comida e b dá banho.",
+          "file": "escreveu src/lib.rs · o Cadu em ANSI, a fome e o banho",
+          "perms": "nenhuma além do Core",
+          "ready": "Pronto. O Cadu está solto no app, com fome e sujo. Arraste ele, f dá comida e b dá banho.",
+          "hint": "f alimenta · b dá banho · arraste o Cadu",
+          "price": "preço: grátis com doação · você recebe 90%"
+        },
+        "sales": {
+          "title": "Vendas do dia",
+          "ask": "crie um plugin que mostra as vendas de hoje da minha loja, com um gráfico por hora",
+          "viewToday": "hoje",
+          "viewTodayText": "total, gráfico e pedidos",
+          "viewWeek": "semana",
+          "viewWeekText": "comparação com a semana passada",
+          "plan": "Vou criar o leo.vendas-do-dia: uma folha com o total de hoje, um gráfico por hora e os últimos pedidos. Ele só fala com api.stripe.com.",
+          "file": "escreveu src/lib.rs · o total, o gráfico e os pedidos",
+          "today": "hoje",
+          "todayMeta": "R$ 3.482,90 · 27 pedidos",
+          "perHour": "por hora",
+          "peak": "pico às 11h",
+          "latest": "últimos pedidos",
+          "order1": "R$ 129,90 · pago",
+          "order2": "R$ 49,00 · pago",
+          "order3": "R$ 310,00 · aguardando",
+          "ready": "Pronto. A folha mostra as vendas de hoje e se atualiza sozinha a cada minuto.",
+          "hint": "⇥ semana · ↵ abre o pedido",
+          "price": "preço: US$ 4 por mês · você recebe 70% de cada renovação"
+        },
+        "status": {
+          "title": "Status page",
+          "ask": "crie uma status page que mostra quando o GitHub, a Cloudflare, a AWS e outros serviços caem",
+          "when": "um serviço cair ou voltar",
+          "plan": "Vou criar o orbita.status-page: uma folha com o GitHub, a Cloudflare, a AWS e outros serviços, lidos das páginas de status oficiais a cada minuto. Quando um cai, o cabeçalho da folha fica vermelho e você recebe um aviso.",
+          "file": "escreveu src/lib.rs · leitura das páginas de status e os avisos",
+          "perms": "rede · 7 páginas de status",
+          "signal": "1 fora do ar",
+          "now": "agora",
+          "nowMeta": "1 fora · 1 instável · 5 ok",
+          "aws": "fora · us-east-1 · 4 min",
+          "github": "lento · filas com atraso",
+          "operational": "operacional",
+          "day": "24 horas",
+          "incidents": "2 incidentes",
+          "ready": "Pronto. A folha checa as páginas de status a cada minuto. Neste exemplo, o CloudFront da AWS aparece fora em us-east-1 e o GitHub Actions está lento.",
+          "hint": "↵ abre o incidente · ⇥ histórico",
+          "price": "preço: US$ 12, compra única · você recebe 70%"
+        }
+      }
+    },
+    "tama": {
+      "feedButton": "comer",
+      "bathButton": "banho",
+      "hello": "oi! estou com fome…",
+      "drag": "uou! para onde vamos?",
+      "starving": "fome… muita fome",
+      "hungry": "estou com fome",
+      "dirty": "preciso de um banho",
+      "aria": "Cadu: {mood}. Arraste, f dá comida, b dá banho.",
+      "mood": {
+        "hungry": "com fome",
+        "dirty": "sujo",
+        "happy": "feliz"
+      },
+      "full": "já comi, obrigado!",
+      "eating": "nham nham!",
+      "thanks": "obrigado ✦",
+      "clean": "já estou limpinho",
+      "splash": "splash!",
+      "fresh": "cheirosinho ✦"
+    }
   }
 }

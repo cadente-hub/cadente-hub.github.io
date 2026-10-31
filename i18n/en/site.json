@@ -151,5 +151,727 @@
     "legal": "Legal",
     "terms": "Terms and conditions",
     "copy": "© 2026 Cadente. Built in Rust."
+  },
+  "js": {
+    "theater": {
+      "chapters": {
+        "morning": {
+          "step": "Morning",
+          "title": "9 am. The day is already set up.",
+          "text": "You open Cadente and the first pane already shows the day: the daily at 9:30, the design meeting at 2 pm and a merge conflict waiting. No need to open five apps to know where to start. <kbd>⇥</kbd> moves to the recent items and the tasks."
+        },
+        "claude": {
+          "step": "Claude",
+          "title": "First, a test for Claude.",
+          "text": "<kbd>⌘O</kbd> and four letters turn the pane into a Terminal. You open Claude Code with the subscription you already pay for and ask for a test for <code>focus_neighbor</code>. It starts writing, and you move on to the next one."
+        },
+        "agents": {
+          "step": "Agents",
+          "title": "Three agents, not one extra window.",
+          "text": "<kbd>⌘D</kbd> splits the screen sideways and <kbd>⌘⇧D</kbd> downwards. Codex runs the tests, agy explains <code>layout.rs</code>, and under Claude there is still a Terminal left for you. All working, all in sight."
+        },
+        "ci": {
+          "step": "CI",
+          "title": "Then the login CI breaks.",
+          "text": "A new page shows the four open branches and the state of each PR. Login is red. You open the branch and <kbd>⌘J</kbd> brings up a Chat that already knows where you are, so you just ask why. The diff opens next to it."
+        },
+        "api": {
+          "step": "API",
+          "title": "Now, the feature of the day.",
+          "text": "Today's task is the projects API. In Requests you open <code>GET /v1/projects</code>, change <code>limit</code> to 5 and send it. Then the POST creates the showcase project. The agents keep going on the first page, and you never opened another program."
+        },
+        "store": {
+          "step": "Store",
+          "title": "A database client is missing.",
+          "text": "To check that the POST was saved, you need to look at the database. The Store opens right below: you find Postgres, flip through the screenshots, check what it asks to access and install it with <kbd>↵</kbd>, for free."
+        },
+        "db": {
+          "step": "Database",
+          "title": "The database confirms the POST.",
+          "text": "<kbd>⌘↵</kbd> runs the select under the cursor. In the projects query, the showcase project is already there. You change the order right on the line, run it again and open the sessions table from the database browser."
+        },
+        "app": {
+          "step": "In the app",
+          "title": "And it already shows in the app.",
+          "text": "On a new page, the Browser opens the app you are building, at <code>localhost:5173</code>. The showcase project is in the list. <kbd>↓</kbd> walks through the links, <kbd>↵</kbd> opens the project and <kbd>⌫</kbd> goes back."
+        },
+        "diagram": {
+          "step": "Diagram",
+          "title": "A diagram for the meeting.",
+          "text": "The design meeting is at 2 pm. Next to the site, you install Board from the Store and draw the path of the data, without opening another tool. <kbd>r</kbd> makes a rectangle, <kbd>o</kbd> an ellipse and <kbd>a</kbd> connects the two."
+        },
+        "meeting": {
+          "step": "Meeting",
+          "title": "In the meeting, the notes become tasks.",
+          "text": "The notes live in Documents, as a .md file in your folder. You write the next tasks right in the text, <kbd>↵</kbd> starts the next one and <kbd>space</kbd> checks off the one already done: the blog announcement."
+        },
+        "focus": {
+          "step": "Focus",
+          "title": "Then, 25 minutes of focus.",
+          "text": "A page just for you: the calendar, a 25-minute pomodoro, the computer's memory and how much of Claude you have used. <kbd>⌘1</kbd> to <kbd>⌘6</kbd> jump between the six pages of the day."
+        },
+        "accounts": {
+          "step": "Accounts",
+          "title": "Use the subscriptions you already pay for.",
+          "text": "Usage showed Claude at 58% of its limit. Settings has the accounts you already own: Claude Max, ChatGPT Plus, a Gemini key, OpenRouter and a local model in Ollama. Each conversation picks its own, and Cadente charges nothing on top."
+        },
+        "plugins": {
+          "step": "Plugins",
+          "title": "What you don't use, goes.",
+          "text": "In Plugins, even the built-in ones can go. <kbd>space</kbd> turns off Links and Tools. The AI provider can be swapped too: it moves to Ollama, on your laptop, and you see what changes first. You can turn off the AI entirely."
+        },
+        "end": {
+          "step": "End of day",
+          "title": "End of the day. Who is still waiting?",
+          "text": "<kbd>⌘⇧A</kbd> gathers the agents from every page, with whoever is waiting at the top. Claude still asks permission to save the test: <kbd>↵</kbd> takes you to it and <kbd>y</kbd> allows it. Every plugin you used today was made by someone, and the next one could be yours."
+        }
+      },
+      "typed": {
+        "ciQuestion": "why did the CI fail?",
+        "boardWeb": "web app",
+        "task1": "send the changelog to the team",
+        "task2": "review [[Lançamento]]",
+        "claude": "add a test for focus_neighbor at the end of layout.rs, don't run anything",
+        "codex": "run cargo test and tell me the result",
+        "agy": "explain in one sentence what layout.rs does"
+      },
+      "hud": {
+        "mandarATarefa": "send the task",
+        "proximaVista": "next view",
+        "vistaAnterior": "previous view",
+        "rodarOsTestes": "run the tests",
+        "voltarAoLogin": "back to login",
+        "abrirOWorkspaceLogin": "open the login workspace",
+        "chatAoLadoLigadoAoWorkspace": "Chat on the side, tied to the workspace",
+        "perguntar": "ask",
+        "abrirODiffDoLado": "open the diff on the side",
+        "alteracoes": "changes",
+        "descer": "down",
+        "abrirODiff": "open the diff",
+        "requisicao": "request",
+        "colecoes": "collections",
+        "colecaoProjetos": "projects collection",
+        "abrirORequest": "open the request",
+        "descerAteOLimit": "down to the limit",
+        "editarOLimit": "edit the limit",
+        "apagarOValor": "clear the value",
+        "gravar": "save",
+        "voltarAoEnviar": "back to send",
+        "enviarOGet": "send the GET",
+        "enviarOPost": "send the POST",
+        "ampliarAFolha": "enlarge the pane",
+        "abrirAPaginaDoPostgres": "open the Postgres page",
+        "voltarAoTopo": "back to the top",
+        "instalarGratis": "install, free",
+        "rodarOSelectDoCursor": "run the select under the cursor",
+        "descerPeloScript": "down the script",
+        "rodarEsteSelect": "run this select",
+        "ateOOrderBy": "to the order by",
+        "editarALinhaAliMesmo": "edit the line, right there",
+        "apagarAUltimaPalavra": "delete the last word",
+        "gravarERodar": "save and run",
+        "navegadorDoBanco": "database browser",
+        "verOsDadosDaTabela": "see the table data",
+        "voltarAsDuasFolhas": "back to the two panes",
+        "irAoEndereco": "go to the address",
+        "abrirOSite": "open the site",
+        "abrirOProjetoVitrine": "open the showcase project",
+        "voltar": "back",
+        "abrirAPaginaDoQuadro": "open the Board page",
+        "proximaFoto": "next screenshot",
+        "guardarOTexto": "keep the text",
+        "ligarComUmaSeta": "connect with an arrow",
+        "elipse": "ellipse",
+        "maisUmaSeta": "one more arrow",
+        "abrirANota": "open the note",
+        "descerPelaNota": "down the note",
+        "novaTarefa": "new task",
+        "aListaContinua": "the list goes on",
+        "fecharALista": "close the list",
+        "subir": "up",
+        "marcarComoFeita": "mark as done",
+        "comecarUmPomodoro": "start a pomodoro",
+        "pagina1OsAgentes": "page 1: the agents",
+        "pagina3AApiEO": "page 3: the API and the database",
+        "pagina5AAta": "page 5: the notes",
+        "pagina6DeVoltaAoSeu": "page 6: back to your day",
+        "proximaConta": "next account",
+        "desligarLinks": "turn off Links",
+        "desligarFerramentas": "turn off Tools",
+        "ultimoItem": "last item",
+        "providerDeIa": "AI provider",
+        "trocarProvider": "swap provider",
+        "ollamaNoSeuComputador": "Ollama, on your computer",
+        "verAPrevia": "see the preview",
+        "aplicar": "apply",
+        "irAteQuemEspera": "go to who is waiting",
+        "permitir": "allow",
+        "saltarParaOCalendarioNaPagina": "jump to the Calendar, on the page of the day",
+        "abrirOTerminal": "open the Terminal",
+        "outroTerminal": "another Terminal",
+        "maisUm": "one more",
+        "umTerminalParaVoce": "a Terminal for you",
+        "abrirWorkspaces": "open Workspaces",
+        "workspacesNasAlteracoes": "Workspaces, on the changes",
+        "abrirORequests": "open Requests",
+        "abrirALoja": "open the Store",
+        "abrirONavegador": "open the Browser",
+        "abrirDocumentos": "open Documents",
+        "abrirOCalendario": "open the Calendar",
+        "abrirOFoco": "open Focus",
+        "abrirOSistema": "open System",
+        "abrirOUso": "open Usage",
+        "abrirPlugins": "open Plugins",
+        "abrirOClaudeCode": "open Claude Code",
+        "abrirOCodex": "open Codex",
+        "abrirOAgy": "open agy",
+        "loginOCiFalhou": "login · the CI failed",
+        "paineisProntoParaOMerge": "panes · ready to merge",
+        "buscaOClaudeTrabalhando": "search · Claude working",
+        "temaEsperandoRevisao": "theme · waiting for review",
+        "quadro": "Board",
+        "radioLoFi": "Lo-fi radio",
+        "maisUma": "one more",
+        "asFotos": "the screenshots",
+        "sobre": "about",
+        "oQueEleFaz": "what it does",
+        "atalhos": "shortcuts",
+        "mapa": "map",
+        "vitrine": "showcase",
+        "lancamento": "Launch",
+        "retangulo": "rectangle",
+        "outroRetangulo": "another rectangle"
+      }
+    },
+    "plugins": {
+      "title": {
+        "inicio": "Home",
+        "chat": "Chat",
+        "terminal": "Terminal",
+        "workspaces": "Workspaces",
+        "pr": "PR Reviews",
+        "requests": "Requests",
+        "calendario": "Calendar",
+        "sistema": "System",
+        "uso": "Usage",
+        "foco": "Focus",
+        "automacoes": "Automations",
+        "prompts": "Prompts",
+        "projetos": "Projects",
+        "recursos": "Resources",
+        "links": "Links",
+        "ferramentas": "Tools",
+        "config": "Settings",
+        "plugins": "Plugins"
+      },
+      "desc": {
+        "inicio": "Your day: calendar, tasks, notes, weather and what was left open.",
+        "chat": "Any model, with plan mode, a queue, sessions and the context in sight.",
+        "terminal": "Command blocks, AI suggestions and agents such as Claude Code and Codex.",
+        "workspaces": "Repositories, changes and worktrees, with diff and commit.",
+        "pr": "Your PRs and the team's: diff, checks, threads and AI review.",
+        "requests": "HTTP client with collections, environments and history.",
+        "calendario": "Day, month and upcoming events. Type “Reunião amanhã 10h” and ↵.",
+        "sistema": "Memory, CPU, ports and Docker, live.",
+        "uso": "Limits, cost and usage forecast for your accounts.",
+        "foco": "Pomodoro with tasks and notes.",
+        "automacoes": "Scheduled AI tasks, with history.",
+        "prompts": "A library of prompts and techniques, with a Chat session on the side.",
+        "projetos": "Projects and sessions: add, clone and star.",
+        "recursos": "Skills, memory, agents, MCPs and instructions.",
+        "links": "Links with tags. Paste a URL and ↵.",
+        "ferramentas": "JSON, and Markdown to Word.",
+        "config": "Accounts, providers, shortcuts, access and appearance.",
+        "plugins": "Catalog, graph and provider swap with a preview."
+      }
+    },
+    "rack": {
+      "service": {
+        "ai": "AI provider",
+        "compaction": "context compaction",
+        "pty": "terminal (pty)",
+        "theme": "theme"
+      },
+      "noAi": "none · AI off",
+      "plugin": {
+        "chat": "Chat",
+        "terminal": "Terminal",
+        "pr": "PR Reviews",
+        "automacoes": "Automations",
+        "workspaces": "Workspaces",
+        "sidebar": "Sidebar",
+        "tray": "System tray"
+      },
+      "meta": {
+        "community": "community",
+        "on": "on",
+        "off": "off"
+      },
+      "removeKanban": "Remove Kanban",
+      "count": {
+        "one": "{count} on",
+        "other": "{count} on"
+      },
+      "svc": {
+        "again": "click again to turn it back on",
+        "usedBy": "used by {users}",
+        "nobody": "nobody uses it now"
+      },
+      "log": {
+        "hint": "Try it: click a plugin to turn it off, a service to swap it, or install one from the community.",
+        "on": "<b>{name}</b> is back, without restarting anything.",
+        "off": "<b>{name}</b> is off. If it was open in a pane, the pane stays there waiting for another plugin.",
+        "noAi": "<b>AI off.</b> {users} wait for a provider; Terminal, Workspaces, notes, database and calendar keep working.",
+        "swap": "preview · {service}: <b>{from} → {to}</b>",
+        "swapUsers": "preview · {service}: <b>{from} → {to}</b> · {users} finish what they are doing and restart on the new provider",
+        "install": "Done, <b>Kanban by @ana</b> is installed. It only asked to reach api.github.com.",
+        "remove": "<b>Kanban</b> removed. Its data stays in your profile, in case you change your mind."
+      }
+    },
+    "store": {
+      "cat": {
+        "all": "All",
+        "dev": "Dev",
+        "ai": "AI",
+        "productivity": "Productivity",
+        "data": "Data",
+        "themes": "Themes",
+        "fun": "Fun"
+      },
+      "app": {
+        "kanban": {
+          "name": "Kanban",
+          "desc": "A board with the repository's issues, in three columns."
+        },
+        "board": {
+          "name": "Board",
+          "desc": "Diagrams that look hand-drawn, drawn from the keyboard."
+        },
+        "postgres": {
+          "name": "Postgres",
+          "desc": "Script, tables and results in one pane."
+        },
+        "docs": {
+          "name": "Documents",
+          "desc": "Markdown notes, with [[links]] and tasks."
+        },
+        "browser": {
+          "name": "Browser",
+          "desc": "A website in a pane, with links on the keyboard."
+        },
+        "testWriter": {
+          "name": "Test writer",
+          "desc": "An agent that writes tests for the current diff."
+        },
+        "neon": {
+          "name": "Neon theme",
+          "desc": "Purple and pink details on black."
+        },
+        "kubernetes": {
+          "name": "Kubernetes",
+          "desc": "Cluster pods, logs and events without leaving the keyboard."
+        },
+        "meetingSummary": {
+          "name": "Meeting summary",
+          "desc": "Transcribes the meeting and hands back the tasks."
+        },
+        "radio": {
+          "name": "Lo-fi radio",
+          "desc": "Music for Focus, with the timer on screen."
+        },
+        "regex": {
+          "name": "Regex",
+          "desc": "Test regular expressions with live highlighting."
+        },
+        "sheets": {
+          "name": "Spreadsheets",
+          "desc": "Open CSV and XLSX with filters and sums."
+        },
+        "rag": {
+          "name": "Local RAG",
+          "desc": "Ask about your documents with a model on your computer."
+        },
+        "habits": {
+          "name": "Habits",
+          "desc": "Check off the day's habits and see your streak."
+        },
+        "sqlite": {
+          "name": "SQLite",
+          "desc": "Open any .db and browse its tables."
+        },
+        "cron": {
+          "name": "Cron",
+          "desc": "Build cron expressions and see the next runs."
+        },
+        "contrast": {
+          "name": "High contrast theme",
+          "desc": "Pure black and white, for easier reading."
+        },
+        "promptJudge": {
+          "name": "Prompt judge",
+          "desc": "Compare model answers side by side."
+        },
+        "compose": {
+          "name": "Docker Compose",
+          "desc": "Start, stop and follow the compose services."
+        },
+        "journal": {
+          "name": "Journal",
+          "desc": "One note a day, with search."
+        },
+        "chess": {
+          "name": "Chess",
+          "desc": "One game a day against the agent."
+        },
+        "jsonSchema": {
+          "name": "JSON Schema",
+          "desc": "Validate JSON against a schema and see the errors by line."
+        },
+        "commitWriter": {
+          "name": "Commit writer",
+          "desc": "Commit messages from what is staged."
+        },
+        "exchange": {
+          "name": "Exchange rates",
+          "desc": "Today's rates and quick conversion."
+        },
+        "sepia": {
+          "name": "Sepia theme",
+          "desc": "Warm tones for long sessions."
+        },
+        "logs": {
+          "name": "Logs",
+          "desc": "Follow log files with filters and colors."
+        },
+        "finance": {
+          "name": "Finances",
+          "desc": "The month's spending by category, from a CSV."
+        },
+        "graphql": {
+          "name": "GraphQL",
+          "desc": "Explore schemas and run queries with variables."
+        },
+        "explainer": {
+          "name": "Explainer",
+          "desc": "Explains the open file, function by function."
+        },
+        "stars": {
+          "name": "Star shower",
+          "desc": "A shooting star for every green build."
+        },
+        "gitGraph": {
+          "name": "Git graph",
+          "desc": "The graph of branches and commits, as text."
+        },
+        "rss": {
+          "name": "RSS reader",
+          "desc": "Feeds as a list, read right in the pane."
+        },
+        "charts": {
+          "name": "Charts",
+          "desc": "Text charts from CSV or SQL."
+        },
+        "retro": {
+          "name": "Retro terminal theme",
+          "desc": "Phosphor green and a block cursor."
+        },
+        "flags": {
+          "name": "Feature flags",
+          "desc": "Turn flags on and off across environments."
+        },
+        "translator": {
+          "name": "Translator",
+          "desc": "Translate text and i18n files."
+        },
+        "timesheet": {
+          "name": "Timesheet",
+          "desc": "Hours per project, from the panes you used."
+        },
+        "migrations": {
+          "name": "Migrations",
+          "desc": "Run and undo migrations with a preview of the SQL."
+        },
+        "mascot": {
+          "name": "Mascot",
+          "desc": "A companion that reacts to your tests."
+        },
+        "coverage": {
+          "name": "Coverage",
+          "desc": "Test coverage by file, with what is missing."
+        },
+        "email": {
+          "name": "Email",
+          "desc": "An inbox in rows, with keyboard actions."
+        },
+        "weather": {
+          "name": "Weather",
+          "desc": "The week's forecast for your cities."
+        },
+        "secrets": {
+          "name": "Secrets",
+          "desc": "Finds forgotten secrets before the commit."
+        },
+        "mindMap": {
+          "name": "Mind map",
+          "desc": "Ideas as a tree, keyboard only."
+        },
+        "typing": {
+          "name": "Typing",
+          "desc": "Practice speed with snippets of your own code."
+        },
+        "uptime": {
+          "name": "Uptime",
+          "desc": "The status of your services, with an alert in the pane header."
+        },
+        "benchmarks": {
+          "name": "Benchmarks",
+          "desc": "Compare runs and spot regressions."
+        },
+        "changelog": {
+          "name": "Changelog",
+          "desc": "Writes the changelog from the commits."
+        },
+        "snippets": {
+          "name": "Snippets",
+          "desc": "Text and code snippets one shortcut away."
+        }
+      },
+      "price": {
+        "free": "free",
+        "donation": "free · donation",
+        "perMonth": "{price}/month",
+        "trial": "{days}-day free trial",
+        "once": "{price} · one time"
+      },
+      "action": {
+        "free": "install",
+        "donation": "install",
+        "subscription": "subscribe",
+        "once": "buy",
+        "trial": "try free"
+      },
+      "installed": "installed",
+      "stepsFree": [
+        "downloading…",
+        "sha256 ok",
+        "permissions ok"
+      ],
+      "stepsPaid": [
+        "Cadente checkout…",
+        "license ok",
+        "sha256 ok"
+      ],
+      "empty": "No plugin with that name yet. <a href=\"#creator\">Why not build yours?</a>",
+      "demoSearches": [
+        "theme",
+        "sql",
+        "agent"
+      ],
+      "wall": [
+        "Pomodoro+",
+        "Quick notes",
+        "Webhooks",
+        "Mock server",
+        "WebSocket",
+        "gRPC",
+        "MQTT",
+        "OpenAPI",
+        "Licenses",
+        "Dependencies",
+        "Vulnerabilities",
+        ".env",
+        "SSH",
+        "Servers",
+        "Cloud costs",
+        "Seeds",
+        "Fixtures",
+        "Bundle size",
+        "Web vitals",
+        "Accessibility",
+        "i18n",
+        "Semver",
+        "Releases",
+        "Status page",
+        "Metrics",
+        "Flamegraph",
+        "Profiler",
+        "Flaky tests",
+        "Conflicts",
+        "Blame",
+        "Dictionary",
+        "Icons",
+        "Colors",
+        "Fonts",
+        "Slides",
+        "PDF reader",
+        "Transcription",
+        "Embeddings",
+        "Agents",
+        "Budget",
+        "Invoices",
+        "Contacts",
+        "Team calendar",
+        "Travel",
+        "Recipes",
+        "Books",
+        "Movies",
+        "Podcasts",
+        "Scoreboard",
+        "Sudoku",
+        "Words",
+        "Quiz",
+        "ASCII art",
+        "Team Kanban",
+        "Scrum",
+        "Retro",
+        "OKRs",
+        "Today's pull requests",
+        "SQL reviewer",
+        "Lint",
+        "Formatter",
+        "Image diff",
+        "Color palette",
+        "Calculator",
+        "Unit converter",
+        "Time zones",
+        "QR code",
+        "UUID",
+        "Base64",
+        "JWT"
+      ]
+    },
+    "calc": {
+      "subscription": {
+        "price": "Price per month",
+        "people": "Subscribers",
+        "per": "per month"
+      },
+      "once": {
+        "price": "Price",
+        "people": "Buyers",
+        "per": "in total"
+      },
+      "donation": {
+        "price": "Average donation per month",
+        "people": "Supporters",
+        "per": "per month"
+      }
+    },
+    "oneliner": {
+      "copied": "copied",
+      "select": "select and copy",
+      "copy": "copy"
+    },
+    "maker": {
+      "intro": "creator mode · the agent uses the SDK",
+      "nothingSent": "nothing goes out until you press ↵",
+      "newPane": "new pane",
+      "waiting": "waiting for the agent",
+      "codeHere": "the code shows up here",
+      "lines": {
+        "one": "{count} line",
+        "other": "{count} lines"
+      },
+      "writing": "writing",
+      "inDev": "in development",
+      "running": "running",
+      "chatTitle": "Chat · creator mode",
+      "terminalTitle": "Terminal · cadente plugin dev",
+      "placeholder": "message · @ attachments · / commands",
+      "writingToml": "writing cadente-plugin.toml",
+      "wroteToml": "wrote cadente-plugin.toml",
+      "writingLib": "writing src/lib.rs",
+      "runningTests": "running cargo test",
+      "testsOk": {
+        "one": "tests ok · {count} passed",
+        "other": "tests ok · {count} passed"
+      },
+      "compiling": "compiling to webassembly · 0.8 s",
+      "permissions": "permissions: {perms}",
+      "devRunning": "{id} 0.1.0 running",
+      "inDevAt": "{where} · in development",
+      "floatingLayer": "floating layer",
+      "publishDesc": "release, sha256 and store index",
+      "publishing": "publishing",
+      "released": "release v0.1.0 · artifact and sha256 uploaded",
+      "manifestOk": "manifest valid · topic cadente-plugin",
+      "published": "published · joins the store in the next index",
+      "inStore": "in the store",
+      "ex": {
+        "pet": {
+          "tab": "Pet Cadu",
+          "ask": "make a Cadu tamagotchi that floats over the app, gets hungry and gets dirty",
+          "keyFeed": "feed",
+          "keyBath": "bath",
+          "plan": "I'll create the ana.cadu-tamagotchi package on the floating layer: he flies around the screen and gets hungry and dirty over time; f feeds him and b gives him a bath.",
+          "file": "wrote src/lib.rs · Cadu in ANSI, hunger and the bath",
+          "perms": "none beyond the Core",
+          "ready": "Done. Cadu is loose in the app, hungry and dirty. Drag him around; f feeds him and b gives him a bath.",
+          "hint": "f feeds · b bathes · drag Cadu",
+          "price": "price: free with donations · you get 90%"
+        },
+        "sales": {
+          "title": "Today's sales",
+          "ask": "make a plugin that shows today's sales from my store, with a chart by hour",
+          "viewToday": "today",
+          "viewTodayText": "total, chart and orders",
+          "viewWeek": "week",
+          "viewWeekText": "compared with last week",
+          "plan": "I'll create leo.vendas-do-dia: a pane with today's total, a chart by hour and the latest orders. It only talks to api.stripe.com.",
+          "file": "wrote src/lib.rs · the total, the chart and the orders",
+          "today": "today",
+          "todayMeta": "$3,482.90 · 27 orders",
+          "perHour": "by hour",
+          "peak": "peak at 11 am",
+          "latest": "latest orders",
+          "order1": "$129.90 · paid",
+          "order2": "$49.00 · paid",
+          "order3": "$310.00 · pending",
+          "ready": "Done. The pane shows today's sales and refreshes itself every minute.",
+          "hint": "⇥ week · ↵ opens the order",
+          "price": "price: $4 a month · you get 70% of every renewal"
+        },
+        "status": {
+          "title": "Status page",
+          "ask": "make a status page that shows when GitHub, Cloudflare, AWS and other services go down",
+          "when": "a service goes down or comes back",
+          "plan": "I'll create orbita.status-page: a pane with GitHub, Cloudflare, AWS and other services, read from their official status pages every minute. When one goes down, the pane header turns red and you get a notification.",
+          "file": "wrote src/lib.rs · reading the status pages and the alerts",
+          "perms": "network · 7 status pages",
+          "signal": "1 down",
+          "now": "now",
+          "nowMeta": "1 down · 1 degraded · 5 ok",
+          "aws": "down · us-east-1 · 4 min",
+          "github": "slow · queues delayed",
+          "operational": "operational",
+          "day": "24 hours",
+          "incidents": "2 incidents",
+          "ready": "Done. The pane checks the status pages every minute. In this example, AWS CloudFront shows as down in us-east-1 and GitHub Actions is slow.",
+          "hint": "↵ opens the incident · ⇥ history",
+          "price": "price: $12, one-time purchase · you get 70%"
+        }
+      }
+    },
+    "tama": {
+      "feedButton": "eat",
+      "bathButton": "bath",
+      "hello": "hi! I'm hungry…",
+      "drag": "whoa! where are we going?",
+      "starving": "hungry… so hungry",
+      "hungry": "I'm hungry",
+      "dirty": "I need a bath",
+      "aria": "Cadu: {mood}. Drag him; f feeds him, b gives him a bath.",
+      "mood": {
+        "hungry": "hungry",
+        "dirty": "dirty",
+        "happy": "happy"
+      },
+      "full": "I already ate, thanks!",
+      "eating": "nom nom!",
+      "thanks": "thank you ✦",
+      "clean": "I'm already clean",
+      "splash": "splash!",
+      "fresh": "fresh and clean ✦"
+    }
   }
 }
