@@ -11,6 +11,7 @@ import { scene } from './v4/scenes.mjs';
 import { reduce, leaves, activeTab } from './v4/model.mjs';
 import { Cadu } from './cadu.js';
 import { playHero, installCommand } from './hero.js';
+import { initLanguages, languageSection } from './langs.js';
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
@@ -20,6 +21,8 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 setWindowLanguage(await demoTranslator(LOCALE));
 
 const onVisible = (el, fn, threshold = 0.2) => new IntersectionObserver((es, io) => { if (es[0].isIntersecting) { io.disconnect(); fn(); } }, { threshold }).observe(el);
+
+initLanguages();
 
 // ── Hero ──────────────────────────────────────────────────────────────
 export const hero = playHero({ slot: $('#hero-slot'), sub: $('#hero-sub'), reduced: REDUCED });
@@ -135,6 +138,9 @@ function tour(from) {
 }
 grid.addEventListener('click', e => { const b = e.target.closest('.pcard'); if (b) tour(FIRST.findIndex(p => p.id === b.dataset.plugin)); });
 tour(FIRST.findIndex(p => p.id === 'pr'));
+
+// ── 15 languages: the review scene, one window, every language ───────
+languageSection({ Stage, state: reduce(scene('quad'), { type: 'PATCH_SETTINGS', sidebar: true }), host: $('#langs-stage'), buttons: $('#langs-buttons'), fitTo: $('#langs-body .frame') });
 
 // ── Plugin architecture: toggle, swap, install, remove ────────────────
 // Providers are plugin ids, the same in every language; only "no AI" is a word.

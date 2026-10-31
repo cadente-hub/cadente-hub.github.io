@@ -26,7 +26,7 @@ export function generalize(text) {
 // The keys a text contributes to the catalog: the whole text, or its parts when it has " · ". Paths, files, URLs,
 // handles, commands, identifiers and single letters are the same in every language and are left out.
 const SAME = [
-  /^.$/u, /^[@#/~]/, /^https?:/, /^[\w.{}-]+\/[\w./{}-]*$/, /^[\w.{}-]+\.(rs|ts|tsx|js|mjs|json|md|toml|db|sql|ya?ml|css|html|py|lock|sh|env)$/,
+  /^.$/u, /^[@#][\w.-]+$/, /^\/[\w-]+$/, /^~[\w/.{}-]*$/, /^https?:/, /^[\w.{}-]+\/[\w./{}-]*$/, /^[\w.{}-]+\.(rs|ts|tsx|js|mjs|json|md|toml|db|sql|ya?ml|css|html|py|lock|sh|env)$/,
   /^[a-z0-9{}]+(?:[-_.][a-z0-9{}]+)+$/, /^[A-Z]+(?:[ _][A-Z]+)*$/, /^[a-z]+[A-Z]\w*$/,
 ];
 export const sameEverywhere = key => SAME.some(re => re.test(key));

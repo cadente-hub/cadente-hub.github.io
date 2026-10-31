@@ -159,7 +159,8 @@
     "resources": "Resources",
     "legal": "Legal",
     "terms": "Terms and conditions",
-    "copy": "© 2026 Cadente. Built in Rust."
+    "copy": "© 2026 Cadente. Built in Rust.",
+    "langs": "Languages"
   },
   "js": {
     "theater": {
@@ -930,5 +931,18 @@
     "a6": "15: Portuguese, English, Spanish, French, German, Italian, Russian, Turkish, Arabic, Hindi, Indonesian, Vietnamese, Japanese, Korean and Simplified Chinese. Switching is instant, with no restart. Some new screens arrive in Portuguese and English first.",
     "q7": "Which systems?",
     "a7": "macOS, on Apple Silicon and Intel, plus Windows and Linux, both on x64."
+  },
+  "lang": {
+    "label": "Language",
+    "notice": "This page is also in English.",
+    "go": "View in English",
+    "close": "Close"
+  },
+  "langs": {
+    "eyebrow": "15 languages",
+    "title": "Speaks your language.<br /><span class=\"violet-text\">And 14 more.</span>",
+    "lede": "From the menus to the terminal, Cadente comes in 15 languages, and switching is instant, with no restart. Pick a language and watch the window change.",
+    "pick": "Window language",
+    "note": "Some new screens arrive in Portuguese and English first."
   }
 }

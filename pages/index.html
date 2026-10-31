@@ -49,6 +49,7 @@
         <li><a href="#faq">{{nav.faq}}</a></li>
         <li><a href="{{@href:blog}}">{{nav.blog}}</a></li>
       </ul>
+      <details class="langpick"><summary aria-label="{{lang.label|attr}}">{{@lang}}</summary><div class="langpick__list">{{@langlinks}}</div></details>
       <a href="{{@href:downloads}}" class="btn btn--light btn--sm nav__cta">{{nav.download}}</a>
       <button class="nav__menu" id="nav-menu" aria-label="{{nav.menu|attr}}" aria-expanded="false" aria-controls="nav-sheet"><span></span><span></span></button>
     </nav>
@@ -169,6 +170,22 @@
           <li><b>{{agents.p4}}</b><span>{{agents.p4Text}}</span></li>
           <li><b>{{agents.p5}}</b><span>{{agents.p5Text}}</span></li>
         </ul>
+      </div>
+    </section>
+
+    <!-- 15 languages: one window, every language of the app -->
+    <section class="section langs" id="idiomas">
+      <div class="wrap">
+        <header class="head head--center reveal">
+          <p class="eyebrow">{{langs.eyebrow}}</p>
+          <h2 class="title">{{langs.title}}</h2>
+          <p class="lede">{{langs.lede}}</p>
+        </header>
+        <div class="langs__picker reveal" id="langs-buttons" role="radiogroup" aria-label="{{langs.pick|attr}}"></div>
+        <div class="langs__body" id="langs-body">
+          <div class="frame reveal"><div class="frame__stage" id="langs-stage"></div></div>
+        </div>
+        <p class="langs__note reveal">{{langs.note}}</p>
       </div>
     </section>
 
@@ -376,6 +393,7 @@
         <div><h4>{{foot.product}}</h4><a href="#abrir">{{nav.how}}</a><a href="#plugins">{{nav.plugins}}</a><a href="#loja">{{nav.store}}</a><a href="#creator">Creator mode</a><a href="{{@href:downloads}}">Downloads</a></div>
         <div><h4>{{foot.resources}}</h4><a href="{{@href:blog}}">{{nav.blog}}</a><a href="{{@href:release-notes}}">Release notes</a><a href="https://github.com/cadente-hub/cadente-hub.github.io" target="_blank" rel="noopener noreferrer">GitHub</a><a href="https://github.com/cadente-hub/cadente-hub.github.io/issues" target="_blank" rel="noopener noreferrer">Issues</a></div>
         <div><h4>{{foot.legal}}</h4><a href="{{@href:terms}}">{{foot.terms}}</a></div>
+        <div class="foot__langs"><h4>{{foot.langs}}</h4>{{@langlinks}}</div>
       </nav>
       <p class="foot__copy">{{foot.copy}}</p>
     </div>

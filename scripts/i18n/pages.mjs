@@ -61,7 +61,7 @@ function faqJsonLd(messages) {
 }
 
 // The page in one language. Throws on a key the catalog does not have, or on a token left in the result.
-export function renderPage({ template, page, locale, locales, messages, origin = ORIGIN, root = ROOT }) {
+export function renderPage({ template, page, locale, locales, messages, catalogs = new Map(), origin = ORIGIN, root = ROOT }) {
   const t = createT(messages, locale.intl);
   const href = id => {
     const own = PAGES.find(p => p.id === id);
@@ -69,6 +69,11 @@ export function renderPage({ template, page, locale, locales, messages, origin =
     if (STATIC[id]) return `/${STATIC[id]}`;
     throw new Error(`página desconhecida em @href: ${id}`);
   };
+  // The other ready languages, each with the words of its own notice ("this page is also in English").
+  const others = () => Object.fromEntries(locales.filter(l => l.code !== locale.code).map(l => {
+    const m = catalogs.get(l.code) ?? {};
+    return [l.code, { name: l.name, dir: l.dir, href: `${l.path}${page.url}`, notice: m['lang.notice'] ?? '', go: m['lang.go'] ?? '', close: m['lang.close'] ?? '' }];
+  }));
   const js = Object.fromEntries(Object.entries(messages).filter(([k]) => k.startsWith('js.')).map(([k, v]) => [k.slice(3), v]));
   const html = template.replace(/\{\{\s*(@?[\w.:-]+)\s*(?:\|\s*(\w+)\s*)?\}\}/g, (all, key, filter) => {
     let v;
@@ -78,7 +83,8 @@ export function renderPage({ template, page, locale, locales, messages, origin =
     else if (key === '@head') v = head(locale, page, locales, origin);
     else if (key === '@brand') v = brand(root);
     else if (key === '@jsonld:faq') v = faqJsonLd(messages);
-    else if (key === '@i18n') v = `<script type="application/json" id="i18n">${scriptJson({ locale: locale.code, intl: locale.intl, dir: locale.dir, base: locale.path, messages: js })}</script>`;
+    else if (key === '@langlinks') v = locales.map(l => `<a href="${l.path}${page.url}" hreflang="${l.code}" lang="${l.code}" data-lang="${l.code}"${l.code === locale.code ? ' aria-current="true"' : ''}>${escAttr(l.name)}</a>`).join('');
+    else if (key === '@i18n') v = `<script type="application/json" id="i18n">${scriptJson({ locale: locale.code, intl: locale.intl, dir: locale.dir, base: locale.path, messages: js, others: others() })}</script>`;
     else if (key.startsWith('@href:')) v = href(key.slice(6));
     else if (key.startsWith('@')) throw new Error(`token desconhecido: ${key}`);
     else {
@@ -105,7 +111,7 @@ export function pageEntries(root = ROOT, origin = ORIGIN) {
     html: () => {
       const messages = catalogs.get(locale.code);
       if (!messages) throw new Error(`falta i18n/${locale.code}/site.json`);
-      return renderPage({ template: fs.readFileSync(path.join(root, page.template), 'utf8'), page, locale, locales, messages, origin, root });
+      return renderPage({ template: fs.readFileSync(path.join(root, page.template), 'utf8'), page, locale, locales, messages, catalogs, origin, root });
     },
   })));
 }
