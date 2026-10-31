@@ -399,6 +399,14 @@
 .rack__wires path { fill: none; stroke: rgba(255, 255, 255, .16); stroke-width: 1.2; transition: stroke .4s, opacity .4s; }
 .rack__wires path.is-hot { stroke: var(--violet-hi); stroke-dasharray: 4 6; animation: flow 1s linear infinite; filter: drop-shadow(0 0 4px var(--violet)); }
 .rack__wires path.is-off { opacity: 0; }
+.rack__wires path { stroke: rgba(196, 160, 255, .26); stroke-width: 1; }
+.rack__wires path.is-dark { stroke: rgba(255, 255, 255, .05); stroke-dasharray: 2 6; }
+.rack__wires .star { fill: #efe4ff; filter: drop-shadow(0 0 4px rgba(196, 140, 255, .9)); transition: fill .4s, opacity .4s; }
+.svc { position: relative; }
+.svc__star { position: absolute; inset-inline-start: -5px; top: 18px; width: 9px; height: 9px; border-radius: 50%; background: #fff; box-shadow: 0 0 10px 2px rgba(196, 140, 255, .9); transition: background-color .4s, box-shadow .4s; }
+.svc.is-off { border-style: dashed; }
+.svc.is-off .svc__star { background: #000; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .35); }
+.svc.is-off .svc__provider { color: var(--fg-3); }
 @keyframes flow { to { stroke-dashoffset: -20; } }
 .rchip { width: 100%; display: flex; align-items: center; gap: 10px; height: 36px; padding: 0 12px; border: 1px solid var(--line); border-radius: 10px; background: #000; text-align: left; transition: border-color .25s, opacity .3s, background-color .25s, transform .2s var(--ease); }
 .rchip:hover { border-color: rgba(168, 85, 247, .6); }
@@ -664,3 +672,14 @@
 [dir="rtl"] .sky__label { transform: translate(50%, 12px); }
 .hero__inner { z-index: 1; }
 @media (max-width: 760px) { .sky__label { display: none; } }
+
+/* The stars of the hero pour into the theater window as the page scrolls (--arrive, set by js/home.js). */
+#theater-frame { --arrive: 0; }
+#theater-frame::after { content: ''; position: absolute; inset: -1px; z-index: 4; border-radius: 15px; pointer-events: none; opacity: calc(var(--arrive) * (1 - var(--arrive)) * 4); box-shadow: 0 -30px 120px -20px rgba(196, 140, 255, .7), inset 0 1px 0 rgba(233, 213, 255, .8); }
+
+/* Sections enter with the scroll where the browser can tie animations to it; elsewhere .reveal keeps its fade. */
+@supports (animation-timeline: view()) {
+  .js-motion .reveal { opacity: 1; transform: none; transition: none; animation: scrollIn linear both; animation-timeline: view(); animation-range: entry 0% cover 28%; }
+  .js-motion .hero .reveal { animation: none; }
+  @keyframes scrollIn { from { opacity: 0; transform: translateY(48px) scale(.985); filter: blur(4px); } to { opacity: 1; transform: none; filter: none; } }
+}

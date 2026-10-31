@@ -110,6 +110,8 @@ export function createSky(canvas, { words, labels: labelHost, narrow = false, on
     // A word of the title fell: its star starts from where the word was.
     drop(i, rect) { if (done) return; model.drops[i] = { at: now(), from: norm(rect) }; settled = false; request(); },
     settle(rect) { model.hub = { at: now(), ...norm(rect) }; request(); },
+    // How far the hero has scrolled away (0..1); redraws once for each change.
+    pour(p) { const v = Math.round(Math.min(1, Math.max(0, p)) * 500) / 500; if (v !== model.pour) { model.pour = v; request(); } },
     get moving() { return !!raf; },
     model,
     destroy() { done = true; cancelAnimationFrame(raf); ro.disconnect(); io.disconnect(); document.removeEventListener('visibilitychange', syncClock); tags.forEach(t => t.remove()); },

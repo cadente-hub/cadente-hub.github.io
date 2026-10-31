@@ -43,6 +43,15 @@ requestAnimationFrame(() => setTimeout(async () => {
     return staticSky($('#sky'), { words: skyNames, labels, narrow });
   }
   for (const [i, rect] of fallen.splice(0)) sky.drop(i, rect);
+  // Scrolling away from the hero pours the stars into the window below, which lights up as they arrive.
+  const heroEl = $('#topo'), frameEl = $('#theater-frame');
+  const onScroll = () => {
+    const r = heroEl.getBoundingClientRect(), p = Math.min(1, Math.max(0, -r.top / (r.height * 0.6)));
+    sky.pour(p);
+    frameEl.style.setProperty('--arrive', p.toFixed(3));
+  };
+  addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
   const hub = await hero;
   sky.settle((hub ?? $('#hero-slot')).getBoundingClientRect());
 }, 0));
@@ -191,7 +200,7 @@ function drawRack(fresh) {
   rp.innerHTML = rack.plugins.map(p => `<li><button class="rchip${p.on ? '' : ' is-off'}${p.id === fresh ? ' is-new' : ''}" data-plugin="${p.id}" aria-pressed="${p.on}"><span class="rchip__dot" aria-hidden="true"></span><span class="rchip__g" aria-hidden="true">${esc(p.g)}</span><span class="rchip__name">${esc(p.author ? `${p.name} · ${p.author}` : p.name)}</span><span class="rchip__meta">${t(p.community ? 'rack.meta.community' : p.on ? 'rack.meta.on' : 'rack.meta.off')}</span></button>${p.community ? `<button class="rchip__x" data-remove aria-label="${esc(t('rack.removeKanban'))}">×</button>` : ''}</li>`).join('');
   rs.innerHTML = SERVICES.map(s => {
     const option = s.options[rack.provider[s.id]];
-    return `<li><button class="svc" data-service="${s.id}"><span class="svc__name">${esc(serviceName(s.id))}</span><span class="svc__provider"><i>${esc(optionLabel(option))}</i></span><span class="svc__uses">${esc(serviceNote(t, list, { noAi: option === NO_AI, users: usersOf(rack, s.id) }))}</span></button></li>`;
+    return `<li><button class="svc${option === NO_AI ? ' is-off' : ''}" data-service="${s.id}"><i class="svc__star" aria-hidden="true"></i><span class="svc__name">${esc(serviceName(s.id))}</span><span class="svc__provider"><i>${esc(optionLabel(option))}</i></span><span class="svc__uses">${esc(serviceNote(t, list, { noAi: option === NO_AI, users: usersOf(rack, s.id) }))}</span></button></li>`;
   }).join('');
   rcount.textContent = t('rack.count', { count: rack.plugins.filter(p => p.on).length });
   radd.disabled = rack.plugins.some(p => p.id === 'kanban');
@@ -203,18 +212,22 @@ function wire(hot = {}) {
   if (!box.width || getComputedStyle(wires).display === 'none') return;
   const rtl = getComputedStyle(rackEl).direction === 'rtl';
   wires.setAttribute('viewBox', `0 0 ${box.width} ${box.height}`);
-  const paths = [];
+  // The rack as a constellation: every plugin and service is a star, every use a line between them. A service without
+  // a provider (the AI turned off) goes dark, and so do its lines.
+  const paths = [], stars = new Map();
+  const dark = sid => SERVICES.find(x => x.id === sid)?.options[rack.provider[sid]] === NO_AI;
   for (const p of rack.plugins) {
     const a = rp.querySelector(`[data-plugin="${p.id}"]`)?.getBoundingClientRect();
     for (const s of p.uses) {
       const b = rs.querySelector(`[data-service="${s}"]`)?.getBoundingClientRect();
       if (!a || !b) continue;
       const x1 = (rtl ? a.left : a.right) - box.left, y1 = a.top + a.height / 2 - box.top, x2 = (rtl ? b.right : b.left) - box.left, y2 = b.top + Math.min(22, b.height / 2) - box.top, mx = (x1 + x2) / 2;
-      const cls = !p.on ? 'is-off' : hot.service === s || hot.plugin === p.id ? 'is-hot' : '';
+      const cls = !p.on ? 'is-off' : dark(s) ? 'is-dark' : hot.service === s || hot.plugin === p.id ? 'is-hot' : '';
       paths.push(`<path class="${cls}" d="M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}"/>`);
+      if (p.on) stars.set(`p:${p.id}`, `<circle class="star" cx="${x1}" cy="${y1}" r="2.6"/>`);
     }
   }
-  wires.innerHTML = paths.join('');
+  wires.innerHTML = paths.join('') + [...stars.values()].join('');
 }
 function togglePlugin(id) {
   const p = rack.plugins.find(x => x.id === id);

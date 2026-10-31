@@ -41,8 +41,14 @@ export function flight(a, b, p) {
 
 // The sky at time `t` (ms). `drops` are { at, from } (from: the word's centre in 0..1), in the order the words fell;
 // `hub` is { at, x, y } once the title settled. Returns glows, segments, label alphas and whether it still moves.
-export function frame({ field, targets, drops, hub }, t) {
+// `pour` (0..1) is how far the hero has scrolled away: the landed stars stream down toward the window below it, and
+// their lines and names fade on the way.
+const SINK = { x: 0.5, y: 1.06 };
+export function frame({ field, targets, drops, hub, pour = 0 }, t) {
   const glows = [], segments = [], labels = [];
+  const at = i => ease(clamp(pour * 1.5 - i * 0.06, 0, 1));
+  const place = (q, i) => (pour > 0 ? lerp(q, SINK, at(i)) : q);
+  const keep = clamp(1 - pour * 1.8, 0, 1);
   const start = drops[0]?.at ?? t;
   const fade = clamp((t - start) / FADE_IN, 0, 1);
   for (const s of field) {
@@ -64,9 +70,11 @@ export function frame({ field, targets, drops, hub }, t) {
       labels.push(0);
     } else {
       const since = t - d.at - FLIGHT, flash = Math.max(0, 1 - since / 500);
-      glows.push({ x: to.x, y: to.y, size: 3.2 + flash * 9, alpha: 0.95, hue: 1 });
-      labels.push(clamp(since / 400, 0, 1));
-      landed.push({ i, to, at: d.at + FLIGHT });
+      const here = place(to, i), k = at(i);
+      glows.push({ x: here.x, y: here.y, size: 3.2 + flash * 9 + k * 2, alpha: 0.95 * (1 - k * k * 0.6), hue: 1 });
+      if (k > 0.02 && k < 0.98) for (let j = 1; j <= 6; j++) { const back = lerp(to, SINK, Math.max(0, k - j * 0.035)); segments.push({ a: j === 1 ? here : lerp(to, SINK, Math.max(0, k - (j - 1) * 0.035)), b: back, width: 1.6 * (1 - j / 7), alpha: 0.6 * (1 - j / 7), hue: 1 }); }
+      labels.push(clamp(since / 400, 0, 1) * keep);
+      landed.push({ i, to: here, home: to, at: d.at + FLIGHT });
     }
   });
   // Each landed star links to the previous one on its side.
@@ -74,12 +82,12 @@ export function frame({ field, targets, drops, hub }, t) {
     const chain = landed.filter(l => l.to.side === side).sort((a, b) => a.i - b.i);
     for (let k = 1; k < chain.length; k++) {
       const p = clamp((t - chain[k].at) / LINE, 0, 1);
-      if (p > 0) segments.push({ a: chain[k - 1].to, b: lerp(chain[k - 1].to, chain[k].to, p), width: 1, alpha: 0.32, hue: 2 });
+      if (p > 0 && keep > 0) segments.push({ a: chain[k - 1].to, b: lerp(chain[k - 1].to, chain[k].to, p), width: 1, alpha: 0.32 * keep, hue: 2 });
     }
   }
   if (hub) {
     const p = clamp((t - hub.at) / SETTLE, 0, 1);
-    for (const l of landed) segments.push({ a: l.to, b: lerp(l.to, hub, ease(p)), width: 0.8, alpha: 0.14 * p, hue: 2 });
+    if (keep > 0) for (const l of landed) segments.push({ a: l.to, b: lerp(l.to, hub, ease(p)), width: 0.8, alpha: 0.14 * p * keep, hue: 2 });
     const pulse = Math.max(0, 1 - (t - hub.at) / 1200);
     if (pulse > 0) glows.push({ x: hub.x, y: hub.y, size: 60 * (1 - pulse) + 20, alpha: pulse * 0.6, hue: 1 });
   }
