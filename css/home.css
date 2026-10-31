@@ -32,7 +32,7 @@
 .hero__lede { max-width: 680px; margin: 32px auto 0; font-size: clamp(17px, 1.7vw, 21px); color: var(--fg-2); }
 .hero__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 40px; }
 .hero__models { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 22px; margin-top: 56px; font-family: var(--mono); font-size: 12px; letter-spacing: .04em; color: var(--fg-3); }
-.hero__models span + span::before { content: '·'; margin-right: 22px; color: var(--fg-4); }
+.hero__models span + span::before { content: '·'; margin-inline-end: 22px; color: var(--fg-4); }
 .js-motion .hero .reveal { transition-delay: .3s; }
 
 /* ── Theater: the pinned Cadente window ─────────────────────────────── */
@@ -44,7 +44,7 @@
 
 .steps { display: flex; gap: 6px; }
 .steps li { flex: 1; min-width: 0; }
-.steps button { width: 100%; display: flex; flex-direction: column-reverse; gap: 8px; padding: 0; text-align: left; font-family: var(--mono); font-size: 11px; letter-spacing: .04em; color: var(--fg-3); transition: color .3s; }
+.steps button { width: 100%; display: flex; flex-direction: column-reverse; gap: 8px; padding: 0; text-align: start; font-family: var(--mono); font-size: 11px; letter-spacing: .04em; color: var(--fg-3); transition: color .3s; }
 .steps button span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .steps__bar { position: relative; display: block; height: 2px; border-radius: 2px; background: var(--line-2); overflow: hidden; }
 .steps__bar::after { content: ''; position: absolute; inset: 0; background: rgba(255, 255, 255, .55); transform: scaleX(0); transform-origin: 0 50%; }
@@ -363,7 +363,7 @@
 .plugins__layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: clamp(24px, 4vw, 56px); align-items: start; }
 .plugins__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 18px; overflow: hidden; }
 .plugins__grid li { background: var(--bg); }
-.pcard { width: 100%; height: 100%; display: flex; align-items: center; gap: 10px; padding: 12px; text-align: left; transition: background-color .25s; position: relative; }
+.pcard { width: 100%; height: 100%; display: flex; align-items: center; gap: 10px; padding: 12px; text-align: start; transition: background-color .25s; position: relative; }
 .pcard__glyph { flex: none; width: 30px; height: 30px; display: grid; place-items: center; border: 1px solid var(--line-2); border-radius: 9px; font-family: var(--mono); font-size: 15px; color: var(--fg); transition: border-color .25s, box-shadow .25s, color .25s; }
 .pcard__title { min-width: 0; font-weight: 600; font-size: 14px; letter-spacing: -0.01em; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pcard__desc { display: none; }
@@ -377,7 +377,7 @@
 .plugins__note { margin-top: 16px; font-size: 15px; line-height: 1.5; color: var(--fg-2); min-height: 3em; }
 .plugins__note kbd { font-size: 12px; }
 .plugins__note b { color: var(--fg); font-weight: 600; }
-.plugins__note b span { color: var(--violet-hi); font-family: var(--mono); font-weight: 400; margin-right: 8px; }
+.plugins__note b span { color: var(--violet-hi); font-family: var(--mono); font-weight: 400; margin-inline-end: 8px; }
 /* Beyond the first-party plugins: the community */
 .community { margin-top: clamp(40px, 6vw, 72px); display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: end; gap: 24px 56px; padding: clamp(24px, 3.4vw, 44px); border: 1px solid var(--line); border-radius: 22px; background: radial-gradient(110% 130% at 0% 100%, rgba(168, 85, 247, .18), transparent 60%), var(--surface); }
 .community__big { font-size: clamp(34px, 4.8vw, 66px); line-height: 1; letter-spacing: -0.045em; font-weight: 600; }
@@ -408,7 +408,7 @@
 .svc.is-off .svc__star { background: #000; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .35); }
 .svc.is-off .svc__provider { color: var(--fg-3); }
 @keyframes flow { to { stroke-dashoffset: -20; } }
-.rchip { width: 100%; display: flex; align-items: center; gap: 10px; height: 36px; padding: 0 12px; border: 1px solid var(--line); border-radius: 10px; background: #000; text-align: left; transition: border-color .25s, opacity .3s, background-color .25s, transform .2s var(--ease); }
+.rchip { width: 100%; display: flex; align-items: center; gap: 10px; height: 36px; padding: 0 12px; border: 1px solid var(--line); border-radius: 10px; background: #000; text-align: start; transition: border-color .25s, opacity .3s, background-color .25s, transform .2s var(--ease); }
 .rchip:hover { border-color: rgba(168, 85, 247, .6); }
 .rchip__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--violet); box-shadow: 0 0 10px var(--violet); flex: none; transition: background-color .3s, box-shadow .3s; }
 .rchip__g { width: 2ch; text-align: center; color: var(--fg-3); }
@@ -421,20 +421,20 @@
 .rchip.is-off .rchip__name { color: var(--fg-3); text-decoration: line-through; text-decoration-color: var(--fg-4); }
 .rchip.is-new { animation: chipIn .8s var(--ease); }
 @keyframes chipIn { from { opacity: 0; transform: translateX(-16px); box-shadow: 0 0 0 1px var(--violet), 0 0 30px var(--violet-glow); } }
-.svc { display: flex; flex-direction: column; gap: 6px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: #000; text-align: left; width: 100%; transition: border-color .25s; }
+.svc { display: flex; flex-direction: column; gap: 6px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: #000; text-align: start; width: 100%; transition: border-color .25s; }
 .svc:hover { border-color: rgba(168, 85, 247, .6); }
 .svc__name { color: var(--fg); }
 .svc__provider { display: flex; align-items: center; gap: 8px; color: var(--violet-hi); overflow: hidden; }
 .svc__provider i { font-style: normal; display: inline-block; }
 .svc__provider i.is-roll { animation: roll .5s var(--ease); }
 @keyframes roll { from { transform: translateY(100%); opacity: 0; filter: blur(3px); } }
-.svc__provider::after { content: '↻'; margin-left: auto; color: var(--fg-3); }
+.svc__provider::after { content: '↻'; margin-inline-start: auto; color: var(--fg-3); }
 .svc__uses { color: var(--fg-3); font-size: 12px; }
 .rack__add { margin-top: 12px; width: 100%; height: 36px; border: 1px dashed var(--line-2); border-radius: 10px; color: var(--fg-2); transition: border-color .2s, color .2s; font-size: 13px; }
 .rack__add:hover { border-color: var(--violet); color: var(--fg); }
 .rack__add:disabled { opacity: .4; cursor: default; }
 .rack__base { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--fg-2); }
-.lock { color: var(--violet); margin-right: 6px; }
+.lock { color: var(--violet); margin-inline-end: 6px; }
 .rack__log { grid-column: 1 / -1; margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--line); color: var(--fg-3); min-height: 2.6em; }
 .rack__log b { color: var(--violet-hi); font-weight: 400; }
 
@@ -683,3 +683,13 @@
   .js-motion .hero .reveal { animation: none; }
   @keyframes scrollIn { from { opacity: 0; transform: translateY(48px) scale(.985); filter: blur(4px); } to { opacity: 1; transform: none; filter: none; } }
 }
+
+/* ── Other scripts and right-to-left pages ──────────────────────────── */
+/* The app windows keep the app's layout, left to right, in every language (dir="ltr" on each .frame). */
+[dir="rtl"] .steps__bar::after { transform-origin: 100% 50%; }
+[dir="rtl"] .hero__actions svg, [dir="rtl"] .community__go span { transform: scaleX(-1); }
+/* Joined and syllabic scripts lose their shape with the tight Latin tracking of the titles. */
+:is(:lang(ar), :lang(hi)) :is(.title, .hero__title, .hero__sub, .caption__title, .stage__title-in b, .subtitle) { letter-spacing: 0; line-height: 1.2; }
+:is(:lang(ja), :lang(ko), :lang(zh-CN)) :is(.title, .hero__title, .caption__title, .stage__title-in b) { letter-spacing: -0.02em; line-height: 1.15; }
+:lang(ja), :lang(zh-CN) { line-break: strict; word-break: auto-phrase; }
+:lang(ko) { word-break: keep-all; }

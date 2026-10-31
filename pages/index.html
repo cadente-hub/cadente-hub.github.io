@@ -19,6 +19,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  {{@fonts}}
   <link rel="preload" href="/assets/fonts/hack-regular.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="/assets/fonts/hack-bold.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="/css/site.css" />
@@ -100,7 +101,7 @@
         <div class="caption" id="caption" aria-live="polite"></div>
       </div>
       <div class="wrap theater__body">
-        <div class="frame reveal" id="theater-frame">
+        <div dir="ltr" class="frame reveal" id="theater-frame">
           <div class="frame__stage" id="theater-stage"></div>
         </div>
       </div>
@@ -184,7 +185,7 @@
         </header>
         <div class="langs__picker reveal" id="langs-buttons" role="radiogroup" aria-label="{{langs.pick|attr}}"></div>
         <div class="langs__body" id="langs-body">
-          <div class="frame reveal"><div class="frame__stage" id="langs-stage"></div></div>
+          <div dir="ltr" class="frame reveal"><div class="frame__stage" id="langs-stage"></div></div>
         </div>
         <p class="langs__note reveal">{{langs.note}}</p>
       </div>
@@ -220,7 +221,7 @@
         <div class="plugins__layout">
           <ul class="plugins__grid" id="plugin-grid" aria-label="{{plugins.gridLabel|attr}}"></ul>
           <div class="plugins__preview">
-            <div class="frame frame--small">
+            <div dir="ltr" class="frame frame--small">
               <div class="frame__stage" id="plugin-stage"></div>
             </div>
             <p class="plugins__note" id="plugin-note" aria-live="polite"></p>
@@ -331,7 +332,7 @@
         </header>
         <div class="maker__ex" id="maker-ex" role="tablist" aria-label="{{creator.examples|attr}}"></div>
         <div class="maker reveal" id="maker">
-          <div class="frame frame--maker">
+          <div dir="ltr" class="frame frame--maker">
             <div class="v4 maker__win" id="maker-win" aria-hidden="true"></div>
           </div>
           <ol class="maker__steps" id="maker-steps">

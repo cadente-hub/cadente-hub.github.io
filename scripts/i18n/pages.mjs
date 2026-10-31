@@ -82,6 +82,8 @@ export function renderPage({ template, page, locale, locales, messages, catalogs
     else if (key === '@base') v = locale.path;
     else if (key === '@head') v = head(locale, page, locales, origin);
     else if (key === '@brand') v = brand(root);
+    // A script Geist does not cover gets its Noto font, on its own pages only, after Geist in the stack.
+    else if (key === '@fonts') v = locale.font ? `<link href="https://fonts.googleapis.com/css2?family=${encodeURIComponent(locale.font).replace(/%20/g, '+')}:wght@400;500;600;700&display=swap" rel="stylesheet" />\n  <style>:root { --sans: 'Geist', '${locale.font}', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }</style>` : '';
     else if (key === '@jsonld:faq') v = faqJsonLd(messages);
     else if (key === '@langlinks') v = locales.map(l => `<a href="${l.path}${page.url}" hreflang="${l.code}" lang="${l.code}" data-lang="${l.code}"${l.code === locale.code ? ' aria-current="true"' : ''}>${escAttr(l.name)}</a>`).join('');
     else if (key === '@i18n') v = `<script type="application/json" id="i18n">${scriptJson({ locale: locale.code, intl: locale.intl, dir: locale.dir, base: locale.path, messages: js, others: others() })}</script>`;
