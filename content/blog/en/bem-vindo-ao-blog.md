@@ -22,7 +22,7 @@ This is where we will record what we are building, the decisions that guide the 
 - behind the scenes of architecture, privacy and performance;
 - lessons from the community and plans for the next cycles.
 
-The blog follows the same public feed the Launcher reads. When a new post lands here, it shows up in the app's news area after the next feed update.
+The Portuguese edition of this blog is the public feed the Launcher reads. A new post there shows up in the app's news area after the next feed update.
 
 ## Built to last
 
