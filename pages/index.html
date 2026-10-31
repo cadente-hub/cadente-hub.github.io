@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="{{@lang}}" dir="{{@dir}}">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="theme-color" content="#000000" />
+  <title>{{meta.title}}</title>
+  <meta name="description" content="{{meta.description|attr}}" />
+  <meta property="og:title" content="Cadente" />
+  <meta property="og:description" content="{{meta.ogDescription|attr}}" />
+  <meta property="og:image" content="https://cadente-hub.github.io/assets/og-image.png" />
+  <meta property="og:type" content="website" />
+  {{@head}}
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Cadente" />
+  <meta name="twitter:description" content="{{meta.ogDescription|attr}}" />
+  <meta name="twitter:image" content="https://cadente-hub.github.io/assets/og-image.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="preload" href="/assets/fonts/hack-regular.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="/assets/fonts/hack-bold.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="stylesheet" href="/css/site.css" />
+  <link rel="stylesheet" href="/css/v4-theme.css" />
+  <link rel="stylesheet" href="/css/v4.css" />
+  <link rel="stylesheet" href="/css/home.css" />
+  <script>if (!matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('js-motion');</script>
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png" />
+  <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png" />
+  <meta name="google-site-verification" content="HGFZHpKEZzOsP2slAus8nx0z4HrCyMUmFyTK2WrWpVA" />
+  {{@i18n}}
+</head>
+<body class="home">
+  <a class="skip" href="#conteudo">{{meta.skip}}</a>
+
+  <header class="nav" id="nav">
+    <nav class="nav__inner wrap" aria-label="{{nav.label|attr}}">
+      <a href="{{@base}}" class="brand" aria-label="{{nav.home|attr}}">
+        {{@brand}}
+        <span>Cadente</span>
+      </a>
+      <ul class="nav__links">
+        <li><a href="#abrir">{{nav.how}}</a></li>
+        <li><a href="#creator">{{nav.earn}}</a></li>
+        <li><a href="#plugins">{{nav.plugins}}</a></li>
+        <li><a href="#dono">{{nav.arch}}</a></li>
+        <li><a href="#loja">{{nav.store}}</a></li>
+        <li><a href="{{@href:blog}}">{{nav.blog}}</a></li>
+      </ul>
+      <a href="{{@href:downloads}}" class="btn btn--light btn--sm nav__cta">{{nav.download}}</a>
+      <button class="nav__menu" id="nav-menu" aria-label="{{nav.menu|attr}}" aria-expanded="false" aria-controls="nav-sheet"><span></span><span></span></button>
+    </nav>
+    <div class="nav__sheet" id="nav-sheet" hidden>
+      <a href="#abrir">{{nav.how}}</a>
+      <a href="#creator">{{nav.earn}}</a>
+      <a href="#plugins">{{nav.plugins}}</a>
+      <a href="#dono">{{nav.arch}}</a>
+      <a href="#loja">{{nav.store}}</a>
+      <a href="{{@href:blog}}">{{nav.blog}}</a>
+      <a href="{{@href:downloads}}" class="btn btn--light">{{nav.download}}</a>
+    </div>
+  </header>
+
+  <main id="conteudo">
+    <!-- Hero -->
+    <section class="hero" id="topo">
+      <div class="hero__glow" aria-hidden="true"></div>
+      <div class="wrap hero__inner">
+        <span class="hero__cadu" id="hero-cadu" aria-hidden="true"></span>
+        <p class="eyebrow eyebrow--plain reveal"><span class="dot" aria-hidden="true"></span>{{hero.eyebrow}}</p>
+        <h1 class="hero__title">
+          <span class="line"><span>{{hero.title1}}</span></span>
+          <span class="line"><span>{{hero.title2}}</span></span>
+          <span class="line"><span class="violet-text">{{hero.title3}}</span></span>
+        </h1>
+        <p class="hero__lede reveal">{{hero.lede}}</p>
+        <div class="hero__actions reveal">
+          <a href="{{@href:downloads}}" class="btn btn--light btn--lg">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19h14"/></svg>
+            {{nav.download}}
+          </a>
+          <a href="#abrir" class="btn btn--ghost btn--lg">{{hero.watch}} <span aria-hidden="true">↓</span></a>
+        </div>
+        <a class="hero__earn reveal" href="#creator"><b>Creator mode</b><span>{{hero.earn}}</span><i aria-hidden="true">→</i></a>
+        <p class="hero__models reveal"><span>Claude Code</span><span>Codex</span><span>agy</span><span>Gemini CLI</span><span>OpenCode</span><span>Ollama</span><span>{{hero.anyCli}}</span></p>
+      </div>
+    </section>
+
+    <!-- Theater: the real v4 prototype, playing on its own -->
+    <section class="theater" id="abrir" aria-label="{{theater.label|attr}}">
+      <div class="wrap theater__head">
+        <p class="theater__intro"><span class="dot" aria-hidden="true"></span>{{theater.intro}}</p>
+        <ol class="steps" id="steps" aria-label="{{theater.chapters|attr}}"></ol>
+        <div class="caption" id="caption" aria-live="polite"></div>
+      </div>
+      <div class="wrap theater__body">
+        <div class="frame reveal" id="theater-frame">
+          <div class="frame__stage" id="theater-stage"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Creator mode -->
+    <section class="section creator" id="creator">
+      <div class="wrap">
+        <header class="head reveal">
+          <p class="eyebrow">{{creator.eyebrow}}</p>
+          <h2 class="title">{{creator.title}}</h2>
+          <p class="lede">{{creator.lede}}</p>
+        </header>
+        <div class="money">
+          <div class="money__models reveal">
+            <article class="model" data-model="donation">
+              <p class="model__cut">90%<span>{{creator.forYou}}</span></p>
+              <h3>{{creator.donation}}</h3>
+              <p>{{creator.donationText}}</p>
+            </article>
+            <article class="model" data-model="subscription">
+              <p class="model__cut">70%<span>{{creator.forYou}}</span></p>
+              <h3>{{creator.subscription}}</h3>
+              <p>{{creator.subscriptionText}}</p>
+            </article>
+            <article class="model" data-model="once">
+              <p class="model__cut">70%<span>{{creator.forYou}}</span></p>
+              <h3>{{creator.once}}</h3>
+              <p>{{creator.onceText}}</p>
+            </article>
+            <article class="model" data-model="trial">
+              <p class="model__cut">{{creator.trialCut}}<span>{{creator.trialExample}}</span></p>
+              <h3>{{creator.trial}}</h3>
+              <p>{{creator.trialText}}</p>
+            </article>
+          </div>
+
+          <div class="calc reveal" id="calc">
+            <div class="calc__inputs">
+              <div class="calc__tabs" role="radiogroup" aria-label="{{creator.calc.model|attr}}">
+                <button role="radio" aria-checked="true" data-calc="subscription">{{creator.subscription}}</button>
+                <button role="radio" aria-checked="false" data-calc="once">{{creator.once}}</button>
+                <button role="radio" aria-checked="false" data-calc="donation">{{creator.donation}}</button>
+              </div>
+              <label class="calc__range">
+                <span class="calc__label"><span id="calc-price-label">{{creator.calc.pricePerMonth}}</span><output id="calc-price-out"></output></span>
+                <input type="range" id="calc-price" min="1" max="50" step="1" value="5" />
+              </label>
+              <label class="calc__range">
+                <span class="calc__label"><span id="calc-people-label">{{creator.calc.subscribers}}</span><output id="calc-people-out"></output></span>
+                <input type="range" id="calc-people" min="0" max="100" step="1" value="58" />
+              </label>
+            </div>
+            <div class="calc__result">
+              <p class="calc__kicker">{{creator.calc.youGet}}</p>
+              <p class="calc__value"><span id="calc-value">US$ 0</span><span class="calc__per" id="calc-per">{{creator.calc.perMonth}}</span></p>
+              <p class="calc__note">{{creator.calc.note}}</p>
+            </div>
+          </div>
+        </div>
+
+        <header class="head head--sub reveal">
+          <h3 class="subtitle">{{creator.makerTitle}}</h3>
+          <p class="lede">{{creator.makerLede}}</p>
+        </header>
+        <div class="maker__ex" id="maker-ex" role="tablist" aria-label="{{creator.examples|attr}}"></div>
+        <div class="maker reveal" id="maker">
+          <div class="frame frame--maker">
+            <div class="v4 maker__win" id="maker-win" aria-hidden="true"></div>
+          </div>
+          <ol class="maker__steps" id="maker-steps">
+            <li data-step="0"><b>{{creator.step1}}</b><span>{{creator.step1Text}}</span></li>
+            <li data-step="1"><b>{{creator.step2}}</b><span>{{creator.step2Text}}</span></li>
+            <li data-step="2"><b>{{creator.step3}}</b><span>{{creator.step3Text}}</span></li>
+            <li data-step="3"><b>{{creator.step4}}</b><span>{{creator.step4Text}}</span></li>
+          </ol>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Native, in Rust -->
+    <section class="section light" id="leve">
+      <div class="wrap light__inner">
+        <header class="head reveal">
+          <p class="eyebrow">{{rust.eyebrow}}</p>
+          <h2 class="title">{{rust.title}}</h2>
+          <p class="lede">{{rust.lede}}</p>
+        </header>
+        <pre class="stack reveal" aria-label="{{rust.stackLabel|attr}}">{{rust.stack}}</pre>
+      </div>
+      <div class="wrap">
+        <ul class="facts facts--light reveal">
+          <li><b>{{rust.memory}}</b><span>{{rust.memoryText}}</span></li>
+          <li><b>{{rust.battery}}</b><span>{{rust.batteryText}}</span></li>
+          <li><b>{{rust.hidden}}</b><span>{{rust.hiddenText}}</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- First-party plugins -->
+    <section class="section plugins" id="plugins">
+      <div class="wrap">
+        <header class="head reveal">
+          <p class="eyebrow">{{plugins.eyebrow}}</p>
+          <h2 class="title">{{plugins.title}}</h2>
+          <p class="lede">{{plugins.lede}}</p>
+        </header>
+        <div class="plugins__layout">
+          <ul class="plugins__grid" id="plugin-grid" aria-label="{{plugins.gridLabel|attr}}"></ul>
+          <div class="plugins__preview">
+            <div class="frame frame--small">
+              <div class="frame__stage" id="plugin-stage"></div>
+            </div>
+            <p class="plugins__note" id="plugin-note" aria-live="polite"></p>
+          </div>
+        </div>
+        <div class="community reveal">
+          <p class="community__big">{{plugins.communityBig}}</p>
+          <div>
+            <p class="community__text">{{plugins.communityText}}</p>
+            <a href="#loja" class="btn btn--ghost community__go">{{plugins.seeStore}} <span aria-hidden="true">↓</span></a>
+          </div>
+          <ul class="community__names" aria-label="{{plugins.namesLabel|attr}}">
+            <li>⛁ Postgres</li><li>✎ {{plugins.names.board}}</li><li>❖ {{plugins.names.docs}}</li><li>◍ {{plugins.names.browser}}</li><li>▦ Kanban</li><li>⎈ Kubernetes</li><li>▣ Docker Compose</li><li>♪ {{plugins.names.radio}}</li><li>◑ {{plugins.names.neon}}</li><li>⌕ {{plugins.names.rag}}</li><li>✓ {{plugins.names.habits}}</li><li>☄ {{plugins.names.stars}}</li><li>♞ {{plugins.names.chess}}</li><li>{{plugins.names.yours}}</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Plugin architecture: you own it -->
+    <section class="section owner" id="dono">
+      <div class="wrap">
+        <header class="head head--center reveal">
+          <p class="eyebrow">{{owner.eyebrow}}</p>
+          <h2 class="title">{{owner.title}}</h2>
+          <p class="lede">{{owner.lede}}</p>
+        </header>
+        <div class="rack reveal" id="rack">
+          <div class="rack__col">
+            <h3 class="rack__title">{{owner.plugins}} <span id="rack-count"></span></h3>
+            <ul class="rack__list" id="rack-plugins"></ul>
+            <button class="rack__add" id="rack-add"><span aria-hidden="true">+</span> {{owner.installKanban}}</button>
+          </div>
+          <svg class="rack__wires" id="rack-wires" aria-hidden="true"></svg>
+          <div class="rack__col">
+            <h3 class="rack__title">{{owner.services}} <span>{{owner.clickToSwap}}</span></h3>
+            <ul class="rack__list" id="rack-services"></ul>
+            <div class="rack__base">
+              <h3 class="rack__title">{{owner.always}} <span>{{owner.forSafety}}</span></h3>
+              <p><span class="lock" aria-hidden="true">◆</span> {{owner.base}}</p>
+            </div>
+          </div>
+          <p class="rack__log" id="rack-log" aria-live="polite"></p>
+        </div>
+        <ul class="facts reveal">
+          <li><b>{{owner.install}}</b><span>{{owner.installText}}</span></li>
+          <li><b>{{owner.remove}}</b><span>{{owner.removeText}}</span></li>
+          <li><b>{{owner.swap}}</b><span>{{owner.swapText}}</span></li>
+          <li><b>{{owner.noSurprise}}</b><span>{{owner.noSurpriseText}}</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Store -->
+    <section class="section store" id="loja">
+      <div class="store__wall" id="store-wall" aria-hidden="true"></div>
+      <div class="wrap store__inner">
+        <header class="head head--center reveal">
+          <p class="eyebrow">{{store.eyebrow}}</p>
+          <h2 class="title title--xl">{{store.title}}</h2>
+          <p class="lede">{{store.lede}}</p>
+        </header>
+        <div class="shop reveal" id="shop">
+          <div class="shop__bar">
+            <label class="shop__search">
+              <span class="shop__prompt" aria-hidden="true">›</span>
+              <span class="sr-only">{{store.search}}</span>
+              <input id="shop-q" type="search" autocomplete="off" spellcheck="false" placeholder="{{store.placeholder|attr}}" />
+            </label>
+            <div class="shop__cats" id="shop-cats" role="tablist" aria-label="{{store.categories|attr}}"></div>
+          </div>
+          <ul class="shop__grid" id="shop-grid"></ul>
+          <p class="shop__empty" id="shop-empty" hidden>{{store.empty}}</p>
+        </div>
+        <ul class="facts facts--store reveal">
+          <li><b>{{store.oneClick}}</b><span>{{store.oneClickText}}</span></li>
+          <li><b>{{store.open}}</b><span>{{store.openText}}</span></li>
+          <li><b>{{store.watched}}</b><span>{{store.watchedText}}</span></li>
+        </ul>
+      </div>
+    </section>
+
+
+    <!-- Download -->
+    <section class="section finale" id="baixar">
+      <div class="finale__glow" aria-hidden="true"></div>
+      <div class="wrap finale__inner reveal">
+        <span class="finale__mark" id="finale-cadu" aria-hidden="true"></span>
+        <h2 class="title title--xl">{{finale.title}}</h2>
+        <p class="lede">{{finale.lede}}</p>
+        <div class="hero__actions">
+          <a href="{{@href:downloads}}" class="btn btn--light btn--lg">{{nav.download}}</a>
+          <a href="https://github.com/cadente-hub/cadente-hub.github.io" target="_blank" rel="noopener noreferrer" class="btn btn--ghost btn--lg">GitHub</a>
+        </div>
+        <div class="oneliner">
+          <code id="oneliner">curl -fsSL https://cadente-hub.github.io/install.sh | bash</code>
+          <button class="oneliner__copy" id="oneliner-copy" aria-label="{{finale.copyLabel|attr}}">{{finale.copy}}</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <div class="wrap foot__inner">
+      <div class="foot__brand">
+        <a href="{{@base}}" class="brand">{{@brand}}<span>Cadente</span></a>
+        <p>{{foot.tagline}}</p>
+      </div>
+      <nav class="foot__cols" aria-label="{{foot.label|attr}}">
+        <div><h4>{{foot.product}}</h4><a href="#abrir">{{nav.how}}</a><a href="#plugins">{{nav.plugins}}</a><a href="#loja">{{nav.store}}</a><a href="#creator">Creator mode</a><a href="{{@href:downloads}}">Downloads</a></div>
+        <div><h4>{{foot.resources}}</h4><a href="{{@href:blog}}">{{nav.blog}}</a><a href="{{@href:release-notes}}">Release notes</a><a href="https://github.com/cadente-hub/cadente-hub.github.io" target="_blank" rel="noopener noreferrer">GitHub</a><a href="https://github.com/cadente-hub/cadente-hub.github.io/issues" target="_blank" rel="noopener noreferrer">Issues</a></div>
+        <div><h4>{{foot.legal}}</h4><a href="{{@href:terms}}">{{foot.terms}}</a></div>
+      </nav>
+      <p class="foot__copy">{{foot.copy}}</p>
+    </div>
+  </footer>
+
+  <script type="module" src="/js/home.js"></script>
+</body>
+</html>

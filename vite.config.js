@@ -1,19 +1,26 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
 import cadenteBlogPlugin from './scripts/blog/vite-plugin.mjs';
+import cadentePages, { pageInputs } from './scripts/i18n/vite-plugin.mjs';
+
+const origin = 'https://cadente-hub.github.io';
 
 export default defineConfig({
   base: '/',
+  // Every page is its own entry; nothing falls back to the home page.
+  appType: 'mpa',
   plugins: [
+    // The home in each ready language, from pages/ and i18n/ (scripts/i18n).
+    cadentePages({ root: __dirname, origin }),
     cadenteBlogPlugin({
       contentDir: resolve(__dirname, 'content/blog'),
-      origin: 'https://cadente-hub.github.io',
+      origin,
     }),
   ],
   build: {
     rollupOptions: {
       input: {
-        main: resolve(__dirname, 'index.html'),
+        ...pageInputs(__dirname),
         downloads: resolve(__dirname, 'downloads.html'),
         releaseNotes: resolve(__dirname, 'release-notes.html'),
         terms: resolve(__dirname, 'terms-and-conditions.html'),

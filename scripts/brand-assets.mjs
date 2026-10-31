@@ -32,7 +32,7 @@ fs.writeFileSync(path.join(root, 'assets/logo-symbol.svg'), `<svg xmlns="http://
 
 // The same mark inline in the pages, so the logo shows before any script runs.
 const INLINE = /(<svg class="(?:brand__mark|navbar__logo-icon)" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">)[\s\S]*?(<\/svg>)/g;
-for (const page of ['index.html', 'downloads.html', 'release-notes.html', 'terms-and-conditions.html']) {
+for (const page of ['downloads.html', 'release-notes.html', 'terms-and-conditions.html']) {
   const file = path.join(root, page), html = fs.readFileSync(file, 'utf8');
   fs.writeFileSync(file, html.replace(INLINE, `$1${body}$2`));
 }
