@@ -1,176 +1,107 @@
+// The blog in each ready language. pt-BR posts live in content/blog/*.md and are served at /blog/<slug>/; a
+// translation lives in content/blog/<code>/*.md, with the same slug, and is served at /blog/<code>/<slug>/. The
+// launcher reads /blog/feed.json (pt-BR) and only opens links under /blog/, so both stay where they were; each other
+// language gets its own /blog/<code>/feed.json.
 import fs from 'node:fs';
 import path from 'node:path';
 
 import { buildFeed, escapeHtml, loadPosts, renderMarkdown } from './content.mjs';
+import { readyLocales, loadCatalog } from '../i18n/catalog.mjs';
+import { renderPage, blogBase } from '../i18n/pages.mjs';
+import { createT } from '../../js/i18n-core.mjs';
 
 const DEFAULT_ORIGIN = 'https://cadente-hub.github.io';
 
-function formatDate(value) {
-  return new Intl.DateTimeFormat('pt-BR', {
-    dateStyle: 'long',
-    timeZone: 'UTC',
-  }).format(new Date(value));
-}
+const postsDir = (contentDir, locale) => (locale.code === 'pt-BR' ? contentDir : path.join(contentDir, locale.code));
+const formatDate = (value, intl) => new Intl.DateTimeFormat(intl, { dateStyle: 'long', timeZone: 'UTC' }).format(new Date(value));
 
-function blogStyles(root) {
-  const base = fs.readFileSync(path.resolve(root, 'css/style.css'), 'utf8');
-  const blog = fs.readFileSync(path.resolve(root, 'css/blog.css'), 'utf8');
-  return { base, blog };
-}
-
-function blogAssets(root) {
-  return ['favicon-32.png', 'logo-symbol.svg'].map((fileName) => ({
-    fileName,
-    source: fs.readFileSync(path.resolve(root, 'assets', fileName)),
-  }));
-}
-
-function pageShell({ title, description, canonical, body, rootClass = 'blog-page' }) {
-  const safeTitle = escapeHtml(title);
-  const safeDescription = escapeHtml(description);
-  const safeCanonical = escapeHtml(canonical);
-  return `<!doctype html>
-<html lang="pt-BR" data-theme="dark" style="background:#000">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${safeTitle} — Cadente</title>
-  <meta name="description" content="${safeDescription}">
-  <link rel="canonical" href="${safeCanonical}">
-  <meta property="og:title" content="${safeTitle} — Cadente">
-  <meta property="og:description" content="${safeDescription}">
-  <meta property="og:type" content="article">
-  <meta property="og:url" content="${safeCanonical}">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/assets/blog-base.css">
-  <link rel="stylesheet" href="/assets/blog.css">
-  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
-</head>
-<body class="${rootClass}">
-  <header class="navbar" id="navbar">
-    <nav class="navbar__inner container" aria-label="Navegação principal">
-      <a href="/" class="navbar__logo" aria-label="Cadente — início">
-        <img class="blog-brand-mark" src="/assets/logo-symbol.svg" alt="" width="32" height="32">
-        Cadente
-      </a>
-      <ul class="navbar__links">
-        <li><a href="/#plugins">Plugins</a></li>
-        <li><a href="/#loja">Loja</a></li>
-        <li><a href="/downloads.html">Downloads</a></li>
-        <li><a href="/release-notes.html">Release notes</a></li>
-        <li><a href="/blog/" class="active" aria-current="page">Blog</a></li>
-      </ul>
-      <a href="/downloads.html" class="btn btn--sm btn--primary navbar__cta">Baixar grátis</a>
-    </nav>
-  </header>
-  <main>${body}</main>
-  <footer class="footer blog-footer">
-    <div class="container footer__inner">
-      <div class="footer__brand"><a href="/" class="footer__logo">Cadente</a><p class="footer__tagline">Agentes, terminal, banco e notas. Numa janela só.</p></div>
-      <div class="footer__links">
-        <div class="footer__col"><h4 class="footer__col-title">Produto</h4><a href="/#plugins">Plugins</a><a href="/#loja">Loja</a><a href="/downloads.html">Downloads</a><a href="/release-notes.html">Release notes</a></div>
-        <div class="footer__col"><h4 class="footer__col-title">Recursos</h4><a href="/blog/">Blog</a><a href="https://github.com/cadente-hub/cadente-hub.github.io" rel="noopener noreferrer">GitHub</a></div>
+// Every file of the blog: { 'blog/index.html': { type, body }, 'blog/en/feed.json': … }.
+export function blogFiles({ root, contentDir, origin = DEFAULT_ORIGIN }) {
+  const locales = readyLocales(root);
+  const template = fs.readFileSync(path.join(root, 'pages/blog.html'), 'utf8');
+  const posts = new Map(locales.map(l => [l.code, loadPosts(postsDir(contentDir, l)).filter(p => !p.draft)]));
+  for (const [code, list] of posts) for (const p of list) if (locales.some(l => l.code.toLowerCase() === p.slug)) throw new Error(`${code}: o slug ${p.slug} é igual a um código de idioma`);
+  const withPost = slug => locales.filter(l => posts.get(l.code).some(p => p.slug === slug)).map(l => l.code);
+  const files = {};
+  for (const locale of locales) {
+    const messages = loadCatalog(locale.code, 'site', root), t = createT(messages, locale.intl), base = blogBase(locale), list = posts.get(locale.code);
+    const page = (id, pathOf, codes, vars) => renderPage({ template, page: { id, pathOf, locales: codes }, locale, locales, messages, origin, root, vars: { feed: `${base}feed.json`, ...vars } });
+    const cards = list.map(p => `
+      <article class="blog-card">
+        <p class="blog-meta"><time datetime="${escapeHtml(p.publishedAt)}">${escapeHtml(formatDate(p.publishedAt, locale.intl))}</time>${p.tags[0] ? `<span aria-hidden="true">·</span><span>${escapeHtml(p.tags[0])}</span>` : ''}</p>
+        <h2><a href="${base}${p.slug}/">${escapeHtml(p.title)}</a></h2>
+        <p>${escapeHtml(p.summary)}</p>
+        <a class="blog-card__more" href="${base}${p.slug}/">${escapeHtml(t('blog.read'))} →</a>
+      </article>`).join('');
+    const index = `
+    <section class="page-hero">
+      <div class="page-hero__glow" aria-hidden="true"></div>
+      <div class="wrap">
+        <p class="eyebrow"><span class="dot" aria-hidden="true"></span>${t('blog.eyebrow')}</p>
+        <h1 class="title">${t('blog.title')}</h1>
+        <p class="lede">${t('blog.lede')}</p>
+        <a class="blog-feed" href="${base}feed.json">${t('blog.feed')} ↗</a>
       </div>
-      <div class="footer__bottom"><p class="footer__copy">© 2026 Cadente. Todos os direitos reservados.</p><p class="footer__tech">Construído com Rust. Privacidade em primeiro lugar.</p></div>
-    </div>
-  </footer>
-</body>
-</html>`;
+    </section>
+    <section class="wrap blog-index">
+      <p class="blog-count">${escapeHtml(t('blog.count', { count: list.length }))}</p>
+      <div class="blog-grid">${cards || `<p class="blog-empty">${t('blog.empty')}</p>`}</div>
+    </section>`;
+    files[`${base.slice(1)}index.html`] = { type: 'html', body: page('blog', blogBase, locales.map(l => l.code), { title: escapeHtml(`${t('blog.metaTitle')} — Cadente`), description: escapeHtml(t('blog.metaDescription')), type: 'website', body: index }) };
+    files[`${base.slice(1)}feed.json`] = { type: 'json', body: JSON.stringify(buildFeed(list, origin, base), null, 2) };
+    for (const p of list) {
+      const tags = p.tags.map(tag => `<span>${escapeHtml(tag)}</span>`).join('');
+      const body = `
+    <article class="wrap blog-article">
+      <a class="blog-back" href="${base}">← ${t('blog.back')}</a>
+      <p class="blog-meta"><time datetime="${escapeHtml(p.publishedAt)}">${escapeHtml(formatDate(p.publishedAt, locale.intl))}</time><span aria-hidden="true">·</span><span>${escapeHtml(p.author)}</span></p>
+      <h1>${escapeHtml(p.title)}</h1>
+      <p class="blog-summary">${escapeHtml(p.summary)}</p>
+      ${tags ? `<div class="blog-tags">${tags}</div>` : ''}
+      <div class="blog-body">${renderMarkdown(p.body)}</div>
+      <footer class="blog-foot"><span>${escapeHtml(t('blog.updated', { date: formatDate(p.updatedAt, locale.intl) }))}</span><a href="${base}feed.json">${t('blog.feed')} ↗</a></footer>
+    </article>`;
+      files[`${base.slice(1)}${p.slug}/index.html`] = { type: 'html', body: page(`blog-${p.slug}`, l => `${blogBase(l)}${p.slug}/`, withPost(p.slug), { title: escapeHtml(`${p.title} — Cadente`), description: escapeHtml(p.summary), type: 'article', body }) };
+    }
+  }
+  return files;
 }
 
-function renderIndex(posts, origin) {
-  const cards = posts.filter((post) => !post.draft).map((post) => `
-    <article class="blog-card">
-      <div class="blog-card__meta"><time datetime="${escapeHtml(post.publishedAt)}">${escapeHtml(formatDate(post.publishedAt))}</time>${post.tags.length ? `<span aria-hidden="true">·</span><span>${escapeHtml(post.tags[0])}</span>` : ''}</div>
-      <h2 class="blog-card__title"><a href="/blog/${escapeHtml(post.slug)}/">${escapeHtml(post.title)}</a></h2>
-      <p class="blog-card__summary">${escapeHtml(post.summary)}</p>
-      <a class="blog-card__link" href="/blog/${escapeHtml(post.slug)}/">Ler publicação <span aria-hidden="true">→</span></a>
-    </article>`).join('');
-  const body = `<section class="blog-hero"><div class="container blog-hero__inner"><p class="section-label">Diário do Cadente</p><h1 class="section-title">Ideias para <span class="gradient-text">trabalhar melhor</span></h1><p class="section-subtitle">Notas de produto, engenharia e práticas para usar IA com mais clareza, controle e velocidade.</p><a class="blog-feed-link" href="/blog/feed.json">Assinar feed JSON <span aria-hidden="true">↗</span></a></div></section>
-  <section class="blog-index"><div class="container"><div class="blog-index__header"><p class="section-label">Publicações</p><p class="blog-index__count">${posts.filter((post) => !post.draft).length} publicação${posts.filter((post) => !post.draft).length === 1 ? '' : 'ões'}</p></div><div class="blog-grid">${cards || '<p class="blog-empty">Novas publicações em breve.</p>'}</div></div></section>`;
-  return pageShell({ title: 'Blog', description: 'Notas de produto, engenharia e práticas do Cadente.', canonical: `${origin}/blog/`, body, rootClass: 'blog-page blog-index-page' });
-}
-
-function renderArticle(post, origin) {
-  const canonical = `${origin}/blog/${post.slug}/`;
-  const tags = post.tags.map((tag) => `<span class="blog-tag">${escapeHtml(tag)}</span>`).join('');
-  const body = `<article class="blog-article container"><a class="blog-back" href="/blog/">← Todas as publicações</a><header class="blog-article__header"><div class="blog-card__meta"><time datetime="${escapeHtml(post.publishedAt)}">${escapeHtml(formatDate(post.publishedAt))}</time><span aria-hidden="true">·</span><span>${escapeHtml(post.author)}</span></div><h1>${escapeHtml(post.title)}</h1><p class="blog-article__summary">${escapeHtml(post.summary)}</p>${tags ? `<div class="blog-tags" aria-label="Tags">${tags}</div>` : ''}</header><div class="blog-article__body">${renderMarkdown(post.body)}</div><footer class="blog-article__footer"><span>Atualizado em ${escapeHtml(formatDate(post.updatedAt))}</span><a href="/blog/feed.json">Feed JSON ↗</a></footer></article>`;
-  return pageShell({ title: post.title, description: post.summary, canonical, body, rootClass: 'blog-page blog-article-page' });
-}
-
-function emitAsset(pluginContext, fileName, source) {
-  pluginContext.emitFile({ type: 'asset', fileName, source });
+// The site's styles, copied to fixed URLs because the blog pages are written outside Vite.
+function blogAssets(root) {
+  const read = f => fs.readFileSync(path.resolve(root, f));
+  return {
+    'assets/blog-base.css': { type: 'text/css; charset=utf-8', body: Buffer.concat([read('css/site.css'), Buffer.from('\n'), read('css/pages.css')]) },
+    'assets/blog.css': { type: 'text/css; charset=utf-8', body: read('css/blog.css') },
+    'assets/favicon-32.png': { type: 'image/png', body: read('assets/favicon-32.png') },
+    'assets/logo-symbol.svg': { type: 'image/svg+xml', body: read('assets/logo-symbol.svg') },
+  };
 }
 
 export function cadenteBlogPlugin({ contentDir, origin = DEFAULT_ORIGIN } = {}) {
   const siteOrigin = String(origin).replace(/\/+$/, '');
   const absoluteContentDir = path.resolve(contentDir || 'content/blog');
   let projectRoot = process.cwd();
-
-  function currentPosts() {
-    return loadPosts(absoluteContentDir);
-  }
-
-  function renderPath(requestPath) {
-    const cleanPath = requestPath.split('?')[0].replace(/\/+$/, '/') || '/';
-    const posts = currentPosts();
-    if (cleanPath === '/blog/feed.json') {
-      return { type: 'json', body: JSON.stringify(buildFeed(posts, siteOrigin), null, 2) };
-    }
-    if (cleanPath === '/blog/' || cleanPath === '/blog') {
-      return { type: 'html', body: renderIndex(posts, siteOrigin) };
-    }
-    const match = cleanPath.match(/^\/blog\/([a-z0-9]+(?:-[a-z0-9]+)*)\/$/);
-    if (match) {
-      const post = posts.find((candidate) => candidate.slug === match[1] && !candidate.draft);
-      if (post) return { type: 'html', body: renderArticle(post, siteOrigin) };
-    }
-    return null;
-  }
-
   return {
     name: 'cadente-blog',
-    configResolved(config) {
-      projectRoot = config.root;
-    },
+    configResolved(config) { projectRoot = config.root; },
     configureServer(server) {
       server.middlewares.use((request, response, next) => {
-        const requestPath = (request.url || '/').split('?')[0];
-        const devAssets = {
-          '/assets/blog-base.css': { type: 'text/css; charset=utf-8', file: 'css/style.css' },
-          '/assets/blog.css': { type: 'text/css; charset=utf-8', file: 'css/blog.css' },
-          '/assets/favicon-32.png': { type: 'image/png', file: 'assets/favicon-32.png' },
-          '/assets/logo-symbol.svg': { type: 'image/svg+xml', file: 'assets/logo-symbol.svg' },
-        };
-        const devAsset = Object.hasOwn(devAssets, requestPath) ? devAssets[requestPath] : null;
-        if (devAsset) {
-          response.statusCode = 200;
-          response.setHeader('Content-Type', devAsset.type);
-          response.end(fs.readFileSync(path.resolve(projectRoot, devAsset.file)));
-          return;
-        }
-        const rendered = renderPath(request.url || '/');
-        if (!rendered) return next();
+        let file = (request.url || '/').split('?')[0].replace(/^\//, '');
+        if (!file.startsWith('blog') && !file.startsWith('assets/blog') && !['assets/favicon-32.png', 'assets/logo-symbol.svg'].includes(file)) return next();
+        if (file === 'blog') file = 'blog/';
+        if (file.endsWith('/')) file += 'index.html';
+        const asset = blogAssets(projectRoot)[file];
+        const page = asset ? null : blogFiles({ root: projectRoot, contentDir: absoluteContentDir, origin: siteOrigin })[file];
+        if (!asset && !page) return next();
         response.statusCode = 200;
-        response.setHeader('Content-Type', rendered.type === 'json' ? 'application/json; charset=utf-8' : 'text/html; charset=utf-8');
-        response.end(rendered.body);
+        response.setHeader('Content-Type', asset ? asset.type : page.type === 'json' ? 'application/json; charset=utf-8' : 'text/html; charset=utf-8');
+        response.end(asset ? asset.body : page.body);
       });
     },
     generateBundle() {
-      const posts = currentPosts();
-      const styles = blogStyles(projectRoot);
-      for (const asset of blogAssets(projectRoot)) {
-        emitAsset(this, `assets/${asset.fileName}`, asset.source);
-      }
-      emitAsset(this, 'assets/blog-base.css', styles.base);
-      emitAsset(this, 'assets/blog.css', styles.blog);
-      emitAsset(this, 'blog/feed.json', JSON.stringify(buildFeed(posts, siteOrigin), null, 2));
-      emitAsset(this, 'blog/index.html', renderIndex(posts, siteOrigin));
-      for (const post of posts.filter((candidate) => !candidate.draft)) {
-        emitAsset(this, `blog/${post.slug}/index.html`, renderArticle(post, siteOrigin));
-      }
+      for (const [fileName, a] of Object.entries(blogAssets(projectRoot))) this.emitFile({ type: 'asset', fileName, source: a.body });
+      for (const [fileName, f] of Object.entries(blogFiles({ root: projectRoot, contentDir: absoluteContentDir, origin: siteOrigin }))) this.emitFile({ type: 'asset', fileName, source: f.body });
     },
   };
 }

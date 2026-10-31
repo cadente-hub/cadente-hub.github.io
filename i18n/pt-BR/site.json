@@ -1010,5 +1010,21 @@
     "title": "Termos, privacidade e reembolso",
     "updated": "Atualizado em 30 de outubro de 2026",
     "notice": "Esta é uma tradução. Se houver diferença, vale o <a href=\"/en/terms-and-conditions.html\">texto em inglês</a>."
+  },
+  "blog": {
+    "metaTitle": "Blog",
+    "metaDescription": "Notas de produto, engenharia e práticas do Cadente.",
+    "eyebrow": "Diário do Cadente",
+    "title": "Ideias para<br /><span class=\"violet-text\">trabalhar melhor.</span>",
+    "lede": "Notas de produto, engenharia e práticas para usar IA com mais clareza, controle e velocidade.",
+    "feed": "Assinar o feed JSON",
+    "count": {
+      "one": "{count} publicação",
+      "other": "{count} publicações"
+    },
+    "empty": "Novas publicações em breve.",
+    "read": "Ler",
+    "back": "Todas as publicações",
+    "updated": "Atualizado em {date}"
   }
 }

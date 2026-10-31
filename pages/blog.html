@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="{{@lang}}" dir="{{@dir}}">
+<head>
+  <meta charset="UTF-8" />
+  <title>{{$title}}</title>
+  <meta name="description" content="{{$description}}" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="theme-color" content="#000000" />
+  <meta property="og:title" content="{{$title}}" />
+  <meta property="og:description" content="{{$description}}" />
+  <meta property="og:type" content="{{$type}}" />
+  <meta property="og:image" content="https://cadente-hub.github.io/assets/og-image.png" />
+  {{@head}}
+  <link rel="alternate" type="application/feed+json" href="{{$feed}}" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  {{@fonts}}
+  <!-- The blog is written outside Vite, so it links fixed, unhashed copies of the site's styles. -->
+  <link rel="stylesheet" href="/assets/blog-base.css" />
+  <link rel="stylesheet" href="/assets/blog.css" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png" />
+</head>
+<body class="page blog">
+  <a class="skip" href="#conteudo">{{meta.skip}}</a>
+{{@include:nav}}
+  <main id="conteudo">
+{{$body}}
+  </main>
+{{@include:foot}}
+  <script>
+    // The menu on small screens and the bar that darkens on scroll, without the site's bundle.
+    (() => { const nav = document.getElementById('nav'), menu = document.getElementById('nav-menu'), sheet = document.getElementById('nav-sheet');
+      menu?.addEventListener('click', () => { const open = menu.getAttribute('aria-expanded') !== 'true'; menu.setAttribute('aria-expanded', open); sheet.hidden = !open; });
+      const on = () => nav?.classList.toggle('is-scrolled', scrollY > 8); addEventListener('scroll', on, { passive: true }); on(); })();
+  </script>
+</body>
+</html>

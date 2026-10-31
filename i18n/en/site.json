@@ -1010,5 +1010,21 @@
     "title": "Terms, privacy and refunds",
     "updated": "Last updated: October 30, 2026",
     "notice": ""
+  },
+  "blog": {
+    "metaTitle": "Blog",
+    "metaDescription": "Product, engineering and practice notes from Cadente.",
+    "eyebrow": "Cadente journal",
+    "title": "Ideas for<br /><span class=\"violet-text\">working better.</span>",
+    "lede": "Product, engineering and practice notes for using AI with more clarity, control and speed.",
+    "feed": "Subscribe to the JSON feed",
+    "count": {
+      "one": "{count} post",
+      "other": "{count} posts"
+    },
+    "empty": "New posts soon.",
+    "read": "Read",
+    "back": "All posts",
+    "updated": "Updated on {date}"
   }
 }

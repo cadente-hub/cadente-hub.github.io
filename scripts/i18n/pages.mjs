@@ -22,19 +22,23 @@ export const PAGES = [
   { id: 'release-notes', template: 'pages/release-notes.html', file: 'release-notes.html', url: 'release-notes.html' },
   { id: 'terms', template: 'pages/terms.html', file: 'terms-and-conditions.html', url: 'terms-and-conditions.html' },
 ];
-// Pages that still exist only once, at the root.
-const STATIC = { blog: 'blog/' };
+// The blog of a language: /blog/ for pt-BR, /blog/<language>/ for the others.
+export const blogBase = locale => (locale.path === '/' ? '/blog/' : `/blog${locale.path}`);
 
-export const outFile = (locale, page) => `${locale.path.slice(1)}${page.file}`;
-export const pageUrl = (locale, page, origin = ORIGIN) => `${origin}${locale.path}${page.url}`;
+// A page lives at its language's folder plus its own path, unless it says otherwise (the blog keeps /blog/ first,
+// because the launcher only opens /blog/ links).
+export const pathOf = (locale, page) => (page.pathOf ? page.pathOf(locale) : `${locale.path}${page.url}`);
+export const outFile = (locale, page) => (page.out ?? `${locale.path.slice(1)}${page.file}`);
+export const pageUrl = (locale, page, origin = ORIGIN) => `${origin}${pathOf(locale, page)}`;
 
 const escAttr = s => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 // JSON inside <script>: nothing in it may close the tag or open a comment.
 const scriptJson = v => JSON.stringify(v).replace(/</g, '\\u003c').replace(/>/g, '\\u003e').replace(/&/g, '\\u0026');
 
 function head(locale, page, locales, origin) {
+  if (page.locales) locales = locales.filter(l => page.locales.includes(l.code));
   const alt = locales.map(l => `  <link rel="alternate" hreflang="${l.code}" href="${pageUrl(l, page, origin)}" />`);
-  const source = locales.find(l => l.code === SOURCE);
+  const source = locales.find(l => l.code === SOURCE) ?? locale;
   return [
     `<link rel="canonical" href="${pageUrl(locale, page, origin)}" />`,
     ...alt.map(s => s.trim()),
@@ -64,23 +68,23 @@ function faqJsonLd(messages) {
 }
 
 // The page in one language. Throws on a key the catalog does not have, or on a token left in the result.
-export function renderPage({ template, page, locale, locales, messages, catalogs = new Map(), origin = ORIGIN, root = ROOT }) {
+export function renderPage({ template, page, locale, locales, messages, catalogs = new Map(), origin = ORIGIN, root = ROOT, vars = {} }) {
   const t = createT(messages, locale.intl);
   const href = id => {
     const own = PAGES.find(p => p.id === id);
     if (own) return `${locale.path}${own.url}`;
-    if (STATIC[id]) return `/${STATIC[id]}`;
+    if (id === 'blog') return blogBase(locale);
     throw new Error(`página desconhecida em @href: ${id}`);
   };
   // The other ready languages, each with the words of its own notice ("this page is also in English").
   const others = () => Object.fromEntries(locales.filter(l => l.code !== locale.code).map(l => {
     const m = catalogs.get(l.code) ?? {};
-    return [l.code, { name: l.name, dir: l.dir, href: `${l.path}${page.url}`, notice: m['lang.notice'] ?? '', go: m['lang.go'] ?? '', close: m['lang.close'] ?? '' }];
+    return [l.code, { name: l.name, dir: l.dir, href: pathOf(l, page), notice: m['lang.notice'] ?? '', go: m['lang.go'] ?? '', close: m['lang.close'] ?? '' }];
   }));
   const js = Object.fromEntries(Object.entries(messages).filter(([k]) => k.startsWith('js.')).map(([k, v]) => [k.slice(3), v]));
   // Shared pieces (pages/_nav.html, pages/_foot.html) go in first, so their tokens are filled like the page's.
   template = template.replace(/\{\{@include:([\w-]+)\}\}/g, (all, name) => fs.readFileSync(path.join(root, 'pages', `_${name}.html`), 'utf8'));
-  const html = template.replace(/\{\{\s*(@?[\w.:-]+)\s*(?:\|\s*(\w+)\s*)?\}\}/g, (all, key, filter) => {
+  const html = template.replace(/\{\{\s*([@$]?[\w.:-]+)\s*(?:\|\s*(\w+)\s*)?\}\}/g, (all, key, filter) => {
     let v;
     if (key === '@lang') v = locale.code;
     else if (key === '@dir') v = locale.dir;
@@ -92,7 +96,8 @@ export function renderPage({ template, page, locale, locales, messages, catalogs
     else if (key === '@jsonld:faq') v = faqJsonLd(messages);
     // The legal text of the language (i18n/<code>/terms.html); the English one is the original.
     else if (key === '@terms') v = fs.readFileSync(path.join(root, 'i18n', locale.code, 'terms.html'), 'utf8');
-    else if (key === '@langlinks') v = locales.map(l => `<a href="${l.path}${page.url}" hreflang="${l.code}" lang="${l.code}" data-lang="${l.code}"${l.code === locale.code ? ' aria-current="true"' : ''}>${escAttr(l.name)}</a>`).join('');
+    else if (key.startsWith('$')) { if (!Object.hasOwn(vars, key.slice(1))) throw new Error(`falta a variável ${key}`); v = vars[key.slice(1)]; }
+    else if (key === '@langlinks') v = (page.locales ? locales.filter(l => page.locales.includes(l.code)) : locales).map(l => `<a href="${pathOf(l, page)}" hreflang="${l.code}" lang="${l.code}" data-lang="${l.code}"${l.code === locale.code ? ' aria-current="true"' : ''}>${escAttr(l.name)}</a>`).join('');
     else if (key === '@i18n') v = `<script type="application/json" id="i18n">${scriptJson({ locale: locale.code, intl: locale.intl, dir: locale.dir, base: locale.path, messages: js, others: others() })}</script>`;
     else if (key.startsWith('@href:')) v = href(key.slice(6));
     else if (key.startsWith('@')) throw new Error(`token desconhecido: ${key}`);

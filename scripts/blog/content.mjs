@@ -105,7 +105,8 @@ function normalizedOrigin(origin) {
   return String(origin || 'https://cadente-hub.github.io').replace(/\/+$/, '');
 }
 
-export function buildFeed(posts, origin = 'https://cadente-hub.github.io') {
+// `base` is the blog of the language: /blog/ for pt-BR (the feed the launcher reads), /blog/<code>/ for the others.
+export function buildFeed(posts, origin = 'https://cadente-hub.github.io', base = '/blog/') {
   const siteOrigin = normalizedOrigin(origin);
   return {
     schemaVersion: 1,
@@ -121,7 +122,7 @@ export function buildFeed(posts, origin = 'https://cadente-hub.github.io') {
         updatedAt: post.updatedAt,
         author: post.author,
         tags: post.tags,
-        url: `${siteOrigin}/blog/${post.slug}/`,
+        url: `${siteOrigin}${base}${post.slug}/`,
       })),
   };
 }
