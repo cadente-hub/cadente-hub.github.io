@@ -274,8 +274,8 @@ jobs:
             for dir in "${TMPDIR:-}" "${TMP:-}" "${TEMP:-}" /tmp; do
               if [ -n "$dir" ] && [ -f "$dir/parity-tails.log" ]; then
                 echo "--- Telas da régua ($dir/parity-tails.log)"
-                # Every miss, each screen cut to its first 1500 characters.
-                cut -c1-1500 "$dir/parity-tails.log" | tail -c 200000
+                # Every miss, each screen (and a terminal's last bytes) cut to 7000 characters.
+                cut -c1-7000 "$dir/parity-tails.log" | tail -c 300000
                 break
               fi
             done
