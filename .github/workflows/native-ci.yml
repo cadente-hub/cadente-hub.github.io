@@ -260,6 +260,18 @@ jobs:
 
           # Print nextest summary and failing test names
           sed 's/\x1b\[[0-9;]*m//g' "$NEXTEST_RAW" | grep -E '(Summary \[|FAIL \[|SIGABRT|SIGSEGV|TIMEOUT|panicked at|^error)' | head -120 || true
+          if [ $NEXTEST_EXIT -ne 0 ]; then
+            # The private build log is not readable here; the messages are what tells a fix apart.
+            echo "--- Mensagens das falhas"
+            sed 's/\x1b\[[0-9;]*m//g' "$NEXTEST_RAW" | grep -E -A12 'panicked at' | head -600 || true
+            for dir in "${TMPDIR:-}" "${TMP:-}" "${TEMP:-}" /tmp; do
+              if [ -n "$dir" ] && [ -f "$dir/parity-tails.log" ]; then
+                echo "--- Telas da régua ($dir/parity-tails.log)"
+                tail -c 30000 "$dir/parity-tails.log"
+                break
+              fi
+            done
+          fi
 
           if [ $NEXTEST_EXIT -eq 0 ]; then
             echo "Resultado: OK"
