@@ -291,7 +291,7 @@ jobs:
           npm_config_ignore_scripts: "true"
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
-          PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_WRITE_TOKEN || secrets.CATARINA_PRIVATE_LOG_TOKEN || secrets.CATARINA_PRIVATE_READ_TOKEN }}
+          PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
         run: |
           set -euo pipefail
           source "$GITHUB_WORKSPACE/.github/scripts/persist-private-log.sh"
@@ -315,7 +315,7 @@ jobs:
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
-          PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_WRITE_TOKEN || secrets.CATARINA_PRIVATE_LOG_TOKEN || secrets.CATARINA_PRIVATE_READ_TOKEN }}
+          PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
           CI: "true"
         run: |
           set -euo pipefail
@@ -522,7 +522,7 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
           BUILD_VERSION: ${{ needs.validate.outputs.version }}
           BUILD_CHANNEL: stable
-          PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_WRITE_TOKEN || secrets.CATARINA_PRIVATE_LOG_TOKEN || secrets.CATARINA_PRIVATE_READ_TOKEN }}
+          PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
         run: |
           persist_private_build_log() {
             local log_file="$1" label="$2" repo_dir safe_workflow safe_job dest_dir dest_rel
@@ -535,7 +535,7 @@ jobs:
             fi
             echo "::add-mask::${PRIVATE_LOG_TOKEN}"
             repo_dir="$(mktemp -d)"
-            if git clone --depth=1 "https://x-access-token:${PRIVATE_LOG_TOKEN}@github.com/${PRIVATE_REPO}.git" "$repo_dir" >/dev/null 2>&1; then
+            if git clone --depth=1 --branch ci-logs "https://x-access-token:${PRIVATE_LOG_TOKEN}@github.com/${PRIVATE_REPO}.git" "$repo_dir" >/dev/null 2>&1; then
               dest_dir="$repo_dir/$(dirname "$dest_rel")"
               mkdir -p "$dest_dir"
               cp "$log_file" "$repo_dir/$dest_rel"
@@ -543,7 +543,7 @@ jobs:
               git -C "$repo_dir" config user.email "github-actions[bot]@users.noreply.github.com"
               git -C "$repo_dir" add -f "$dest_rel"
               git -C "$repo_dir" commit -m "ci: store private build log for ${GITHUB_RUN_ID:-local} ${safe_job}" >/dev/null 2>&1 || true
-              if git -C "$repo_dir" push >/dev/null 2>&1; then
+              if git -C "$repo_dir" push origin ci-logs >/dev/null 2>&1; then
                 echo "::error::Build failed. Full log committed privately at ${dest_rel}."
               else
                 echo "::error::Build failed. Could not push private build log."
@@ -695,7 +695,7 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
           BUILD_VERSION: ${{ needs.validate.outputs.version }}
           BUILD_CHANNEL: stable
-          PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_WRITE_TOKEN || secrets.CATARINA_PRIVATE_LOG_TOKEN || secrets.CATARINA_PRIVATE_READ_TOKEN }}
+          PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
         run: |
           persist_private_build_log() {
             local log_file="$1" label="$2" repo_dir safe_workflow safe_job dest_dir dest_rel
@@ -708,7 +708,7 @@ jobs:
             fi
             echo "::add-mask::${PRIVATE_LOG_TOKEN}"
             repo_dir="$(mktemp -d)"
-            if git clone --depth=1 "https://x-access-token:${PRIVATE_LOG_TOKEN}@github.com/${PRIVATE_REPO}.git" "$repo_dir" >/dev/null 2>&1; then
+            if git clone --depth=1 --branch ci-logs "https://x-access-token:${PRIVATE_LOG_TOKEN}@github.com/${PRIVATE_REPO}.git" "$repo_dir" >/dev/null 2>&1; then
               dest_dir="$repo_dir/$(dirname "$dest_rel")"
               mkdir -p "$dest_dir"
               cp "$log_file" "$repo_dir/$dest_rel"
@@ -716,7 +716,7 @@ jobs:
               git -C "$repo_dir" config user.email "github-actions[bot]@users.noreply.github.com"
               git -C "$repo_dir" add -f "$dest_rel"
               git -C "$repo_dir" commit -m "ci: store private build log for ${GITHUB_RUN_ID:-local} ${safe_job}" >/dev/null 2>&1 || true
-              if git -C "$repo_dir" push >/dev/null 2>&1; then
+              if git -C "$repo_dir" push origin ci-logs >/dev/null 2>&1; then
                 echo "::error::Build failed. Full log committed privately at ${dest_rel}."
               else
                 echo "::error::Build failed. Could not push private build log."
@@ -1126,46 +1126,3 @@ jobs:
           git diff --cached --quiet && echo "No cask changes" && exit 0
           git commit -m "chore: bump cadente to v${VERSION}"
           git push
-
-  # ─────────────────────────────────────────────────────────────
-  # Auto-debug: dispatch full-log builds on the private repo
-  # when any platform fails. Runs only on failure.
-  # ─────────────────────────────────────────────────────────────
-  debug-on-failure:
-    needs: [validate, guardrails, build-macos, smoke-macos-intel, build-linux, build-windows]
-    if: failure()
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        include:
-          - job: build-macos
-            targets: '["aarch64-apple-darwin","x86_64-apple-darwin"]'
-          - job: build-linux
-            targets: '["linux"]'
-          - job: build-windows
-            targets: '["windows"]'
-    steps:
-      - name: Dispatch debug builds to private repo
-        env:
-          GH_TOKEN: ${{ secrets.DEBUG_DISPATCH_TOKEN }}
-        run: |
-          echo "::add-mask::${GH_TOKEN}"
-          SHA="${{ needs.validate.outputs.sha }}"
-
-          for TARGET in $(echo '${{ matrix.targets }}' | jq -r '.[]'); do
-            echo "🔍 Dispatching debug build for ${TARGET} @ ${SHA:0:8}"
-            curl -s -o /dev/null -w "HTTP %{http_code}\n" \
-              -X POST \
-              -H "Accept: application/vnd.github+json" \
-              -H "Authorization: Bearer ${GH_TOKEN}" \
-              "https://api.github.com/repos/jeancatarina/catarina-claude/dispatches" \
-              -d "{
-                \"event_type\": \"debug-build\",
-                \"client_payload\": {
-                  \"target\": \"${TARGET}\",
-                  \"sha\": \"${SHA}\"
-                }
-              }"
-          done
-          echo ""
-          echo "📋 Check debug logs at: https://github.com/jeancatarina/catarina-claude/actions/workflows/debug-build.yml"

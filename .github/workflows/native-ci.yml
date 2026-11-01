@@ -111,8 +111,8 @@ jobs:
         shell: bash
     env:
       PRIVATE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
-      PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_WRITE_TOKEN }}
-      PRIVATE_WRITE_TOKEN: ${{ secrets.CATARINA_PRIVATE_WRITE_TOKEN }}
+      PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
+      PRIVATE_WRITE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
       SHA: ${{ needs.resolve.outputs.sha }}
       MATRIX_OS: ${{ matrix.os }}
       CARGO_TERM_COLOR: always

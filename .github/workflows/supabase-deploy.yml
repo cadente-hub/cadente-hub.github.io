@@ -36,7 +36,7 @@ jobs:
     env:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       PRIVATE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
-      PRIVATE_WRITE_TOKEN: ${{ secrets.CATARINA_PRIVATE_WRITE_TOKEN }}
+      PRIVATE_WRITE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
       SHA: ${{ inputs.sha }}
     steps:
       - name: Check credentials
@@ -152,7 +152,7 @@ jobs:
         run: |
           set -euo pipefail
           if [ -z "${PRIVATE_WRITE_TOKEN:-}" ]; then
-            echo "::warning::CATARINA_PRIVATE_WRITE_TOKEN not set; cannot record supabase-deployed SHA."
+            echo "::warning::CATARINA_PRIVATE_READ_TOKEN not set; cannot record supabase-deployed SHA."
             exit 0
           fi
           echo "::add-mask::${PRIVATE_WRITE_TOKEN}"

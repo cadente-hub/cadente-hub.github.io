@@ -23,7 +23,7 @@ jobs:
     env:
       PRIVATE_REPO: jeancatarina/catarina-claude
       PRIVATE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
-      PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_WRITE_TOKEN }}
+      PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
       DIAGNOSTIC_PUBLIC_KEY: ${{ inputs.diagnostic_public_key }}
       BEFORE: ${{ inputs.before }}
       AFTER: ${{ inputs.after }}

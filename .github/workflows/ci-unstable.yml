@@ -45,7 +45,7 @@ jobs:
           INPUT_SHA: ${{ github.event.client_payload.sha || inputs.sha }}
           INPUT_BUILD_VERSION: ${{ github.event.client_payload.build_version || github.event.client_payload.version }}
           DISPATCH_SECRET: ${{ secrets.DISPATCH_SECRET }}
-          PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_WRITE_TOKEN || secrets.CATARINA_PRIVATE_LOG_TOKEN }}
+          PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
           PAYLOAD_RELEASE_NOTES: ${{ github.event.client_payload.release_notes }}
           PAYLOAD_RELEASE_NOTES_SHA: ${{ github.event.client_payload.release_notes_sha }}
           PAYLOAD_SHA: ${{ github.event.client_payload.sha }}
@@ -370,7 +370,7 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
           CADENTE_BUILD_VERSION: ${{ needs.resolve.outputs.build_version }}
-          PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_WRITE_TOKEN || secrets.CATARINA_PRIVATE_LOG_TOKEN }}
+          PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
         run: |
           source "$GITHUB_WORKSPACE/.github/scripts/persist-private-log.sh"
           if npx tauri build --target "${{ matrix.target }}" -- --locked > "/tmp/build-${ARCH_LABEL}.log" 2>&1; then
@@ -576,7 +576,7 @@ jobs:
           CADENTE_BUILD_VERSION: ${{ needs.resolve.outputs.build_version }}
           BUILD_VERSION: ${{ needs.resolve.outputs.build_version }}
           BUILD_CHANNEL: beta
-          PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_WRITE_TOKEN || secrets.CATARINA_PRIVATE_LOG_TOKEN }}
+          PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
         run: |
           source "$GITHUB_WORKSPACE/.github/scripts/persist-private-log.sh"
           # The launcher and the app are packaged together (one layout on every platform);
@@ -734,7 +734,7 @@ jobs:
           CADENTE_BUILD_VERSION: ${{ needs.resolve.outputs.build_version }}
           BUILD_VERSION: ${{ needs.resolve.outputs.build_version }}
           BUILD_CHANNEL: beta
-          PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_WRITE_TOKEN || secrets.CATARINA_PRIVATE_LOG_TOKEN }}
+          PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
         run: |
           source "$GITHUB_WORKSPACE/.github/scripts/persist-private-log.sh"
           # The launcher and the app are packaged together (one layout on every platform);
