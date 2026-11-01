@@ -387,7 +387,8 @@ jobs:
           done < "$RUNNER_TEMP/jobs.tsv"
 
       - name: Trigger Supabase deploy
-        if: steps.statuses.outputs.ubuntu == 'success'
+        # Only main deploys; a run from another branch tests this workflow.
+        if: github.ref == 'refs/heads/main' && steps.statuses.outputs.ubuntu == 'success'
         env:
           GH_TOKEN: ${{ github.token }}
           PRIVATE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
