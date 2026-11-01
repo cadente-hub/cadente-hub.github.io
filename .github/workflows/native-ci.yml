@@ -193,9 +193,12 @@ jobs:
       - name: Workspace check (cargo check)
         run: |
           echo "Passo: cargo check --workspace --all-targets"
-          if RUSTFLAGS="-D warnings" cargo check --workspace --all-targets >> "$RUNNER_TEMP/ci-build.log" 2>&1; then
+          if RUSTFLAGS="-D warnings" cargo check --workspace --all-targets --message-format short > "$RUNNER_TEMP/check.log" 2>&1; then
+            cat "$RUNNER_TEMP/check.log" >> "$RUNNER_TEMP/ci-build.log"
             echo "Resultado: OK"
           else
+            cat "$RUNNER_TEMP/check.log" >> "$RUNNER_TEMP/ci-build.log"
+            grep -E '(error|warning)' "$RUNNER_TEMP/check.log" | grep -v '^error: could not compile' | head -80 || true
             echo "Resultado: FALHOU"
             echo "cargo check" > "$RUNNER_TEMP/failed_step"
             exit 1
@@ -204,9 +207,13 @@ jobs:
       - name: Clippy (cargo clippy)
         run: |
           echo "Passo: cargo clippy --workspace --all-targets -- -D warnings"
-          if cargo clippy --workspace --all-targets -- -D warnings >> "$RUNNER_TEMP/ci-build.log" 2>&1; then
+          if cargo clippy --workspace --all-targets --message-format short -- -D warnings > "$RUNNER_TEMP/clippy.log" 2>&1; then
+            cat "$RUNNER_TEMP/clippy.log" >> "$RUNNER_TEMP/ci-build.log"
             echo "Resultado: OK"
           else
+            cat "$RUNNER_TEMP/clippy.log" >> "$RUNNER_TEMP/ci-build.log"
+            # The private build log is not readable here; the findings are what a fix needs.
+            grep -E '(error|warning)' "$RUNNER_TEMP/clippy.log" | grep -v '^error: could not compile' | head -80 || true
             echo "Resultado: FALHOU"
             echo "clippy" > "$RUNNER_TEMP/failed_step"
             exit 1
