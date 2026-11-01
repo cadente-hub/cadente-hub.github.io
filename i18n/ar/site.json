@@ -996,7 +996,7 @@
     "orPackages": "أو عبر حزمة",
     "powershell": "في PowerShell",
     "orInstaller": "أو عبر المثبّت",
-    "win1": "نزّل ملف <code>.exe</code> أو <code>.msi</code> واتبع خطوات المثبّت.",
+    "win1": "نزّل ملف <code>.exe</code> واتبع خطوات المثبّت.",
     "win2": "إذا ظهر تحذير SmartScreen، فانقر على <b>مزيد من المعلومات</b> ثم على <b>تشغيل على أي حال</b>.",
     "fixTitle": "هل يقول macOS إن Cadente تالف؟",
     "fixText": "يحظر macOS التطبيقات التي لا تحمل بعد توقيع Apple المدفوع. الصق هذا الأمر في تطبيق Terminal مرة واحدة، وسيفتح Cadente بشكل طبيعي.",

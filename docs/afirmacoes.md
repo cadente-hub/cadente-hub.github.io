@@ -1,8 +1,8 @@
 # O que o site afirma, e onde está a prova
 
 Cada afirmação da home tem que estar no código do app (`cadente-app`) ou numa decisão escrita (ADR). Afirmação sem
-prova sai do site. Conferido em 31/10/2026, com o app na versão 1.1.0 (beta 1.1.0-beta.2; o canal estável ainda é o
-app Tauri 0.2.93).
+prova sai do site. Conferido em 31/10/2026, com o app na versão 1.1.0 (beta 1.1.0-beta.2; o canal estável ainda não
+tem versão, e o site oferece a beta).
 
 | Afirmação no site | Estado | Prova |
 |---|---|---|
@@ -10,7 +10,7 @@ app Tauri 0.2.93).
 | Mac, Windows e Linux | sim (x64 no Linux e no Windows; Apple Silicon e Intel no Mac) | `cadente-hub.github.io/.github/workflows/native-release.yml`, linhas 87-90 |
 | Feito em Rust, desenhado pela GPU | sim (Slint com `renderer-skia`) | `crates/app/Cargo.toml`, linha 36 |
 | 15 idiomas, troca sem reiniciar | sim | `crates/app/src/live/i18n.rs`; `crates/app/src/live/mod.rs`, linhas 446-459 |
-| Algumas telas novas chegam antes em pt-BR e inglês | sim, dito no FAQ | revisões do legado, `docs/conformance/adr-0050/p04-02-review.md:10` (tag `legacy-final`) |
+| Algumas telas novas chegam antes em pt-BR e inglês | sim, dito no FAQ | `crates/app/src/live/i18n.rs`, linhas 105-106 (o que um idioma não traduziu sai em inglês, depois em pt-BR; ADR 0078 §2.6) |
 | Reconhece Claude Code, Codex, Gemini CLI e OpenCode | sim | `crates/core/src/services/terminal_cli_detect.rs`, linha 9 |
 | Qualquer outro CLI roda no terminal | sim (terminal com pty nativo) | `crates/core/src/terminal.rs` |
 | Um worktree por tarefa | sim (criar, listar e remover worktrees) | `crates/native-workspace/src/repository_service.rs`, linhas 197-204, 229, 266 |

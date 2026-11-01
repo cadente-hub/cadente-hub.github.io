@@ -981,7 +981,7 @@
     "orPackages": "またはパッケージで",
     "powershell": "PowerShell で",
     "orInstaller": "またはインストーラで",
-    "win1": "<code>.exe</code> または <code>.msi</code> をダウンロードし、インストーラの指示に従います。",
+    "win1": "<code>.exe</code> をダウンロードし、インストーラの指示に従います。",
     "win2": "SmartScreen の警告が出たら、<b>詳細情報</b>をクリックし、続けて<b>実行</b>をクリックします。",
     "fixTitle": "macOS で Cadente が壊れていると表示されたら?",
     "fixText": "macOS は、Apple の有料署名がまだないアプリをブロックします。このコマンドをターミナルに一度貼り付けて実行すれば、Cadente は普通に開きます。",

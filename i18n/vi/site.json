@@ -981,7 +981,7 @@
     "orPackages": "Hoặc qua gói cài",
     "powershell": "Trong PowerShell",
     "orInstaller": "Hoặc qua trình cài đặt",
-    "win1": "Tải tệp <code>.exe</code> hoặc <code>.msi</code> rồi làm theo trình cài đặt.",
+    "win1": "Tải tệp <code>.exe</code> rồi làm theo trình cài đặt.",
     "win2": "Nếu SmartScreen cảnh báo, bấm <b>Thông tin thêm</b> rồi <b>Vẫn chạy</b>.",
     "fixTitle": "macOS báo Cadente bị hỏng?",
     "fixText": "macOS chặn các ứng dụng chưa có chữ ký trả phí của Apple. Dán lệnh này vào Terminal một lần và Cadente sẽ mở bình thường.",

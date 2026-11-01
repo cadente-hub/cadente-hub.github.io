@@ -981,7 +981,7 @@
     "orPackages": "或使用软件包",
     "powershell": "在 PowerShell 中",
     "orInstaller": "或使用安装程序",
-    "win1": "下载 <code>.exe</code> 或 <code>.msi</code>，按安装程序的提示操作。",
+    "win1": "下载 <code>.exe</code>，按安装程序的提示操作。",
     "win2": "如果 SmartScreen 发出警告，点击<b>更多信息</b>，再点击<b>仍要运行</b>。",
     "fixTitle": "macOS 提示 Cadente 已损坏？",
     "fixText": "macOS 会拦截还没有 Apple 付费签名的应用。在终端里粘贴这条命令运行一次，Cadente 就能正常打开。",

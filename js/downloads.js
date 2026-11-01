@@ -1,5 +1,6 @@
-// Downloads: the file for the visitor's system first, the others below. The version is the one the updater offers
-// (/update.json); its files come from the GitHub release of that version, or from the latest release.
+// Downloads: the file for the visitor's system first, the others below. The version is the one the signed feed
+// offers (/feeds/stable.json, or /feeds/beta.json while there is no stable release); its files come from the
+// GitHub release of that version, or from the latest release.
 import { initPage } from './page.js';
 import { t, number } from './i18n.js';
 
@@ -12,9 +13,7 @@ const FILES = [
   { id: 'macos-arm64', os: 'macOS', arch: 'Apple Silicon', ext: '.dmg', match: n => /(arm64|aarch64).*\.dmg$/i.test(n) },
   { id: 'macos-x64', os: 'macOS', arch: 'Intel', ext: '.dmg', match: n => /\.dmg$/i.test(n) && !/arm64|aarch64/i.test(n) },
   { id: 'windows-exe', os: 'Windows', arch: 'x64', ext: '.exe', match: n => /\.exe$/i.test(n) },
-  { id: 'windows-msi', os: 'Windows', arch: 'x64', ext: '.msi', match: n => /\.msi$/i.test(n) },
   { id: 'linux-deb', os: 'Linux', arch: 'Debian, Ubuntu', ext: '.deb', match: n => /\.deb$/i.test(n) },
-  { id: 'linux-rpm', os: 'Linux', arch: 'Fedora, openSUSE', ext: '.rpm', match: n => /\.rpm$/i.test(n) },
   { id: 'linux-appimage', os: 'Linux', arch: 'AppImage', ext: '.AppImage', match: n => /\.AppImage$/i.test(n) },
 ];
 
@@ -29,7 +28,7 @@ function detect() {
     } catch { /* no WebGL */ }
     return 'macos-arm64';
   }
-  if (/Linux/i.test(platform) || /Linux/i.test(ua)) return /Fedora|RHEL|SUSE/i.test(ua) ? 'linux-rpm' : 'linux-deb';
+  if (/Linux/i.test(platform) || /Linux/i.test(ua)) return /Fedora|RHEL|SUSE/i.test(ua) ? 'linux-appimage' : 'linux-deb';
   return null;
 }
 
@@ -53,16 +52,18 @@ async function json(url) {
   if (!r.ok) throw Object.assign(new Error(`${url}: ${r.status}`), { status: r.status });
   return r.json();
 }
-// The release files keep the same names in every version (cadente-0.2.93-macos-arm64.dmg…), so the links still work
+// The release files keep the same names in every version (cadente-1.1.0-macos-arm64.dmg…), so the links still work
 // when the GitHub API says no: it answers 60 calls an hour per address, and an office shares one address.
-const NAMES = { 'macos-arm64': 'macos-arm64.dmg', 'macos-x64': 'macos-x64.dmg', 'windows-exe': 'windows-x64.exe', 'windows-msi': 'windows-x64.msi', 'linux-deb': 'linux-x64.deb', 'linux-rpm': 'linux-x64.rpm', 'linux-appimage': 'linux-x64.AppImage' };
+const NAMES = { 'macos-arm64': 'macos-arm64.dmg', 'macos-x64': 'macos-x64.dmg', 'windows-exe': 'windows-x64.exe', 'linux-deb': 'linux-x64.deb', 'linux-appimage': 'linux-x64.AppImage' };
 const byName = version => ({
   tag_name: `v${version}`,
   assets: Object.values(NAMES).map(suffix => ({ name: `cadente-${version}-${suffix}`, browser_download_url: `${RELEASES}/download/v${encodeURIComponent(version)}/cadente-${version}-${suffix}` })),
 });
 const limited = e => e?.status === 403 || e?.status === 429;
+// The version a channel's signed feed offers, or null when the channel has no release yet.
+const feedVersion = channel => json(`/feeds/${channel}.json`).then(f => f.releases?.[0]?.version ?? null, () => null);
 async function release() {
-  const version = await json('/update.json').then(u => u.version, () => null);
+  const version = (await feedVersion('stable')) ?? (await feedVersion('beta'));
   const known = /^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/.test(version ?? '');
   if (known) {
     try { return await json(`https://api.github.com/repos/${REPO}/releases/tags/v${encodeURIComponent(version)}`); }

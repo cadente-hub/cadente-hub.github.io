@@ -984,7 +984,7 @@
     "orPackages": "या पैकेज से",
     "powershell": "PowerShell में",
     "orInstaller": "या इंस्टॉलर से",
-    "win1": "<code>.exe</code> या <code>.msi</code> डाउनलोड करें और इंस्टॉलर के स्टेप पूरे करें।",
+    "win1": "<code>.exe</code> डाउनलोड करें और इंस्टॉलर के स्टेप पूरे करें।",
     "win2": "अगर SmartScreen चेतावनी दे, तो <b>More info</b> पर और फिर <b>Run anyway</b> पर क्लिक करें।",
     "fixTitle": "macOS कहता है कि Cadente ख़राब है?",
     "fixText": "macOS उन ऐप को रोकता है जिनके पास अभी Apple का पेड सिग्नेचर नहीं है। यह कमांड एक बार टर्मिनल में पेस्ट करें, फिर Cadente आम तरह से खुलेगा।",

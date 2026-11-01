@@ -984,7 +984,7 @@
     "orPackages": "Oppure con un pacchetto",
     "powershell": "In PowerShell",
     "orInstaller": "Oppure con il programma di installazione",
-    "win1": "Scarica il <code>.exe</code> o il <code>.msi</code> e segui il programma di installazione.",
+    "win1": "Scarica il <code>.exe</code> e segui il programma di installazione.",
     "win2": "Se SmartScreen mostra un avviso, clicca su <b>Ulteriori informazioni</b> e poi su <b>Esegui comunque</b>.",
     "fixTitle": "macOS dice che Cadente è danneggiato?",
     "fixText": "macOS blocca le app che non hanno ancora la firma a pagamento di Apple. Incolla questo comando nel Terminale una volta e Cadente si apre normalmente.",

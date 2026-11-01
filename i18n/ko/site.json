@@ -981,7 +981,7 @@
     "orPackages": "또는 패키지로",
     "powershell": "PowerShell에서",
     "orInstaller": "또는 설치 프로그램으로",
-    "win1": "<code>.exe</code>나 <code>.msi</code>를 내려받아 설치 프로그램을 따라가세요.",
+    "win1": "<code>.exe</code>를 내려받아 설치 프로그램을 따라가세요.",
     "win2": "SmartScreen 경고가 나오면 <b>추가 정보</b>를 누른 다음 <b>실행</b>을 누르세요.",
     "fixTitle": "macOS에서 Cadente가 손상됐다고 나오나요?",
     "fixText": "macOS는 Apple의 유료 서명이 아직 없는 앱을 막아요. 이 명령을 터미널에 한 번 붙여 넣으면 Cadente가 정상적으로 열려요.",

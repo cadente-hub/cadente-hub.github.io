@@ -15,7 +15,7 @@ A desktop AI workspace for developers — use Claude, ChatGPT, Gemini or a local
 | macOS | Apple Silicon (ARM64) | [`.dmg`](https://github.com/cadente-hub/cadente-hub.github.io/releases/latest) |
 | macOS | Intel (x86_64) | [`.dmg`](https://github.com/cadente-hub/cadente-hub.github.io/releases/latest) |
 | Linux | x86_64 | [`.AppImage`](https://github.com/cadente-hub/cadente-hub.github.io/releases/latest) / [`.deb`](https://github.com/cadente-hub/cadente-hub.github.io/releases/latest) |
-| Windows | x86_64 | [`.exe`](https://github.com/cadente-hub/cadente-hub.github.io/releases/latest) / [`.msi`](https://github.com/cadente-hub/cadente-hub.github.io/releases/latest) |
+| Windows | x86_64 | [`.exe`](https://github.com/cadente-hub/cadente-hub.github.io/releases/latest) |
 
 ## Installation
 
@@ -40,7 +40,7 @@ sudo dpkg -i cadente-*-linux-x64.deb
 
 ### Windows
 
-Run the `.exe` installer or `.msi` package. Follow the installation wizard.
+Run the `.exe` installer and follow the installation wizard.
 
 ## Features
 
@@ -59,10 +59,8 @@ The app includes a built-in auto-updater. When a new version is available, you'l
 
 ## Built With
 
-- [Tauri 2](https://tauri.app) — Rust backend, WebView frontend
-- [React 19](https://react.dev) — UI framework
-- [Rust](https://www.rust-lang.org) — Backend logic
-- [Vite](https://vitejs.dev) — Build tooling
+- [Rust](https://www.rust-lang.org) — the whole app
+- [Slint](https://slint.dev) — native interface drawn by the GPU
 
 ## License
 

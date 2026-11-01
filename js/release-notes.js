@@ -1,5 +1,5 @@
-// Release notes: the stable and beta channels, from the update feeds the app reads (/update.json, /update-beta.json)
-// and the GitHub releases. The notes are written in English; dates follow the page's language.
+// Release notes: the stable and beta channels, from the signed feeds the app reads (/feeds/stable.json,
+// /feeds/beta.json) and the GitHub releases. The notes are written in English; dates follow the page's language.
 import { initPage } from './page.js';
 import { t, INTL } from './i18n.js';
 
@@ -33,9 +33,14 @@ async function json(url) {
   if (!r.ok) throw new Error(`${url}: ${r.status}`);
   return r.json();
 }
-const fromFeed = m => ({ version: m.version, date: m.pub_date, body: m.notes, url: `${RELEASES}/tag/v${m.version}`, latest: true });
 const fromGitHub = r => { const v = String(r.tag_name ?? '').replace(/^v/, ''); return VERSION.test(v) ? { version: v, beta: r.prerelease || v.includes('-'), date: r.published_at, body: r.body, url: r.html_url } : null; };
-const unique = xs => xs.filter((x, i) => x && xs.findIndex(y => y?.version === x.version) === i);
+// The version a channel's signed feed offers, or null when the channel has no release yet.
+const feedVersion = channel => json(`/feeds/${channel}.json`).then(f => f.releases?.[0]?.version ?? null, () => null);
+// The feed's version is the latest of its channel, and stays listed when the GitHub API says no.
+const withFeed = (list, version) => {
+  const marked = list.map(r => ({ ...r, latest: r.version === version }));
+  return version && !marked.some(r => r.latest) ? [{ version, url: `${RELEASES}/tag/v${version}`, latest: true }, ...marked] : marked;
+};
 
 function render(el, items) {
   el.innerHTML = items.length ? items.map(r => `<article class="rn-item"><p class="rn-item__meta"><b>v${esc(r.version)}</b>${r.latest ? `<span class="rn-badge">${esc(t('rn.latest'))}</span>` : ''}<time>${esc(day(r.date))}</time></p>
@@ -45,10 +50,10 @@ function render(el, items) {
 
 initPage();
 const $ = id => document.getElementById(id);
-Promise.all([json('/update.json'), json('/update-beta.json'), json(`https://api.github.com/repos/${REPO}/releases?per_page=40`).catch(() => [])]).then(([stable, beta, gh]) => {
+Promise.all([feedVersion('stable'), feedVersion('beta'), json(`https://api.github.com/repos/${REPO}/releases?per_page=40`).catch(() => [])]).then(([stable, beta, gh]) => {
   const all = gh.map(fromGitHub).filter(Boolean);
-  const stableList = unique([fromFeed(stable), ...all.filter(r => !r.beta)]).slice(0, 8);
-  const betaList = unique([fromFeed(beta), ...all.filter(r => r.beta)]).slice(0, 8);
+  const stableList = withFeed(all.filter(r => !r.beta), stable).slice(0, 8);
+  const betaList = withFeed(all.filter(r => r.beta), beta).slice(0, 8);
   $('rn-stable-version').textContent = stableList[0] ? `v${stableList[0].version}` : '—';
   $('rn-beta-version').textContent = betaList[0] ? `v${betaList[0].version}` : '—';
   render($('rn-stable'), stableList);

@@ -984,7 +984,7 @@
     "orPackages": "Oder als Paket",
     "powershell": "In PowerShell",
     "orInstaller": "Oder mit dem Installer",
-    "win1": "Lade die <code>.exe</code> oder die <code>.msi</code> herunter und folge dem Installer.",
+    "win1": "Lade die <code>.exe</code> herunter und folge dem Installer.",
     "win2": "Wenn SmartScreen warnt, klick auf <b>Weitere Informationen</b> und dann auf <b>Trotzdem ausführen</b>.",
     "fixTitle": "macOS sagt, Cadente sei beschädigt?",
     "fixText": "macOS blockiert Apps, die noch keine kostenpflichtige Signatur von Apple haben. Füge diesen Befehl einmal im Terminal ein, und Cadente öffnet sich ganz normal.",

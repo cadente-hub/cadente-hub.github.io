@@ -370,7 +370,7 @@ jobs:
       - name: Sign the update payloads and the feed
         working-directory: src
         env:
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          CADENTE_RELEASE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
         run: |
           set -euo pipefail
           for TARGET in aarch64-apple-darwin x86_64-apple-darwin x86_64-unknown-linux-gnu x86_64-pc-windows-msvc; do
@@ -453,6 +453,7 @@ jobs:
             --notes-file release-notes.md $FLAGS dist/*
 
       - name: Publish the feed on the site
+        id: feed
         env:
           GH_TOKEN: ${{ secrets.CATARINA_RELEASE_TOKEN }}
         run: |
@@ -464,12 +465,15 @@ jobs:
           cp ../feeds/* public/feeds/
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add public/feeds update-beta.json
+          git add public/feeds
           git commit -m "chore: publish ${RELEASE_CHANNEL} feed for v${RELEASE_VERSION}" || echo "No changes"
           git push
+          # While no stable is out, the newest beta is what the site and Homebrew offer.
+          STABLE_RELEASES="$(jq '.releases | length' public/feeds/stable.json 2>/dev/null || echo 0)"
+          echo "stable_empty=$([ "$STABLE_RELEASES" = 0 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
 
-      - name: Update Homebrew cask (stable only)
-        if: inputs.channel == 'stable'
+      - name: Update Homebrew cask
+        if: inputs.channel == 'stable' || steps.feed.outputs.stable_empty == 'true'
         env:
           GH_TOKEN: ${{ secrets.CATARINA_RELEASE_TOKEN }}
         run: |
@@ -494,11 +498,6 @@ jobs:
             name "Cadente"
             desc "AI-powered desktop assistant — chat, terminal, Git and more"
             homepage "https://cadente-hub.github.io"
-
-            livecheck do
-              url "https://github.com/cadente-hub/cadente-hub.github.io/releases/latest"
-              strategy :github_latest
-            end
 
             auto_updates true
             depends_on macos: ">= :big_sur"
@@ -530,15 +529,6 @@ jobs:
           git diff --cached --quiet && { echo "No cask changes"; exit 0; }
           git commit -m "chore: bump cadente to v${RELEASE_VERSION}"
           git push
-
-  legacy-compatibility:
-    needs: [resolve, publish]
-    uses: ./.github/workflows/native-legacy-compat.yml
-    with:
-      tag: ${{ needs.resolve.outputs.tag }}
-    secrets:
-      CATARINA_RELEASE_TOKEN: ${{ secrets.CATARINA_RELEASE_TOKEN }}
-      TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
 
   # Compiles nothing: decrypts the logs of failed package jobs into the private ci-logs branch.
   report:

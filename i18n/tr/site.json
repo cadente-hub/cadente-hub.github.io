@@ -984,7 +984,7 @@
     "orPackages": "Ya da paketle",
     "powershell": "PowerShell'de",
     "orInstaller": "Ya da yükleyiciyle",
-    "win1": "<code>.exe</code> ya da <code>.msi</code> dosyasını indirin ve yükleyicinin adımlarını izleyin.",
+    "win1": "<code>.exe</code> dosyasını indirin ve yükleyicinin adımlarını izleyin.",
     "win2": "SmartScreen uyarırsa <b>Ek bilgi</b> bağlantısına, ardından <b>Yine de çalıştır</b> düğmesine tıklayın.",
     "fixTitle": "macOS, Cadente'nin hasarlı olduğunu mu söylüyor?",
     "fixText": "macOS, henüz Apple'ın ücretli imzasını taşımayan uygulamaları engeller. Bu komutu bir kez Terminal'e yapıştırın; Cadente normal şekilde açılır.",

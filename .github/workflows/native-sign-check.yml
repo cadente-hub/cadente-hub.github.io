@@ -48,9 +48,11 @@ jobs:
       - name: Sign a file with the release key
         working-directory: src
         env:
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          CADENTE_RELEASE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
         run: |
           set -euo pipefail
           echo "check" > "$RUNNER_TEMP/check.txt"
           ./target/debug/xtask sign "$RUNNER_TEMP/check.txt"
           test -s "$RUNNER_TEMP/check.txt.minisig" && echo "signed with the release key"
+          # A signature is public: anyone can check it against the key the app trusts.
+          cat "$RUNNER_TEMP/check.txt.minisig"

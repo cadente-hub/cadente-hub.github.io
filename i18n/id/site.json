@@ -981,7 +981,7 @@
     "orPackages": "Atau lewat paket",
     "powershell": "Di PowerShell",
     "orInstaller": "Atau lewat installer",
-    "win1": "Unduh <code>.exe</code> atau <code>.msi</code> dan ikuti installer-nya.",
+    "win1": "Unduh <code>.exe</code> dan ikuti installer-nya.",
     "win2": "Kalau SmartScreen memberi peringatan, klik <b>Info selengkapnya</b> lalu <b>Tetap jalankan</b>.",
     "fixTitle": "macOS bilang Cadente rusak?",
     "fixText": "macOS memblokir aplikasi yang belum punya tanda tangan berbayar dari Apple. Tempel perintah ini di Terminal sekali saja, dan Cadente akan terbuka seperti biasa.",
