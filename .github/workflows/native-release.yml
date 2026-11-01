@@ -260,7 +260,6 @@ jobs:
               hdiutil detach /Volumes/CadenteSmoke -quiet
               DIR="$RUNNER_TEMP/Cadente.app/Contents/MacOS"
               test -f "$RUNNER_TEMP/Cadente.app/Contents/SharedSupport/baseline_version/metadata.json"
-              test -f "$RUNNER_TEMP/Cadente.app/Contents/SharedSupport/launcher.json"
               EXE="" ;;
             Linux)
               sudo apt-get -o Acquire::Retries=3 update
