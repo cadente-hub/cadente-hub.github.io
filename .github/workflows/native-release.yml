@@ -157,9 +157,113 @@ jobs:
             src/dist/descriptor-*.json
           if-no-files-found: error
 
+  smoke:
+    # D3 and D4 (ADR 0076): on each system the package installs, the launcher finds the Core it
+    # ships, and the Core opens, draws frames and closes (`--measure`). On Apple Silicon the
+    # measurement is the 30 s at 120 Hz of D4; its CPU p99 and memory go to the job summary.
+    name: smoke ${{ matrix.target }}
+    needs: [resolve, package]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: macos-15, target: aarch64-apple-darwin, measure: "30 120" }
+          - { os: ubuntu-22.04, target: x86_64-unknown-linux-gnu, measure: "5 60" }
+          - { os: windows-latest, target: x86_64-pc-windows-msvc, measure: "5 60" }
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist-${{ matrix.target }}
+          path: dist
+
+      - name: Install the package
+        id: install
+        run: |
+          set -euo pipefail
+          case "$RUNNER_OS" in
+            macOS)
+              hdiutil attach dist/*.dmg -mountpoint /Volumes/CadenteSmoke -nobrowse -quiet
+              cp -R /Volumes/CadenteSmoke/Cadente.app "$RUNNER_TEMP/"
+              hdiutil detach /Volumes/CadenteSmoke -quiet
+              DIR="$RUNNER_TEMP/Cadente.app/Contents/MacOS"
+              test -f "$RUNNER_TEMP/Cadente.app/Contents/SharedSupport/baseline_version/metadata.json"
+              test -f "$RUNNER_TEMP/Cadente.app/Contents/SharedSupport/launcher.json"
+              EXE="" ;;
+            Linux)
+              sudo apt-get -o Acquire::Retries=3 update
+              sudo apt-get -o Acquire::Retries=3 install -y xvfb libgl1-mesa-dri libegl1 libxkbcommon-x11-0
+              sudo apt-get -o Acquire::Retries=3 install -y ./dist/*.deb
+              DIR=/usr/bin
+              test -f /usr/lib/Cadente/baseline_version/metadata.json
+              EXE="" ;;
+            Windows)
+              INSTALLER="$(ls dist/cadente-*-windows-x64.exe | head -1)"
+              "$INSTALLER" //S
+              for _ in $(seq 1 60); do [ -f "$LOCALAPPDATA/Programs/Cadente/cadente-core.exe" ] && break; sleep 2; done
+              DIR="$LOCALAPPDATA/Programs/Cadente"
+              test -f "$DIR/baseline_version/metadata.json"
+              EXE=".exe" ;;
+          esac
+          test -x "$DIR/cadente$EXE"
+          test -x "$DIR/cadente-core$EXE"
+          echo "dir=$DIR" >> "$GITHUB_OUTPUT"
+          echo "exe=$EXE" >> "$GITHUB_OUTPUT"
+
+      - name: The launcher finds the Core it ships
+        env:
+          DIR: ${{ steps.install.outputs.dir }}
+          EXE: ${{ steps.install.outputs.exe }}
+          EXPECTED: ${{ needs.resolve.outputs.version }}
+        run: |
+          set -euo pipefail
+          FOUND="$("$DIR/cadente$EXE" --system-install)"
+          echo "$FOUND"
+          printf '%s' "$FOUND" | grep -q "\"version\":\"$EXPECTED\""
+
+      - name: The Core opens, draws and closes
+        env:
+          DIR: ${{ steps.install.outputs.dir }}
+          EXE: ${{ steps.install.outputs.exe }}
+          MEASURE: ${{ matrix.measure }}
+        run: |
+          set -euo pipefail
+          export CADENTE_HOME="$RUNNER_TEMP/cadente-home"
+          # shellcheck disable=SC2086
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            xvfb-run -a -s "-screen 0 1440x900x24" "$DIR/cadente-core$EXE" --measure $MEASURE > "$RUNNER_TEMP/measure.json"
+          else
+            "$DIR/cadente-core$EXE" --measure $MEASURE > "$RUNNER_TEMP/measure.json"
+          fi
+          cat "$RUNNER_TEMP/measure.json"
+          python3 - "$RUNNER_TEMP/measure.json" <<'PY'
+          import json, os, sys
+          report = json.load(open(sys.argv[1]))
+          frames = report.get("drawnFrames", 0)
+          assert frames > 0, f"no frame drawn: {report}"
+          cpu, rss = report["frameCpuMs"], report["rssKib"]
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as summary:
+              summary.write(
+                  f"### {os.environ['RUNNER_OS']}: {frames} frames, CPU p99 {cpu.get('p99')} ms "
+                  f"(limit {report['budget']['cpuP99MaxMs']} ms, pass={report['pass']}), "
+                  f"RSS open {rss['windowOpen']} KiB, hidden {rss['windowHidden']} KiB\n"
+              )
+          PY
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: smoke-${{ matrix.target }}
+          path: ${{ runner.temp }}/measure.json
+          if-no-files-found: ignore
+
   publish:
     name: sign the feed and publish
-    needs: [resolve, package]
+    needs: [resolve, package, smoke]
     runs-on: ubuntu-latest
     env:
       RELEASE_VERSION: ${{ needs.resolve.outputs.version }}
