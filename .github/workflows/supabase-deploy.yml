@@ -4,6 +4,10 @@ name: Supabase deploy
 # Supabase Management API. Needs one repository secret:
 #   SUPABASE_ACCESS_TOKEN  — a personal access token (supabase.com/dashboard/account/tokens)
 # Function secrets (PADDLE_API_KEY, PADDLE_WEBHOOK_SECRET) live in Supabase.
+#
+# The deploy job runs the Supabase CLI with the read-only deploy key; the write to the private
+# repository happens in `record`, which runs no third-party code. The public log carries outcomes
+# only: no SQL, no database errors, no policies.
 
 on:
   workflow_dispatch:
@@ -33,10 +37,10 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    outputs:
+      ready: ${{ steps.creds.outputs.ready }}
     env:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-      PRIVATE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
-      PRIVATE_WRITE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
       SHA: ${{ inputs.sha }}
     steps:
       - name: Check credentials
@@ -49,13 +53,23 @@ jobs:
             echo "ready=true" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Setup builder scripts
+        if: steps.creds.outputs.ready == 'true'
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/scripts/clone-private.sh
+          sparse-checkout-cone-mode: false
+          path: _builder
+          persist-credentials: false
+
       - name: Clone private repository
         if: steps.creds.outputs.ready == 'true'
+        env:
+          DEPLOY_KEY: ${{ secrets.CATARINA_PRIVATE_DEPLOY_KEY }}
         run: |
-          echo "::add-mask::${PRIVATE_TOKEN}"
-          [ -n "${PRIVATE_WRITE_TOKEN:-}" ] && echo "::add-mask::${PRIVATE_WRITE_TOKEN}"
-          git clone --filter=blob:none "https://x-access-token:${PRIVATE_TOKEN}@github.com/${PRIVATE_REPO}.git" . >/dev/null 2>&1
-          git checkout "$SHA" >/dev/null 2>&1
+          cp _builder/.github/scripts/clone-private.sh "$RUNNER_TEMP/clone-private.sh"
+          rm -rf _builder
+          bash "$RUNNER_TEMP/clone-private.sh" . "$SHA"
 
       - uses: supabase/setup-cli@v1
         if: steps.creds.outputs.ready == 'true'
@@ -68,16 +82,17 @@ jobs:
           set -euo pipefail
           for file in supabase/migrations/*.sql; do
             [ -e "$file" ] || continue
-            echo "Applying $file"
+            echo "Applying $(basename "$file")"
             body=$(jq -Rs '{query: .}' < "$file")
             status=$(curl -sS -o /tmp/migration.json -w '%{http_code}' \
               -X POST "https://api.supabase.com/v1/projects/${PROJECT_REF}/database/query" \
               -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
               -H "Content-Type: application/json" \
               --data "$body")
+            rm -f /tmp/migration.json
             if [ "$status" -ge 300 ]; then
-              echo "::error::Migration $file failed (HTTP $status)"
-              cat /tmp/migration.json
+              # The database error quotes the SQL; read it in the Supabase dashboard.
+              echo "::error::Migration $(basename "$file") failed (HTTP $status)"
               exit 1
             fi
           done
@@ -96,19 +111,23 @@ jobs:
             union all
             select 'rls', relname, case when relrowsecurity then 'enabled' else 'DISABLED' end, null, null
               from pg_class where oid = 'public.profiles'::regclass;" '{query: $q}')
-          curl -sS -X POST "https://api.github.com/repos/${PRIVATE_REPO}/statuses/${SHA}" >/dev/null 2>&1 || true
           curl -sS -X POST "https://api.supabase.com/v1/projects/${PROJECT_REF}/database/query" \
             -H "Authorization: Bearer ${SUPABASE_ACCESS_TOKEN}" \
             -H "Content-Type: application/json" \
-            --data "$query" | tee /tmp/audit.json | jq -r '.[] | [.kind, .name, .cmd, .detail, .rule] | @tsv'
+            --data "$query" > /tmp/audit.json
+          # The policies themselves stay out of the public log; only the verdict is printed.
           if jq -e '.[] | select(.kind == "grant" and (.cmd == "UPDATE" or .cmd == "INSERT" or .cmd == "DELETE"))' /tmp/audit.json >/dev/null; then
+            rm -f /tmp/audit.json
             echo "::error::anon/authenticated can still write public.profiles"
             exit 1
           fi
           if jq -e '.[] | select(.kind == "rls" and .cmd != "enabled")' /tmp/audit.json >/dev/null; then
+            rm -f /tmp/audit.json
             echo "::error::Row level security is disabled on public.profiles"
             exit 1
           fi
+          echo "profiles: $(jq '[.[] | select(.kind == "policy")] | length' /tmp/audit.json) policies, row level security on, no write grant to anon/authenticated"
+          rm -f /tmp/audit.json
 
       - name: Check function secrets
         if: steps.creds.outputs.ready == 'true'
@@ -125,8 +144,10 @@ jobs:
         if: steps.creds.outputs.ready == 'true'
         run: |
           set -euo pipefail
-          supabase functions deploy get-prices --project-ref "$PROJECT_REF" --use-api
-          supabase functions deploy paddle-webhook --project-ref "$PROJECT_REF" --use-api
+          supabase functions deploy get-prices --project-ref "$PROJECT_REF" --use-api > /tmp/deploy.log 2>&1 || { echo "::error::get-prices did not deploy"; exit 1; }
+          supabase functions deploy paddle-webhook --project-ref "$PROJECT_REF" --use-api > /tmp/deploy.log 2>&1 || { echo "::error::paddle-webhook did not deploy"; exit 1; }
+          rm -f /tmp/deploy.log
+          echo "functions deployed: get-prices, paddle-webhook"
 
       - name: Smoke test
         if: steps.creds.outputs.ready == 'true'
@@ -137,7 +158,7 @@ jobs:
           prices=$(curl -sS -w '\n%{http_code}' "$base/get-prices?country=BR")
           code=$(printf '%s' "$prices" | tail -n1)
           json=$(printf '%s' "$prices" | sed '$d')
-          echo "get-prices: HTTP $code $json"
+          echo "get-prices: HTTP $code"
           [ "$code" = "200" ] || { echo "::error::get-prices returned HTTP $code"; exit 1; }
           printf '%s' "$json" | jq -e '.monthly.amount and .yearly.amount' >/dev/null
           if printf '%s' "$json" | jq -e '.fallback == true' >/dev/null; then
@@ -147,8 +168,17 @@ jobs:
           echo "paddle-webhook with a bad signature: HTTP $hook"
           [ "$hook" = "401" ] || { echo "::error::paddle-webhook should reject a bad signature with 401, got $hook"; exit 1; }
 
+  record:
+    # Runs no third-party code: the only job here that writes to the private repository.
+    needs: deploy
+    if: needs.deploy.outputs.ready == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
       - name: Record deployed SHA
-        if: steps.creds.outputs.ready == 'true'
+        env:
+          PRIVATE_WRITE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
+          SHA: ${{ inputs.sha }}
         run: |
           set -euo pipefail
           if [ -z "${PRIVATE_WRITE_TOKEN:-}" ]; then

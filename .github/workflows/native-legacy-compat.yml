@@ -12,8 +12,14 @@ on:
       tag:
         required: true
         type: string
+    secrets:
+      CATARINA_RELEASE_TOKEN:
+        required: true
+      TAURI_SIGNING_PRIVATE_KEY:
+        required: true
+# Writes go through CATARINA_RELEASE_TOKEN; the job token only reads.
 permissions:
-  contents: write
+  contents: read
 concurrency:
   group: native-legacy-compat
   cancel-in-progress: false
@@ -22,8 +28,6 @@ jobs:
     runs-on: macos-15
     timeout-minutes: 20
     env:
-      GH_TOKEN: ${{ secrets.CATARINA_RELEASE_TOKEN }}
-      TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
       RELEASE_TAG: ${{ inputs.tag }}
     steps:
       - uses: actions/checkout@v4
@@ -34,6 +38,9 @@ jobs:
         with:
           node-version: 22
       - name: Package and sign app bundles from verified published DMGs
+        env:
+          GH_TOKEN: ${{ secrets.CATARINA_RELEASE_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
         run: python3 scripts/native-legacy-assets.py "$RELEASE_TAG" "$RUNNER_TEMP/compatibility"
       - name: Publish compatible launcher feed
         run: |

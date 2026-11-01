@@ -44,6 +44,7 @@ persist_private_build_log() {
 
   for attempt in 1 2 3 4 5; do
     if git -C "$repo_dir" push origin ci-logs >/dev/null 2>&1; then
+      echo "log completo de ${label} no repositório privado: ci-logs/${dest_rel}"
       rm -rf "$repo_dir"
       return 0
     fi

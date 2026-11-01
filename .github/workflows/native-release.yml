@@ -5,6 +5,14 @@ run-name: native-release ${{ inputs.channel }} ${{ inputs.sha }}
 # the signed update feed on the site. `beta` builds are numbered 1.0.0-beta.N; `stable` builds the
 # exact version of the crate. A stable release is the build of a commit that already ran as beta
 # (see native-promote), because the version is compiled into the app.
+#
+# Each secret lives in the job that needs it, and never next to third-party code it does not need:
+# a build script can read every secret its job references.
+# - package: compiles ~700 crates with only the read-only deploy key; its output stays out of the
+#   public log (an encrypted copy reaches the private ci-logs branch when it fails).
+# - sign: holds the release key and compiles only xtask; it signs the update payloads and the feed.
+# - publish: holds the release token and compiles nothing; only a run from main publishes, so a run
+#   from another branch builds, tests and signs as a dry run.
 
 on:
   workflow_dispatch:
@@ -21,11 +29,11 @@ on:
         options: [beta, stable]
 
 concurrency:
-  group: native-release
+  group: native-release-${{ github.ref }}
   cancel-in-progress: false
 
 permissions:
-  contents: write
+  contents: read
 
 env:
   PRIVATE_REPO: jeancatarina/catarina-claude
@@ -70,6 +78,8 @@ jobs:
             LAST="$(gh release list --repo "$GITHUB_REPOSITORY" --limit 300 --json tagName --jq '.[].tagName' | sed -n "s/^v${BASE}-beta\.\([0-9]*\)$/\1/p" | sort -n | tail -1)"
             VERSION="${BASE}-beta.$(( ${LAST:-0} + 1 ))"
           fi
+          cd /
+          rm -rf "$TMP"
           echo "sha=$INPUT_SHA" >> "$GITHUB_OUTPUT"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
@@ -94,20 +104,30 @@ jobs:
     env:
       RELEASE_VERSION: ${{ needs.resolve.outputs.version }}
       RELEASE_CHANNEL: ${{ inputs.channel }}
-      TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
       APPLE_SIGNING_IDENTITY: "-"
       XTASK_FREE_DISK: "1"
     steps:
+      - name: Setup builder scripts
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            .github/scripts/clone-private.sh
+            .github/scripts/ci-log-crypto.cjs
+            .github/ci-log-key.pub.pem
+          sparse-checkout-cone-mode: false
+          path: _builder
+          persist-credentials: false
+
+      - name: Stage builder scripts
+        run: |
+          mkdir -p "$RUNNER_TEMP/scripts"
+          cp _builder/.github/scripts/clone-private.sh _builder/.github/scripts/ci-log-crypto.cjs _builder/.github/ci-log-key.pub.pem "$RUNNER_TEMP/scripts/"
+          rm -rf _builder
+
       - name: Clone the private repository at the commit
         env:
-          TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
-          SHA: ${{ needs.resolve.outputs.sha }}
-        run: |
-          set -euo pipefail
-          echo "::add-mask::${TOKEN}"
-          git clone --filter=blob:none "https://x-access-token:${TOKEN}@github.com/${PRIVATE_REPO}.git" src >/dev/null 2>&1
-          git -C src checkout "$SHA" >/dev/null 2>&1
-          git -C src remote remove origin
+          DEPLOY_KEY: ${{ secrets.CATARINA_PRIVATE_DEPLOY_KEY }}
+        run: bash "$RUNNER_TEMP/scripts/clone-private.sh" src "${{ needs.resolve.outputs.sha }}"
 
       - uses: dtolnay/rust-toolchain@stable
         with:
@@ -136,12 +156,33 @@ jobs:
         with:
           node-version: 22
 
-      - name: Bundle and update payload
+      - name: Keep the build machine's paths out of the binaries
+        run: |
+          ROOT="$PWD/src"
+          CARGO_DIR="${CARGO_HOME:-$HOME/.cargo}"
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            ROOT="$(cygpath -w "$ROOT")"
+            CARGO_DIR="$(cygpath -w "$CARGO_DIR")"
+          fi
+          echo "RUSTFLAGS=--remap-path-prefix=${ROOT}=cadente --remap-path-prefix=${CARGO_DIR}=cargo" >> "$GITHUB_ENV"
+
+      - name: Bundle
         working-directory: src
         run: |
           set -euo pipefail
-          cargo xtask bundle --target "${{ matrix.target }}"
-          cargo xtask payload --target "${{ matrix.target }}"
+          echo "Passo: cargo xtask bundle --target ${{ matrix.target }}"
+          if cargo xtask bundle --target "${{ matrix.target }}" > "$RUNNER_TEMP/release-build.log" 2>&1; then
+            echo "Resultado: OK"
+          else
+            echo "Resultado: FALHOU"
+            exit 1
+          fi
+
+      - name: Ad-hoc signature of the update binary (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          BIN="src/target/${{ matrix.target }}/release/cadente-native-ui"
+          codesign --verify "$BIN" 2>/dev/null || codesign --force --sign - "$BIN"
 
       - uses: actions/upload-artifact@v4
         with:
@@ -151,11 +192,38 @@ jobs:
             src/dist/*.AppImage
             src/dist/*.deb
             src/dist/cadente-*-windows-x64.exe
-            src/dist/cadente-*.tar.gz
-            src/dist/cadente-*.zip
-            src/dist/*.minisig
-            src/dist/descriptor-*.json
           if-no-files-found: error
+
+      # The update payload is packed and signed in `sign`, which holds the release key.
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bin-${{ matrix.target }}
+          path: |
+            src/target/${{ matrix.target }}/release/cadente-native-ui
+            src/target/${{ matrix.target }}/release/cadente-native-ui.exe
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Seal the build log
+        if: failure() || cancelled()
+        run: |
+          {
+            echo "native-release package ${{ matrix.target }} ${{ needs.resolve.outputs.sha }}"
+            echo "run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            echo
+            cat "$RUNNER_TEMP/release-build.log" 2>/dev/null || true
+          } > "$RUNNER_TEMP/sealed.log"
+          node "$RUNNER_TEMP/scripts/ci-log-crypto.cjs" encrypt "$RUNNER_TEMP/scripts/ci-log-key.pub.pem" \
+            "$RUNNER_TEMP/sealed.log" "$RUNNER_TEMP/release-log.enc.json"
+          rm -f "$RUNNER_TEMP/sealed.log"
+
+      - uses: actions/upload-artifact@v4
+        if: failure() || cancelled()
+        with:
+          name: release-log-${{ matrix.target }}
+          path: ${{ runner.temp }}/release-log.enc.json
+          if-no-files-found: ignore
+          retention-days: 1
 
   smoke:
     # D3 and D4 (ADR 0076): on each system the package installs, the launcher finds the Core it
@@ -261,56 +329,64 @@ jobs:
           path: ${{ runner.temp }}/measure.json
           if-no-files-found: ignore
 
-  publish:
-    name: sign the feed and publish
+  sign:
+    # Holds the release key. Compiles only xtask (no third-party action, no shared cache) and packs
+    # the update payloads from the binaries the package jobs built.
+    name: sign the payloads and the feed
     needs: [resolve, package, smoke]
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     env:
       RELEASE_VERSION: ${{ needs.resolve.outputs.version }}
       RELEASE_CHANNEL: ${{ inputs.channel }}
-      TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-      GH_TOKEN: ${{ secrets.CATARINA_RELEASE_TOKEN }}
     steps:
-      - uses: actions/download-artifact@v4
+      - name: Setup builder scripts
+        uses: actions/checkout@v4
         with:
-          pattern: dist-*
-          path: dist
-          merge-multiple: true
+          sparse-checkout: .github/scripts/clone-private.sh
+          sparse-checkout-cone-mode: false
+          path: _builder
+          persist-credentials: false
 
-      - name: Clone the private repository for the feed tool
+      - name: Clone the private repository for the packaging tool
         env:
-          TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
-          SHA: ${{ needs.resolve.outputs.sha }}
+          DEPLOY_KEY: ${{ secrets.CATARINA_PRIVATE_DEPLOY_KEY }}
         run: |
-          set -euo pipefail
-          echo "::add-mask::${TOKEN}"
-          git clone --filter=blob:none "https://x-access-token:${TOKEN}@github.com/${PRIVATE_REPO}.git" src >/dev/null 2>&1
-          git -C src checkout "$SHA" >/dev/null 2>&1
-          git -C src remote remove origin
+          cp _builder/.github/scripts/clone-private.sh "$RUNNER_TEMP/clone-private.sh"
+          rm -rf _builder
+          bash "$RUNNER_TEMP/clone-private.sh" src "${{ needs.resolve.outputs.sha }}"
 
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: src
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Signed feed
+      - name: Build the packaging tool
         working-directory: src
         run: |
-          set -euo pipefail
-          cargo xtask feed "${{ inputs.channel }}" ../dist/descriptor-*.json
-          cp -r dist/feeds ../feeds
+          rustup toolchain install --profile minimal "$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml)" > /dev/null 2>&1
+          cargo build --quiet --locked -p xtask > "$RUNNER_TEMP/xtask-build.log" 2>&1 || { echo "::error::xtask did not build"; exit 1; }
 
-      - name: Checksums and notes
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: bin-*
+          path: bins
+
+      - name: Sign the update payloads and the feed
+        working-directory: src
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          for TARGET in aarch64-apple-darwin x86_64-apple-darwin x86_64-unknown-linux-gnu x86_64-pc-windows-msvc; do
+            mkdir -p "target/$TARGET/release"
+            cp ../bins/bin-$TARGET/* "target/$TARGET/release/"
+            # Artifacts drop the executable bit, and the tar of the payload records it.
+            chmod +x target/$TARGET/release/cadente-native-ui*
+            ./target/debug/xtask payload --target "$TARGET"
+          done
+          ./target/debug/xtask feed "$RELEASE_CHANNEL" dist/descriptor-*.json
+
+      - name: Release notes
         env:
           SHA: ${{ needs.resolve.outputs.sha }}
         run: |
           set -euo pipefail
-          rm -f dist/descriptor-*.json
-          (cd dist && sha256sum * > SHA256SUMS.txt)
           {
             echo "Cadente ${RELEASE_VERSION}"
             echo
@@ -320,20 +396,65 @@ jobs:
             echo
             echo "---"
             echo "*Built via Secure Public Builder*"
-          } > release-notes.md
+          } > src/dist/release-notes.md
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: signed
+          path: |
+            src/dist/cadente-*.tar.gz
+            src/dist/cadente-*.zip
+            src/dist/*.minisig
+            src/dist/feeds/
+            src/dist/release-notes.md
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    # Holds the release token and compiles nothing. Only a run from main publishes.
+    name: publish
+    needs: [resolve, sign]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      RELEASE_VERSION: ${{ needs.resolve.outputs.version }}
+      RELEASE_CHANNEL: ${{ inputs.channel }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: dist-*
+          path: dist
+          merge-multiple: true
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: signed
+          path: signed
+
+      - name: Checksums
+        run: |
+          set -euo pipefail
+          mv signed/release-notes.md release-notes.md
+          mv signed/feeds feeds
+          mv signed/* dist/
+          (cd dist && sha256sum * > SHA256SUMS.txt)
 
       - name: Create the release
         env:
+          GH_TOKEN: ${{ secrets.CATARINA_RELEASE_TOKEN }}
           TAG: ${{ needs.resolve.outputs.tag }}
         run: |
           set -euo pipefail
           echo "::add-mask::${GH_TOKEN}"
           gh release delete "$TAG" --repo "$GITHUB_REPOSITORY" --yes 2>/dev/null || true
-          if [ "${{ inputs.channel }}" = "stable" ]; then FLAGS="--latest"; else FLAGS="--prerelease"; fi
+          if [ "$RELEASE_CHANNEL" = "stable" ]; then FLAGS="--latest"; else FLAGS="--prerelease"; fi
           gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --title "Cadente v${RELEASE_VERSION}" \
             --notes-file release-notes.md $FLAGS dist/*
 
       - name: Publish the feed on the site
+        env:
+          GH_TOKEN: ${{ secrets.CATARINA_RELEASE_TOKEN }}
         run: |
           set -euo pipefail
           echo "::add-mask::${GH_TOKEN}"
@@ -344,13 +465,16 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add public/feeds update-beta.json
-          git commit -m "chore: publish ${{ inputs.channel }} feed for v${RELEASE_VERSION}" || echo "No changes"
+          git commit -m "chore: publish ${RELEASE_CHANNEL} feed for v${RELEASE_VERSION}" || echo "No changes"
           git push
 
       - name: Update Homebrew cask (stable only)
         if: inputs.channel == 'stable'
+        env:
+          GH_TOKEN: ${{ secrets.CATARINA_RELEASE_TOKEN }}
         run: |
           set -euo pipefail
+          echo "::add-mask::${GH_TOKEN}"
           git clone --depth=1 "https://x-access-token:${GH_TOKEN}@github.com/cadente-hub/homebrew-apps.git" homebrew-repo
           cd homebrew-repo
           ARM64_SHA=$(sha256sum ../dist/cadente-${RELEASE_VERSION}-macos-arm64.dmg | awk '{print $1}')
@@ -412,4 +536,46 @@ jobs:
     uses: ./.github/workflows/native-legacy-compat.yml
     with:
       tag: ${{ needs.resolve.outputs.tag }}
-    secrets: inherit
+    secrets:
+      CATARINA_RELEASE_TOKEN: ${{ secrets.CATARINA_RELEASE_TOKEN }}
+      TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+
+  # Compiles nothing: decrypts the logs of failed package jobs into the private ci-logs branch.
+  report:
+    name: report
+    needs: [resolve, package]
+    if: always() && needs.resolve.result == 'success' && (needs.package.result == 'failure' || needs.package.result == 'cancelled')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Setup builder scripts
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            .github/scripts/ci-log-crypto.cjs
+            .github/scripts/persist-private-log.sh
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          pattern: release-log-*
+          path: ${{ runner.temp }}/sealed
+
+      - name: Store the logs in the private repository
+        env:
+          CI_LOG_PRIVATE_KEY: ${{ secrets.CI_LOG_PRIVATE_KEY }}
+          PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
+        run: |
+          set -euo pipefail
+          source .github/scripts/persist-private-log.sh
+          shopt -s nullglob
+          for ENVELOPE in "$RUNNER_TEMP"/sealed/release-log-*/release-log.enc.json; do
+            TARGET="$(basename "$(dirname "$ENVELOPE")")"
+            TARGET="${TARGET#release-log-}"
+            if node .github/scripts/ci-log-crypto.cjs decrypt "$ENVELOPE" "$RUNNER_TEMP/$TARGET.log"; then
+              persist_private_build_log "$RUNNER_TEMP/$TARGET.log" "release-$TARGET" "release $TARGET"
+            fi
+            rm -f "$RUNNER_TEMP/$TARGET.log"
+          done

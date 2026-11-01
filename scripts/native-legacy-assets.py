@@ -3,6 +3,7 @@
 import base64
 import hashlib
 import json
+import os
 from pathlib import Path
 import plistlib
 import re
@@ -15,6 +16,14 @@ REPO = "cadente-hub/cadente-hub.github.io"
 
 def run(*args):
     subprocess.run(args, check=True)
+
+# The signer receives the release key, so it is pinned: a new release of it never runs with the key.
+TAURI_SIGNER = "@tauri-apps/cli@2.12.4"
+# The install test runs the downloaded app; it gets neither the release key nor the release token.
+SECRETS = ("TAURI_SIGNING_PRIVATE_KEY", "GH_TOKEN", "GITHUB_TOKEN")
+
+def run_without_secrets(*args):
+    subprocess.run(args, check=True, env={k: v for k, v in os.environ.items() if k not in SECRETS})
 
 def digest(path):
     value = hashlib.sha256()
@@ -63,7 +72,7 @@ def build(tag, output):
                         writer.add(app, arcname="Cadente.app")
                 finally:
                     run("hdiutil", "detach", str(mount))
-                run("npx", "--yes", "@tauri-apps/cli@2", "signer", "sign", "--password", "", str(archive))
+                run("npx", "--yes", TAURI_SIGNER, "signer", "sign", "--password", "", str(archive))
                 upload.extend([archive, signature])
             encoded = signature.read_text().strip()
             if not base64.b64decode(encoded, validate=True).decode().startswith("untrusted comment:"):
@@ -72,7 +81,7 @@ def build(tag, output):
             compatibility["installers"][platform] = {"installerUrl": assets[dmg_name]["url"], "installerSha256": checksums[dmg_name]}
         for platform, name in [("linux-x86_64", f"cadente-{version}-linux-x64.AppImage"), ("windows-x86_64", f"cadente-{version}-windows-x64.exe")]:
             compatibility["installers"][platform] = {"installerUrl": assets[name]["url"], "installerSha256": checksums[name]}
-        run("python3", "scripts/test-install-macos.py", str(temporary / f"cadente-{version}-macos-arm64.dmg"), version)
+        run_without_secrets("python3", "scripts/test-install-macos.py", str(temporary / f"cadente-{version}-macos-arm64.dmg"), version)
         # Append new immutable names; never replace the native updater's payloads.
         if upload:
             run("gh", "release", "upload", tag, "-R", REPO, *map(str, upload))

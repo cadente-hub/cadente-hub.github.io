@@ -8,22 +8,22 @@ on:
         description: "Private repo commit SHA (40 hex)"
         required: true
         type: string
-      diagnostic_public_key:
-        description: "Optional base64 PEM RSA public key for encrypted failure diagnostics"
-        required: false
-        type: string
   schedule:
     - cron: '0 * * * *'
 
 # Queue instead of cancelling: each run tests the private main's HEAD, and cancelling a run that is
-# almost green would hold the unstable release back for every new commit.
+# almost green would hold the unstable release back for every new commit. A run from another branch
+# (a test of this workflow) queues apart from main's.
 concurrency:
-  group: native-ci
+  group: native-ci-${{ github.ref }}
   cancel-in-progress: false
 
+# The check jobs compile hundreds of third-party crates, and a build script can read every secret its
+# job references. So they hold only the read-only deploy key and print no compiler or test output: the
+# full log leaves them encrypted. `resolve` and `report` compile nothing; only they write to the
+# private repository.
 permissions:
   contents: read
-  actions: write
 
 env:
   PRIVATE_REPO: jeancatarina/catarina-claude
@@ -33,6 +33,9 @@ jobs:
     name: resolve
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
     outputs:
       sha: ${{ steps.resolve_sha.outputs.sha }}
       skip: ${{ steps.resolve_sha.outputs.skip }}
@@ -44,17 +47,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           INPUT_SHA: ${{ inputs.sha }}
           EVENT_NAME: ${{ github.event_name }}
-          DIAGNOSTIC_REQUESTED: ${{ inputs.diagnostic_public_key != '' }}
         run: |
           set -euo pipefail
           echo "::add-mask::${PRIVATE_TOKEN}"
-
-          # A public-builder collaborator must not choose a recipient for
-          # diagnostics that contain private source fragments.
-          if [ "$DIAGNOSTIC_REQUESTED" = "true" ] && [ "$GITHUB_ACTOR" != "${PRIVATE_REPO%%/*}" ]; then
-            echo "::error::Encrypted diagnostics require dispatch by the private repository owner."
-            exit 1
-          fi
 
           if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
             SHA="$INPUT_SHA"
@@ -95,6 +90,20 @@ jobs:
           echo "sha=$SHA" >> "$GITHUB_OUTPUT"
           echo "skip=false" >> "$GITHUB_OUTPUT"
 
+      - name: Publish pending statuses
+        if: steps.resolve_sha.outputs.skip == 'false'
+        env:
+          PRIVATE_WRITE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
+          SHA: ${{ steps.resolve_sha.outputs.sha }}
+        run: |
+          echo "::add-mask::${PRIVATE_WRITE_TOKEN}"
+          for OS in macos-15 ubuntu-latest windows-latest; do
+            curl -sf -X POST "https://api.github.com/repos/${PRIVATE_REPO}/statuses/${SHA}" \
+              -H "Authorization: Bearer ${PRIVATE_WRITE_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              -d "{\"state\":\"pending\",\"target_url\":\"https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\",\"description\":\"native-ci on ${OS} running\",\"context\":\"native-ci/${OS}\"}" >/dev/null 2>&1 || true
+          done
+
   check:
     name: ${{ matrix.os }}
     needs: resolve
@@ -102,6 +111,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     # Without a limit a hung step holds the run, and the queue behind it, for six hours.
     timeout-minutes: 150
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -110,48 +121,31 @@ jobs:
       run:
         shell: bash
     env:
-      PRIVATE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
-      PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
-      PRIVATE_WRITE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
       SHA: ${{ needs.resolve.outputs.sha }}
       MATRIX_OS: ${{ matrix.os }}
       CARGO_TERM_COLOR: always
-      DIAGNOSTIC_PUBLIC_KEY: ${{ inputs.diagnostic_public_key }}
     steps:
       - name: Setup builder scripts
         uses: actions/checkout@v4
         with:
           sparse-checkout: |
-            .github/scripts/persist-private-log.sh
-            .github/scripts/encrypt-ci-log.cjs
+            .github/scripts/clone-private.sh
+            .github/scripts/ci-log-crypto.cjs
+            .github/ci-log-key.pub.pem
           sparse-checkout-cone-mode: false
           path: _builder
+          persist-credentials: false
 
       - name: Stage builder scripts and clean checkout
         run: |
           mkdir -p "$RUNNER_TEMP/scripts"
-          cp _builder/.github/scripts/persist-private-log.sh "$RUNNER_TEMP/scripts/persist-private-log.sh"
-          cp _builder/.github/scripts/encrypt-ci-log.cjs "$RUNNER_TEMP/scripts/encrypt-ci-log.cjs"
-          chmod +x "$RUNNER_TEMP/scripts/persist-private-log.sh"
+          cp _builder/.github/scripts/clone-private.sh _builder/.github/scripts/ci-log-crypto.cjs _builder/.github/ci-log-key.pub.pem "$RUNNER_TEMP/scripts/"
           rm -rf _builder
 
       - name: Clone private repository
-        run: |
-          echo "::add-mask::${PRIVATE_TOKEN}"
-          [ -n "${PRIVATE_WRITE_TOKEN:-}" ] && echo "::add-mask::${PRIVATE_WRITE_TOKEN}"
-          git clone --filter=blob:none "https://x-access-token:${PRIVATE_TOKEN}@github.com/${PRIVATE_REPO}.git" . >/dev/null 2>&1
-          git checkout "$SHA" >/dev/null 2>&1
-
-      - name: Publish pending status
-        run: |
-          if [ -n "${PRIVATE_WRITE_TOKEN:-}" ]; then
-            echo "::add-mask::${PRIVATE_WRITE_TOKEN}"
-            curl -sf -X POST "https://api.github.com/repos/${PRIVATE_REPO}/statuses/${SHA}" \
-              -H "Authorization: Bearer ${PRIVATE_WRITE_TOKEN}" \
-              -H "Accept: application/vnd.github+json" \
-              -H "Content-Type: application/json" \
-              -d "{\"state\":\"pending\",\"target_url\":\"https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\",\"description\":\"native-ci on ${MATRIX_OS} running\",\"context\":\"native-ci/${MATRIX_OS}\"}" >/dev/null 2>&1 || true
-          fi
+        env:
+          DEPLOY_KEY: ${{ secrets.CATARINA_PRIVATE_DEPLOY_KEY }}
+        run: bash "$RUNNER_TEMP/scripts/clone-private.sh" . "$SHA"
 
       - name: Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -179,6 +173,8 @@ jobs:
         run: |
           touch "$RUNNER_TEMP/ci-build.log"
 
+      # Compiler and test output names files, lines, tests and screens of the private source: it goes
+      # only to ci-build.log. The public log says which step failed and nothing more.
       - name: Check formatting (cargo fmt)
         run: |
           echo "Passo: cargo fmt --all --check"
@@ -193,12 +189,9 @@ jobs:
       - name: Workspace check (cargo check)
         run: |
           echo "Passo: cargo check --workspace --all-targets"
-          if RUSTFLAGS="-D warnings" cargo check --workspace --all-targets --message-format short > "$RUNNER_TEMP/check.log" 2>&1; then
-            cat "$RUNNER_TEMP/check.log" >> "$RUNNER_TEMP/ci-build.log"
+          if RUSTFLAGS="-D warnings" cargo check --workspace --all-targets --message-format short >> "$RUNNER_TEMP/ci-build.log" 2>&1; then
             echo "Resultado: OK"
           else
-            cat "$RUNNER_TEMP/check.log" >> "$RUNNER_TEMP/ci-build.log"
-            grep -E '(error|warning)' "$RUNNER_TEMP/check.log" | grep -v '^error: could not compile' | head -80 || true
             echo "Resultado: FALHOU"
             echo "cargo check" > "$RUNNER_TEMP/failed_step"
             exit 1
@@ -207,13 +200,9 @@ jobs:
       - name: Clippy (cargo clippy)
         run: |
           echo "Passo: cargo clippy --workspace --all-targets -- -D warnings"
-          if cargo clippy --workspace --all-targets --message-format short -- -D warnings > "$RUNNER_TEMP/clippy.log" 2>&1; then
-            cat "$RUNNER_TEMP/clippy.log" >> "$RUNNER_TEMP/ci-build.log"
+          if cargo clippy --workspace --all-targets --message-format short -- -D warnings >> "$RUNNER_TEMP/ci-build.log" 2>&1; then
             echo "Resultado: OK"
           else
-            cat "$RUNNER_TEMP/clippy.log" >> "$RUNNER_TEMP/ci-build.log"
-            # The private build log is not readable here; the findings are what a fix needs.
-            grep -E '(error|warning)' "$RUNNER_TEMP/clippy.log" | grep -v '^error: could not compile' | head -80 || true
             echo "Resultado: FALHOU"
             echo "clippy" > "$RUNNER_TEMP/failed_step"
             exit 1
@@ -222,6 +211,7 @@ jobs:
       - name: Prove invariants and retry gates reject regressions
         run: |
           set -euo pipefail
+          echo "invariants" > "$RUNNER_TEMP/failed_step"
           PROBE="$PWD/.ci-gate-probe"
           trap 'rm -rf "$PROBE"' EXIT
           mkdir -p "$PROBE/src"
@@ -249,11 +239,13 @@ jobs:
               exit 1
             fi
             if [ ! -f "$PROBE/$GATE_ATTEMPTS" ]; then
-              cat "$RUNNER_TEMP/retry-probe-$PROFILE.log"
+              cat "$RUNNER_TEMP/retry-probe-$PROFILE.log" >> "$RUNNER_TEMP/ci-build.log"
+              echo "::error::The $PROFILE profile did not run the probe test"
               exit 1
             fi
             test "$(cat "$PROBE/$GATE_ATTEMPTS")" = 1
           done
+          rm -f "$RUNNER_TEMP/failed_step"
 
       - name: Run tests (cargo nextest)
         run: |
@@ -264,26 +256,18 @@ jobs:
           NEXTEST_EXIT=$?
           set -e
           cat "$NEXTEST_RAW" >> "$RUNNER_TEMP/ci-build.log"
-
-          # Print nextest summary and failing test names
-          sed 's/\x1b\[[0-9;]*m//g' "$NEXTEST_RAW" | grep -E '(Summary \[|FAIL \[|SIGABRT|SIGSEGV|TIMEOUT|panicked at|^error)' | head -120 || true
-          if [ $NEXTEST_EXIT -ne 0 ]; then
-            # The private build log is not readable here; the messages are what tells a fix apart.
-            echo "--- Mensagens das falhas"
-            sed 's/\x1b\[[0-9;]*m//g' "$NEXTEST_RAW" | grep -E -A12 'panicked at' | head -600 || true
-            for dir in "${TMPDIR:-}" "${TMP:-}" "${TEMP:-}" /tmp; do
-              if [ -n "$dir" ] && [ -f "$dir/parity-tails.log" ]; then
-                echo "--- Telas da régua ($dir/parity-tails.log)"
-                # Every miss, each screen (and a terminal's last bytes) cut to 7000 characters.
-                cut -c1-7000 "$dir/parity-tails.log" | tail -c 300000
-                break
-              fi
-            done
-          fi
+          # Only the counts are public; the names of the tests that failed are in the private log.
+          sed 's/\x1b\[[0-9;]*m//g' "$NEXTEST_RAW" | grep -E '^ *Summary \[' | sed -E 's/^ *//' | tail -1 || true
 
           if [ $NEXTEST_EXIT -eq 0 ]; then
             echo "Resultado: OK"
           else
+            for dir in "${TMPDIR:-}" "${TMP:-}" "${TEMP:-}" /tmp; do
+              if [ -n "$dir" ] && [ -f "$dir/parity-tails.log" ]; then
+                { echo; echo "--- Telas da régua ($dir/parity-tails.log)"; cat "$dir/parity-tails.log"; } >> "$RUNNER_TEMP/ci-build.log"
+                break
+              fi
+            done
             echo "Resultado: FALHOU"
             echo "cargo nextest" > "$RUNNER_TEMP/failed_step"
             exit 1
@@ -300,98 +284,149 @@ jobs:
             exit 1
           fi
 
-      - name: Handle failure
-        if: failure()
+      # Runs on a timeout or cancellation too: the log of a hung step is the one most needed.
+      - name: Seal the build log
+        if: failure() || cancelled()
         run: |
           FAILED_STEP="passo desconhecido"
-          if [ -f "$RUNNER_TEMP/failed_step" ]; then
-            FAILED_STEP=$(cat "$RUNNER_TEMP/failed_step")
-          fi
-          source "$RUNNER_TEMP/scripts/persist-private-log.sh"
-          persist_private_build_log "$RUNNER_TEMP/ci-build.log" "${MATRIX_OS}" "$FAILED_STEP"
+          [ -f "$RUNNER_TEMP/failed_step" ] && FAILED_STEP="$(cat "$RUNNER_TEMP/failed_step")"
+          {
+            echo "native-ci ${MATRIX_OS} ${SHA}: falhou em ${FAILED_STEP}"
+            echo "run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            echo
+            cat "$RUNNER_TEMP/ci-build.log" 2>/dev/null || true
+          } > "$RUNNER_TEMP/sealed.log"
+          node "$RUNNER_TEMP/scripts/ci-log-crypto.cjs" encrypt "$RUNNER_TEMP/scripts/ci-log-key.pub.pem" \
+            "$RUNNER_TEMP/sealed.log" "$RUNNER_TEMP/ci-log.enc.json"
+          rm -f "$RUNNER_TEMP/sealed.log"
+          echo "Falhou em ${FAILED_STEP}; o log completo vai para o ci-logs do repositório privado."
 
-          if [ -n "${PRIVATE_WRITE_TOKEN:-}" ]; then
-            echo "::add-mask::${PRIVATE_WRITE_TOKEN}"
-            curl -sf -X POST "https://api.github.com/repos/${PRIVATE_REPO}/statuses/${SHA}" \
-              -H "Authorization: Bearer ${PRIVATE_WRITE_TOKEN}" \
-              -H "Accept: application/vnd.github+json" \
-              -H "Content-Type: application/json" \
-              -d "{\"state\":\"failure\",\"target_url\":\"https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\",\"description\":\"Failed at ${FAILED_STEP}\",\"context\":\"native-ci/${MATRIX_OS}\"}" >/dev/null 2>&1 || true
-          fi
-
-      - name: Encrypt failure diagnostic
-        if: failure() && inputs.diagnostic_public_key != ''
-        run: node "$RUNNER_TEMP/scripts/encrypt-ci-log.cjs"
-
-      - name: Upload encrypted diagnostic
-        if: failure() && inputs.diagnostic_public_key != ''
+      - name: Upload the sealed log
+        if: failure() || cancelled()
         uses: actions/upload-artifact@v4
         with:
-          name: native-ci-diagnostic-${{ matrix.os }}
-          path: ${{ runner.temp }}/ci-diagnostic.enc.json
-          if-no-files-found: error
+          name: ci-log-${{ matrix.os }}
+          path: ${{ runner.temp }}/ci-log.enc.json
+          if-no-files-found: ignore
           retention-days: 1
 
-      - name: Handle success
-        if: success()
+  # Compiles nothing: decrypts the sealed logs into the private ci-logs branch, records the commit
+  # statuses and decides the Supabase deploy.
+  report:
+    name: report
+    needs: [resolve, check]
+    if: always() && needs.resolve.result == 'success' && needs.resolve.outputs.skip != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: write
+    env:
+      SHA: ${{ needs.resolve.outputs.sha }}
+    steps:
+      - name: Setup builder scripts
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            .github/scripts/ci-log-crypto.cjs
+            .github/scripts/persist-private-log.sh
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+
+      - name: Download the sealed logs
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          pattern: ci-log-*
+          path: ${{ runner.temp }}/sealed
+
+      - name: Store the logs in the private repository
+        env:
+          CI_LOG_PRIVATE_KEY: ${{ secrets.CI_LOG_PRIVATE_KEY }}
+          PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
         run: |
-          if [ -n "${PRIVATE_WRITE_TOKEN:-}" ]; then
-            echo "::add-mask::${PRIVATE_WRITE_TOKEN}"
+          set -euo pipefail
+          source .github/scripts/persist-private-log.sh
+          shopt -s nullglob
+          for ENVELOPE in "$RUNNER_TEMP"/sealed/ci-log-*/ci-log.enc.json; do
+            OS="$(basename "$(dirname "$ENVELOPE")")"
+            OS="${OS#ci-log-}"
+            if node .github/scripts/ci-log-crypto.cjs decrypt "$ENVELOPE" "$RUNNER_TEMP/$OS.log"; then
+              persist_private_build_log "$RUNNER_TEMP/$OS.log" "$OS" "$OS"
+            fi
+            rm -f "$RUNNER_TEMP/$OS.log"
+          done
+
+      - name: Record the commit statuses
+        id: statuses
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PRIVATE_WRITE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
+        run: |
+          set -euo pipefail
+          echo "::add-mask::${PRIVATE_WRITE_TOKEN}"
+          gh api --paginate "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/attempts/${GITHUB_RUN_ATTEMPT}/jobs" \
+            --jq '.jobs[] | select(.name == "macos-15" or .name == "ubuntu-latest" or .name == "windows-latest")
+                  | [.name, (.conclusion // "cancelled"), ([.steps[] | select(.conclusion == "failure") | .name][0] // "")] | @tsv' \
+            > "$RUNNER_TEMP/jobs.tsv"
+          while IFS=$'\t' read -r OS CONCLUSION STEP; do
+            if [ "$CONCLUSION" = "success" ]; then
+              STATE=success; DESCRIPTION="native-ci passed"
+            else
+              STATE=failure; DESCRIPTION="Failed at ${STEP:-$CONCLUSION}"
+            fi
+            [ "$OS" = "ubuntu-latest" ] && echo "ubuntu=$CONCLUSION" >> "$GITHUB_OUTPUT"
+            BODY="$(jq -cn --arg state "$STATE" --arg description "${DESCRIPTION:0:140}" --arg context "native-ci/$OS" \
+              --arg url "https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" \
+              '{state: $state, target_url: $url, description: $description, context: $context}')"
             curl -sf -X POST "https://api.github.com/repos/${PRIVATE_REPO}/statuses/${SHA}" \
               -H "Authorization: Bearer ${PRIVATE_WRITE_TOKEN}" \
               -H "Accept: application/vnd.github+json" \
-              -H "Content-Type: application/json" \
-              -d "{\"state\":\"success\",\"target_url\":\"https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\",\"description\":\"native-ci passed\",\"context\":\"native-ci/${MATRIX_OS}\"}" >/dev/null 2>&1 || true
-          fi
+              -d "$BODY" >/dev/null 2>&1 || echo "::warning::Could not record the status of $OS"
+            echo "$OS: $STATE"
+          done < "$RUNNER_TEMP/jobs.tsv"
 
       - name: Trigger Supabase deploy
-        if: success() && matrix.os == 'ubuntu-latest'
+        if: steps.statuses.outputs.ubuntu == 'success'
         env:
           GH_TOKEN: ${{ github.token }}
+          PRIVATE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
         run: |
           set -euo pipefail
+          echo "::add-mask::${PRIVATE_TOKEN}"
+          api() { curl -sf -H "Authorization: Bearer ${PRIVATE_TOKEN}" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/${PRIVATE_REPO}/$1"; }
           echo "Verificando se houve alterações em supabase/ desde o último deploy..."
-          LAST_DEPLOYED_SHA=""
-          TMP_LOGS="$(mktemp -d)"
-          if git clone --depth=1 --branch ci-logs "https://x-access-token:${PRIVATE_TOKEN}@github.com/${PRIVATE_REPO}.git" "$TMP_LOGS" >/dev/null 2>&1; then
-            if [ -f "$TMP_LOGS/supabase-deployed" ]; then
-              LAST_DEPLOYED_SHA=$(cat "$TMP_LOGS/supabase-deployed" | tr -d ' \n\r')
-            fi
-          fi
-          rm -rf "$TMP_LOGS"
-
+          LAST_DEPLOYED_SHA="$(api "contents/supabase-deployed?ref=ci-logs" 2>/dev/null | jq -r '.content // empty' | base64 -d 2>/dev/null | tr -d ' \n\r' || true)"
           SHOULD_DEPLOY="false"
           if [ -z "$LAST_DEPLOYED_SHA" ]; then
-            if [ -d "supabase" ]; then
+            api "contents/supabase?ref=${SHA}" >/dev/null 2>&1 && SHOULD_DEPLOY="true"
+          elif COMPARE="$(api "compare/${LAST_DEPLOYED_SHA}...${SHA}" 2>/dev/null)"; then
+            # The compare API lists at most 300 files; a longer diff counts as a change.
+            if printf '%s' "$COMPARE" | jq -e '(.files | length) >= 300 or any(.files[]; .filename | startswith("supabase/"))' >/dev/null; then
               SHOULD_DEPLOY="true"
             fi
           else
-            git fetch origin "$LAST_DEPLOYED_SHA" >/dev/null 2>&1 || true
-            if git cat-file -e "$LAST_DEPLOYED_SHA^{commit}" 2>/dev/null; then
-              DIFF=$(git diff --name-only "$LAST_DEPLOYED_SHA" "$SHA" -- supabase/ || true)
-              if [ -n "$DIFF" ]; then
-                SHOULD_DEPLOY="true"
-              fi
-            else
-              SHOULD_DEPLOY="true"
-            fi
+            SHOULD_DEPLOY="true"
           fi
 
           if [ "$SHOULD_DEPLOY" = "true" ]; then
             echo "Alterações detectadas em supabase/; disparando supabase-deploy.yml..."
-            gh workflow run supabase-deploy.yml -f sha="$SHA" || echo "::warning::Não foi possível disparar supabase-deploy.yml"
+            gh workflow run supabase-deploy.yml -R "$GITHUB_REPOSITORY" -f sha="$SHA" || echo "::warning::Não foi possível disparar supabase-deploy.yml"
           else
             echo "Nenhuma alteração em supabase/ desde $LAST_DEPLOYED_SHA."
           fi
 
   unstable:
     # Every commit of main that passes on the three systems becomes an unstable (beta) release;
-    # promoting it to stable stays a manual native-promote run.
+    # promoting it to stable stays a manual native-promote run. A run from another branch never releases.
     name: unstable release
     needs: [resolve, check]
-    if: needs.resolve.outputs.skip != 'true' && success()
+    if: github.ref == 'refs/heads/main' && needs.resolve.outputs.skip != 'true' && success()
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: write
     env:
       GH_TOKEN: ${{ github.token }}
       SHA: ${{ needs.resolve.outputs.sha }}

@@ -1,6 +1,7 @@
 name: native-sign-check
 
 # Proves the release key can sign what the app verifies, in about two minutes, before a release is built.
+# The job holds the release key, so it compiles only xtask and uses no third-party action or cache.
 
 on:
   workflow_dispatch:
@@ -21,23 +22,29 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
+      - name: Setup builder scripts
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/scripts/clone-private.sh
+          sparse-checkout-cone-mode: false
+          path: _builder
+          persist-credentials: false
+
       - name: Clone the private repository at the commit
         env:
-          TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
+          DEPLOY_KEY: ${{ secrets.CATARINA_PRIVATE_DEPLOY_KEY }}
           SHA: ${{ inputs.sha }}
         run: |
-          set -euo pipefail
-          echo "::add-mask::${TOKEN}"
-          printf '%s' "$SHA" | grep -qE '^[0-9a-f]{40}$'
-          git clone --filter=blob:none "https://x-access-token:${TOKEN}@github.com/${PRIVATE_REPO}.git" src >/dev/null 2>&1
-          git -C src checkout "$SHA" >/dev/null 2>&1
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: src
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
+          cp _builder/.github/scripts/clone-private.sh "$RUNNER_TEMP/clone-private.sh"
+          rm -rf _builder
+          bash "$RUNNER_TEMP/clone-private.sh" src "$SHA"
+
+      - name: Build the packaging tool
+        working-directory: src
+        run: |
+          rustup toolchain install --profile minimal "$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml)" > /dev/null 2>&1
+          cargo build --quiet --locked -p xtask > "$RUNNER_TEMP/xtask-build.log" 2>&1 || { echo "::error::xtask did not build"; exit 1; }
+
       - name: Sign a file with the release key
         working-directory: src
         env:
@@ -45,5 +52,5 @@ jobs:
         run: |
           set -euo pipefail
           echo "check" > "$RUNNER_TEMP/check.txt"
-          cargo xtask sign "$RUNNER_TEMP/check.txt"
+          ./target/debug/xtask sign "$RUNNER_TEMP/check.txt"
           test -s "$RUNNER_TEMP/check.txt.minisig" && echo "signed with the release key"
