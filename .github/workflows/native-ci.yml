@@ -303,7 +303,7 @@ jobs:
   lint:
     name: lint ${{ matrix.os }}
     needs: resolve
-    if: needs.resolve.outputs.skip != 'true' && needs.resolve.outputs.docs_only != 'true'
+    if: ${{ false }}
     runs-on: ${{ matrix.os }}
     # Without a limit a hung step holds the run, and the queue behind it, for six hours.
     timeout-minutes: 45
@@ -499,7 +499,7 @@ jobs:
   tests:
     name: tests ${{ matrix.os }}${{ matrix.part && format(' {0}/2', matrix.part) || '' }}
     needs: resolve
-    if: needs.resolve.outputs.skip != 'true' && needs.resolve.outputs.docs_only != 'true'
+    if: ${{ false }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 90
     permissions:
@@ -743,7 +743,7 @@ jobs:
   from-archive:
     name: ${{ matrix.kind }} ${{ matrix.os }}${{ matrix.part && format(' {0}/2', matrix.part) || '' }}
     needs: resolve
-    if: needs.resolve.outputs.skip != 'true' && needs.resolve.outputs.docs_only != 'true'
+    if: ${{ false }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 90
     permissions:
@@ -1080,10 +1080,7 @@ jobs:
         # The Intel Mac build compiles on Apple Silicon: the macos-15-intel runner took 31 to 45 min for
         # the same build that takes 9 to 16 here, and no step runs the x64 binary on the build machine.
         include:
-          - { os: macos-15, target: aarch64-apple-darwin }
-          - { os: macos-15, target: x86_64-apple-darwin }
           - { os: ubuntu-22.04, target: x86_64-unknown-linux-gnu }
-          - { os: windows-latest, target: x86_64-pc-windows-msvc }
     defaults:
       run:
         shell: bash
@@ -1113,6 +1110,13 @@ jobs:
         env:
           DEPLOY_KEY: ${{ secrets.CATARINA_PRIVATE_DEPLOY_KEY }}
         run: bash "$RUNNER_TEMP/scripts/clone-private.sh" . "$SHA"
+
+      # P6 proof, only on this branch: the packaged Core really spends more, 8 ms of CPU every
+      # second on a thread of its own, in every state; the smoke job has to fail it.
+      - name: Plant a version that spends more (P6 proof)
+        run: |
+          perl -0pi -e 's/fn main\(\) \{\n/fn main() {\n    std::thread::spawn(|| loop {\n        let start = std::time::Instant::now();\n        while start.elapsed() < std::time::Duration::from_millis(8) {\n            std::hint::spin_loop();\n        }\n        std::thread::sleep(std::time::Duration::from_millis(992));\n    });\n/' crates/app/src/main.rs
+          grep -q spin_loop crates/app/src/main.rs
 
       # W6 (ADR 0082): only the pinned toolchain, with the cross target. The checkout is the workspace, so
       # rust-cache reads the pinned rustc too; from a subfolder it read the image's `stable`, and every new
@@ -1340,9 +1344,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { os: macos-15, target: aarch64-apple-darwin, measure: "30 120", payload: darwin-aarch64.tar.gz }
           - { os: ubuntu-22.04, target: x86_64-unknown-linux-gnu, measure: "5 60", payload: linux-x86_64.tar.gz }
-          - { os: windows-latest, target: x86_64-pc-windows-msvc, measure: "5 60", payload: windows-x86_64.zip }
     defaults:
       run:
         shell: bash
