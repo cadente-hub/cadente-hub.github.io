@@ -48,6 +48,8 @@ jq -r '.[] | select(.conclusion != "skipped" and .started_at != null) |
     t0="$(metric "$label" t0)"; work="$(metric "$label" work_start)"
     prep=""; [ -n "$t0" ] && [ -n "$work" ] && prep=$((work - t0))
     cache="$(metric "$label" cache)"
+    hits="$(metric "$label" sccache_hits)"
+    [ -n "$hits" ] && cache="${cache} · sccache ${hits} acertos, $(metric "$label" sccache_misses) faltas, $(metric "$label" sccache_mb) MB"
     compile="$(metric "$label" compile_s)"; tests="$(metric "$label" test_s)"
     up="$(metric "$label" upload_s)"; down="$(metric "$label" download_s)"; size="$(metric "$label" archive_mb)"
     wait="$(metric "$label" wait_s)"

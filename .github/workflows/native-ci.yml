@@ -28,6 +28,11 @@ on:
         required: false
         default: false
         type: boolean
+      warm_up:
+        description: "Compile every job and save the caches, publish nothing (after a change of cache key)"
+        required: false
+        default: false
+        type: boolean
   # Safety net for a push that dispatched no run: every 3 hours, and only for a HEAD no run has seen.
   schedule:
     - cron: '0 */3 * * *'
@@ -69,6 +74,7 @@ jobs:
       base: ${{ steps.changes.outputs.base }}
       toolchain_changed: ${{ steps.changes.outputs.toolchain_changed }}
       release: ${{ steps.version.outputs.release }}
+      publish: ${{ steps.version.outputs.publish }}
       version: ${{ steps.version.outputs.version }}
       tag: ${{ steps.version.outputs.tag }}
     steps:
@@ -194,6 +200,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           SHA: ${{ steps.resolve_sha.outputs.sha }}
           CHANNEL: ${{ steps.resolve_sha.outputs.channel }}
+          WARM_UP: ${{ inputs.warm_up }}
         run: |
           set -euo pipefail
           BASE="$(sed -n 's/^version = "\(.*\)"/\1/p' crates/app/Cargo.toml | head -1)"
@@ -213,7 +220,11 @@ jobs:
               RELEASE=false
             fi
           fi
+          # A warm-up run (W4) builds the packages to save their caches and publishes nothing.
+          PUBLISH="$RELEASE"
+          if [ "$WARM_UP" = "true" ]; then RELEASE=true; PUBLISH=false; echo "Warm-up: packages build, nothing is published."; fi
           echo "release=$RELEASE" >> "$GITHUB_OUTPUT"
+          echo "publish=$PUBLISH" >> "$GITHUB_OUTPUT"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
           echo "Release $VERSION from $SHA (publishes: $RELEASE)"
@@ -342,7 +353,11 @@ jobs:
         if: runner.os == 'Linux'
         # apt hung once for over an hour on a mirror; retry the download and give up in time.
         timeout-minutes: 10
-        run: sudo apt-get -o Acquire::Retries=3 update && sudo apt-get -o Acquire::Retries=3 install -y libfontconfig1-dev libxkbcommon-dev libssl-dev pkg-config libdbus-1-dev
+        # W6 (ADR 0082): apt only for what the image lacks; the index update alone took 10 to 30 s.
+        run: |
+          PKGS="libfontconfig1-dev libxkbcommon-dev libssl-dev pkg-config libdbus-1-dev"
+          # shellcheck disable=SC2086
+          dpkg -s $PKGS > /dev/null 2>&1 || { sudo apt-get -o Acquire::Retries=3 update && sudo apt-get -o Acquire::Retries=3 install -y $PKGS; }
 
       # Clippy compiles the dependencies in check mode, which shares nothing with the test build.
       - name: Rust cache
@@ -549,7 +564,11 @@ jobs:
       - name: System libraries (Linux)
         if: runner.os == 'Linux'
         timeout-minutes: 10
-        run: sudo apt-get -o Acquire::Retries=3 update && sudo apt-get -o Acquire::Retries=3 install -y libfontconfig1-dev libxkbcommon-dev libssl-dev pkg-config libdbus-1-dev
+        # W6 (ADR 0082): apt only for what the image lacks; the index update alone took 10 to 30 s.
+        run: |
+          PKGS="libfontconfig1-dev libxkbcommon-dev libssl-dev pkg-config libdbus-1-dev"
+          # shellcheck disable=SC2086
+          dpkg -s $PKGS > /dev/null 2>&1 || { sudo apt-get -o Acquire::Retries=3 update && sudo apt-get -o Acquire::Retries=3 install -y $PKGS; }
 
       - name: Node 22
         uses: actions/setup-node@v4
@@ -768,7 +787,11 @@ jobs:
       - name: System libraries (Linux)
         if: runner.os == 'Linux'
         timeout-minutes: 10
-        run: sudo apt-get -o Acquire::Retries=3 update && sudo apt-get -o Acquire::Retries=3 install -y libfontconfig1-dev libxkbcommon-dev libssl-dev pkg-config libdbus-1-dev
+        # W6 (ADR 0082): apt only for what the image lacks; the index update alone took 10 to 30 s.
+        run: |
+          PKGS="libfontconfig1-dev libxkbcommon-dev libssl-dev pkg-config libdbus-1-dev"
+          # shellcheck disable=SC2086
+          dpkg -s $PKGS > /dev/null 2>&1 || { sudo apt-get -o Acquire::Retries=3 update && sudo apt-get -o Acquire::Retries=3 install -y $PKGS; }
 
       # The tests start Node MCP servers.
       - name: Node 22
@@ -1105,11 +1128,26 @@ jobs:
           key: ${{ matrix.target }}
           save-if: ${{ github.ref == 'refs/heads/main' }}
 
+      # W8 (ADR 0082): a cache by content (sccache, as Zed's release.yml uses) keeps the workspace crates
+      # too, which rust-cache leaves out: a commit that only touches the app takes the Core from it. The
+      # cache is a folder on the runner that actions/cache stores whole, one generation per target (the
+      # cache guard and report keep only the newest), and `SCCACHE_CACHE_SIZE` bounds it inside the 10 GB.
+      - name: Install sccache
+        uses: taiki-e/install-action@sccache
+
+      - name: Restore the sccache folder
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ runner.temp }}/sccache
+          key: sccache-${{ matrix.target }}-${{ github.run_id }}
+          restore-keys: sccache-${{ matrix.target }}-
+
       - name: System libraries (Linux)
         if: runner.os == 'Linux'
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libfontconfig1-dev libxkbcommon-dev libssl-dev pkg-config libdbus-1-dev dpkg-dev
+          PKGS="libfontconfig1-dev libxkbcommon-dev libssl-dev pkg-config libdbus-1-dev dpkg-dev"
+          # shellcheck disable=SC2086
+          dpkg -s $PKGS > /dev/null 2>&1 || { sudo apt-get -o Acquire::Retries=3 update && sudo apt-get -o Acquire::Retries=3 install -y $PKGS; }
           curl -fsSL -o appimagetool https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
           chmod +x appimagetool
           sudo mv appimagetool /usr/local/bin/appimagetool
@@ -1149,6 +1187,10 @@ jobs:
       - name: Build (cargo build --release)
         env:
           CADENTE_BUILD_VERSION: ${{ needs.resolve.outputs.version }}
+          RUSTC_WRAPPER: sccache
+          SCCACHE_DIR: ${{ runner.temp }}/sccache
+          SCCACHE_CACHE_SIZE: ${{ vars.SCCACHE_CACHE_SIZE || '2G' }}
+          SCCACHE_IDLE_TIMEOUT: "0"
         run: |
           set -euo pipefail
           echo "Passo: cargo build --release --target ${{ matrix.target }}"
@@ -1166,6 +1208,11 @@ jobs:
       # change PATH for the process, cc-rs tracks PATH (`rerun-if-env-changed`), and the bundle's own cargo
       # build then recompiled ring and everything above it, the Core included (run 41442022328).
       - name: Bundle
+        env:
+          RUSTC_WRAPPER: sccache
+          SCCACHE_DIR: ${{ runner.temp }}/sccache
+          SCCACHE_CACHE_SIZE: ${{ vars.SCCACHE_CACHE_SIZE || '2G' }}
+          SCCACHE_IDLE_TIMEOUT: "0"
         run: |
           set -euo pipefail
           echo "Passo: xtask bundle --target ${{ matrix.target }}"
@@ -1177,6 +1224,28 @@ jobs:
             echo "Resultado: FALHOU"
             exit 1
           fi
+
+      # Hit and miss counts only; the names of what compiled stay in the sealed timings.
+      - name: sccache counts
+        env:
+          SCCACHE_DIR: ${{ runner.temp }}/sccache
+        run: |
+          STATS="$(sccache --show-stats --stats-format json 2>/dev/null || echo '{}')"
+          HITS="$(printf '%s' "$STATS" | jq -r '[.stats.cache_hits.counts // {} | .[]] | add // 0')"
+          MISSES="$(printf '%s' "$STATS" | jq -r '[.stats.cache_misses.counts // {} | .[]] | add // 0')"
+          SIZE="$(du -sm "$SCCACHE_DIR" 2>/dev/null | cut -f1)"
+          echo "sccache: ${HITS} acertos, ${MISSES} faltas, ${SIZE:-0} MB na pasta"
+          { echo "sccache_hits=$HITS"; echo "sccache_misses=$MISSES"; echo "sccache_mb=${SIZE:-0}"; } >> "$RUNNER_TEMP/metrics.env"
+          sccache --stop-server > /dev/null 2>&1 || true
+
+      # Saved only when the repository variable SCCACHE_SAVE is "true": the 10 GB hold one generation of the
+      # ten rust-cache kinds (about 8.9 GB) and little more, so the folder size is measured first (W1).
+      - name: Save the sccache folder
+        if: github.ref == 'refs/heads/main' && vars.SCCACHE_SAVE == 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ runner.temp }}/sccache
+          key: sccache-${{ matrix.target }}-${{ github.run_id }}
 
       - name: Ad-hoc signature of the update binary (macOS)
         if: runner.os == 'macOS'
@@ -1279,9 +1348,11 @@ jobs:
               test -f "$RUNNER_TEMP/Cadente.app/Contents/SharedSupport/baseline_version/metadata.json"
               EXE="" ;;
             Linux)
-              sudo apt-get -o Acquire::Retries=3 update
-              sudo apt-get -o Acquire::Retries=3 install -y xvfb libgl1-mesa-dri libegl1 libxkbcommon-x11-0
-              sudo apt-get -o Acquire::Retries=3 install -y ./dist/*.deb
+              # W6: apt only for what the image lacks (a slow mirror held this step 8 min in run 41448416563).
+              if ! dpkg -s xvfb libgl1-mesa-dri libegl1 libxkbcommon-x11-0 > /dev/null 2>&1 || ! sudo dpkg -i ./dist/*.deb > /dev/null 2>&1; then
+                sudo apt-get -o Acquire::Retries=3 update
+                sudo apt-get -o Acquire::Retries=3 install -y xvfb libgl1-mesa-dri libegl1 libxkbcommon-x11-0 ./dist/*.deb
+              fi
               DIR=/usr/bin
               test -f /usr/lib/Cadente/baseline_version/metadata.json
               EXE="" ;;
@@ -1460,7 +1531,7 @@ jobs:
     # publishes; on another branch this job lists what it would publish.
     name: publish
     needs: [resolve, report, sign, smoke]
-    if: needs.report.outputs.green == 'true'
+    if: needs.report.outputs.green == 'true' && needs.resolve.outputs.publish == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
@@ -1653,7 +1724,8 @@ jobs:
           CHANNEL: ${{ needs.resolve.outputs.channel }}
           COMPILED: ${{ needs.resolve.outputs.docs_only != 'true' }}
           TOOLCHAIN_CHANGED: ${{ needs.resolve.outputs.toolchain_changed }}
-          RECORD_HISTORY: ${{ github.ref == 'refs/heads/main' }}
+          # A warm-up run measures nothing a commit would see.
+          RECORD_HISTORY: ${{ github.ref == 'refs/heads/main' && !inputs.warm_up }}
           METRICS_DIR: ${{ runner.temp }}/metrics
         run: |
           set -euo pipefail

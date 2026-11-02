@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Keeps one generation of each Rust cache of main and deletes the older ones.
+# Keeps one generation of each Rust cache of main (rust-cache's and the sccache folders of W8, keyed
+# `sccache-<target>-<run id>`) and deletes the older ones.
 #
 # rust-cache names a cache `<kind>-<toolchain and env hash>-<Cargo.lock and manifests hash>`, e.g.
 # `v0-rust-tests-Linux-x64-01b81e85-90d8437f`. Every change to a manifest saves a new generation beside
@@ -14,7 +15,7 @@ set -euo pipefail
 list="$(mktemp)"
 trap 'rm -f "$list"' EXIT
 gh api --paginate "repos/${GITHUB_REPOSITORY}/actions/caches?ref=refs/heads/main&per_page=100" \
-  --jq '.actions_caches[] | select(.key | startswith("v0-rust-")) | [.id, .key, .created_at, .size_in_bytes] | @tsv' \
+  --jq '.actions_caches[] | select((.key | startswith("v0-rust-")) or (.key | startswith("sccache-"))) | [.id, .key, .created_at, .size_in_bytes] | @tsv' \
   > "$list"
 
 # Newest first: the first cache of each kind stays, every later one goes. Since ADR 0082 W4 the key has no
@@ -22,7 +23,8 @@ gh api --paginate "repos/${GITHUB_REPOSITORY}/actions/caches?ref=refs/heads/main
 # and both forms are the same kind.
 sort -t $'\t' -k3,3r "$list" |
   awk -F '\t' -v h='-[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]' \
-    '{ kind = $2; if (!sub(h h "$", "", kind)) sub(h "$", "", kind); if (seen[kind]++) print $1 "\t" $2 "\t" $4 }' |
+    '{ kind = $2; if (kind ~ /^sccache-/) sub(/-[0-9]+$/, "", kind); else if (!sub(h h "$", "", kind)) sub(h "$", "", kind);
+       if (seen[kind]++) print $1 "\t" $2 "\t" $4 }' |
   while IFS=$'\t' read -r id key size; do
     if gh api -X DELETE "repos/${GITHUB_REPOSITORY}/actions/caches/${id}" >/dev/null 2>&1; then
       echo "deleted ${key} ($((size / 1048576)) MB)"
