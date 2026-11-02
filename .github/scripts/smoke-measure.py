@@ -70,6 +70,14 @@ def energy(which, which_states):
 energy(report, states)
 energy(beta, beta_states)
 
+# P6 proof on a branch (`plant_energy`): this version counts 25% more CPU and energy.
+if os.environ.get("PLANT_ENERGY") == "true":
+    print("::warning::plant_energy: esta versão conta 25% a mais de CPU e energia")
+    for state in states:
+        state["cpuMs"] = int(state["cpuMs"] * 1.25)
+        if state.get("energyImpactPerS") is not None:
+            state["energyImpactPerS"] = round(state["energyImpactPerS"] * 1.25, 3)
+
 if report:
     json.dump(report, open(final, "w"))
 

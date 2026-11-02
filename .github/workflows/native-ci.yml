@@ -28,6 +28,11 @@ on:
         required: false
         default: false
         type: boolean
+      plant_energy:
+        description: "Branch runs only (P6 proof): count this version's CPU and energy 25% above what it measured"
+        required: false
+        default: false
+        type: boolean
       lock_update:
         description: "Branch runs only (W4 proof): change one dependency of Cargo.lock in the tests job, as name@version"
         required: false
@@ -1424,6 +1429,7 @@ jobs:
           EXE: ${{ steps.install.outputs.exe }}
           MEASURE: ${{ matrix.measure }}
           TARGET: ${{ matrix.target }}
+          PLANT_ENERGY: ${{ github.ref != 'refs/heads/main' && inputs.plant_energy }}
         run: |
           set -euo pipefail
           # Only the reports reach stdout. The Core's stderr stays in a file that this public log
