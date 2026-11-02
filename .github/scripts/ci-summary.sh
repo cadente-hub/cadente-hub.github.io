@@ -60,7 +60,7 @@ echo
 publish_end="$(jq -r '[.[] | select(.name == "publish" and .conclusion == "success") | .completed_at | fromdate] | max // empty' "$jobs_json")"
 duration=$((now - run_start))
 if [ -n "$publish_end" ]; then
-  echo "Do início do run ao beta publicado: $(min $((publish_end - run_start)))."
+  echo "Do início do run ao fim do publish: $(min $((publish_end - run_start)))."
 fi
 echo "Duração do run até este resumo: $(min "$duration")."
 echo

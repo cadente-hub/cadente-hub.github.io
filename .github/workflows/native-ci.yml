@@ -274,6 +274,20 @@ jobs:
       - name: Start the clock
         run: echo "t0=$(date +%s)" > "$RUNNER_TEMP/metrics.env"
 
+      # W7 (ADR 0082): the runner's Defender scans every file the build writes. When real-time protection is
+      # on, the workspace, the temp dir and the Rust homes leave the scan, as Zed's setup-dev-driver.ps1 does
+      # for its build drive (`fsutil devdrv enable /disallowAv`).
+      - name: Antivirus off the build (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $status = Get-MpComputerStatus
+          "Defender: antivirus $($status.AntivirusEnabled), real time $($status.RealTimeProtectionEnabled)"
+          if ($status.RealTimeProtectionEnabled) {
+            Add-MpPreference -ExclusionPath $env:GITHUB_WORKSPACE, $env:RUNNER_TEMP, "$env:USERPROFILE\.cargo", "$env:USERPROFILE\.rustup"
+          }
+          "Excluded: $((Get-MpPreference).ExclusionPath -join ', ')"
+
       - name: Setup builder scripts
         uses: actions/checkout@v4
         with:
@@ -478,6 +492,20 @@ jobs:
     steps:
       - name: Start the clock
         run: echo "t0=$(date +%s)" > "$RUNNER_TEMP/metrics.env"
+
+      # W7 (ADR 0082): the runner's Defender scans every file the build writes. When real-time protection is
+      # on, the workspace, the temp dir and the Rust homes leave the scan, as Zed's setup-dev-driver.ps1 does
+      # for its build drive (`fsutil devdrv enable /disallowAv`).
+      - name: Antivirus off the build (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $status = Get-MpComputerStatus
+          "Defender: antivirus $($status.AntivirusEnabled), real time $($status.RealTimeProtectionEnabled)"
+          if ($status.RealTimeProtectionEnabled) {
+            Add-MpPreference -ExclusionPath $env:GITHUB_WORKSPACE, $env:RUNNER_TEMP, "$env:USERPROFILE\.cargo", "$env:USERPROFILE\.rustup"
+          }
+          "Excluded: $((Get-MpPreference).ExclusionPath -join ', ')"
 
       - name: Setup builder scripts
         uses: actions/checkout@v4
@@ -698,6 +726,20 @@ jobs:
     steps:
       - name: Start the clock
         run: echo "t0=$(date +%s)" > "$RUNNER_TEMP/metrics.env"
+
+      # W7 (ADR 0082): the runner's Defender scans every file the build writes. When real-time protection is
+      # on, the workspace, the temp dir and the Rust homes leave the scan, as Zed's setup-dev-driver.ps1 does
+      # for its build drive (`fsutil devdrv enable /disallowAv`).
+      - name: Antivirus off the build (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $status = Get-MpComputerStatus
+          "Defender: antivirus $($status.AntivirusEnabled), real time $($status.RealTimeProtectionEnabled)"
+          if ($status.RealTimeProtectionEnabled) {
+            Add-MpPreference -ExclusionPath $env:GITHUB_WORKSPACE, $env:RUNNER_TEMP, "$env:USERPROFILE\.cargo", "$env:USERPROFILE\.rustup"
+          }
+          "Excluded: $((Get-MpPreference).ExclusionPath -join ', ')"
 
       - name: Setup builder scripts
         uses: actions/checkout@v4
@@ -1024,6 +1066,20 @@ jobs:
       - name: Start the clock
         run: echo "t0=$(date +%s)" > "$RUNNER_TEMP/metrics.env"
 
+      # W7 (ADR 0082): the runner's Defender scans every file the build writes. When real-time protection is
+      # on, the workspace, the temp dir and the Rust homes leave the scan, as Zed's setup-dev-driver.ps1 does
+      # for its build drive (`fsutil devdrv enable /disallowAv`).
+      - name: Antivirus off the build (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $status = Get-MpComputerStatus
+          "Defender: antivirus $($status.AntivirusEnabled), real time $($status.RealTimeProtectionEnabled)"
+          if ($status.RealTimeProtectionEnabled) {
+            Add-MpPreference -ExclusionPath $env:GITHUB_WORKSPACE, $env:RUNNER_TEMP, "$env:USERPROFILE\.cargo", "$env:USERPROFILE\.rustup"
+          }
+          "Excluded: $((Get-MpPreference).ExclusionPath -join ', ')"
+
       - name: Setup builder scripts
         uses: actions/checkout@v4
         with:
@@ -1126,14 +1182,16 @@ jobs:
             exit 1
           fi
 
+      # The xtask binary runs directly, not through `cargo xtask` (`cargo run`): cargo run and the rustup proxy
+      # change PATH for the process, cc-rs tracks PATH (`rerun-if-env-changed`), and the bundle's own cargo
+      # build then recompiled ring and everything above it, the Core included (run 41442022328).
       - name: Bundle
         working-directory: src
-        env:
-          CARGO_LOG: cargo::core::compiler::fingerprint=info
         run: |
           set -euo pipefail
-          echo "Passo: cargo xtask bundle --target ${{ matrix.target }}"
-          if cargo xtask bundle --target "${{ matrix.target }}" >> "$RUNNER_TEMP/release-build.log" 2>&1; then
+          echo "Passo: xtask bundle --target ${{ matrix.target }}"
+          if cargo build --quiet -p xtask >> "$RUNNER_TEMP/release-build.log" 2>&1 \
+            && ./target/debug/xtask bundle --target "${{ matrix.target }}" >> "$RUNNER_TEMP/release-build.log" 2>&1; then
             sed 's/\x1b\[[0-9;]*m//g' "$RUNNER_TEMP/release-build.log" | grep -E '^ *Finished ' | sed -E 's/^ *//' | tail -1 || true
             echo "Resultado: OK"
           else
@@ -1176,7 +1234,7 @@ jobs:
             node "$RUNNER_TEMP/scripts/ci-log-crypto.cjs" encrypt "$RUNNER_TEMP/scripts/ci-log-key.pub.pem" \
               src/target/cargo-timings/cargo-timing.html "$RUNNER_TEMP/sealed/timings.enc.json" || true
           fi
-          if true; then
+          if [ "${{ job.status }}" != "success" ]; then
             {
               echo "native-ci package ${{ matrix.target }} ${SHA}"
               echo "run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
