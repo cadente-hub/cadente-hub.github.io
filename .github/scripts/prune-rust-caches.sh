@@ -17,9 +17,12 @@ gh api --paginate "repos/${GITHUB_REPOSITORY}/actions/caches?ref=refs/heads/main
   --jq '.actions_caches[] | select(.key | startswith("v0-rust-")) | [.id, .key, .created_at, .size_in_bytes] | @tsv' \
   > "$list"
 
-# Newest first: the first cache of each kind stays, every later one goes.
+# Newest first: the first cache of each kind stays, every later one goes. Since ADR 0082 W4 the key has no
+# environment hash (`v0-rust-tests-Linux-x64-<lock hash>`); an older key also has one before the lock hash,
+# and both forms are the same kind.
 sort -t $'\t' -k3,3r "$list" |
-  awk -F '\t' '{ kind = $2; sub(/-[0-9a-f]+-[0-9a-f]+$/, "", kind); if (seen[kind]++) print $1 "\t" $2 "\t" $4 }' |
+  awk -F '\t' -v h='-[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]' \
+    '{ kind = $2; if (!sub(h h "$", "", kind)) sub(h "$", "", kind); if (seen[kind]++) print $1 "\t" $2 "\t" $4 }' |
   while IFS=$'\t' read -r id key size; do
     if gh api -X DELETE "repos/${GITHUB_REPOSITORY}/actions/caches/${id}" >/dev/null 2>&1; then
       echo "deleted ${key} ($((size / 1048576)) MB)"

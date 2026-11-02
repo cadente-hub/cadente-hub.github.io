@@ -37,11 +37,13 @@ if [ "${TOOLCHAIN_CHANGED:-false}" = "true" ]; then
   echo
 fi
 
-echo "| Job | Duração | Preparação | Cache | Compilar | Testes | Arquivo de testes | Esperou o arquivo |"
-echo "|---|---|---|---|---|---|---|---|"
+# "Fila" is the wait for a runner (the macOS pool is 5 jobs for the organization), apart from the job.
+echo "| Job | Fila | Duração | Preparação | Cache | Compilar | Testes | Arquivo de testes | Esperou o arquivo |"
+echo "|---|---|---|---|---|---|---|---|---|"
 jq -r '.[] | select(.conclusion != "skipped" and .started_at != null) |
-  [.name, ((.completed_at // (now | todate)) | fromdate) - (.started_at | fromdate), .conclusion // "em andamento"] | @tsv' "$jobs_json" |
-  while IFS=$'\t' read -r name duration conclusion; do
+  [.name, ((.completed_at // (now | todate)) | fromdate) - (.started_at | fromdate), .conclusion // "em andamento",
+   (.started_at | fromdate) - (.created_at | fromdate)] | @tsv' "$jobs_json" |
+  while IFS=$'\t' read -r name duration conclusion queued; do
     label="$(printf '%s' "$name" | tr ' /' '--' | tr -cd 'A-Za-z0-9._-')"
     t0="$(metric "$label" t0)"; work="$(metric "$label" work_start)"
     prep=""; [ -n "$t0" ] && [ -n "$work" ] && prep=$((work - t0))
@@ -53,7 +55,7 @@ jq -r '.[] | select(.conclusion != "skipped" and .started_at != null) |
     [ -n "$up" ] && archive="enviou ${size:-?} MB em ${up} s"
     [ -n "$down" ] && archive="baixou ${size:-?} MB em ${down} s"
     status=""; [ "$conclusion" != "success" ] && status=" ($conclusion)"
-    echo "| ${name}${status} | $(min "$duration") | $(min "$prep") | ${cache:-—} | $(min "$compile") | $(min "$tests") | ${archive} | $(min "$wait") |"
+    echo "| ${name}${status} | $(min "$queued") | $(min "$duration") | $(min "$prep") | ${cache:-—} | $(min "$compile") | $(min "$tests") | ${archive} | $(min "$wait") |"
   done
 echo
 

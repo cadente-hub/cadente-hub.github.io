@@ -244,6 +244,42 @@ jobs:
             echo "$OS: $STATE $DESCRIPTION"
           done
 
+  # W4 (ADR 0082): the repository has 10 GB of cache, and one generation of every Rust cache takes about
+  # 8.5 GB. A commit that changes Cargo.lock saves a new generation of each kind while the old one is still
+  # there; at the end of the run the total passed 10 GB, and GitHub evicted caches main still used (the
+  # Linux and Windows package caches, before run 41445092862). This job keeps one generation of each kind
+  # while the run saves: the old one goes as soon as the new one lands. It compiles nothing.
+  cache-guard:
+    name: cache guard
+    needs: resolve
+    if: github.ref == 'refs/heads/main' && needs.resolve.outputs.skip != 'true' && needs.resolve.outputs.docs_only != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      actions: write
+    steps:
+      - name: Setup builder scripts
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/scripts/prune-rust-caches.sh
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+
+      - name: Keep one generation of each Rust cache while the run saves
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -uo pipefail
+          while :; do
+            PENDING="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/attempts/${GITHUB_RUN_ATTEMPT}/jobs?per_page=100" \
+              --jq '[.jobs[] | select((.name | test("^(lint|tests|package) ")) and .status != "completed")] | length' 2>/dev/null || echo 1)"
+            bash .github/scripts/prune-rust-caches.sh | grep -v '^cache in use' || true
+            [ "$PENDING" = 0 ] && break
+            sleep 20
+          done
+          bash .github/scripts/prune-rust-caches.sh
+
   # Each system runs lint, tests and ruler side by side; the run takes as long as the slowest job, not
   # their sum. `cargo clippy --all-targets -D warnings` also type-checks every target, so no separate
   # `cargo check`.
@@ -267,26 +303,9 @@ jobs:
       SHA: ${{ needs.resolve.outputs.sha }}
       MATRIX_OS: ${{ matrix.os }}
       JOB_KIND: lint
-      CARGO_TERM_COLOR: always
-      # No debug info in CI: nothing here reads a backtrace.
-      CARGO_PROFILE_DEV_DEBUG: "0"
     steps:
       - name: Start the clock
         run: echo "t0=$(date +%s)" > "$RUNNER_TEMP/metrics.env"
-
-      # W7 (ADR 0082): the runner's Defender scans every file the build writes. When real-time protection is
-      # on, the workspace, the temp dir and the Rust homes leave the scan, as Zed's setup-dev-driver.ps1 does
-      # for its build drive (`fsutil devdrv enable /disallowAv`).
-      - name: Antivirus off the build (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          $status = Get-MpComputerStatus
-          "Defender: antivirus $($status.AntivirusEnabled), real time $($status.RealTimeProtectionEnabled)"
-          if ($status.RealTimeProtectionEnabled) {
-            Add-MpPreference -ExclusionPath $env:GITHUB_WORKSPACE, $env:RUNNER_TEMP, "$env:USERPROFILE\.cargo", "$env:USERPROFILE\.rustup"
-          }
-          "Excluded: $((Get-MpPreference).ExclusionPath -join ', ')"
 
       - name: Setup builder scripts
         uses: actions/checkout@v4
@@ -310,21 +329,20 @@ jobs:
           DEPLOY_KEY: ${{ secrets.CATARINA_PRIVATE_DEPLOY_KEY }}
         run: bash "$RUNNER_TEMP/scripts/clone-private.sh" . "$SHA"
 
-      - name: Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt, clippy
+      # W6 (ADR 0082): only the toolchain rust-toolchain.toml pins, with its components; installing
+      # `stable` first, as before, added a second toolchain nothing built with.
+      - name: Rust toolchain (rust-toolchain.toml)
+        run: |
+          CHANNEL="$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml)"
+          rustup toolchain install "$CHANNEL" --profile minimal -c rustfmt -c clippy --no-self-update > /dev/null
+          rustup default "$CHANNEL" > /dev/null
+          rustc --version
 
       - name: System libraries (Linux)
         if: runner.os == 'Linux'
         # apt hung once for over an hour on a mirror; retry the download and give up in time.
         timeout-minutes: 10
         run: sudo apt-get -o Acquire::Retries=3 update && sudo apt-get -o Acquire::Retries=3 install -y libfontconfig1-dev libxkbcommon-dev libssl-dev pkg-config libdbus-1-dev
-
-      - name: Node 22
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
 
       # Clippy compiles the dependencies in check mode, which shares nothing with the test build.
       - name: Rust cache
@@ -486,26 +504,10 @@ jobs:
       MATRIX_OS: ${{ matrix.os }}
       JOB_KIND: tests${{ matrix.part && format('-{0}', matrix.part) || '' }}
       PART: ${{ matrix.part }}
-      CARGO_TERM_COLOR: always
-      CARGO_PROFILE_DEV_DEBUG: "0"
       PLANT_FAILURE: ${{ github.ref != 'refs/heads/main' && inputs.plant_failure && matrix.os == 'ubuntu-latest' }}
     steps:
       - name: Start the clock
         run: echo "t0=$(date +%s)" > "$RUNNER_TEMP/metrics.env"
-
-      # W7 (ADR 0082): the runner's Defender scans every file the build writes. When real-time protection is
-      # on, the workspace, the temp dir and the Rust homes leave the scan, as Zed's setup-dev-driver.ps1 does
-      # for its build drive (`fsutil devdrv enable /disallowAv`).
-      - name: Antivirus off the build (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          $status = Get-MpComputerStatus
-          "Defender: antivirus $($status.AntivirusEnabled), real time $($status.RealTimeProtectionEnabled)"
-          if ($status.RealTimeProtectionEnabled) {
-            Add-MpPreference -ExclusionPath $env:GITHUB_WORKSPACE, $env:RUNNER_TEMP, "$env:USERPROFILE\.cargo", "$env:USERPROFILE\.rustup"
-          }
-          "Excluded: $((Get-MpPreference).ExclusionPath -join ', ')"
 
       - name: Setup builder scripts
         uses: actions/checkout@v4
@@ -535,8 +537,14 @@ jobs:
         if: env.PLANT_FAILURE == 'true'
         run: printf '\n#[test]\nfn planted_failure_for_the_publish_gate() {\n    panic!("planted by the native-ci branch run");\n}\n' >> crates/frame-journal/src/lib.rs
 
-      - name: Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+      # W6 (ADR 0082): only the toolchain rust-toolchain.toml pins, with its components; installing
+      # `stable` first, as before, added a second toolchain nothing built with.
+      - name: Rust toolchain (rust-toolchain.toml)
+        run: |
+          CHANNEL="$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml)"
+          rustup toolchain install "$CHANNEL" --profile minimal -c rustfmt -c clippy --no-self-update > /dev/null
+          rustup default "$CHANNEL" > /dev/null
+          rustc --version
 
       - name: System libraries (Linux)
         if: runner.os == 'Linux'
@@ -548,15 +556,23 @@ jobs:
         with:
           node-version: 22
 
-      # Windows only, before the cache so the key stays the one main saved. `strip = debuginfo` makes
-      # rustc pass /DEBUG:NONE, so link.exe writes no PDB for each of the 54 test binaries. TEMP moves to
-      # D:, the runner's local disk, where the tests' SQLite stores sync each commit.
-      - name: Windows build and temp settings
-        if: runner.os == 'Windows'
+      # W4 (ADR 0082): what changes the test build lives in a Cargo config file of the checkout, passed with
+      # --config, and not in the job's environment. rust-cache hashes every .cargo/config.toml of the
+      # workspace into the part of the key it falls back from, so a change here restores the previous
+      # generation instead of compiling ~900 crates cold, and local builds stay as they are.
+      # No debug info: nothing in CI reads a backtrace. On Windows, `strip = debuginfo` makes rustc pass
+      # /DEBUG:NONE, so link.exe writes no PDB for each of the 54 test binaries. TEMP moves to D:, the
+      # runner's local disk, where the tests' SQLite stores sync each commit.
+      - name: CI build settings
         run: |
-          mkdir -p "$RUNNER_TEMP/tmp"
-          WIN_TMP="$(cygpath -w "$RUNNER_TEMP/tmp")"
-          { echo "CARGO_PROFILE_DEV_STRIP=debuginfo"; echo "TMP=$WIN_TMP"; echo "TEMP=$WIN_TMP"; } >> "$GITHUB_ENV"
+          mkdir -p .ci/.cargo
+          { echo "# native-ci (ADR 0082 W4); only CI reads this file, through --config."; echo "[profile.dev]"; echo "debug = 0"; } > .ci/.cargo/config.toml
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            echo 'strip = "debuginfo"' >> .ci/.cargo/config.toml
+            mkdir -p "$RUNNER_TEMP/tmp"
+            WIN_TMP="$(cygpath -w "$RUNNER_TEMP/tmp")"
+            { echo "TMP=$WIN_TMP"; echo "TEMP=$WIN_TMP"; } >> "$GITHUB_ENV"
+          fi
 
       - name: Rust cache
         id: cache
@@ -582,7 +598,7 @@ jobs:
           RAW="$RUNNER_TEMP/archive_raw.log"
           START=$(date +%s)
           set +e
-          cargo nextest archive --workspace --timings --archive-file "$RUNNER_TEMP/nextest.tar.zst" > "$RAW" 2>&1
+          cargo nextest archive --config .ci/.cargo/config.toml --workspace --timings --archive-file "$RUNNER_TEMP/nextest.tar.zst" > "$RAW" 2>&1
           EXIT=$?
           set -e
           echo "compile_s=$(( $(date +%s) - START ))" >> "$RUNNER_TEMP/metrics.env"
@@ -615,7 +631,7 @@ jobs:
           START="$(sed -n 's/^upload_start=//p' "$RUNNER_TEMP/metrics.env")"
           echo "upload_s=$(( $(date +%s) - START ))" >> "$RUNNER_TEMP/metrics.env"
           echo "Passo: cargo test --workspace --doc"
-          if cargo test --workspace --doc >> "$RUNNER_TEMP/ci-build.log" 2>&1; then
+          if cargo test --config .ci/.cargo/config.toml --workspace --doc >> "$RUNNER_TEMP/ci-build.log" 2>&1; then
             echo "Resultado: OK"
           else
             echo "Resultado: FALHOU"
@@ -629,7 +645,7 @@ jobs:
           NEXTEST_RAW="$RUNNER_TEMP/nextest_raw.log"
           START=$(date +%s)
           set +e
-          cargo nextest run --workspace --profile ci -E "not ${RULER}" ${PART:+--partition "hash:${PART}/2"} > "$NEXTEST_RAW" 2>&1
+          cargo nextest run --config .ci/.cargo/config.toml --workspace --profile ci -E "not ${RULER}" ${PART:+--partition "hash:${PART}/2"} > "$NEXTEST_RAW" 2>&1
           NEXTEST_EXIT=$?
           set -e
           echo "test_s=$(( $(date +%s) - START ))" >> "$RUNNER_TEMP/metrics.env"
@@ -722,24 +738,9 @@ jobs:
       PART: ${{ matrix.part }}
       KIND: ${{ matrix.kind }}
       PRODUCER: ${{ matrix.producer }}
-      CARGO_TERM_COLOR: always
     steps:
       - name: Start the clock
         run: echo "t0=$(date +%s)" > "$RUNNER_TEMP/metrics.env"
-
-      # W7 (ADR 0082): the runner's Defender scans every file the build writes. When real-time protection is
-      # on, the workspace, the temp dir and the Rust homes leave the scan, as Zed's setup-dev-driver.ps1 does
-      # for its build drive (`fsutil devdrv enable /disallowAv`).
-      - name: Antivirus off the build (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          $status = Get-MpComputerStatus
-          "Defender: antivirus $($status.AntivirusEnabled), real time $($status.RealTimeProtectionEnabled)"
-          if ($status.RealTimeProtectionEnabled) {
-            Add-MpPreference -ExclusionPath $env:GITHUB_WORKSPACE, $env:RUNNER_TEMP, "$env:USERPROFILE\.cargo", "$env:USERPROFILE\.rustup"
-          }
-          "Excluded: $((Get-MpPreference).ExclusionPath -join ', ')"
 
       - name: Setup builder scripts
         uses: actions/checkout@v4
@@ -1057,7 +1058,6 @@ jobs:
     # No XTASK_FREE_DISK: deleting the compiled dependencies before rust-cache saved them left a 173 MB
     # cache, and every release compiled all ~700 crates again.
     env:
-      CARGO_INCREMENTAL: 0
       RELEASE_VERSION: ${{ needs.resolve.outputs.version }}
       RELEASE_CHANNEL: ${{ needs.resolve.outputs.channel }}
       APPLE_SIGNING_IDENTITY: "-"
@@ -1065,20 +1065,6 @@ jobs:
     steps:
       - name: Start the clock
         run: echo "t0=$(date +%s)" > "$RUNNER_TEMP/metrics.env"
-
-      # W7 (ADR 0082): the runner's Defender scans every file the build writes. When real-time protection is
-      # on, the workspace, the temp dir and the Rust homes leave the scan, as Zed's setup-dev-driver.ps1 does
-      # for its build drive (`fsutil devdrv enable /disallowAv`).
-      - name: Antivirus off the build (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          $status = Get-MpComputerStatus
-          "Defender: antivirus $($status.AntivirusEnabled), real time $($status.RealTimeProtectionEnabled)"
-          if ($status.RealTimeProtectionEnabled) {
-            Add-MpPreference -ExclusionPath $env:GITHUB_WORKSPACE, $env:RUNNER_TEMP, "$env:USERPROFILE\.cargo", "$env:USERPROFILE\.rustup"
-          }
-          "Excluded: $((Get-MpPreference).ExclusionPath -join ', ')"
 
       - name: Setup builder scripts
         uses: actions/checkout@v4
@@ -1091,7 +1077,7 @@ jobs:
           path: _builder
           persist-credentials: false
 
-      - name: Stage builder scripts
+      - name: Stage builder scripts and clean checkout
         run: |
           mkdir -p "$RUNNER_TEMP/scripts"
           cp _builder/.github/scripts/clone-private.sh _builder/.github/scripts/ci-log-crypto.cjs _builder/.github/ci-log-key.pub.pem "$RUNNER_TEMP/scripts/"
@@ -1100,23 +1086,22 @@ jobs:
       - name: Clone the private repository at the commit
         env:
           DEPLOY_KEY: ${{ secrets.CATARINA_PRIVATE_DEPLOY_KEY }}
-        run: bash "$RUNNER_TEMP/scripts/clone-private.sh" src "$SHA"
+        run: bash "$RUNNER_TEMP/scripts/clone-private.sh" . "$SHA"
 
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.target }}
-
-      # The build uses the toolchain pinned in rust-toolchain.toml, not `stable`: the cross target goes
-      # into that one.
-      - name: Target of the pinned toolchain
-        working-directory: src
-        run: rustup target add "${{ matrix.target }}"
+      # W6 (ADR 0082): only the pinned toolchain, with the cross target. The checkout is the workspace, so
+      # rust-cache reads the pinned rustc too; from a subfolder it read the image's `stable`, and every new
+      # stable changed the key.
+      - name: Rust toolchain (rust-toolchain.toml)
+        run: |
+          CHANNEL="$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml)"
+          rustup toolchain install "$CHANNEL" --profile minimal -c rustfmt -c clippy -t "${{ matrix.target }}" --no-self-update > /dev/null
+          rustup default "$CHANNEL" > /dev/null
+          rustc --version
 
       # Both Mac targets build on the same runner type, so the target goes into the cache key.
       - uses: Swatinem/rust-cache@v2
         id: cache
         with:
-          workspaces: src
           key: ${{ matrix.target }}
           save-if: ${{ github.ref == 'refs/heads/main' }}
 
@@ -1145,28 +1130,23 @@ jobs:
           "$NSIS/makensis.exe" -VERSION
           echo "C:\Program Files (x86)\NSIS" >> "$GITHUB_PATH"
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
       - name: Keep the build machine's paths out of the binaries
         env:
           CACHE_HIT: ${{ steps.cache.outputs.cache-hit }}
         run: |
-          ROOT="$PWD/src"
+          ROOT="$PWD"
           CARGO_DIR="${CARGO_HOME:-$HOME/.cargo}"
           if [ "$RUNNER_OS" = "Windows" ]; then
             ROOT="$(cygpath -w "$ROOT")"
             CARGO_DIR="$(cygpath -w "$CARGO_DIR")"
           fi
           echo "RUSTFLAGS=--remap-path-prefix=${ROOT}=cadente --remap-path-prefix=${CARGO_DIR}=cargo" >> "$GITHUB_ENV"
-          if [ "$CACHE_HIT" = "true" ]; then CACHE=inteiro; elif [ -d src/target ] && [ -n "$(ls -A src/target 2>/dev/null)" ]; then CACHE=parcial; else CACHE=nenhum; fi
+          if [ "$CACHE_HIT" = "true" ]; then CACHE=inteiro; elif [ -d target ] && [ -n "$(ls -A target 2>/dev/null)" ]; then CACHE=parcial; else CACHE=nenhum; fi
           { echo "cache=$CACHE"; echo "work_start=$(date +%s)"; } >> "$RUNNER_TEMP/metrics.env"
 
       # The same build `xtask bundle` starts, with the version it passes, so the bundle finds it done;
       # only here can cargo write the --timings report.
       - name: Build (cargo build --release)
-        working-directory: src
         env:
           CADENTE_BUILD_VERSION: ${{ needs.resolve.outputs.version }}
         run: |
@@ -1186,7 +1166,6 @@ jobs:
       # change PATH for the process, cc-rs tracks PATH (`rerun-if-env-changed`), and the bundle's own cargo
       # build then recompiled ring and everything above it, the Core included (run 41442022328).
       - name: Bundle
-        working-directory: src
         run: |
           set -euo pipefail
           echo "Passo: xtask bundle --target ${{ matrix.target }}"
@@ -1202,17 +1181,17 @@ jobs:
       - name: Ad-hoc signature of the update binary (macOS)
         if: runner.os == 'macOS'
         run: |
-          BIN="src/target/${{ matrix.target }}/release/cadente-native-ui"
+          BIN="target/${{ matrix.target }}/release/cadente-native-ui"
           codesign --verify "$BIN" 2>/dev/null || codesign --force --sign - "$BIN"
 
       - uses: actions/upload-artifact@v4
         with:
           name: dist-${{ matrix.target }}
           path: |
-            src/dist/*.dmg
-            src/dist/*.AppImage
-            src/dist/*.deb
-            src/dist/cadente-*-windows-x64.exe
+            dist/*.dmg
+            dist/*.AppImage
+            dist/*.deb
+            dist/cadente-*-windows-x64.exe
           if-no-files-found: error
           retention-days: 1
 
@@ -1221,8 +1200,8 @@ jobs:
         with:
           name: bin-${{ matrix.target }}
           path: |
-            src/target/${{ matrix.target }}/release/cadente-native-ui
-            src/target/${{ matrix.target }}/release/cadente-native-ui.exe
+            target/${{ matrix.target }}/release/cadente-native-ui
+            target/${{ matrix.target }}/release/cadente-native-ui.exe
           if-no-files-found: error
           retention-days: 1
 
@@ -1230,9 +1209,9 @@ jobs:
         if: always()
         run: |
           mkdir -p "$RUNNER_TEMP/sealed"
-          if [ -f src/target/cargo-timings/cargo-timing.html ]; then
+          if [ -f target/cargo-timings/cargo-timing.html ]; then
             node "$RUNNER_TEMP/scripts/ci-log-crypto.cjs" encrypt "$RUNNER_TEMP/scripts/ci-log-key.pub.pem" \
-              src/target/cargo-timings/cargo-timing.html "$RUNNER_TEMP/sealed/timings.enc.json" || true
+              target/cargo-timings/cargo-timing.html "$RUNNER_TEMP/sealed/timings.enc.json" || true
           fi
           if [ "${{ job.status }}" != "success" ]; then
             {
