@@ -125,6 +125,13 @@ else:
     )
     if "tray" in report:
         summary.write(f"\nBandeja: `{json.dumps(report['tray'], ensure_ascii=False)}`\n")
+    slowest = report.get("slowestFrames") or []
+    if slowest:
+        summary.write(
+            "\nQuadros mais caros do roteiro (ms, depois de qual passo e quantos ms depois dele): "
+            + "; ".join(f"{f['ms']} ({f.get('after')}, +{f.get('sinceStepMs')})" for f in slowest)
+            + "\n"
+        )
     if system == "macOS":
         # D1: the installed app opens with its icon in the menu bar and the base entries.
         tray = report.get("tray") or {}
