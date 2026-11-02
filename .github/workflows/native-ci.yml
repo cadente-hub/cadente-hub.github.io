@@ -29,10 +29,8 @@ permissions:
 env:
   PRIVATE_REPO: jeancatarina/catarina-claude
   CARGO_TERM_COLOR: always
-  # No debug info in CI: nothing here reads a backtrace, and on Windows the linker spent minutes on PDBs.
+  # No debug info in CI: nothing here reads a backtrace.
   CARGO_PROFILE_DEV_DEBUG: "0"
-  # The linker that ships with rustc; the MSVC link.exe was the slowest step of each test binary.
-  CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: rust-lld.exe
   # The v4 parity ruler drives three live windows and takes every test thread for 100 to 190 s, so it
   # runs in a job of its own: there it no longer holds back the other 2000 tests, and it reports first.
   RULER: test(=live::parity::v4_parity_actions_only_shrink_the_pending_list)
