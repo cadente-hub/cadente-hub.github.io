@@ -1695,14 +1695,17 @@ jobs:
           sparse-checkout-cone-mode: false
           persist-credentials: false
 
+      # The metrics are optional: a slow artifact service (180 s in run 41472042526) must not hold the run.
       - uses: actions/download-artifact@v4
         continue-on-error: true
+        timeout-minutes: 1
         with:
           pattern: release-log-*
           path: ${{ runner.temp }}/sealed
 
       - uses: actions/download-artifact@v4
         continue-on-error: true
+        timeout-minutes: 1
         with:
           pattern: metrics-*
           path: ${{ runner.temp }}/metrics
@@ -1742,7 +1745,9 @@ jobs:
           set -euo pipefail
           echo "::add-mask::${PRIVATE_LOG_TOKEN}"
           HISTORY_DIR="$RUNNER_TEMP/history"
-          git clone --depth=1 --branch ci-logs "https://x-access-token:${PRIVATE_LOG_TOKEN}@github.com/${PRIVATE_REPO}.git" "$HISTORY_DIR" >/dev/null 2>&1 || HISTORY_DIR=""
+          # Only metrics/: the branch also keeps every sealed log and timings report.
+          { git clone --depth=1 --filter=blob:none --sparse --branch ci-logs "https://x-access-token:${PRIVATE_LOG_TOKEN}@github.com/${PRIVATE_REPO}.git" "$HISTORY_DIR" \
+            && git -C "$HISTORY_DIR" sparse-checkout set metrics; } >/dev/null 2>&1 || HISTORY_DIR=""
           export HISTORY_DIR
           bash .github/scripts/ci-summary.sh > "$RUNNER_TEMP/summary.md"
           cat "$RUNNER_TEMP/summary.md" >> "$GITHUB_STEP_SUMMARY"

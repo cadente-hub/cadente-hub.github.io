@@ -70,7 +70,9 @@ persist_private_files() {
 
   echo "::add-mask::${PRIVATE_LOG_TOKEN}"
   repo_dir="$(mktemp -d)"
-  if ! git clone --depth=1 --branch ci-logs "https://x-access-token:${PRIVATE_LOG_TOKEN}@github.com/${PRIVATE_REPO}.git" "$repo_dir" >/dev/null 2>&1; then
+  # Only the destination folder: the branch keeps every run's logs, and a full checkout grows with them.
+  if ! git clone --depth=1 --filter=blob:none --sparse --branch ci-logs "https://x-access-token:${PRIVATE_LOG_TOKEN}@github.com/${PRIVATE_REPO}.git" "$repo_dir" >/dev/null 2>&1 \
+    || ! git -C "$repo_dir" sparse-checkout set "$dest_rel" >/dev/null 2>&1; then
     echo "::warning::could not store ${label} in the private repository"
     rm -rf "$repo_dir"
     return 0
