@@ -68,7 +68,7 @@ echo
 cache_none="$(jq -r '.[] | select(.conclusion != "skipped") | .name' "$jobs_json" |
   while read -r name; do
     label="$(printf '%s' "$name" | tr ' /' '--' | tr -cd 'A-Za-z0-9._-')"
-    [ "$(metric "$label" cache)" = "nenhum" ] && echo "$name"
+    if [ "$(metric "$label" cache)" = "nenhum" ]; then echo "$name"; fi
   done | wc -l | tr -d ' ')"
 
 # One line per main run in ci-logs (metrics/runs.tsv): run, sha, start, duration, compiled,

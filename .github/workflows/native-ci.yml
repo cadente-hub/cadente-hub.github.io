@@ -1128,6 +1128,8 @@ jobs:
 
       - name: Bundle
         working-directory: src
+        env:
+          CARGO_LOG: cargo::core::compiler::fingerprint=info
         run: |
           set -euo pipefail
           echo "Passo: cargo xtask bundle --target ${{ matrix.target }}"
@@ -1174,7 +1176,7 @@ jobs:
             node "$RUNNER_TEMP/scripts/ci-log-crypto.cjs" encrypt "$RUNNER_TEMP/scripts/ci-log-key.pub.pem" \
               src/target/cargo-timings/cargo-timing.html "$RUNNER_TEMP/sealed/timings.enc.json" || true
           fi
-          if [ "${{ job.status }}" != "success" ]; then
+          if true; then
             {
               echo "native-ci package ${{ matrix.target }} ${SHA}"
               echo "run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
