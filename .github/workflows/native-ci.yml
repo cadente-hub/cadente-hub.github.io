@@ -28,6 +28,11 @@ on:
         required: false
         default: false
         type: boolean
+      lock_update:
+        description: "Branch runs only (W4 proof): change one dependency of Cargo.lock in the tests job, as name@version"
+        required: false
+        default: ""
+        type: string
       warm_up:
         description: "Compile every job and save the caches, publish nothing (after a change of cache key)"
         required: false
@@ -589,6 +594,16 @@ jobs:
       # No debug info: nothing in CI reads a backtrace. On Windows, `strip = debuginfo` makes rustc pass
       # /DEBUG:NONE, so link.exe writes no PDB for each of the 54 test binaries. TEMP moves to D:, the
       # runner's local disk, where the tests' SQLite stores sync each commit.
+      # Branch runs only (W4 proof): a Cargo.lock that changes one dependency must restore the previous
+      # generation of the cache and compile only that crate and what depends on it.
+      - name: Change one dependency of Cargo.lock
+        if: github.ref != 'refs/heads/main' && inputs.lock_update != ''
+        env:
+          LOCK_UPDATE: ${{ inputs.lock_update }}
+        run: |
+          printf '%s' "$LOCK_UPDATE" | grep -qE '^[A-Za-z0-9_-]+@[0-9A-Za-z.+-]+$' || { echo "::error::lock_update must be name@version"; exit 1; }
+          cargo update --precise "${LOCK_UPDATE#*@}" "${LOCK_UPDATE%@*}" 2>&1 | grep -E 'Updating|Downgrading|Locking' || true
+
       - name: CI build settings
         run: |
           mkdir -p .ci/.cargo
