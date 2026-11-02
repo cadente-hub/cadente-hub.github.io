@@ -1478,6 +1478,9 @@ jobs:
           OLD="$(ls "$RUNNER_TEMP"/beta/cadente "$RUNNER_TEMP"/beta/cadente.exe 2>/dev/null | head -1 || true)"
           if [ -n "$OLD" ] && [ "$STATUS" = 0 ]; then
             chmod +x "$OLD"
+            # The first start of a binary is cold too (its pages, and Defender's scan on Windows:
+            # the beta's first run spent 55 ms/s and the next three 83 to 86, run 41521469409).
+            CADENTE_HOME="$RUNNER_TEMP/home-warm" "$OLD" --dump-plugins > /dev/null 2>> "$ERR" || true
             export CADENTE_MEASURE_CHATS=0 CADENTE_MEASURE_TERMINALS=0 CADENTE_MEASURE_CLOSED_S=10
             for RUN in beta-1 new-1 new-2 beta-2; do
               OUT="$RUNNER_TEMP/p6-$RUN.out"

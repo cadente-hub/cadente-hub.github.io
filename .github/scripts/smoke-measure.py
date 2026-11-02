@@ -175,6 +175,12 @@ if beta_runs and new_runs:
             return sum(energies) / len(energies), cpu
         return None, cpu
 
+    def runs_of(runs, name):
+        return [
+            (round(s["cpuMs"] / s["seconds"], 1), s.get("energyImpactPerS"))
+            for run in runs for s in run if s["state"] == name
+        ]
+
     for name in ("script", "idleOpen", "closed"):
         old_energy, old_cpu = per_second(beta_runs, name)
         new_energy, new_cpu = per_second(new_runs, name)
@@ -186,7 +192,9 @@ if beta_runs and new_runs:
         else:
             metric, prev, new, floor = "CPU ms/s", old_cpu, new_cpu, 5.0
         change = (new / prev - 1) * 100 if prev else 0.0
-        summary.write(f"| {name} | {metric} | {prev:.3f} | {new:.3f} | {change:+.1f}% |\n")
+        row = f"| {name} | {metric} | {prev:.3f} | {new:.3f} | {change:+.1f}% |"
+        summary.write(row + "\n")
+        print(f"P6 {row} beta {runs_of(beta_runs, name)} esta {runs_of(new_runs, name)}")
         if new > prev * 1.10 and new - prev > floor:
             failures.append(f"P6: {name} gasta {change:+.1f}% de {metric} acima da última beta")
 elif report:
