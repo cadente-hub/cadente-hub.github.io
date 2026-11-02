@@ -229,9 +229,10 @@ jobs:
           echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
           echo "Release $VERSION from $SHA (publishes: $RELEASE)"
 
-      # A run from another branch tests this workflow and leaves the commit's statuses alone.
+      # A run from another branch tests this workflow and leaves the commit's statuses alone, and so does
+      # a warm-up run, which tests a commit that already has its verdict.
       - name: Publish the statuses
-        if: steps.resolve_sha.outputs.skip == 'false' && github.ref == 'refs/heads/main'
+        if: steps.resolve_sha.outputs.skip == 'false' && github.ref == 'refs/heads/main' && !inputs.warm_up
         env:
           PRIVATE_WRITE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
           SHA: ${{ steps.resolve_sha.outputs.sha }}
@@ -979,7 +980,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           PRIVATE_WRITE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
-          ON_MAIN: ${{ github.ref == 'refs/heads/main' }}
+          ON_MAIN: ${{ github.ref == 'refs/heads/main' && !inputs.warm_up }}
         run: |
           set -euo pipefail
           echo "::add-mask::${PRIVATE_WRITE_TOKEN}"
