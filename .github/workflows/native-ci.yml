@@ -8,8 +8,9 @@ on:
         description: "Private repo commit SHA (40 hex)"
         required: true
         type: string
+  # Safety net for a push that dispatched no run: every 3 hours, and only for a HEAD no run has seen.
   schedule:
-    - cron: '0 * * * *'
+    - cron: '0 */3 * * *'
 
 # Queue instead of cancelling: each run tests the private main's HEAD, and cancelling a run that is
 # almost green would hold the unstable release back for every new commit. A run from another branch
@@ -18,15 +19,23 @@ concurrency:
   group: native-ci-${{ github.ref }}
   cancel-in-progress: false
 
-# The check jobs compile hundreds of third-party crates, and a build script can read every secret its
-# job references. So they hold only the read-only deploy key and print no compiler or test output: the
-# full log leaves them encrypted. `resolve` and `report` compile nothing; only they write to the
-# private repository.
+# The lint, tests and ruler jobs compile hundreds of third-party crates, and a build script can read
+# every secret its job references. So they hold only the read-only deploy key and print no compiler or
+# test output: the full log leaves them encrypted. `resolve` and `report` compile nothing; only they
+# write to the private repository.
 permissions:
   contents: read
 
 env:
   PRIVATE_REPO: jeancatarina/catarina-claude
+  CARGO_TERM_COLOR: always
+  # No debug info in CI: nothing here reads a backtrace, and on Windows the linker spent minutes on PDBs.
+  CARGO_PROFILE_DEV_DEBUG: "0"
+  # The linker that ships with rustc; the MSVC link.exe was the slowest step of each test binary.
+  CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: rust-lld.exe
+  # The v4 parity ruler drives three live windows and takes every test thread for 100 to 190 s, so it
+  # runs in a job of its own: there it no longer holds back the other 2000 tests, and it reports first.
+  RULER: test(=live::parity::v4_parity_actions_only_shrink_the_pending_list)
 
 jobs:
   resolve:
@@ -44,7 +53,6 @@ jobs:
         id: resolve_sha
         env:
           PRIVATE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
-          GH_TOKEN: ${{ github.token }}
           INPUT_SHA: ${{ inputs.sha }}
           EVENT_NAME: ${{ github.event_name }}
         run: |
@@ -60,10 +68,14 @@ jobs:
               echo "::error::Could not resolve main HEAD for ${PRIVATE_REPO}"
               exit 1
             fi
-            # Check if there is already a successful run for this SHA
-            PREV_SUCCESS=$(gh run list -R "$GITHUB_REPOSITORY" -w native-ci.yml --status success --json name --jq '.[].name' 2>/dev/null | grep -F "native-ci $SHA" || true)
-            if [ -n "$PREV_SUCCESS" ]; then
-              echo "SHA $SHA has already succeeded in native-ci. Skipping."
+            # A commit any run already took (green, red or still running) has native-ci statuses. A red
+            # one is not run again: a failure is fixed by a new commit, never retried (ADR 0076 R2), and
+            # rerunning it every hour held the queue in front of the next push.
+            SEEN=$(curl -sf "https://api.github.com/repos/${PRIVATE_REPO}/commits/${SHA}/statuses?per_page=100" \
+              -H "Authorization: Bearer ${PRIVATE_TOKEN}" -H "Accept: application/vnd.github+json" 2>/dev/null \
+              | jq '[.[] | select(.context | startswith("native-ci/"))] | length' 2>/dev/null || echo 0)
+            if [ "${SEEN:-0}" -gt 0 ]; then
+              echo "SHA $SHA already has a native-ci run. Skipping."
               echo "skip=true" >> "$GITHUB_OUTPUT"
               exit 0
             fi
@@ -104,13 +116,15 @@ jobs:
               -d "{\"state\":\"pending\",\"target_url\":\"https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\",\"description\":\"native-ci on ${OS} running\",\"context\":\"native-ci/${OS}\"}" >/dev/null 2>&1 || true
           done
 
-  check:
-    name: ${{ matrix.os }}
+  # Each system runs three jobs side by side; the run takes as long as the slowest one, not their sum.
+  # `cargo clippy --all-targets -D warnings` also type-checks every target, so no separate `cargo check`.
+  lint:
+    name: lint ${{ matrix.os }}
     needs: resolve
     if: needs.resolve.outputs.skip != 'true'
     runs-on: ${{ matrix.os }}
     # Without a limit a hung step holds the run, and the queue behind it, for six hours.
-    timeout-minutes: 150
+    timeout-minutes: 45
     permissions:
       contents: read
     strategy:
@@ -123,7 +137,7 @@ jobs:
     env:
       SHA: ${{ needs.resolve.outputs.sha }}
       MATRIX_OS: ${{ matrix.os }}
-      CARGO_TERM_COLOR: always
+      JOB_KIND: lint
     steps:
       - name: Setup builder scripts
         uses: actions/checkout@v4
@@ -163,8 +177,12 @@ jobs:
         with:
           node-version: 22
 
+      # Clippy compiles the dependencies in check mode, which shares nothing with the test build.
       - name: Rust cache
         uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: lint
+          save-if: ${{ github.ref == 'refs/heads/main' }}
 
       - name: Install nextest
         uses: taiki-e/install-action@nextest
@@ -174,7 +192,7 @@ jobs:
           touch "$RUNNER_TEMP/ci-build.log"
 
       # Compiler and test output names files, lines, tests and screens of the private source: it goes
-      # only to ci-build.log. The public log says which step failed and nothing more.
+      # only to ci-build.log. The public log says which step failed, how long cargo took, and no more.
       - name: Check formatting (cargo fmt)
         run: |
           echo "Passo: cargo fmt --all --check"
@@ -186,21 +204,17 @@ jobs:
             exit 1
           fi
 
-      - name: Workspace check (cargo check)
-        run: |
-          echo "Passo: cargo check --workspace --all-targets"
-          if RUSTFLAGS="-D warnings" cargo check --workspace --all-targets --message-format short >> "$RUNNER_TEMP/ci-build.log" 2>&1; then
-            echo "Resultado: OK"
-          else
-            echo "Resultado: FALHOU"
-            echo "cargo check" > "$RUNNER_TEMP/failed_step"
-            exit 1
-          fi
-
       - name: Clippy (cargo clippy)
         run: |
           echo "Passo: cargo clippy --workspace --all-targets -- -D warnings"
-          if cargo clippy --workspace --all-targets --message-format short -- -D warnings >> "$RUNNER_TEMP/ci-build.log" 2>&1; then
+          CLIPPY_RAW="$RUNNER_TEMP/clippy_raw.log"
+          set +e
+          cargo clippy --workspace --all-targets --message-format short -- -D warnings > "$CLIPPY_RAW" 2>&1
+          CLIPPY_EXIT=$?
+          set -e
+          cat "$CLIPPY_RAW" >> "$RUNNER_TEMP/ci-build.log"
+          sed 's/\x1b\[[0-9;]*m//g' "$CLIPPY_RAW" | grep -E '^ *Finished ' | sed -E 's/^ *//' | tail -1 || true
+          if [ $CLIPPY_EXIT -eq 0 ]; then
             echo "Resultado: OK"
           else
             echo "Resultado: FALHOU"
@@ -247,17 +261,113 @@ jobs:
           done
           rm -f "$RUNNER_TEMP/failed_step"
 
+      # Runs on a timeout or cancellation too: the log of a hung step is the one most needed.
+      - name: Seal the build log
+        if: failure() || cancelled()
+        run: |
+          FAILED_STEP="passo desconhecido"
+          [ -f "$RUNNER_TEMP/failed_step" ] && FAILED_STEP="$(cat "$RUNNER_TEMP/failed_step")"
+          {
+            echo "native-ci ${JOB_KIND} ${MATRIX_OS} ${SHA}: falhou em ${FAILED_STEP}"
+            echo "run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            echo
+            cat "$RUNNER_TEMP/ci-build.log" 2>/dev/null || true
+          } > "$RUNNER_TEMP/sealed.log"
+          node "$RUNNER_TEMP/scripts/ci-log-crypto.cjs" encrypt "$RUNNER_TEMP/scripts/ci-log-key.pub.pem" \
+            "$RUNNER_TEMP/sealed.log" "$RUNNER_TEMP/ci-log.enc.json"
+          rm -f "$RUNNER_TEMP/sealed.log"
+          echo "Falhou em ${FAILED_STEP}; o log completo vai para o ci-logs do repositório privado."
+
+      - name: Upload the sealed log
+        if: failure() || cancelled()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-log-${{ matrix.os }}-lint
+          path: ${{ runner.temp }}/ci-log.enc.json
+          if-no-files-found: ignore
+          retention-days: 1
+
+  tests:
+    name: tests ${{ matrix.os }}
+    needs: resolve
+    if: needs.resolve.outputs.skip != 'true'
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-15, ubuntu-latest, windows-latest]
+    defaults:
+      run:
+        shell: bash
+    env:
+      SHA: ${{ needs.resolve.outputs.sha }}
+      MATRIX_OS: ${{ matrix.os }}
+      JOB_KIND: tests
+    steps:
+      - name: Setup builder scripts
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            .github/scripts/clone-private.sh
+            .github/scripts/ci-log-crypto.cjs
+            .github/ci-log-key.pub.pem
+          sparse-checkout-cone-mode: false
+          path: _builder
+          persist-credentials: false
+
+      - name: Stage builder scripts and clean checkout
+        run: |
+          mkdir -p "$RUNNER_TEMP/scripts"
+          cp _builder/.github/scripts/clone-private.sh _builder/.github/scripts/ci-log-crypto.cjs _builder/.github/ci-log-key.pub.pem "$RUNNER_TEMP/scripts/"
+          rm -rf _builder
+
+      - name: Clone private repository
+        env:
+          DEPLOY_KEY: ${{ secrets.CATARINA_PRIVATE_DEPLOY_KEY }}
+        run: bash "$RUNNER_TEMP/scripts/clone-private.sh" . "$SHA"
+
+      - name: Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: System libraries (Linux)
+        if: runner.os == 'Linux'
+        timeout-minutes: 10
+        run: sudo apt-get -o Acquire::Retries=3 update && sudo apt-get -o Acquire::Retries=3 install -y libfontconfig1-dev libxkbcommon-dev libssl-dev pkg-config libdbus-1-dev
+
+      - name: Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # The ruler job restores this same cache: both build the workspace's tests with the same features.
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: tests
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+
+      - name: Install nextest
+        uses: taiki-e/install-action@nextest
+
+      - name: Initialize log file
+        run: |
+          touch "$RUNNER_TEMP/ci-build.log"
+
       - name: Run tests (cargo nextest)
         run: |
-          echo "Passo: cargo nextest run --workspace --profile ci"
+          echo "Passo: cargo nextest run --workspace --profile ci (sem a régua)"
           NEXTEST_RAW="$RUNNER_TEMP/nextest_raw.log"
           set +e
-          cargo nextest run --workspace --profile ci > "$NEXTEST_RAW" 2>&1
+          cargo nextest run --workspace --profile ci -E "not ${RULER}" > "$NEXTEST_RAW" 2>&1
           NEXTEST_EXIT=$?
           set -e
           cat "$NEXTEST_RAW" >> "$RUNNER_TEMP/ci-build.log"
-          # Only the counts are public; the names of the tests that failed are in the private log.
-          sed 's/\x1b\[[0-9;]*m//g' "$NEXTEST_RAW" | grep -E '^ *Summary \[' | sed -E 's/^ *//' | tail -1 || true
+          # Only the build time and the counts are public; the names of the tests that failed are in the
+          # private log.
+          sed 's/\x1b\[[0-9;]*m//g' "$NEXTEST_RAW" | grep -E '^ *(Finished |Summary \[)' | sed -E 's/^ *//' || true
 
           if [ $NEXTEST_EXIT -eq 0 ]; then
             echo "Resultado: OK"
@@ -273,25 +383,13 @@ jobs:
             exit 1
           fi
 
-      - name: Documentation tests (cargo test --doc)
-        run: |
-          echo "Passo: cargo test --workspace --doc"
-          if cargo test --workspace --doc >> "$RUNNER_TEMP/ci-build.log" 2>&1; then
-            echo "Resultado: OK"
-          else
-            echo "Resultado: FALHOU"
-            echo "cargo test --doc" > "$RUNNER_TEMP/failed_step"
-            exit 1
-          fi
-
-      # Runs on a timeout or cancellation too: the log of a hung step is the one most needed.
       - name: Seal the build log
         if: failure() || cancelled()
         run: |
           FAILED_STEP="passo desconhecido"
           [ -f "$RUNNER_TEMP/failed_step" ] && FAILED_STEP="$(cat "$RUNNER_TEMP/failed_step")"
           {
-            echo "native-ci ${MATRIX_OS} ${SHA}: falhou em ${FAILED_STEP}"
+            echo "native-ci ${JOB_KIND} ${MATRIX_OS} ${SHA}: falhou em ${FAILED_STEP}"
             echo "run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
             echo
             cat "$RUNNER_TEMP/ci-build.log" 2>/dev/null || true
@@ -305,16 +403,152 @@ jobs:
         if: failure() || cancelled()
         uses: actions/upload-artifact@v4
         with:
-          name: ci-log-${{ matrix.os }}
+          name: ci-log-${{ matrix.os }}-tests
           path: ${{ runner.temp }}/ci-log.enc.json
           if-no-files-found: ignore
           retention-days: 1
 
-  # Compiles nothing: decrypts the sealed logs into the private ci-logs branch, records the commit
-  # statuses and decides the Supabase deploy.
+  # The parity ruler and the documentation tests. `--lib` builds only the unit-test binaries, which hold
+  # the ruler, with the same features as the tests job, so the shared cache stays warm for both.
+  ruler:
+    name: ruler ${{ matrix.os }}
+    needs: resolve
+    if: needs.resolve.outputs.skip != 'true'
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-15, ubuntu-latest, windows-latest]
+    defaults:
+      run:
+        shell: bash
+    env:
+      SHA: ${{ needs.resolve.outputs.sha }}
+      MATRIX_OS: ${{ matrix.os }}
+      JOB_KIND: ruler
+    steps:
+      - name: Setup builder scripts
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            .github/scripts/clone-private.sh
+            .github/scripts/ci-log-crypto.cjs
+            .github/ci-log-key.pub.pem
+          sparse-checkout-cone-mode: false
+          path: _builder
+          persist-credentials: false
+
+      - name: Stage builder scripts and clean checkout
+        run: |
+          mkdir -p "$RUNNER_TEMP/scripts"
+          cp _builder/.github/scripts/clone-private.sh _builder/.github/scripts/ci-log-crypto.cjs _builder/.github/ci-log-key.pub.pem "$RUNNER_TEMP/scripts/"
+          rm -rf _builder
+
+      - name: Clone private repository
+        env:
+          DEPLOY_KEY: ${{ secrets.CATARINA_PRIVATE_DEPLOY_KEY }}
+        run: bash "$RUNNER_TEMP/scripts/clone-private.sh" . "$SHA"
+
+      - name: Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: System libraries (Linux)
+        if: runner.os == 'Linux'
+        timeout-minutes: 10
+        run: sudo apt-get -o Acquire::Retries=3 update && sudo apt-get -o Acquire::Retries=3 install -y libfontconfig1-dev libxkbcommon-dev libssl-dev pkg-config libdbus-1-dev
+
+      - name: Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: tests
+          save-if: false
+
+      - name: Install nextest
+        uses: taiki-e/install-action@nextest
+
+      - name: Initialize log file
+        run: |
+          touch "$RUNNER_TEMP/ci-build.log"
+
+      - name: Parity ruler (cargo nextest)
+        run: |
+          echo "Passo: cargo nextest run --workspace --lib --profile ci (só a régua)"
+          NEXTEST_RAW="$RUNNER_TEMP/nextest_raw.log"
+          set +e
+          cargo nextest run --workspace --lib --profile ci -E "${RULER}" > "$NEXTEST_RAW" 2>&1
+          NEXTEST_EXIT=$?
+          set -e
+          cat "$NEXTEST_RAW" >> "$RUNNER_TEMP/ci-build.log"
+          PUBLIC="$(sed 's/\x1b\[[0-9;]*m//g' "$NEXTEST_RAW" | grep -E '^ *(Finished |Summary \[)' | sed -E 's/^ *//' || true)"
+          printf '%s\n' "$PUBLIC"
+          # A filter that matches nothing must not pass as a green ruler.
+          RAN_ONE=false
+          if printf '%s' "$PUBLIC" | grep -qE '\] 1 test run: 1 passed'; then RAN_ONE=true; fi
+          if [ $NEXTEST_EXIT -eq 0 ] && [ "$RAN_ONE" = true ]; then
+            echo "Resultado: OK"
+          else
+            if [ $NEXTEST_EXIT -eq 0 ]; then echo "::error::The ruler filter did not run exactly one test"; fi
+            for dir in "${TMPDIR:-}" "${TMP:-}" "${TEMP:-}" /tmp; do
+              if [ -n "$dir" ] && [ -f "$dir/parity-tails.log" ]; then
+                { echo; echo "--- Telas da régua ($dir/parity-tails.log)"; cat "$dir/parity-tails.log"; } >> "$RUNNER_TEMP/ci-build.log"
+                break
+              fi
+            done
+            echo "Resultado: FALHOU"
+            echo "régua" > "$RUNNER_TEMP/failed_step"
+            exit 1
+          fi
+
+      - name: Documentation tests (cargo test --doc)
+        run: |
+          echo "Passo: cargo test --workspace --doc"
+          if cargo test --workspace --doc >> "$RUNNER_TEMP/ci-build.log" 2>&1; then
+            echo "Resultado: OK"
+          else
+            echo "Resultado: FALHOU"
+            echo "cargo test --doc" > "$RUNNER_TEMP/failed_step"
+            exit 1
+          fi
+
+      - name: Seal the build log
+        if: failure() || cancelled()
+        run: |
+          FAILED_STEP="passo desconhecido"
+          [ -f "$RUNNER_TEMP/failed_step" ] && FAILED_STEP="$(cat "$RUNNER_TEMP/failed_step")"
+          {
+            echo "native-ci ${JOB_KIND} ${MATRIX_OS} ${SHA}: falhou em ${FAILED_STEP}"
+            echo "run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            echo
+            cat "$RUNNER_TEMP/ci-build.log" 2>/dev/null || true
+          } > "$RUNNER_TEMP/sealed.log"
+          node "$RUNNER_TEMP/scripts/ci-log-crypto.cjs" encrypt "$RUNNER_TEMP/scripts/ci-log-key.pub.pem" \
+            "$RUNNER_TEMP/sealed.log" "$RUNNER_TEMP/ci-log.enc.json"
+          rm -f "$RUNNER_TEMP/sealed.log"
+          echo "Falhou em ${FAILED_STEP}; o log completo vai para o ci-logs do repositório privado."
+
+      - name: Upload the sealed log
+        if: failure() || cancelled()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-log-${{ matrix.os }}-ruler
+          path: ${{ runner.temp }}/ci-log.enc.json
+          if-no-files-found: ignore
+          retention-days: 1
+
+  # Compiles nothing: decrypts the sealed logs into the private ci-logs branch, records one commit
+  # status per system (green only when its lint, tests and ruler are), decides the Supabase deploy and
+  # keeps one generation of each Rust cache.
   report:
     name: report
-    needs: [resolve, check]
+    needs: [resolve, lint, tests, ruler]
     if: always() && needs.resolve.result == 'success' && needs.resolve.outputs.skip != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -330,6 +564,7 @@ jobs:
           sparse-checkout: |
             .github/scripts/ci-log-crypto.cjs
             .github/scripts/persist-private-log.sh
+            .github/scripts/prune-rust-caches.sh
           sparse-checkout-cone-mode: false
           persist-credentials: false
 
@@ -349,12 +584,12 @@ jobs:
           source .github/scripts/persist-private-log.sh
           shopt -s nullglob
           for ENVELOPE in "$RUNNER_TEMP"/sealed/ci-log-*/ci-log.enc.json; do
-            OS="$(basename "$(dirname "$ENVELOPE")")"
-            OS="${OS#ci-log-}"
-            if node .github/scripts/ci-log-crypto.cjs decrypt "$ENVELOPE" "$RUNNER_TEMP/$OS.log"; then
-              persist_private_build_log "$RUNNER_TEMP/$OS.log" "$OS" "$OS"
+            NAME="$(basename "$(dirname "$ENVELOPE")")"
+            NAME="${NAME#ci-log-}"
+            if node .github/scripts/ci-log-crypto.cjs decrypt "$ENVELOPE" "$RUNNER_TEMP/$NAME.log"; then
+              persist_private_build_log "$RUNNER_TEMP/$NAME.log" "$NAME" "$NAME"
             fi
-            rm -f "$RUNNER_TEMP/$OS.log"
+            rm -f "$RUNNER_TEMP/$NAME.log"
           done
 
       - name: Record the commit statuses
@@ -366,14 +601,19 @@ jobs:
           set -euo pipefail
           echo "::add-mask::${PRIVATE_WRITE_TOKEN}"
           gh api --paginate "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/attempts/${GITHUB_RUN_ATTEMPT}/jobs" \
-            --jq '.jobs[] | select(.name == "macos-15" or .name == "ubuntu-latest" or .name == "windows-latest")
-                  | [.name, (.conclusion // "cancelled"), ([.steps[] | select(.conclusion == "failure") | .name][0] // "")] | @tsv' \
+            --jq '.jobs[] | select(.name | test("^(lint|tests|ruler) (macos-15|ubuntu-latest|windows-latest)$"))
+                  | (.name | split(" ")) as $n
+                  | [$n[1], $n[0], (.conclusion // "cancelled"), ([.steps[] | select(.conclusion == "failure") | .name][0] // "")] | @tsv' \
             > "$RUNNER_TEMP/jobs.tsv"
-          while IFS=$'\t' read -r OS CONCLUSION STEP; do
-            if [ "$CONCLUSION" = "success" ]; then
-              STATE=success; DESCRIPTION="native-ci passed"
+          for OS in macos-15 ubuntu-latest windows-latest; do
+            # A system is green only when its three jobs ran and passed.
+            PASSED="$(awk -F'\t' -v os="$OS" '$1 == os && $3 == "success"' "$RUNNER_TEMP/jobs.tsv" | wc -l | tr -d ' ')"
+            if [ "$PASSED" = 3 ]; then
+              STATE=success; DESCRIPTION="native-ci passed"; CONCLUSION=success
             else
-              STATE=failure; DESCRIPTION="Failed at ${STEP:-$CONCLUSION}"
+              STATE=failure; CONCLUSION=failure
+              DESCRIPTION="$(awk -F'\t' -v os="$OS" '$1 == os && $3 != "success" { printf "%s%s: %s", sep, $2, ($4 != "" ? $4 : $3); sep = "; " }' "$RUNNER_TEMP/jobs.tsv")"
+              DESCRIPTION="Failed at ${DESCRIPTION:-a job that did not run}"
             fi
             [ "$OS" = "ubuntu-latest" ] && echo "ubuntu=$CONCLUSION" >> "$GITHUB_OUTPUT"
             BODY="$(jq -cn --arg state "$STATE" --arg description "${DESCRIPTION:0:140}" --arg context "native-ci/$OS" \
@@ -383,8 +623,8 @@ jobs:
               -H "Authorization: Bearer ${PRIVATE_WRITE_TOKEN}" \
               -H "Accept: application/vnd.github+json" \
               -d "$BODY" >/dev/null 2>&1 || echo "::warning::Could not record the status of $OS"
-            echo "$OS: $STATE"
-          done < "$RUNNER_TEMP/jobs.tsv"
+            echo "$OS: $STATE ${DESCRIPTION}"
+          done
 
       - name: Trigger Supabase deploy
         # Only main deploys; a run from another branch tests this workflow.
@@ -417,11 +657,20 @@ jobs:
             echo "Nenhuma alteração em supabase/ desde $LAST_DEPLOYED_SHA."
           fi
 
+      # The repository has 10 GB of cache. Each Cargo.lock change saved a new generation beside the old
+      # one, the total reached 9.9 GB and GitHub evicted caches still in use, so builds started cold.
+      - name: Keep one generation of each Rust cache
+        if: github.ref == 'refs/heads/main'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash .github/scripts/prune-rust-caches.sh
+
   unstable:
     # Every commit of main that passes on the three systems becomes an unstable (beta) release;
     # promoting it to stable stays a manual native-promote run. A run from another branch never releases.
     name: unstable release
-    needs: [resolve, check]
+    needs: [resolve, lint, tests, ruler]
     if: github.ref == 'refs/heads/main' && needs.resolve.outputs.skip != 'true' && success()
     runs-on: ubuntu-latest
     timeout-minutes: 5
