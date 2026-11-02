@@ -324,22 +324,16 @@ jobs:
       - name: Start the clock
         run: echo "t0=$(date +%s)" > "$RUNNER_TEMP/metrics.env"
 
-      - name: Setup builder scripts
-        uses: actions/checkout@v4
-        with:
-          sparse-checkout: |
-            .github/scripts/clone-private.sh
-            .github/scripts/ci-log-crypto.cjs
-            .github/ci-log-key.pub.pem
-          sparse-checkout-cone-mode: false
-          path: _builder
-          persist-credentials: false
-
-      - name: Stage builder scripts and clean checkout
+      # W6 (ADR 0082): the three builder files come straight from this commit of the public repository;
+      # the checkout action took 6 to 11 s on Windows.
+      - name: Stage builder scripts
+        env:
+          BASE: https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}
         run: |
           mkdir -p "$RUNNER_TEMP/scripts"
-          cp _builder/.github/scripts/clone-private.sh _builder/.github/scripts/ci-log-crypto.cjs _builder/.github/ci-log-key.pub.pem "$RUNNER_TEMP/scripts/"
-          rm -rf _builder
+          for F in .github/scripts/clone-private.sh .github/scripts/ci-log-crypto.cjs .github/ci-log-key.pub.pem; do
+            curl -fsSL --retry 3 -o "$RUNNER_TEMP/scripts/${F##*/}" "$BASE/$F"
+          done
 
       - name: Clone private repository
         env:
@@ -530,22 +524,16 @@ jobs:
       - name: Start the clock
         run: echo "t0=$(date +%s)" > "$RUNNER_TEMP/metrics.env"
 
-      - name: Setup builder scripts
-        uses: actions/checkout@v4
-        with:
-          sparse-checkout: |
-            .github/scripts/clone-private.sh
-            .github/scripts/ci-log-crypto.cjs
-            .github/ci-log-key.pub.pem
-          sparse-checkout-cone-mode: false
-          path: _builder
-          persist-credentials: false
-
-      - name: Stage builder scripts and clean checkout
+      # W6 (ADR 0082): the three builder files come straight from this commit of the public repository;
+      # the checkout action took 6 to 11 s on Windows.
+      - name: Stage builder scripts
+        env:
+          BASE: https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}
         run: |
           mkdir -p "$RUNNER_TEMP/scripts"
-          cp _builder/.github/scripts/clone-private.sh _builder/.github/scripts/ci-log-crypto.cjs _builder/.github/ci-log-key.pub.pem "$RUNNER_TEMP/scripts/"
-          rm -rf _builder
+          for F in .github/scripts/clone-private.sh .github/scripts/ci-log-crypto.cjs .github/ci-log-key.pub.pem; do
+            curl -fsSL --retry 3 -o "$RUNNER_TEMP/scripts/${F##*/}" "$BASE/$F"
+          done
 
       - name: Clone private repository
         env:
@@ -783,22 +771,16 @@ jobs:
       - name: Start the clock
         run: echo "t0=$(date +%s)" > "$RUNNER_TEMP/metrics.env"
 
-      - name: Setup builder scripts
-        uses: actions/checkout@v4
-        with:
-          sparse-checkout: |
-            .github/scripts/clone-private.sh
-            .github/scripts/ci-log-crypto.cjs
-            .github/ci-log-key.pub.pem
-          sparse-checkout-cone-mode: false
-          path: _builder
-          persist-credentials: false
-
-      - name: Stage builder scripts and clean checkout
+      # W6 (ADR 0082): the three builder files come straight from this commit of the public repository;
+      # the checkout action took 6 to 11 s on Windows.
+      - name: Stage builder scripts
+        env:
+          BASE: https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}
         run: |
           mkdir -p "$RUNNER_TEMP/scripts"
-          cp _builder/.github/scripts/clone-private.sh _builder/.github/scripts/ci-log-crypto.cjs _builder/.github/ci-log-key.pub.pem "$RUNNER_TEMP/scripts/"
-          rm -rf _builder
+          for F in .github/scripts/clone-private.sh .github/scripts/ci-log-crypto.cjs .github/ci-log-key.pub.pem; do
+            curl -fsSL --retry 3 -o "$RUNNER_TEMP/scripts/${F##*/}" "$BASE/$F"
+          done
 
       # The tests read fixtures from the workspace, so the archive runs over the same checkout.
       - name: Clone private repository
@@ -1116,22 +1098,16 @@ jobs:
       - name: Start the clock
         run: echo "t0=$(date +%s)" > "$RUNNER_TEMP/metrics.env"
 
-      - name: Setup builder scripts
-        uses: actions/checkout@v4
-        with:
-          sparse-checkout: |
-            .github/scripts/clone-private.sh
-            .github/scripts/ci-log-crypto.cjs
-            .github/ci-log-key.pub.pem
-          sparse-checkout-cone-mode: false
-          path: _builder
-          persist-credentials: false
-
-      - name: Stage builder scripts and clean checkout
+      # W6 (ADR 0082): the three builder files come straight from this commit of the public repository;
+      # the checkout action took 6 to 11 s on Windows.
+      - name: Stage builder scripts
+        env:
+          BASE: https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}
         run: |
           mkdir -p "$RUNNER_TEMP/scripts"
-          cp _builder/.github/scripts/clone-private.sh _builder/.github/scripts/ci-log-crypto.cjs _builder/.github/ci-log-key.pub.pem "$RUNNER_TEMP/scripts/"
-          rm -rf _builder
+          for F in .github/scripts/clone-private.sh .github/scripts/ci-log-crypto.cjs .github/ci-log-key.pub.pem; do
+            curl -fsSL --retry 3 -o "$RUNNER_TEMP/scripts/${F##*/}" "$BASE/$F"
+          done
 
       - name: Clone the private repository at the commit
         env:
