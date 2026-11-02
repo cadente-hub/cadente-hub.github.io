@@ -28,11 +28,6 @@ on:
         required: false
         default: false
         type: boolean
-      plant_energy:
-        description: "Branch runs only (P6 proof): count this version's CPU and energy 25% above what it measured"
-        required: false
-        default: false
-        type: boolean
       lock_update:
         description: "Branch runs only (W4 proof): change one dependency of Cargo.lock in the tests job, as name@version"
         required: false
@@ -1429,34 +1424,42 @@ jobs:
           EXE: ${{ steps.install.outputs.exe }}
           MEASURE: ${{ matrix.measure }}
           TARGET: ${{ matrix.target }}
-          PLANT_ENERGY: ${{ github.ref != 'refs/heads/main' && inputs.plant_energy }}
         run: |
           set -euo pipefail
           # Only the reports reach stdout. The Core's stderr stays in a file that this public log
           # never prints (xvfb-run would mix it into stdout).
           ERR="$RUNNER_TEMP/core-stderr.log"
           export ERR
-          # measure <binary> <output> <home>: 0 when it finished, 1 when the Windows runner held it
-          # past 180 s (it does not draw there, D3), the Core's status otherwise.
+          # measure <binary> <output> <home> [beta]: the Core's status. It has 300 s, and 20 s to
+          # exit once its report is out (D3: it closes). The last beta may not exit on Windows
+          # (1.1.0-beta.7 waited forever for its runtime there); for it the report is enough.
           measure() {
-            local OUT="$2" STATUS=0
+            local OUT="$2" STATUS=0 WAITED=0 REPORTED=""
             export OUT CADENTE_HOME="$3"
             # shellcheck disable=SC2086,SC2016
             if [ "$RUNNER_OS" = "Linux" ]; then
-              xvfb-run -a -s "-screen 0 1440x900x24" sh -c 'exec "$0" "$@" > "$OUT" 2>> "$ERR"' "$1" --measure $MEASURE || STATUS=$?
-            elif [ "$RUNNER_OS" = "Windows" ]; then
+              xvfb-run -a -s "-screen 0 1440x900x24" sh -c 'exec "$0" "$@" > "$OUT" 2>> "$ERR"' "$1" --measure $MEASURE &
+            else
               "$1" --measure $MEASURE > "$OUT" 2>> "$ERR" &
-              local PID=$!
-              for _ in $(seq 1 180); do kill -0 "$PID" 2>/dev/null || break; sleep 1; done
-              if kill -0 "$PID" 2>/dev/null; then
+            fi
+            local PID=$!
+            while kill -0 "$PID" 2>/dev/null; do
+              if [ -z "$REPORTED" ] && grep -q '"states"' "$OUT" 2>/dev/null; then REPORTED=$WAITED; fi
+              if [ -n "$REPORTED" ] && [ $((WAITED - REPORTED)) -ge 20 ]; then
                 kill "$PID" 2>/dev/null || true
-                echo "::warning::$1 did not finish the measurement on the hosted Windows runner within 180 s"
+                [ "${4:-}" = beta ] && return 0
+                echo "::error::$1 wrote its report and did not exit within 20 s (D3)"
                 return 1
               fi
-              wait "$PID" || STATUS=$?
-            else
-              "$1" --measure $MEASURE > "$OUT" 2>> "$ERR" || STATUS=$?
-            fi
+              if [ "$WAITED" -ge 300 ]; then
+                kill "$PID" 2>/dev/null || true
+                echo "::error::$1 did not finish the measurement within 300 s"
+                return 1
+              fi
+              sleep 1
+              WAITED=$((WAITED + 1))
+            done
+            wait "$PID" || STATUS=$?
             return "$STATUS"
           }
           POWER=""
@@ -1467,30 +1470,41 @@ jobs:
             sudo powermetrics --samplers tasks --show-process-energy -i 1000 -f plist -o "$POWER" \
               > /dev/null 2> "$RUNNER_TEMP/powermetrics.err" &
           fi
-          BETA_OUT=""
-          OLD="$(ls "$RUNNER_TEMP"/beta/cadente "$RUNNER_TEMP"/beta/cadente.exe 2>/dev/null | head -1 || true)"
-          if [ -n "$OLD" ]; then
-            chmod +x "$OLD"
-            BETA_OUT="$RUNNER_TEMP/beta.out"
-            measure "$OLD" "$BETA_OUT" "$RUNNER_TEMP/beta-home" || echo "::warning::the last beta's measurement did not finish"
-          fi
+          # The full run first: P1, P4 and P5, and the warm-up of the runner for P6.
           STATUS=0
           measure "$DIR/cadente-core$EXE" "$RUNNER_TEMP/measure.out" "$RUNNER_TEMP/cadente-home" || STATUS=$?
+          # P6: the last beta and this version alternately (B A A B), without the sessions of P5.
+          P6_BETA="" P6_NEW=""
+          OLD="$(ls "$RUNNER_TEMP"/beta/cadente "$RUNNER_TEMP"/beta/cadente.exe 2>/dev/null | head -1 || true)"
+          if [ -n "$OLD" ] && [ "$STATUS" = 0 ]; then
+            chmod +x "$OLD"
+            export CADENTE_MEASURE_CHATS=0 CADENTE_MEASURE_TERMINALS=0 CADENTE_MEASURE_CLOSED_S=10
+            for RUN in beta-1 new-1 new-2 beta-2; do
+              OUT="$RUNNER_TEMP/p6-$RUN.out"
+              case "$RUN" in
+                beta-*) measure "$OLD" "$OUT" "$RUNNER_TEMP/home-$RUN" beta || echo "::warning::the last beta's run $RUN did not finish"
+                  P6_BETA="$P6_BETA,$OUT" ;;
+                new-*) measure "$DIR/cadente-core$EXE" "$OUT" "$RUNNER_TEMP/home-$RUN" || STATUS=$?
+                  P6_NEW="$P6_NEW,$OUT" ;;
+              esac
+            done
+            unset CADENTE_MEASURE_CHATS CADENTE_MEASURE_TERMINALS CADENTE_MEASURE_CLOSED_S
+          fi
+          export P6_BETA P6_NEW
           if [ -n "$POWER" ]; then
             sudo pkill -INT powermetrics || true
             sleep 2
             echo "powermetrics: $(wc -c < "$POWER" 2>/dev/null || echo 0) bytes"
             head -c 600 "$RUNNER_TEMP/powermetrics.err" || true
           fi
-          if [ -n "$BETA_OUT" ]; then echo "última beta:"; cat "$BETA_OUT" || true; echo "esta versão:"; fi
+          echo "esta versão, rodada completa:"
           cat "$RUNNER_TEMP/measure.out"
-          if [ "$RUNNER_OS" = "Windows" ] && [ "$STATUS" = 1 ]; then
-            python3 "$RUNNER_TEMP/scripts/smoke-measure.py" "$RUNNER_TEMP/measure.out" "$RUNNER_TEMP/measure.json" "$TARGET" || true
-            exit 0
-          fi
-          [ "$STATUS" = 0 ] || { echo "::error::the Core exited with $STATUS"; exit "$STATUS"; }
+          for FILE in ${P6_BETA//,/ } ${P6_NEW//,/ }; do echo "$(basename "$FILE"):"; tail -1 "$FILE" || true; done
+          RESULT=0
           python3 "$RUNNER_TEMP/scripts/smoke-measure.py" "$RUNNER_TEMP/measure.out" "$RUNNER_TEMP/measure.json" "$TARGET" \
-            "$POWER" "$BETA_OUT"
+            "$POWER" || RESULT=$?
+          [ "$STATUS" = 0 ] || { echo "::error::the Core exited with $STATUS"; exit "$STATUS"; }
+          exit "$RESULT"
 
       - uses: actions/upload-artifact@v4
         if: always()

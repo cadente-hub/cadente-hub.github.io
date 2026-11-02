@@ -1,14 +1,19 @@
 #!/usr/bin/env python3
-"""ADR 0081 P1, P4, P5 and P6: reads `cadente-core --measure`, adds the energy that powermetrics
-saw on macOS, writes the job summary and fails the job when a measurement leaves its limit.
+"""ADR 0081 P1, P2, P4, P5 and P6, and D3: reads `cadente-core --measure`, adds the energy that
+powermetrics saw on macOS, writes the job summary and fails the job when a measurement leaves
+its limit.
 
-usage: smoke-measure.py <measure output> <final report> <target> [powermetrics plist] [beta output]
+usage: smoke-measure.py <measure output> <final report> <target> [powermetrics plist]
 
-The beta output is the last published beta's `--measure`, run first on the same runner: P6
-compares the two there, since two hosted runners differ by more than the 10% it allows.
+P6 reads two more lists of `--measure` outputs, comma-separated, from the environment: P6_BETA
+(the last published beta) and P6_NEW (this version), measured alternately on this runner after
+the full run (B A A B). The first `--measure` on a runner is cold: in an A/A test of the same
+code (diag-p5, run 41518156298) it spent 359 ms/s of CPU in the script and the next five 740 to
+868. Zed's gpui-bench skill (`.agents/skills/gpui-bench/SKILL.md`): do not compare a cold
+baseline with a warm candidate, and alternate baseline and candidate runs when results are noisy.
 
-The measure output has one JSON line per finished state and the whole report last; a run that
-never finished (the Windows runner that does not draw, D3) still shows the states it measured.
+Each output has one JSON line per finished state and the whole report last; a run that never
+finished still shows the states it measured.
 """
 import json
 import os
@@ -17,20 +22,32 @@ import sys
 
 out, final, target = sys.argv[1], sys.argv[2], sys.argv[3]
 power = sys.argv[4] if len(sys.argv) > 4 and sys.argv[4] else None
-beta_out = sys.argv[5] if len(sys.argv) > 5 and sys.argv[5] else None
 system = os.environ.get("RUNNER_OS", "?")
 summary = open(os.environ.get("GITHUB_STEP_SUMMARY", os.devnull), "a", encoding="utf-8")
 # The Windows runner's console is cp1252; the errors below carry Portuguese.
 sys.stdout.reconfigure(encoding="utf-8")
 
+
 def read(path):
-    lines = [json.loads(line) for line in open(path, encoding="utf-8") if line.strip().startswith("{")]
+    if not path or not os.path.exists(path):
+        return None, []
+    lines = []
+    for line in open(path, encoding="utf-8", errors="replace"):
+        if line.strip().startswith("{"):
+            try:
+                lines.append(json.loads(line))
+            except ValueError:
+                continue
     report = next((line for line in reversed(lines) if "states" in line), None)
     return report, (report["states"] if report else [line for line in lines if "state" in line])
 
 
+def paths(var):
+    return [p for p in os.environ.get(var, "").split(",") if p]
+
+
 report, states = read(out)
-beta, beta_states = read(beta_out) if beta_out and os.path.exists(beta_out) else (None, [])
+p6 = {name: [read(p) for p in paths(var)] for name, var in (("beta", "P6_BETA"), ("new", "P6_NEW"))}
 
 # powermetrics: one plist per sample, NUL-separated; each task line has the energy impact per
 # second of its interval. A sample counts for a state when it lies inside it.
@@ -68,15 +85,9 @@ def energy(which, which_states):
 
 
 energy(report, states)
-energy(beta, beta_states)
-
-# P6 proof on a branch (`plant_energy`): this version counts 25% more CPU and energy.
-if os.environ.get("PLANT_ENERGY") == "true":
-    print("::warning::plant_energy: esta versão conta 25% a mais de CPU e energia")
-    for state in states:
-        state["cpuMs"] = int(state["cpuMs"] * 1.25)
-        if state.get("energyImpactPerS") is not None:
-            state["energyImpactPerS"] = round(state["energyImpactPerS"] * 1.25, 3)
+for runs in p6.values():
+    for which, which_states in runs:
+        energy(which, which_states)
 
 if report:
     json.dump(report, open(final, "w"))
@@ -87,27 +98,30 @@ if not report:
 summary.write("| estado | s | quadros | CPU % | despertares/s | memória MB | energia/s |\n")
 summary.write("|---|---|---|---|---|---|---|\n")
 for state in states:
-    energy = state.get("energyImpactPerS")
-    if energy is None and state.get("energyNj"):
-        energy = f"{state['energyNj'] / state['seconds'] / 1e6:.2f} mJ"
+    value = state.get("energyImpactPerS")
+    if value is None and state.get("energyNj"):
+        value = f"{state['energyNj'] / state['seconds'] / 1e6:.2f} mJ"
     summary.write(
         f"| {state['state']} | {state['seconds']} | {state['frames']} | {state['cpuPercent']} | "
         f"{state.get('wakeupsPerSecond')} | {state.get('footprintKib', state['rssKib']) / 1024:.1f} | "
-        f"{energy if energy is not None else '—'} |\n"
+        f"{value if value is not None else '—'} |\n"
     )
 
 failures = []
-if report:
+if not report:
+    failures.append("D3: o `--measure` não terminou com o relatório")
+else:
     frames, cpu = report.get("drawnFrames", 0), report["frameCpuMs"]
     churn, memory = report.get("churn") or {}, report.get("memoryKib") or {}
+    limit = report["budget"]["cpuP99MaxMs"]
     summary.write(
-        f"\nQuadro p99 {cpu.get('p99')} ms (limite {report['budget']['cpuP99MaxMs']} ms, "
-        f"pass={report['pass']}); memória aberta {memory.get('windowOpen')} KiB, antes de fechar "
-        f"{memory.get('beforeClose')} KiB, destruída {memory.get('windowClosed')} KiB; "
-        f"{churn.get('chats')} Chats e {churn.get('terminals')} terminais, duas vezes: o primeiro ciclo "
-        f"{churn.get('firstCycleGrowthPercent')}%, o segundo {churn.get('baseKib')} → "
-        f"{churn.get('afterKib')} KiB ({churn.get('growthPercent')}%, tolerância "
-        f"{churn.get('tolerancePercent')}%).\n"
+        f"\nQuadro p50 {cpu.get('p50')} ms, p95 {cpu.get('p95')} ms, p99 {cpu.get('p99')} ms "
+        f"(limite {limit} ms, {cpu.get('n')} quadros do roteiro); memória aberta "
+        f"{memory.get('windowOpen')} KiB, antes de fechar {memory.get('beforeClose')} KiB, destruída "
+        f"{memory.get('windowClosed')} KiB; {churn.get('chats')} Chats e {churn.get('terminals')} "
+        f"terminais, duas vezes: o primeiro ciclo {churn.get('firstCycleGrowthPercent')}%, o segundo "
+        f"{churn.get('baseKib')} → {churn.get('afterKib')} KiB ({churn.get('growthPercent')}%, "
+        f"tolerância {churn.get('tolerancePercent')}%).\n"
     )
     if "tray" in report:
         summary.write(f"\nBandeja: `{json.dumps(report['tray'], ensure_ascii=False)}`\n")
@@ -118,11 +132,8 @@ if report:
         wanted = ["cadente.tray.open", "cadente.tray.launcher", "cadente.tray.quit"]
         if not tray.get("created") or not tray.get("placed") or any(w not in base for w in wanted):
             failures.append(f"D1: a bandeja não está na barra com a base: {tray}")
-    if frames <= 0 and system == "Windows":
-        # D3 stays open: the hosted Windows runner draws no frame yet; its numbers still count.
-        print("::warning::nenhum quadro desenhado no Windows (D3)")
-    elif frames <= 0:
-        failures.append(f"nenhum quadro desenhado: {report}")
+    if frames <= 0:
+        failures.append("D3: nenhum quadro desenhado")
     if report.get("closedQuiet") is not True:
         failures.append("P4: a janela destruída passou de 1% de CPU ou abriu processo filho")
     if report.get("closedBelowOpen") is not True:
@@ -133,29 +144,44 @@ if report:
             f"o primeiro, {churn.get('firstCycleGrowthPercent')}%)"
         )
 
-# P6: energy (CPU time where the runner has no energy counter) of each state, per second,
-# against the last published beta measured just before on this runner. A difference below the
-# noise of an idle state is not a regression: 0.05 energy impact per second, or 5 ms of CPU per
-# second (0.5% of one core).
-if report and beta:
-    summary.write(f"\nÚltima beta ({beta.get('version', 'publicada')}) no mesmo runner:\n\n")
+# P6: energy (CPU time where the runner has no energy counter) of each state, per second: the
+# mean of this version's runs against the mean of the last beta's, measured alternately here.
+# A difference below the noise of an idle state is not a regression: 0.05 energy impact per
+# second, or 5 ms of CPU per second (0.5% of one core).
+beta_runs = [states for which, states in p6["beta"] if which]
+new_runs = [states for which, states in p6["new"] if which]
+if beta_runs and new_runs:
+    version = next((which.get("version") for which, _ in p6["beta"] if which and which.get("version")), "publicada")
+    summary.write(
+        f"\nÚltima beta ({version}) contra esta versão no mesmo runner, depois de uma rodada de "
+        f"aquecimento, alternadas ({len(beta_runs)} e {len(new_runs)} rodadas; média por estado):\n\n"
+    )
     summary.write("| estado | métrica | última beta | esta versão | diferença |\n|---|---|---|---|---|\n")
-    old = {s["state"]: s for s in beta_states}
-    for state in states:
-        before = old.get(state["state"])
-        if not before:
+
+    def per_second(runs, name):
+        found = [s for run in runs for s in run if s["state"] == name]
+        if not found:
+            return None, None
+        energies = [s.get("energyImpactPerS") for s in found]
+        cpu = sum(s["cpuMs"] / s["seconds"] for s in found) / len(found)
+        if all(e is not None for e in energies):
+            return sum(energies) / len(energies), cpu
+        return None, cpu
+
+    for name in ("script", "idleOpen", "closed"):
+        old_energy, old_cpu = per_second(beta_runs, name)
+        new_energy, new_cpu = per_second(new_runs, name)
+        if old_cpu is None or new_cpu is None:
+            failures.append(f"P6: o estado {name} faltou numa das medições")
             continue
-        if state.get("energyImpactPerS") is not None and before.get("energyImpactPerS") is not None:
-            name, new, prev, floor = "energia/s", state["energyImpactPerS"], before["energyImpactPerS"], 0.05
+        if old_energy is not None and new_energy is not None:
+            metric, prev, new, floor = "energia/s", old_energy, new_energy, 0.05
         else:
-            name = "CPU ms/s"
-            new = state["cpuMs"] / state["seconds"]
-            prev = before["cpuMs"] / before["seconds"]
-            floor = 5.0
+            metric, prev, new, floor = "CPU ms/s", old_cpu, new_cpu, 5.0
         change = (new / prev - 1) * 100 if prev else 0.0
-        summary.write(f"| {state['state']} | {name} | {prev:.3f} | {new:.3f} | {change:+.1f}% |\n")
+        summary.write(f"| {name} | {metric} | {prev:.3f} | {new:.3f} | {change:+.1f}% |\n")
         if new > prev * 1.10 and new - prev > floor:
-            failures.append(f"P6: {state['state']} gasta {change:+.1f}% de {name} acima da última beta")
+            failures.append(f"P6: {name} gasta {change:+.1f}% de {metric} acima da última beta")
 elif report:
     summary.write("\nSem medição da última beta neste runner: o P6 não comparou.\n")
 
