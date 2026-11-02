@@ -93,19 +93,22 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # The Intel Mac build compiles on Apple Silicon: the macos-15-intel runner took 31 to 45 min for
+        # the same build that takes 9 to 16 here, and no step runs the x64 binary on the build machine.
         include:
           - { os: macos-15, target: aarch64-apple-darwin }
-          - { os: macos-15-intel, target: x86_64-apple-darwin }
+          - { os: macos-15, target: x86_64-apple-darwin }
           - { os: ubuntu-22.04, target: x86_64-unknown-linux-gnu }
           - { os: windows-latest, target: x86_64-pc-windows-msvc }
     defaults:
       run:
         shell: bash
+    # No XTASK_FREE_DISK: deleting the compiled dependencies before rust-cache saved them left a 173 MB
+    # cache, and every release compiled all ~700 crates again.
     env:
       RELEASE_VERSION: ${{ needs.resolve.outputs.version }}
       RELEASE_CHANNEL: ${{ inputs.channel }}
       APPLE_SIGNING_IDENTITY: "-"
-      XTASK_FREE_DISK: "1"
     steps:
       - name: Setup builder scripts
         uses: actions/checkout@v4
@@ -133,9 +136,18 @@ jobs:
         with:
           targets: ${{ matrix.target }}
 
+      # The build uses the toolchain pinned in rust-toolchain.toml, not `stable`: the cross target goes
+      # into that one.
+      - name: Target of the pinned toolchain
+        working-directory: src
+        run: rustup target add "${{ matrix.target }}"
+
+      # Both Mac targets build on the same runner type, so the target goes into the cache key.
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: src
+          key: ${{ matrix.target }}
+          save-if: ${{ github.ref == 'refs/heads/main' }}
 
       - name: System libraries (Linux)
         if: runner.os == 'Linux'
@@ -182,6 +194,7 @@ jobs:
           set -euo pipefail
           echo "Passo: cargo xtask bundle --target ${{ matrix.target }}"
           if cargo xtask bundle --target "${{ matrix.target }}" > "$RUNNER_TEMP/release-build.log" 2>&1; then
+            sed 's/\x1b\[[0-9;]*m//g' "$RUNNER_TEMP/release-build.log" | grep -E '^ *Finished ' | sed -E 's/^ *//' || true
             echo "Resultado: OK"
           else
             echo "Resultado: FALHOU"
@@ -324,12 +337,14 @@ jobs:
             # finished drawing there (run 41376977511 hung 20 min). The install and the launcher
             # check above still gate the release; the draw is measured on Linux and macOS, and here
             # only reported until the runner can show it (D3 stays open in docs/MIGRATION.md).
+            # The measurement takes 5 s; 60 s is twelve times that. The 240 s wait it replaces
+            # always ran out (run 41382444097) and held every release for 4 min.
             "$CORE" --measure $MEASURE > "$OUT" 2> "$ERR" &
             PID=$!
-            for _ in $(seq 1 240); do kill -0 "$PID" 2>/dev/null || break; sleep 1; done
+            for _ in $(seq 1 60); do kill -0 "$PID" 2>/dev/null || break; sleep 1; done
             if kill -0 "$PID" 2>/dev/null; then
               kill "$PID" 2>/dev/null || true
-              echo "::warning::the Core did not finish drawing on the hosted Windows runner within 240 s"
+              echo "::warning::the Core did not finish drawing on the hosted Windows runner within 60 s"
               exit 0
             fi
             wait "$PID" || STATUS=$?
@@ -361,9 +376,10 @@ jobs:
 
   sign:
     # Holds the release key. Compiles only xtask (no third-party action, no shared cache) and packs
-    # the update payloads from the binaries the package jobs built.
+    # the update payloads from the binaries the package jobs built. It runs beside the smoke tests:
+    # signing publishes nothing, and `publish` waits for both.
     name: sign the payloads and the feed
-    needs: [resolve, package, smoke]
+    needs: [resolve, package]
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
@@ -441,9 +457,10 @@ jobs:
           retention-days: 1
 
   publish:
-    # Holds the release token and compiles nothing. Only a run from main publishes.
+    # Holds the release token and compiles nothing. Only a run from main publishes, and only after the
+    # packages passed the smoke tests.
     name: publish
-    needs: [resolve, sign]
+    needs: [resolve, sign, smoke]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 20
