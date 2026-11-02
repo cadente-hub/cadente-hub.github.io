@@ -1,8 +1,8 @@
 {
   "meta": {
     "title": "Cadente — the hub where everything is a plugin, even the AI",
-    "description": "Cadente is a free desktop app that puts Claude Code, Codex, a terminal, a database, notes and a calendar in one window. Everything is a plugin, even the AI.",
-    "ogDescription": "The hub where everything is a plugin, even the AI: agents, terminal, database and notes in one window.",
+    "description": "Cadente is a free desktop app that puts Claude Code, Codex, a terminal and a database in one window. Everything is a plugin, even the AI.",
+    "ogDescription": "The hub where everything is a plugin, even the AI: agents, terminal and database in one window.",
     "skip": "Skip to content"
   },
   "nav": {
@@ -19,7 +19,7 @@
   },
   "hero": {
     "eyebrow": "Free · Mac, Windows and Linux · built in Rust · 15 languages",
-    "lede": "Agents, terminal, database, notes and calendar in the same window, all from the keyboard. Every part is a plugin: keep what you use, swap what you want and turn off the rest, even the AI. And it costs nothing.",
+    "lede": "Agents, terminal and database in the same window, all from the keyboard. Every part is a plugin: keep what you use, swap what you want and turn off the rest, even the AI. And it costs nothing.",
     "watch": "Watch a working day",
     "anyCli": "any CLI",
     "before": "Cadente is",
@@ -29,7 +29,7 @@
   },
   "theater": {
     "label": "Cadente in use",
-    "intro": "A working day in Cadente, from 9 am to the end of the day",
+    "intro": "A working day in the Cadente prototype, the design the app is heading to; some plugins in this window are still on their way",
     "chapters": "Chapters"
   },
   "creator": {
@@ -83,7 +83,7 @@
   "plugins": {
     "eyebrow": "Built-in plugins",
     "title": "Every pane becomes<br /><span class=\"muted\">what you need.</span>",
-    "lede": "Chat, Terminal, Workspaces, Requests, Calendar, Focus: the built-in plugins all work the same way. <kbd>↵</kbd> opens, <kbd>.</kbd> shows what you can do, <kbd>/</kbd> lists the commands, <kbd>⇥</kbd> switches the view. Learn one and you know them all. Click one to see it.",
+    "lede": "Chat, Terminal, Workspaces, Projects, Automations, Focus: the built-in plugins all work the same way. <kbd>↵</kbd> opens, <kbd>.</kbd> shows what you can do, <kbd>/</kbd> lists the commands, <kbd>⇥</kbd> switches the view. Learn one and you know them all. Click one to see it.",
     "gridLabel": "Built-in plugins",
     "communityBig": "<span class=\"violet-text\">And the ones</span><br />the community builds.",
     "communityText": "The store opens soon: anyone can publish, and installing is always free. Don’t use AI? Keep only the productivity ones.",
@@ -105,7 +105,7 @@
   "owner": {
     "eyebrow": "Everything is a plugin",
     "title": "Even the AI<br /><span class=\"violet-text\">is a plugin.</span>",
-    "lede": "The Chat, the Terminal, the sidebar, the AI provider, even the theme: every part of Cadente is a plugin, just like the community ones. Swap the provider, turn off what you don’t use and, if you like, turn off the AI and keep a hub with a terminal, database, notes and calendar.",
+    "lede": "The Chat, the Terminal, the sidebar, the AI provider, even the theme: every part of Cadente is a plugin, just like the community ones. Swap the provider, turn off what you don’t use and, if you like, turn off the AI and keep a hub with a terminal, workspaces and a database.",
     "plugins": "Plugins",
     "installKanban": "install Kanban from the community",
     "services": "Services",
@@ -114,7 +114,7 @@
     "forSafety": "for your safety",
     "base": "plugin manager · shell · picker",
     "install": "Install",
-    "installText": "From a link or a folder, without restarting anything.",
+    "installText": "From a folder, without restarting anything.",
     "remove": "Turn off",
     "removeText": "The built-in plugins turn off too.",
     "swap": "Swap",
@@ -129,7 +129,7 @@
     "layer4": "The interface",
     "layer4Text": "Even the sidebar and the theme are plugins.",
     "noAi": "No AI, too",
-    "noAiText": "Turn off the AI and the rest keeps working: terminal, workspaces, notes, database and calendar."
+    "noAiText": "Turn off the AI and the rest keeps working: terminal, workspaces and database."
   },
   "store": {
     "eyebrow": "Plugin store · coming soon",
@@ -183,12 +183,12 @@
         "ci": {
           "step": "CI",
           "title": "Then the login CI breaks.",
-          "text": "A new page shows the four open branches and the state of each PR. Login is red. You open the branch and <kbd>⌘J</kbd> brings up a Chat that already knows where you are, so you just ask why. The diff opens next to it."
+          "text": "A new page shows the four open branches and the state of each PR. Login is red. You open the branch and <kbd>⌘J</kbd> brings up a Chat that already knows where you are, so you just ask why. The diff opens next to it. <b>Coming soon to the app:</b> the state of each PR."
         },
         "api": {
           "step": "API",
           "title": "Now, the feature of the day.",
-          "text": "Today's task is the projects API. In Requests you open <code>GET /v1/projects</code>, change <code>limit</code> to 5 and send it. Then the POST creates the showcase project. The agents keep going on the first page, and you never opened another program."
+          "text": "<b>Coming soon to the app.</b> Today's task is the projects API. In Requests you open <code>GET /v1/projects</code>, change <code>limit</code> to 5 and send it. Then the POST creates the showcase project. The agents keep going on the first page, and you never opened another program."
         },
         "store": {
           "step": "Store",
@@ -388,12 +388,13 @@
         "automacoes": "Scheduled AI tasks, with history.",
         "prompts": "A library of prompts and techniques, with a Chat session on the side.",
         "projetos": "Projects and sessions: add, clone and star.",
-        "recursos": "Skills, memory, agents, MCPs and instructions.",
+        "recursos": "MCPs; skills, memory, agents and instructions are coming soon.",
         "links": "Links with tags. Paste a URL and ↵.",
         "ferramentas": "JSON, and Markdown to Word.",
         "config": "Accounts, providers, shortcuts, access and appearance.",
         "plugins": "Catalog, graph and provider swap with a preview."
-      }
+      },
+      "soon": "soon"
     },
     "rack": {
       "service": {
@@ -431,7 +432,7 @@
         "hint": "Try it: click a plugin to turn it off, a service to swap it, or install one from the community.",
         "on": "<b>{name}</b> is back, without restarting anything.",
         "off": "<b>{name}</b> is off. If it was open in a pane, the pane stays there waiting for another plugin.",
-        "noAi": "<b>AI off.</b> {users} wait for a provider; Terminal, Workspaces, notes, database and calendar keep working.",
+        "noAi": "<b>AI off.</b> {users} wait for a provider; Terminal, Workspaces and database keep working.",
         "swap": "preview · {service}: <b>{from} → {to}</b>",
         "swapUsers": "preview · {service}: <b>{from} → {to}</b> · {users} finish what they are doing and restart on the new provider",
         "install": "Done, <b>Kanban by @ana</b> is installed. It only asked to reach api.github.com.",
@@ -888,19 +889,13 @@
         "an agent harness",
         "a terminal",
         "a worktree manager",
-        "an API client",
-        "a database client",
-        "a notes app",
-        "a calendar"
+        "a database client"
       ],
       "stars": [
         "agents",
         "terminal",
         "worktrees",
-        "API",
-        "database",
-        "notes",
-        "calendar"
+        "database"
       ]
     },
     "dl": {
@@ -945,7 +940,7 @@
     "q3": "Do my calls go through your servers?",
     "a3": "No. Cadente talks straight to the provider you chose, with your subscription or your key. Cadente’s server only keeps your account.",
     "q4": "Does it work without AI?",
-    "a4": "It does. The AI is a plugin like the others: turn it off and keep the terminal, workspaces, notes, database and calendar.",
+    "a4": "It does. The AI is a plugin like the others: turn it off and keep the terminal, workspaces and database.",
     "q5": "If it’s free, how do you make money?",
     "a5": "From the plugin store, once it opens: Cadente keeps 30% of sales and subscriptions and 10% of donations. The app stays free.",
     "q6": "Which languages?",

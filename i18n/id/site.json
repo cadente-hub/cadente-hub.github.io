@@ -1,8 +1,8 @@
 {
   "meta": {
     "title": "Cadente — hub tempat semuanya adalah plugin, bahkan AI",
-    "description": "Cadente, aplikasi desktop gratis: Claude Code, Codex, terminal, database, catatan, dan kalender dalam satu jendela. Semuanya plugin, bahkan AI.",
-    "ogDescription": "Hub tempat semuanya adalah plugin, bahkan AI: agen, terminal, database, dan catatan dalam satu jendela.",
+    "description": "Cadente, aplikasi desktop gratis: Claude Code, Codex, terminal, dan database dalam satu jendela. Semuanya plugin, bahkan AI.",
+    "ogDescription": "Hub tempat semuanya adalah plugin, bahkan AI: agen, terminal, dan database dalam satu jendela.",
     "skip": "Langsung ke konten"
   },
   "nav": {
@@ -19,7 +19,7 @@
   },
   "hero": {
     "eyebrow": "Gratis · Mac, Windows, dan Linux · dibuat dengan Rust · 15 bahasa",
-    "lede": "Agen, terminal, database, catatan, dan agenda dalam satu jendela, semuanya dari keyboard. Setiap bagian adalah plugin: nyalakan yang kamu pakai, ganti yang kamu mau, dan matikan sisanya, bahkan AI. Dan semuanya gratis.",
+    "lede": "Agen, terminal, dan database dalam satu jendela, semuanya dari keyboard. Setiap bagian adalah plugin: nyalakan yang kamu pakai, ganti yang kamu mau, dan matikan sisanya, bahkan AI. Dan semuanya gratis.",
     "watch": "Lihat satu hari kerja",
     "anyCli": "CLI apa pun",
     "before": "Cadente adalah",
@@ -29,7 +29,7 @@
   },
   "theater": {
     "label": "Cadente saat dipakai",
-    "intro": "Satu hari kerja di Cadente, dari jam 9 pagi sampai jam pulang",
+    "intro": "Satu hari kerja di prototipe Cadente, desain yang dituju aplikasinya; beberapa plugin di jendela ini masih dalam perjalanan",
     "chapters": "Bab"
   },
   "creator": {
@@ -83,7 +83,7 @@
   "plugins": {
     "eyebrow": "Plugin bawaan",
     "title": "Setiap panel bisa jadi<br /><span class=\"muted\">apa pun yang kamu butuhkan.</span>",
-    "lede": "Chat, Terminal, Workspaces, Requests, Kalender, Fokus: semua plugin bawaan bekerja dengan cara yang sama. <kbd>↵</kbd> membuka, <kbd>.</kbd> menampilkan apa yang bisa dilakukan, <kbd>/</kbd> menampilkan daftar perintah, <kbd>⇥</kbd> berganti tampilan. Kuasai satu, kamu kuasai semuanya. Klik salah satu untuk melihatnya.",
+    "lede": "Chat, Terminal, Workspaces, Proyek, Otomasi, Fokus: semua plugin bawaan bekerja dengan cara yang sama. <kbd>↵</kbd> membuka, <kbd>.</kbd> menampilkan apa yang bisa dilakukan, <kbd>/</kbd> menampilkan daftar perintah, <kbd>⇥</kbd> berganti tampilan. Kuasai satu, kamu kuasai semuanya. Klik salah satu untuk melihatnya.",
     "gridLabel": "Plugin bawaan",
     "communityBig": "<span class=\"violet-text\">Dan yang</span><br />dibuat komunitas.",
     "communityText": "Toko segera dibuka: siapa pun bisa menerbitkan, dan menginstal selalu gratis. Tidak pakai AI? Pakai saja yang untuk produktivitas.",
@@ -105,7 +105,7 @@
   "owner": {
     "eyebrow": "Semuanya plugin",
     "title": "Bahkan AI<br /><span class=\"violet-text\">adalah plugin.</span>",
-    "lede": "Chat, Terminal, bilah samping, provider AI, bahkan tema: setiap bagian Cadente adalah plugin, sama seperti plugin komunitas. Ganti provider-nya, matikan yang tidak kamu pakai, dan kalau mau, matikan AI dan tetap punya hub berisi terminal, database, catatan, dan agenda.",
+    "lede": "Chat, Terminal, bilah samping, provider AI, bahkan tema: setiap bagian Cadente adalah plugin, sama seperti plugin komunitas. Ganti provider-nya, matikan yang tidak kamu pakai, dan kalau mau, matikan AI dan tetap punya hub berisi terminal, workspaces, dan database.",
     "plugins": "Plugin",
     "installKanban": "instal Kanban dari komunitas",
     "services": "Layanan",
@@ -114,7 +114,7 @@
     "forSafety": "demi keamananmu",
     "base": "pengelola plugin · shell · pemilih",
     "install": "Instal",
-    "installText": "Dari tautan atau folder, tanpa memulai ulang apa pun.",
+    "installText": "Dari folder, tanpa memulai ulang apa pun.",
     "remove": "Matikan",
     "removeText": "Plugin bawaan juga bisa dimatikan.",
     "swap": "Ganti",
@@ -129,7 +129,7 @@
     "layer4": "Antarmukanya",
     "layer4Text": "Bahkan bilah samping dan tema adalah plugin.",
     "noAi": "Tanpa AI juga bisa",
-    "noAiText": "Matikan AI dan sisanya tetap jalan: terminal, workspaces, catatan, database, dan agenda."
+    "noAiText": "Matikan AI dan sisanya tetap jalan: terminal, workspaces, dan database."
   },
   "store": {
     "eyebrow": "Toko plugin · segera hadir",
@@ -183,12 +183,12 @@
         "ci": {
           "step": "CI",
           "title": "Lalu CI login gagal.",
-          "text": "Di halaman baru ada empat branch yang terbuka dan status tiap PR. Login merah. Kamu membuka branch-nya dan <kbd>⌘J</kbd> memanggil Chat yang sudah tahu posisimu, jadi tinggal tanya penyebabnya. Diff-nya terbuka di samping."
+          "text": "Di halaman baru ada empat branch yang terbuka dan status tiap PR. Login merah. Kamu membuka branch-nya dan <kbd>⌘J</kbd> memanggil Chat yang sudah tahu posisimu, jadi tinggal tanya penyebabnya. Diff-nya terbuka di samping. <b>Segera di aplikasi:</b> status setiap PR."
         },
         "api": {
           "step": "API",
           "title": "Sekarang, fitur hari ini.",
-          "text": "Tugas hari ini adalah API proyek. Di Requests kamu membuka <code>GET /v1/projects</code>, mengganti <code>limit</code> jadi 5, lalu mengirimnya. Setelah itu, POST membuat proyek etalase. Para agen tetap bekerja di halaman pertama, dan kamu tidak membuka program lain."
+          "text": "<b>Segera di aplikasi.</b> Tugas hari ini adalah API proyek. Di Requests kamu membuka <code>GET /v1/projects</code>, mengganti <code>limit</code> jadi 5, lalu mengirimnya. Setelah itu, POST membuat proyek etalase. Para agen tetap bekerja di halaman pertama, dan kamu tidak membuka program lain."
         },
         "store": {
           "step": "Toko",
@@ -388,12 +388,13 @@
         "automacoes": "Tugas AI terjadwal, dengan riwayat.",
         "prompts": "Pustaka prompt dan teknik, dengan sesi Chat di samping.",
         "projetos": "Proyek dan sesi: tambah, kloning, dan jadikan favorit.",
-        "recursos": "Skills, memori, agents, MCP, dan instruksi.",
+        "recursos": "MCP; skills, memori, agents, dan instruksi segera hadir.",
         "links": "Tautan dengan tag. Tempel URL lalu ↵.",
         "ferramentas": "JSON, dan Markdown ke Word.",
         "config": "Akun, provider, pintasan, akses, dan tampilan.",
         "plugins": "Katalog, graf, dan penggantian provider dengan pratinjau."
-      }
+      },
+      "soon": "segera"
     },
     "rack": {
       "service": {
@@ -430,7 +431,7 @@
         "hint": "Coba: klik plugin untuk mematikannya, klik layanan untuk menggantinya, atau instal satu dari komunitas.",
         "on": "<b>{name}</b> kembali, tanpa memulai ulang apa pun.",
         "off": "<b>{name}</b> dimatikan. Kalau tadi terbuka di sebuah panel, panel itu tetap di sana menunggu plugin lain.",
-        "noAi": "<b>AI dimatikan.</b> {users} menunggu provider; Terminal, Workspaces, catatan, database, dan agenda tetap seperti biasa.",
+        "noAi": "<b>AI dimatikan.</b> {users} menunggu provider; Terminal, Workspaces, dan database tetap seperti biasa.",
         "swap": "pratinjau · {service}: <b>{from} → {to}</b>",
         "swapUsers": "pratinjau · {service}: <b>{from} → {to}</b> · {users} menyelesaikan pekerjaannya lalu mulai ulang di provider baru",
         "install": "Beres, <b>Kanban dari @ana</b> terinstal. Dia hanya minta akses ke api.github.com.",
@@ -885,19 +886,13 @@
         "harness agen",
         "terminal",
         "pengelola worktree",
-        "klien API",
-        "klien database",
-        "aplikasi catatan",
-        "kalender"
+        "klien database"
       ],
       "stars": [
         "agen",
         "terminal",
         "worktree",
-        "API",
-        "database",
-        "catatan",
-        "kalender"
+        "database"
       ]
     },
     "dl": {
@@ -942,7 +937,7 @@
     "q3": "Apakah panggilanku lewat server kalian?",
     "a3": "Tidak. Cadente bicara langsung dengan provider yang kamu pilih, memakai langganan atau kuncimu. Server Cadente hanya menyimpan akunmu.",
     "q4": "Bisa dipakai tanpa AI?",
-    "a4": "Bisa. AI adalah plugin seperti yang lain: matikan saja dan tetap pakai terminal, workspaces, catatan, database, dan agenda.",
+    "a4": "Bisa. AI adalah plugin seperti yang lain: matikan saja dan tetap pakai terminal, workspaces, dan database.",
     "q5": "Kalau gratis, dari mana kalian dapat uang?",
     "a5": "Dari toko plugin, setelah dibuka: Cadente mengambil 30% dari penjualan dan langganan, serta 10% dari donasi. Aplikasinya tetap gratis.",
     "q6": "Tersedia dalam bahasa apa saja?",

@@ -1,8 +1,8 @@
 {
   "meta": {
     "title": "Cadente — o hub onde tudo é plugin, até a IA",
-    "description": "Cadente é um app de desktop grátis que junta Claude Code, Codex, terminal, banco, notas e agenda numa janela. Tudo é plugin, até a IA. Mac, Windows e Linux.",
-    "ogDescription": "O hub onde tudo é plugin, até a IA: agentes, terminal, banco e notas numa janela só.",
+    "description": "Cadente é um app de desktop grátis que junta Claude Code, Codex, terminal e banco numa janela. Tudo é plugin, até a IA. Mac, Windows e Linux.",
+    "ogDescription": "O hub onde tudo é plugin, até a IA: agentes, terminal e banco numa janela só.",
     "skip": "Pular para o conteúdo"
   },
   "nav": {
@@ -19,7 +19,7 @@
   },
   "hero": {
     "eyebrow": "Grátis · Mac, Windows e Linux · feito em Rust · 15 idiomas",
-    "lede": "Agentes, terminal, banco, notas e agenda na mesma janela, tudo no teclado. Cada parte é um plugin: ligue o que usa, troque o que quiser e desligue o resto, até a IA. E não custa nada.",
+    "lede": "Agentes, terminal e banco na mesma janela, tudo no teclado. Cada parte é um plugin: ligue o que usa, troque o que quiser e desligue o resto, até a IA. E não custa nada.",
     "watch": "Ver um dia de trabalho",
     "anyCli": "qualquer CLI",
     "before": "Cadente é",
@@ -29,7 +29,7 @@
   },
   "theater": {
     "label": "O Cadente em uso",
-    "intro": "Um dia de trabalho no Cadente, das 9h ao fim do expediente",
+    "intro": "Um dia de trabalho no protótipo do Cadente, o desenho para onde o app vai; alguns plugins da janela ainda chegam",
     "chapters": "Capítulos"
   },
   "creator": {
@@ -83,7 +83,7 @@
   "plugins": {
     "eyebrow": "Plugins de fábrica",
     "title": "Cada folha vira<br /><span class=\"muted\">o que você precisar.</span>",
-    "lede": "Chat, Terminal, Workspaces, Requests, Calendário, Foco: os plugins de fábrica funcionam do mesmo jeito. <kbd>↵</kbd> abre, <kbd>.</kbd> mostra o que dá para fazer, <kbd>/</kbd> lista os comandos, <kbd>⇥</kbd> troca de vista. Aprendeu um, aprendeu todos. Clique num para ver.",
+    "lede": "Chat, Terminal, Workspaces, Projetos, Automações, Foco: os plugins de fábrica funcionam do mesmo jeito. <kbd>↵</kbd> abre, <kbd>.</kbd> mostra o que dá para fazer, <kbd>/</kbd> lista os comandos, <kbd>⇥</kbd> troca de vista. Aprendeu um, aprendeu todos. Clique num para ver.",
     "gridLabel": "Plugins de fábrica",
     "communityBig": "<span class=\"violet-text\">E os que</span><br />a comunidade fizer.",
     "communityText": "A loja abre em breve: qualquer pessoa publica, e instalar é sempre de graça. Não usa IA? Fique só com os de produtividade.",
@@ -105,7 +105,7 @@
   "owner": {
     "eyebrow": "Tudo é plugin",
     "title": "Até a IA<br /><span class=\"violet-text\">é um plugin.</span>",
-    "lede": "O Chat, o Terminal, a barra lateral, o provider de IA, até o tema: cada parte do Cadente é um plugin, do mesmo jeito que os da comunidade. Troque o provider, desligue o que não usa e, se quiser, desligue a IA e fique com um hub de terminal, banco, notas e agenda.",
+    "lede": "O Chat, o Terminal, a barra lateral, o provider de IA, até o tema: cada parte do Cadente é um plugin, do mesmo jeito que os da comunidade. Troque o provider, desligue o que não usa e, se quiser, desligue a IA e fique com um hub de terminal, workspaces e banco.",
     "plugins": "Plugins",
     "installKanban": "instalar Kanban da comunidade",
     "services": "Serviços",
@@ -114,7 +114,7 @@
     "forSafety": "para sua segurança",
     "base": "gerenciador de plugins · shell · seletor",
     "install": "Instale",
-    "installText": "De um link ou de uma pasta, sem reiniciar nada.",
+    "installText": "De uma pasta, sem reiniciar nada.",
     "remove": "Desligue",
     "removeText": "Os plugins de fábrica também desligam.",
     "swap": "Troque",
@@ -129,7 +129,7 @@
     "layer4": "A interface",
     "layer4Text": "Até a barra lateral e o tema são plugins.",
     "noAi": "Sem IA também",
-    "noAiText": "Desligue a IA e o resto continua: terminal, workspaces, notas, banco e agenda."
+    "noAiText": "Desligue a IA e o resto continua: terminal, workspaces e banco."
   },
   "store": {
     "eyebrow": "Loja de plugins · em breve",
@@ -183,12 +183,12 @@
         "ci": {
           "step": "CI",
           "title": "Aí o CI do login quebra.",
-          "text": "Numa página nova estão os quatro branches abertos e o estado de cada PR. O login está vermelho. Você abre o branch e <kbd>⌘J</kbd> chama um Chat que já sabe onde você está, então é só perguntar o motivo. O diff abre do lado."
+          "text": "Numa página nova estão os quatro branches abertos e o estado de cada PR. O login está vermelho. Você abre o branch e <kbd>⌘J</kbd> chama um Chat que já sabe onde você está, então é só perguntar o motivo. O diff abre do lado. <b>Em breve no app:</b> o estado de cada PR."
         },
         "api": {
           "step": "API",
           "title": "Agora, a feature do dia.",
-          "text": "A tarefa de hoje é a API de projetos. No Requests você abre o <code>GET /v1/projects</code>, troca o <code>limit</code> para 5 e envia. Depois, o POST cria o projeto vitrine. Os agentes seguem na primeira página, e você não abriu outro programa."
+          "text": "<b>Em breve no app.</b> A tarefa de hoje é a API de projetos. No Requests você abre o <code>GET /v1/projects</code>, troca o <code>limit</code> para 5 e envia. Depois, o POST cria o projeto vitrine. Os agentes seguem na primeira página, e você não abriu outro programa."
         },
         "store": {
           "step": "Loja",
@@ -388,12 +388,13 @@
         "automacoes": "Tarefas de IA agendadas, com histórico.",
         "prompts": "Biblioteca de prompts e técnicas, com sessão no Chat ao lado.",
         "projetos": "Projetos e sessões: adicionar, clonar e favoritar.",
-        "recursos": "Skills, memória, agents, MCPs e instruções.",
+        "recursos": "MCPs; skills, memória, agents e instruções chegam em breve.",
         "links": "Links com tags. Cole uma URL e ↵.",
         "ferramentas": "JSON e Markdown para Word.",
         "config": "Contas, providers, atalhos, acesso e aparência.",
         "plugins": "Catálogo, grafo e troca de provider com prévia."
-      }
+      },
+      "soon": "em breve"
     },
     "rack": {
       "service": {
@@ -431,7 +432,7 @@
         "hint": "Experimente: clique num plugin para desligar, num serviço para trocar, ou instale um da comunidade.",
         "on": "<b>{name}</b> voltou, sem reiniciar nada.",
         "off": "<b>{name}</b> desligado. Se ele estava aberto numa folha, ela fica lá esperando outro plugin.",
-        "noAi": "<b>IA desligada.</b> {users} ficam esperando um provider; Terminal, Workspaces, notas, banco e agenda seguem iguais.",
+        "noAi": "<b>IA desligada.</b> {users} ficam esperando um provider; Terminal, Workspaces e banco seguem iguais.",
         "swap": "prévia · {service}: <b>{from} → {to}</b>",
         "swapUsers": "prévia · {service}: <b>{from} → {to}</b> · {users} terminam o que estão fazendo e reiniciam no novo provider",
         "install": "Pronto, <b>Kanban da @ana</b> instalado. Ele só pediu para acessar api.github.com.",
@@ -888,19 +889,13 @@
         "um harness de agentes",
         "um terminal",
         "um gerenciador de worktrees",
-        "um cliente de API",
-        "um cliente de banco",
-        "um app de notas",
-        "uma agenda"
+        "um cliente de banco"
       ],
       "stars": [
         "agentes",
         "terminal",
         "worktrees",
-        "API",
-        "banco",
-        "notas",
-        "agenda"
+        "banco"
       ]
     },
     "dl": {
@@ -945,7 +940,7 @@
     "q3": "Minhas chamadas passam pelos servidores de vocês?",
     "a3": "Não. O Cadente fala direto com o provedor que você escolheu, com a sua assinatura ou a sua chave. O servidor do Cadente guarda só a sua conta.",
     "q4": "Funciona sem IA?",
-    "a4": "Funciona. A IA é um plugin como os outros: desligue e fique com terminal, workspaces, notas, banco e agenda.",
+    "a4": "Funciona. A IA é um plugin como os outros: desligue e fique com terminal, workspaces e banco.",
     "q5": "Se é grátis, como vocês ganham dinheiro?",
     "a5": "Com a loja de plugins, quando ela abrir: o Cadente fica com 30% das vendas e assinaturas e com 10% das doações. O app continua grátis.",
     "q6": "Em quais idiomas?",

@@ -367,6 +367,7 @@
 .pcard__glyph { flex: none; width: 30px; height: 30px; display: grid; place-items: center; border: 1px solid var(--line-2); border-radius: 9px; font-family: var(--mono); font-size: 15px; color: var(--fg); transition: border-color .25s, box-shadow .25s, color .25s; }
 .pcard__title { min-width: 0; font-weight: 600; font-size: 14px; letter-spacing: -0.01em; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pcard__desc { display: none; }
+.pcard__soon { flex: none; margin-inline-start: auto; padding: 1px 7px; border: 1px solid var(--line-2); border-radius: 999px; font-size: 11px; line-height: 1.5; color: var(--fg-2); white-space: nowrap; }
 .pcard:hover { background: var(--surface); }
 .pcard:hover .pcard__glyph { border-color: rgba(168, 85, 247, .7); }
 .pcard[aria-pressed="true"] { background: linear-gradient(180deg, rgba(168, 85, 247, .14), rgba(168, 85, 247, 0) 80%); }

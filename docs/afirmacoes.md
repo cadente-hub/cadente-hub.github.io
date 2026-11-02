@@ -1,13 +1,13 @@
 # O que o site afirma, e onde está a prova
 
 Cada afirmação da home tem que estar no código do app (`cadente-app`) ou numa decisão escrita (ADR). Afirmação sem
-prova sai do site. Conferido em 31/10/2026, com o app na versão 1.1.0 (beta 1.1.0-beta.2; o canal estável ainda não
-tem versão, e o site oferece a beta).
+prova sai do site. Conferido em 02/11/2026, com o app na versão 1.1.0 (beta 1.1.0-beta.5; o canal estável ainda não
+tem versão, e o site oferece a beta), pela revisão da ADR 0081 (§3.3) do repositório do app.
 
 | Afirmação no site | Estado | Prova |
 |---|---|---|
 | Grátis, sem plano pago | decidido, Pro sai na 1.1.0 | `docs/adr/0077-plataforma-de-plugins-loja-e-monetizacao.md`, linhas 444-450 e 556 |
-| Mac, Windows e Linux | sim (x64 no Linux e no Windows; Apple Silicon e Intel no Mac) | `cadente-hub.github.io/.github/workflows/native-release.yml`, linhas 87-90 |
+| Mac, Windows e Linux | sim (x64 no Linux e no Windows; Apple Silicon e Intel no Mac); no Windows o pacote instala no CI, mas o primeiro quadro ainda não aparece no runner sem GPU (D3) | `cadente-hub.github.io/.github/workflows/native-ci.yml`, job `package` |
 | Feito em Rust, desenhado pela GPU | sim (Slint com `renderer-skia`) | `crates/app/Cargo.toml`, linha 36 |
 | 15 idiomas, troca sem reiniciar | sim | `crates/app/src/live/i18n.rs`; `crates/app/src/live/mod.rs`, linhas 446-459 |
 | Algumas telas novas chegam antes em pt-BR e inglês | sim, dito no FAQ | `crates/app/src/live/i18n.rs`, linhas 105-106 (o que um idioma não traduziu sai em inglês, depois em pt-BR; ADR 0078 §2.6) |
@@ -19,7 +19,12 @@ tem versão, e o site oferece a beta).
 | As chamadas vão direto ao provedor, sem servidor do Cadente no meio | sim; o backend guarda só conta e cobrança | `supabase/migrations/20261002120000_lock_profile_billing.sql` (não há funções que repassem chamadas de modelo) |
 | Dados na sua máquina | sim (`core.db` em SQLite no diretório de dados) | `crates/launcher/src/paths.rs`, linha 176 |
 | Tudo é plugin, com provider trocável | sim (Registry com ciclo de ativação) | `docs/ARCHITECTURE.md`, princípio 3; `crates/core/src/services/native_profile.rs`, linhas 449-559 |
-| Instalar plugin sem reiniciar | sim para pacotes `.cdb` | `crates/plugin-host-wasm/src/lib.rs`, linhas 1-5 |
+| Instalar plugin sem reiniciar | sim para pacotes `.cdb`, por `/install` | `crates/plugin-host-wasm/src/lib.rs`, linhas 1-5 |
+| Instalar de uma pasta (`owner.installText`) | em breve: chega com o T6, antes do lançamento, só para pacotes de tema | ADR 0081, decisão 4; ADR 0080 §2.8 |
+| Agentes, terminal, banco e workspaces na mesma janela | sim, fora o banco, que espera uma ADR futura (ADR 0081, decisão 2) | `crates/core/src/terminal.rs`; `crates/native-workspace` |
+| Plugins de fábrica: Chat, Terminal, Workspaces, Projetos, Automações e Foco (`plugins.lede`) | sim | `--dump-plugins` do beta 5: 82 linhas, das quais 10 são faces |
+| Cartões de Início, PR Reviews, Requests, Calendário, Sistema, Prompts, Links e Ferramentas | em breve (Fase G, versões 1.1.x); o cartão diz "em breve" | ADR 0081 §3.2 (G1, G2, G3, G4, G6, G7, G9, G10); `js/home-sections.js` (`SOON`) |
+| Recursos: MCPs | sim; skills, memória, agents e instruções em breve (G5) | `crates/app/src/live/faces/`; ADR 0081 §3.2, G5 |
 | Funciona sem IA | sim (o Chat tem o estado "sem modelo"; os outros plugins não dependem de IA) | `crates/app/src/live/faces/chat.rs`, linhas 1283 e 1633 |
 | Loja aberta, indexada pelo topic `cadente-plugin` | em breve (1.3.0) | ADR 0077, linhas 407-412 e 626-628 |
 | Plugin malicioso bloqueado em todas as máquinas | em breve (1.3.0) | ADR 0077, linhas 426-429 |
@@ -29,11 +34,21 @@ tem versão, e o site oferece a beta).
 ## O que saiu do site
 
 - "Milhões de plugins": a loja ainda não abriu.
-- "18 plugins de fábrica": o app registra 21 plugins, alguns de infraestrutura, e nem todos os da janela de
+- "18 plugins de fábrica": o `--dump-plugins` do beta 5 tem 82 linhas, das quais 10 são faces (Chat, Terminal,
+  Configurações, Projetos, Workspaces, Automações, Uso, Plugins, Recursos e Foco), e nem todos os da janela de
   demonstração existem no app nativo (a revisão de PR, por exemplo).
+- Notas e agenda como partes do hub (`meta.description`, `meta.ogDescription`, `hero.lede`, `owner.lede`, `owner.noAiText`,
+  `faq.a4`, `js.rack.log.noAi` e as palavras do hero): a agenda do app é só o próximo evento, e as notas ficam dentro do
+  Foco. Voltam com o G1 e o G7.
+- "Um cliente de API" (palavras do hero) e Requests e Calendário entre os plugins de fábrica (`plugins.lede`): voltam
+  com o G3 e o G7.
+- "De um link" (`owner.installText`): o app instala só arquivo `.cdb`, por `/install`.
 - Permissões mostradas antes de instalar: chegam com os plugins WebAssembly da 1.2.0.
 
 ## A janela de demonstração
 
 A janela que toca no site é o protótipo v4 (`js/v4`, gerado por `scripts/sync-v4.mjs`), o desenho para onde o app
-vai. Ela mostra o dia de trabalho completo, incluindo plugins que ainda chegam ao app nativo.
+vai. Ela mostra o dia de trabalho completo, incluindo plugins que ainda chegam ao app nativo, e o site diz isso na
+abertura da janela (`theater.intro`). Os capítulos do Requests e do estado dos PRs dizem "em breve no app"
+(`js.theater.chapters.api` e `js.theater.chapters.ci`). Banco, Navegador e Quadro ficam como estão até a ADR futura
+(ADR 0081, decisão 2).

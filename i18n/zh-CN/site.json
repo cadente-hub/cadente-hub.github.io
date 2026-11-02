@@ -1,8 +1,8 @@
 {
   "meta": {
     "title": "Cadente — 一切皆插件的中心，连 AI 也是",
-    "description": "Cadente 是一款免费桌面应用，把 Claude Code、Codex、终端、数据库、笔记和日历放进同一个窗口。一切都是插件，连 AI 也是。",
-    "ogDescription": "一切皆插件的中心，连 AI 也是：智能体、终端、数据库和笔记，都在一个窗口里。",
+    "description": "Cadente 是一款免费桌面应用，把 Claude Code、Codex、终端和数据库放进同一个窗口。一切都是插件，连 AI 也是。",
+    "ogDescription": "一切皆插件的中心，连 AI 也是：智能体、终端和数据库，都在一个窗口里。",
     "skip": "跳到正文"
   },
   "nav": {
@@ -19,7 +19,7 @@
   },
   "hero": {
     "eyebrow": "免费 · Mac、Windows 和 Linux · Rust 打造 · 15 种语言",
-    "lede": "智能体、终端、数据库、笔记和日程都在同一个窗口里，全程用键盘操作。每个部分都是插件：用得上的开着，想换的换掉，其余的关掉，连 AI 也一样。而且完全免费。",
+    "lede": "智能体、终端和数据库都在同一个窗口里，全程用键盘操作。每个部分都是插件：用得上的开着，想换的换掉，其余的关掉，连 AI 也一样。而且完全免费。",
     "watch": "看看一个工作日",
     "anyCli": "任意 CLI",
     "before": "Cadente 是",
@@ -29,7 +29,7 @@
   },
   "theater": {
     "label": "使用中的 Cadente",
-    "intro": "在 Cadente 里度过的一个工作日，从早上 9 点到下班",
+    "intro": "在 Cadente 原型里度过的一个工作日，这是应用正在走向的设计；这个窗口里的部分插件还在路上",
     "chapters": "章节"
   },
   "creator": {
@@ -83,7 +83,7 @@
   "plugins": {
     "eyebrow": "内置插件",
     "title": "每个窗格<br /><span class=\"muted\">都能变成你需要的样子。</span>",
-    "lede": "聊天、终端、Workspaces、Requests、日历、专注：内置插件的用法都一样。<kbd>↵</kbd> 打开，<kbd>.</kbd> 显示能做什么，<kbd>/</kbd> 列出命令，<kbd>⇥</kbd> 切换视图。学会一个，就全会了。点一个看看。",
+    "lede": "聊天、终端、Workspaces、项目、自动化、专注：内置插件的用法都一样。<kbd>↵</kbd> 打开，<kbd>.</kbd> 显示能做什么，<kbd>/</kbd> 列出命令，<kbd>⇥</kbd> 切换视图。学会一个，就全会了。点一个看看。",
     "gridLabel": "内置插件",
     "communityBig": "<span class=\"violet-text\">还有</span><br />社区做的插件。",
     "communityText": "商店即将开放：任何人都能发布，安装永远免费。不用 AI？只留效率类插件就行。",
@@ -105,7 +105,7 @@
   "owner": {
     "eyebrow": "一切都是插件",
     "title": "连 AI<br /><span class=\"violet-text\">也是插件。</span>",
-    "lede": "聊天、终端、侧边栏、AI 提供方，甚至主题：Cadente 的每个部分都是插件，和社区插件一样。换掉提供方，关掉不用的；愿意的话，把 AI 也关掉，留下一个有终端、数据库、笔记和日程的中心。",
+    "lede": "聊天、终端、侧边栏、AI 提供方，甚至主题：Cadente 的每个部分都是插件，和社区插件一样。换掉提供方，关掉不用的；愿意的话，把 AI 也关掉，留下一个有终端、workspaces 和数据库的中心。",
     "plugins": "插件",
     "installKanban": "安装社区的 Kanban",
     "services": "服务",
@@ -114,7 +114,7 @@
     "forSafety": "为了你的安全",
     "base": "插件管理器 · shell · 选择器",
     "install": "安装",
-    "installText": "从链接或文件夹安装，什么都不用重启。",
+    "installText": "从文件夹安装，什么都不用重启。",
     "remove": "关闭",
     "removeText": "内置插件也能关闭。",
     "swap": "更换",
@@ -129,7 +129,7 @@
     "layer4": "界面",
     "layer4Text": "连侧边栏和主题都是插件。",
     "noAi": "不用 AI 也行",
-    "noAiText": "关掉 AI，其余照常运行：终端、workspaces、笔记、数据库和日程。"
+    "noAiText": "关掉 AI，其余照常运行：终端、workspaces 和数据库。"
   },
   "store": {
     "eyebrow": "插件商店 · 即将推出",
@@ -183,12 +183,12 @@
         "ci": {
           "step": "CI",
           "title": "这时 login 的 CI 挂了。",
-          "text": "新页面上是四个打开的分支和每个 PR 的状态。login 是红的。你打开这个分支，<kbd>⌘J</kbd> 叫出一个已经知道你在哪儿的聊天，直接问原因就行。diff 在旁边打开。"
+          "text": "新页面上是四个打开的分支和每个 PR 的状态。login 是红的。你打开这个分支，<kbd>⌘J</kbd> 叫出一个已经知道你在哪儿的聊天，直接问原因就行。diff 在旁边打开。<b>即将登陆应用：</b>每个 PR 的状态。"
         },
         "api": {
           "step": "API",
           "title": "现在，做今天的功能。",
-          "text": "今天的任务是项目 API。在 Requests 里打开 <code>GET /v1/projects</code>，把 <code>limit</code> 改成 5，发送。接着用 POST 创建展示项目。智能体们还在第一个页面上干活，而你没打开任何别的程序。"
+          "text": "<b>即将登陆应用。</b>今天的任务是项目 API。在 Requests 里打开 <code>GET /v1/projects</code>，把 <code>limit</code> 改成 5，发送。接着用 POST 创建展示项目。智能体们还在第一个页面上干活，而你没打开任何别的程序。"
         },
         "store": {
           "step": "商店",
@@ -388,12 +388,13 @@
         "automacoes": "定时运行的 AI 任务，附带历史记录。",
         "prompts": "提示词与技巧库，旁边开着聊天会话。",
         "projetos": "项目和会话：添加、克隆、收藏。",
-        "recursos": "Skills、记忆、agents、MCP 和指令。",
+        "recursos": "MCP；Skills、记忆、agents 和指令即将推出。",
         "links": "带标签的链接。粘贴 URL 然后按 ↵。",
         "ferramentas": "JSON，以及 Markdown 转 Word。",
         "config": "账户、提供方、快捷键、访问权限和外观。",
         "plugins": "目录、依赖图，以及可预览的提供方更换。"
-      }
+      },
+      "soon": "即将推出"
     },
     "rack": {
       "service": {
@@ -430,7 +431,7 @@
         "hint": "试试看：点插件把它关掉，点服务来更换，或者安装一个社区插件。",
         "on": "<b>{name}</b> 回来了，什么都不用重启。",
         "off": "<b>{name}</b> 已关闭。如果它原本开在某个窗格里，那个窗格会留着，等待别的插件。",
-        "noAi": "<b>AI 已关闭。</b>{users} 在等待提供方；终端、Workspaces、笔记、数据库和日程照常运行。",
+        "noAi": "<b>AI 已关闭。</b>{users} 在等待提供方；终端、Workspaces 和数据库照常运行。",
         "swap": "预览 · {service}：<b>{from} → {to}</b>",
         "swapUsers": "预览 · {service}：<b>{from} → {to}</b> · {users} 会先完成手头的工作，再在新提供方上重启",
         "install": "好了，<b>@ana 的 Kanban</b> 已安装。它只申请访问 api.github.com。",
@@ -885,19 +886,13 @@
         "一个智能体 harness",
         "一个终端",
         "一个 worktree 管理器",
-        "一个 API 客户端",
-        "一个数据库客户端",
-        "一个笔记应用",
-        "一个日历"
+        "一个数据库客户端"
       ],
       "stars": [
         "智能体",
         "终端",
         "worktree",
-        "API",
-        "数据库",
-        "笔记",
-        "日历"
+        "数据库"
       ]
     },
     "dl": {
@@ -942,7 +937,7 @@
     "q3": "我的调用会经过你们的服务器吗？",
     "a3": "不会。Cadente 直接与你选的提供方通信，用的是你的订阅或密钥。Cadente 的服务器只保存你的账户。",
     "q4": "不用 AI 也能用吗？",
-    "a4": "能。AI 和其他插件一样，也是插件：关掉它，留下终端、workspaces、笔记、数据库和日程。",
+    "a4": "能。AI 和其他插件一样，也是插件：关掉它，留下终端、workspaces 和数据库。",
     "q5": "既然免费，你们怎么赚钱？",
     "a5": "靠插件商店，等它开放以后：Cadente 抽取销售和订阅收入的 30%，以及捐赠的 10%。应用本身一直免费。",
     "q6": "支持哪些语言？",

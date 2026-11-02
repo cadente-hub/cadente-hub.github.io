@@ -1,8 +1,8 @@
 {
   "meta": {
     "title": "Cadente — der Hub, in dem alles ein Plugin ist, sogar die KI",
-    "description": "Cadente ist eine kostenlose Desktop-App mit Claude Code, Codex, Terminal, Datenbank, Notizen und Kalender in einem Fenster. Alles ist ein Plugin, sogar die KI.",
-    "ogDescription": "Der Hub, in dem alles ein Plugin ist, sogar die KI: Agenten, Terminal, Datenbank und Notizen in einem Fenster.",
+    "description": "Cadente ist eine kostenlose Desktop-App mit Claude Code, Codex, Terminal und Datenbank in einem Fenster. Alles ist ein Plugin, sogar die KI.",
+    "ogDescription": "Der Hub, in dem alles ein Plugin ist, sogar die KI: Agenten, Terminal und Datenbank in einem Fenster.",
     "skip": "Zum Inhalt springen"
   },
   "nav": {
@@ -19,7 +19,7 @@
   },
   "hero": {
     "eyebrow": "Kostenlos · Mac, Windows und Linux · gebaut in Rust · 15 Sprachen",
-    "lede": "Agenten, Terminal, Datenbank, Notizen und Kalender im selben Fenster, alles per Tastatur. Jeder Teil ist ein Plugin: Schalte ein, was du nutzt, tausch, was du willst, und schalte den Rest ab, sogar die KI. Und es kostet nichts.",
+    "lede": "Agenten, Terminal und Datenbank im selben Fenster, alles per Tastatur. Jeder Teil ist ein Plugin: Schalte ein, was du nutzt, tausch, was du willst, und schalte den Rest ab, sogar die KI. Und es kostet nichts.",
     "watch": "Einen Arbeitstag ansehen",
     "anyCli": "jede CLI",
     "before": "Cadente ist",
@@ -29,7 +29,7 @@
   },
   "theater": {
     "label": "Cadente im Einsatz",
-    "intro": "Ein Arbeitstag in Cadente, von 9 Uhr bis Feierabend",
+    "intro": "Ein Arbeitstag im Prototyp von Cadente, dem Entwurf, auf den die App zusteuert; manche Plugins in diesem Fenster kommen erst noch",
     "chapters": "Kapitel"
   },
   "creator": {
@@ -83,7 +83,7 @@
   "plugins": {
     "eyebrow": "Integrierte Plugins",
     "title": "Jeder Bereich wird<br /><span class=\"muted\">zu dem, was du brauchst.</span>",
-    "lede": "Chat, Terminal, Workspaces, Requests, Kalender, Fokus: Die integrierten Plugins funktionieren alle gleich. <kbd>↵</kbd> öffnet, <kbd>.</kbd> zeigt, was geht, <kbd>/</kbd> listet die Befehle, <kbd>⇥</kbd> wechselt die Ansicht. Kennst du eins, kennst du alle. Klick eins an, um es zu sehen.",
+    "lede": "Chat, Terminal, Workspaces, Projekte, Automationen, Fokus: Die integrierten Plugins funktionieren alle gleich. <kbd>↵</kbd> öffnet, <kbd>.</kbd> zeigt, was geht, <kbd>/</kbd> listet die Befehle, <kbd>⇥</kbd> wechselt die Ansicht. Kennst du eins, kennst du alle. Klick eins an, um es zu sehen.",
     "gridLabel": "Integrierte Plugins",
     "communityBig": "<span class=\"violet-text\">Und die, die</span><br />die Community baut.",
     "communityText": "Der Store öffnet bald: Jeder kann veröffentlichen, und Installieren ist immer kostenlos. Du nutzt keine KI? Behalte nur die für Produktivität.",
@@ -105,7 +105,7 @@
   "owner": {
     "eyebrow": "Alles ist ein Plugin",
     "title": "Sogar die KI<br /><span class=\"violet-text\">ist ein Plugin.</span>",
-    "lede": "Der Chat, das Terminal, die Seitenleiste, der KI-Provider, sogar das Theme: Jeder Teil von Cadente ist ein Plugin, genau wie die aus der Community. Tausch den Provider, schalte ab, was du nicht nutzt, und wenn du willst, schalte die KI ab und behalte einen Hub mit Terminal, Datenbank, Notizen und Kalender.",
+    "lede": "Der Chat, das Terminal, die Seitenleiste, der KI-Provider, sogar das Theme: Jeder Teil von Cadente ist ein Plugin, genau wie die aus der Community. Tausch den Provider, schalte ab, was du nicht nutzt, und wenn du willst, schalte die KI ab und behalte einen Hub mit Terminal, Workspaces und Datenbank.",
     "plugins": "Plugins",
     "installKanban": "Kanban aus der Community installieren",
     "services": "Dienste",
@@ -114,7 +114,7 @@
     "forSafety": "für deine Sicherheit",
     "base": "plugin-manager · shell · auswahl",
     "install": "Installieren",
-    "installText": "Per Link oder aus einem Ordner, ohne irgendetwas neu zu starten.",
+    "installText": "Aus einem Ordner, ohne irgendetwas neu zu starten.",
     "remove": "Abschalten",
     "removeText": "Auch die integrierten Plugins lassen sich abschalten.",
     "swap": "Tauschen",
@@ -129,7 +129,7 @@
     "layer4": "Die Oberfläche",
     "layer4Text": "Sogar die Seitenleiste und das Theme sind Plugins.",
     "noAi": "Auch ohne KI",
-    "noAiText": "Schalte die KI ab, und der Rest läuft weiter: Terminal, Workspaces, Notizen, Datenbank und Kalender."
+    "noAiText": "Schalte die KI ab, und der Rest läuft weiter: Terminal, Workspaces und Datenbank."
   },
   "store": {
     "eyebrow": "Plugin-Store · bald verfügbar",
@@ -183,12 +183,12 @@
         "ci": {
           "step": "CI",
           "title": "Dann schlägt die Login-CI fehl.",
-          "text": "Eine neue Seite zeigt die vier offenen Branches und den Stand jedes PRs. Login ist rot. Du öffnest den Branch, und <kbd>⌘J</kbd> holt einen Chat, der schon weiß, wo du bist, also fragst du einfach nach dem Grund. Der Diff öffnet sich daneben."
+          "text": "Eine neue Seite zeigt die vier offenen Branches und den Stand jedes PRs. Login ist rot. Du öffnest den Branch, und <kbd>⌘J</kbd> holt einen Chat, der schon weiß, wo du bist, also fragst du einfach nach dem Grund. Der Diff öffnet sich daneben. <b>Bald in der App:</b> der Stand jedes PR."
         },
         "api": {
           "step": "API",
           "title": "Jetzt das Feature des Tages.",
-          "text": "Heute steht die Projekt-API an. In Requests öffnest du <code>GET /v1/projects</code>, setzt <code>limit</code> auf 5 und sendest. Danach legt der POST das Projekt vitrine an. Die Agenten arbeiten auf der ersten Seite weiter, und du hast kein anderes Programm geöffnet."
+          "text": "<b>Bald in der App.</b> Heute steht die Projekt-API an. In Requests öffnest du <code>GET /v1/projects</code>, setzt <code>limit</code> auf 5 und sendest. Danach legt der POST das Projekt vitrine an. Die Agenten arbeiten auf der ersten Seite weiter, und du hast kein anderes Programm geöffnet."
         },
         "store": {
           "step": "Store",
@@ -388,12 +388,13 @@
         "automacoes": "Geplante KI-Aufgaben, mit Verlauf.",
         "prompts": "Bibliothek mit Prompts und Techniken, mit Chat-Sitzung daneben.",
         "projetos": "Projekte und Sitzungen: hinzufügen, klonen und favorisieren.",
-        "recursos": "Skills, Gedächtnis, Agents, MCPs und Anweisungen.",
+        "recursos": "MCPs; Skills, Gedächtnis, Agents und Anweisungen kommen bald.",
         "links": "Links mit Tags. URL einfügen und ↵.",
         "ferramentas": "JSON und Markdown zu Word.",
         "config": "Konten, Provider, Tastenkürzel, Zugriff und Aussehen.",
         "plugins": "Katalog, Graph und Provider-Wechsel mit Vorschau."
-      }
+      },
+      "soon": "bald"
     },
     "rack": {
       "service": {
@@ -431,7 +432,7 @@
         "hint": "Probier es aus: Klick ein Plugin an, um es abzuschalten, einen Dienst, um ihn zu tauschen, oder installier eins aus der Community.",
         "on": "<b>{name}</b> ist zurück, ohne Neustart.",
         "off": "<b>{name}</b> ist aus. War es in einem Bereich offen, bleibt der Bereich da und wartet auf ein anderes Plugin.",
-        "noAi": "<b>KI aus.</b> {users} warten auf einen Provider; Terminal, Workspaces, Notizen, Datenbank und Kalender laufen weiter wie bisher.",
+        "noAi": "<b>KI aus.</b> {users} warten auf einen Provider; Terminal, Workspaces und Datenbank laufen weiter wie bisher.",
         "swap": "Vorschau · {service}: <b>{from} → {to}</b>",
         "swapUsers": "Vorschau · {service}: <b>{from} → {to}</b> · {users} beenden, was sie gerade tun, und starten mit dem neuen Provider neu",
         "install": "Fertig, <b>Kanban von @ana</b> ist installiert. Es wollte nur auf api.github.com zugreifen.",
@@ -888,19 +889,13 @@
         "ein Agenten-Harness",
         "ein Terminal",
         "ein Worktree-Manager",
-        "ein API-Client",
-        "ein Datenbank-Client",
-        "eine Notizen-App",
-        "ein Kalender"
+        "ein Datenbank-Client"
       ],
       "stars": [
         "Agenten",
         "Terminal",
         "Worktrees",
-        "API",
-        "Datenbank",
-        "Notizen",
-        "Kalender"
+        "Datenbank"
       ]
     },
     "dl": {
@@ -945,7 +940,7 @@
     "q3": "Laufen meine Aufrufe über eure Server?",
     "a3": "Nein. Cadente spricht direkt mit dem Provider deiner Wahl, mit deinem Abo oder deinem Schlüssel. Der Server von Cadente speichert nur dein Konto.",
     "q4": "Funktioniert es ohne KI?",
-    "a4": "Ja. Die KI ist ein Plugin wie die anderen: Schalte sie ab und behalte Terminal, Workspaces, Notizen, Datenbank und Kalender.",
+    "a4": "Ja. Die KI ist ein Plugin wie die anderen: Schalte sie ab und behalte Terminal, Workspaces und Datenbank.",
     "q5": "Wenn es kostenlos ist, wie verdient ihr Geld?",
     "a5": "Mit dem Plugin-Store, sobald er öffnet: Cadente behält 30 % der Verkäufe und Abos und 10 % der Spenden. Die App bleibt kostenlos.",
     "q6": "In welchen Sprachen?",

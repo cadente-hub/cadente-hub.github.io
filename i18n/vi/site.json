@@ -1,8 +1,8 @@
 {
   "meta": {
     "title": "Cadente — hub nơi mọi thứ đều là plugin, kể cả AI",
-    "description": "Cadente là ứng dụng desktop miễn phí gom Claude Code, Codex, terminal, cơ sở dữ liệu, ghi chú và lịch vào một cửa sổ. Mọi thứ đều là plugin, kể cả AI.",
-    "ogDescription": "Hub nơi mọi thứ đều là plugin, kể cả AI: agent, terminal, cơ sở dữ liệu và ghi chú trong một cửa sổ.",
+    "description": "Cadente là ứng dụng desktop miễn phí gom Claude Code, Codex, terminal và cơ sở dữ liệu vào một cửa sổ. Mọi thứ đều là plugin, kể cả AI.",
+    "ogDescription": "Hub nơi mọi thứ đều là plugin, kể cả AI: agent, terminal và cơ sở dữ liệu trong một cửa sổ.",
     "skip": "Bỏ qua, tới nội dung"
   },
   "nav": {
@@ -19,7 +19,7 @@
   },
   "hero": {
     "eyebrow": "Miễn phí · Mac, Windows và Linux · viết bằng Rust · 15 ngôn ngữ",
-    "lede": "Agent, terminal, cơ sở dữ liệu, ghi chú và lịch trong cùng một cửa sổ, tất cả bằng bàn phím. Mỗi phần là một plugin: giữ cái bạn dùng, đổi cái bạn muốn và tắt phần còn lại, kể cả AI. Và không tốn đồng nào.",
+    "lede": "Agent, terminal và cơ sở dữ liệu trong cùng một cửa sổ, tất cả bằng bàn phím. Mỗi phần là một plugin: giữ cái bạn dùng, đổi cái bạn muốn và tắt phần còn lại, kể cả AI. Và không tốn đồng nào.",
     "watch": "Xem một ngày làm việc",
     "anyCli": "bất kỳ CLI nào",
     "before": "Cadente là",
@@ -29,7 +29,7 @@
   },
   "theater": {
     "label": "Cadente khi làm việc",
-    "intro": "Một ngày làm việc trong Cadente, từ 9 giờ sáng đến hết giờ làm",
+    "intro": "Một ngày làm việc trong bản mẫu của Cadente, thiết kế mà ứng dụng đang hướng tới; vài plugin trong cửa sổ này vẫn đang trên đường đến",
     "chapters": "Các chương"
   },
   "creator": {
@@ -83,7 +83,7 @@
   "plugins": {
     "eyebrow": "Plugin có sẵn",
     "title": "Mỗi ô trở thành<br /><span class=\"muted\">thứ bạn cần.</span>",
-    "lede": "Chat, Terminal, Workspaces, Requests, Lịch, Tập trung: các plugin có sẵn đều hoạt động như nhau. <kbd>↵</kbd> mở, <kbd>.</kbd> cho thấy bạn làm được gì, <kbd>/</kbd> liệt kê lệnh, <kbd>⇥</kbd> đổi chế độ xem. Biết một cái là biết tất cả. Bấm vào một cái để xem.",
+    "lede": "Chat, Terminal, Workspaces, Dự án, Tự động hóa, Tập trung: các plugin có sẵn đều hoạt động như nhau. <kbd>↵</kbd> mở, <kbd>.</kbd> cho thấy bạn làm được gì, <kbd>/</kbd> liệt kê lệnh, <kbd>⇥</kbd> đổi chế độ xem. Biết một cái là biết tất cả. Bấm vào một cái để xem.",
     "gridLabel": "Plugin có sẵn",
     "communityBig": "<span class=\"violet-text\">Và những plugin</span><br />cộng đồng làm ra.",
     "communityText": "Cửa hàng sắp mở: ai cũng đăng được, và cài luôn miễn phí. Không dùng AI? Chỉ giữ các plugin năng suất.",
@@ -105,7 +105,7 @@
   "owner": {
     "eyebrow": "Mọi thứ đều là plugin",
     "title": "Kể cả AI<br /><span class=\"violet-text\">cũng là plugin.</span>",
-    "lede": "Chat, Terminal, thanh bên, provider AI, cả chủ đề nữa: mọi phần của Cadente đều là plugin, giống hệt plugin cộng đồng. Đổi provider, tắt cái bạn không dùng và, nếu muốn, tắt luôn AI để giữ một hub gồm terminal, cơ sở dữ liệu, ghi chú và lịch.",
+    "lede": "Chat, Terminal, thanh bên, provider AI, cả chủ đề nữa: mọi phần của Cadente đều là plugin, giống hệt plugin cộng đồng. Đổi provider, tắt cái bạn không dùng và, nếu muốn, tắt luôn AI để giữ một hub gồm terminal, workspaces và cơ sở dữ liệu.",
     "plugins": "Plugin",
     "installKanban": "cài Kanban từ cộng đồng",
     "services": "Dịch vụ",
@@ -114,7 +114,7 @@
     "forSafety": "để bạn an toàn",
     "base": "trình quản lý plugin · shell · bộ chọn",
     "install": "Cài",
-    "installText": "Từ một liên kết hoặc một thư mục, không cần khởi động lại gì.",
+    "installText": "Từ một thư mục, không cần khởi động lại gì.",
     "remove": "Tắt",
     "removeText": "Plugin có sẵn cũng tắt được.",
     "swap": "Đổi",
@@ -129,7 +129,7 @@
     "layer4": "Giao diện",
     "layer4Text": "Cả thanh bên và chủ đề cũng là plugin.",
     "noAi": "Không AI cũng được",
-    "noAiText": "Tắt AI và mọi thứ khác vẫn chạy: terminal, workspaces, ghi chú, cơ sở dữ liệu và lịch."
+    "noAiText": "Tắt AI và mọi thứ khác vẫn chạy: terminal, workspaces và cơ sở dữ liệu."
   },
   "store": {
     "eyebrow": "Cửa hàng plugin · sắp ra mắt",
@@ -183,12 +183,12 @@
         "ci": {
           "step": "CI",
           "title": "Rồi CI của login hỏng.",
-          "text": "Một trang mới hiện bốn branch đang mở và trạng thái của từng PR. Login đang đỏ. Bạn mở branch đó và <kbd>⌘J</kbd> gọi một Chat đã biết bạn đang ở đâu, nên chỉ cần hỏi lý do. Diff mở ngay bên cạnh."
+          "text": "Một trang mới hiện bốn branch đang mở và trạng thái của từng PR. Login đang đỏ. Bạn mở branch đó và <kbd>⌘J</kbd> gọi một Chat đã biết bạn đang ở đâu, nên chỉ cần hỏi lý do. Diff mở ngay bên cạnh. <b>Sắp có trong ứng dụng:</b> trạng thái của từng PR."
         },
         "api": {
           "step": "API",
           "title": "Giờ đến tính năng của ngày.",
-          "text": "Việc hôm nay là API dự án. Trong Requests, bạn mở <code>GET /v1/projects</code>, đổi <code>limit</code> thành 5 rồi gửi. Sau đó, POST tạo dự án trưng bày. Các agent vẫn chạy ở trang đầu tiên, và bạn chưa mở thêm chương trình nào."
+          "text": "<b>Sắp có trong ứng dụng.</b> Việc hôm nay là API dự án. Trong Requests, bạn mở <code>GET /v1/projects</code>, đổi <code>limit</code> thành 5 rồi gửi. Sau đó, POST tạo dự án trưng bày. Các agent vẫn chạy ở trang đầu tiên, và bạn chưa mở thêm chương trình nào."
         },
         "store": {
           "step": "Cửa hàng",
@@ -388,12 +388,13 @@
         "automacoes": "Tác vụ AI theo lịch, có lịch sử.",
         "prompts": "Thư viện prompt và kỹ thuật, có phiên Chat ở bên cạnh.",
         "projetos": "Dự án và phiên: thêm, clone và đánh dấu yêu thích.",
-        "recursos": "Skills, bộ nhớ, agents, MCP và chỉ dẫn.",
+        "recursos": "MCP; skills, bộ nhớ, agents và chỉ dẫn sắp có.",
         "links": "Liên kết có thẻ. Dán URL rồi ↵.",
         "ferramentas": "JSON, và Markdown sang Word.",
         "config": "Tài khoản, provider, phím tắt, quyền truy cập và giao diện.",
         "plugins": "Danh mục, đồ thị và đổi provider có xem trước."
-      }
+      },
+      "soon": "sắp có"
     },
     "rack": {
       "service": {
@@ -430,7 +431,7 @@
         "hint": "Thử xem: bấm một plugin để tắt, bấm một dịch vụ để đổi, hoặc cài một plugin từ cộng đồng.",
         "on": "<b>{name}</b> đã bật lại, không cần khởi động lại gì.",
         "off": "<b>{name}</b> đã tắt. Nếu nó đang mở trong một ô, ô đó vẫn nằm đó chờ plugin khác.",
-        "noAi": "<b>AI đã tắt.</b> {users} chờ một provider; Terminal, Workspaces, ghi chú, cơ sở dữ liệu và lịch vẫn chạy như cũ.",
+        "noAi": "<b>AI đã tắt.</b> {users} chờ một provider; Terminal, Workspaces và cơ sở dữ liệu vẫn chạy như cũ.",
         "swap": "xem trước · {service}: <b>{from} → {to}</b>",
         "swapUsers": "xem trước · {service}: <b>{from} → {to}</b> · {users} làm nốt việc đang dở rồi khởi động lại trên provider mới",
         "install": "Xong, đã cài <b>Kanban của @ana</b>. Nó chỉ xin quyền truy cập api.github.com.",
@@ -885,19 +886,13 @@
         "một harness cho agent",
         "một terminal",
         "một trình quản lý worktree",
-        "một trình khách API",
-        "một trình khách cơ sở dữ liệu",
-        "một ứng dụng ghi chú",
-        "một ứng dụng lịch"
+        "một trình khách cơ sở dữ liệu"
       ],
       "stars": [
         "agent",
         "terminal",
         "worktree",
-        "API",
-        "cơ sở dữ liệu",
-        "ghi chú",
-        "lịch"
+        "cơ sở dữ liệu"
       ]
     },
     "dl": {
@@ -942,7 +937,7 @@
     "q3": "Các lệnh gọi của tôi có đi qua server của các bạn không?",
     "a3": "Không. Cadente nói chuyện thẳng với nhà cung cấp bạn chọn, bằng gói đăng ký hoặc khóa của bạn. Server của Cadente chỉ lưu tài khoản của bạn.",
     "q4": "Không có AI có dùng được không?",
-    "a4": "Được. AI là một plugin như mọi plugin khác: tắt đi và giữ lại terminal, workspaces, ghi chú, cơ sở dữ liệu và lịch.",
+    "a4": "Được. AI là một plugin như mọi plugin khác: tắt đi và giữ lại terminal, workspaces và cơ sở dữ liệu.",
     "q5": "Miễn phí thì các bạn kiếm tiền bằng cách nào?",
     "a5": "Từ cửa hàng plugin, khi cửa hàng mở: Cadente giữ 30% doanh thu bán hàng và gói đăng ký, và 10% tiền ủng hộ. Ứng dụng vẫn miễn phí.",
     "q6": "Có những ngôn ngữ nào?",

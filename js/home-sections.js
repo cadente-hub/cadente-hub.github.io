@@ -90,7 +90,11 @@ export async function initSections({ windowLanguage, yieldTask }) {
   const grid = $('#plugin-grid'), note = $('#plugin-note');
   const FIRST = PLUGINS.filter(p => !p.community && !p.store);
   const titleOf = p => (t.has(`plugins.title.${p.id}`) ? t(`plugins.title.${p.id}`) : p.title);
-  grid.innerHTML = FIRST.map(p => `<li><button class="pcard" data-plugin="${p.id}" aria-pressed="false"><span class="pcard__glyph" aria-hidden="true">${esc(p.glyph)}</span><span class="pcard__title">${esc(titleOf(p))}</span></button></li>`).join('');
+  // The window shows the v4 prototype; these plugins of it reach the native app with Phase G (ADR 0081 §3.2),
+  // so their cards say "soon" until each item G lands and gives its claim back to the site.
+  const SOON = new Set(['inicio', 'pr', 'requests', 'calendario', 'sistema', 'prompts', 'links', 'ferramentas']);
+  const soon = id => (SOON.has(id) ? `<span class="pcard__soon">${esc(t('plugins.soon'))}</span>` : '');
+  grid.innerHTML = FIRST.map(p => `<li><button class="pcard" data-plugin="${p.id}" aria-pressed="false"><span class="pcard__glyph" aria-hidden="true">${esc(p.glyph)}</span><span class="pcard__title">${esc(titleOf(p))}</span>${soon(p.id)}</button></li>`).join('');
 
   const preview = $('.plugins__preview');
   // The review scene of the prototype has three tabs with real-looking data (PR #248, Claude at work, Requests,
@@ -110,7 +114,7 @@ export async function initSections({ windowLanguage, yieldTask }) {
     pstage.reveal(target);
     for (const b of grid.querySelectorAll('.pcard')) b.setAttribute('aria-pressed', String(b.dataset.plugin === id));
     const p = plugin(id);
-    note.innerHTML = `<b><span>${esc(p.glyph)}</span>${esc(titleOf(p))}</b> · ${esc(t.has(`plugins.desc.${id}`) ? t(`plugins.desc.${id}`) : '')}`;
+    note.innerHTML = `<b><span>${esc(p.glyph)}</span>${esc(titleOf(p))}</b>${SOON.has(id) ? ` · ${esc(t('plugins.soon'))}` : ''} · ${esc(t.has(`plugins.desc.${id}`) ? t(`plugins.desc.${id}`) : '')}`;
   }
   // Each plugin shows its first view, then walks two more with ⇥, then the next plugin opens.
   function tour(from) {

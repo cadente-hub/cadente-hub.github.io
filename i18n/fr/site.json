@@ -1,8 +1,8 @@
 {
   "meta": {
     "title": "Cadente — le hub où tout est plugin, même l'IA",
-    "description": "Cadente est une app de bureau gratuite qui réunit Claude Code, Codex, terminal, base de données, notes et agenda dans une fenêtre. Tout est plugin, même l'IA.",
-    "ogDescription": "Le hub où tout est plugin, même l'IA : agents, terminal, base de données et notes dans une seule fenêtre.",
+    "description": "Cadente est une app de bureau gratuite qui réunit Claude Code, Codex, terminal et base de données dans une fenêtre. Tout est plugin, même l'IA.",
+    "ogDescription": "Le hub où tout est plugin, même l'IA : agents, terminal et base de données dans une seule fenêtre.",
     "skip": "Aller au contenu"
   },
   "nav": {
@@ -19,7 +19,7 @@
   },
   "hero": {
     "eyebrow": "Gratuit · Mac, Windows et Linux · écrit en Rust · 15 langues",
-    "lede": "Agents, terminal, base de données, notes et agenda dans la même fenêtre, tout au clavier. Chaque partie est un plugin : gardez ce que vous utilisez, changez ce que vous voulez et désactivez le reste, même l'IA. Et ça ne coûte rien.",
+    "lede": "Agents, terminal et base de données dans la même fenêtre, tout au clavier. Chaque partie est un plugin : gardez ce que vous utilisez, changez ce que vous voulez et désactivez le reste, même l'IA. Et ça ne coûte rien.",
     "watch": "Voir une journée de travail",
     "anyCli": "n'importe quel CLI",
     "before": "Cadente est",
@@ -29,7 +29,7 @@
   },
   "theater": {
     "label": "Cadente en action",
-    "intro": "Une journée de travail dans Cadente, de 9 h à la fin de la journée",
+    "intro": "Une journée de travail dans le prototype de Cadente, le design vers lequel va l'app ; certains plugins de cette fenêtre arrivent encore",
     "chapters": "Chapitres"
   },
   "creator": {
@@ -83,7 +83,7 @@
   "plugins": {
     "eyebrow": "Plugins intégrés",
     "title": "Chaque volet devient<br /><span class=\"muted\">ce dont vous avez besoin.</span>",
-    "lede": "Chat, Terminal, Workspaces, Requests, Calendrier, Focus : les plugins intégrés fonctionnent tous de la même façon. <kbd>↵</kbd> ouvre, <kbd>.</kbd> montre ce que vous pouvez faire, <kbd>/</kbd> liste les commandes, <kbd>⇥</kbd> change de vue. Vous en connaissez un, vous les connaissez tous. Cliquez sur l'un d'eux pour le voir.",
+    "lede": "Chat, Terminal, Workspaces, Projets, Automatisations, Focus : les plugins intégrés fonctionnent tous de la même façon. <kbd>↵</kbd> ouvre, <kbd>.</kbd> montre ce que vous pouvez faire, <kbd>/</kbd> liste les commandes, <kbd>⇥</kbd> change de vue. Vous en connaissez un, vous les connaissez tous. Cliquez sur l'un d'eux pour le voir.",
     "gridLabel": "Plugins intégrés",
     "communityBig": "<span class=\"violet-text\">Et ceux que</span><br />la communauté créera.",
     "communityText": "La boutique ouvre bientôt : tout le monde peut publier, et l'installation est toujours gratuite. Vous n'utilisez pas l'IA ? Gardez seulement ceux de productivité.",
@@ -105,7 +105,7 @@
   "owner": {
     "eyebrow": "Tout est plugin",
     "title": "Même l'IA<br /><span class=\"violet-text\">est un plugin.</span>",
-    "lede": "Le Chat, le Terminal, la barre latérale, le fournisseur d'IA, même le thème : chaque partie de Cadente est un plugin, comme ceux de la communauté. Changez de fournisseur, désactivez ce que vous n'utilisez pas et, si vous voulez, désactivez l'IA pour garder un hub avec terminal, base de données, notes et agenda.",
+    "lede": "Le Chat, le Terminal, la barre latérale, le fournisseur d'IA, même le thème : chaque partie de Cadente est un plugin, comme ceux de la communauté. Changez de fournisseur, désactivez ce que vous n'utilisez pas et, si vous voulez, désactivez l'IA pour garder un hub avec terminal, workspaces et base de données.",
     "plugins": "Plugins",
     "installKanban": "installer Kanban de la communauté",
     "services": "Services",
@@ -114,7 +114,7 @@
     "forSafety": "pour votre sécurité",
     "base": "gestionnaire de plugins · shell · sélecteur",
     "install": "Installez",
-    "installText": "Depuis un lien ou un dossier, sans rien redémarrer.",
+    "installText": "Depuis un dossier, sans rien redémarrer.",
     "remove": "Désactivez",
     "removeText": "Les plugins intégrés se désactivent aussi.",
     "swap": "Changez",
@@ -129,7 +129,7 @@
     "layer4": "L'interface",
     "layer4Text": "Même la barre latérale et le thème sont des plugins.",
     "noAi": "Sans IA aussi",
-    "noAiText": "Désactivez l'IA et le reste continue : terminal, workspaces, notes, base de données et agenda."
+    "noAiText": "Désactivez l'IA et le reste continue : terminal, workspaces et base de données."
   },
   "store": {
     "eyebrow": "Boutique de plugins · bientôt",
@@ -183,12 +183,12 @@
         "ci": {
           "step": "CI",
           "title": "Puis la CI du login casse.",
-          "text": "Une nouvelle page affiche les quatre branches ouvertes et l'état de chaque PR. Le login est en rouge. Vous ouvrez la branche, et <kbd>⌘J</kbd> appelle un Chat qui sait déjà où vous êtes : il suffit de demander pourquoi. Le diff s'ouvre à côté."
+          "text": "Une nouvelle page affiche les quatre branches ouvertes et l'état de chaque PR. Le login est en rouge. Vous ouvrez la branche, et <kbd>⌘J</kbd> appelle un Chat qui sait déjà où vous êtes : il suffit de demander pourquoi. Le diff s'ouvre à côté. <b>Bientôt dans l'app :</b> l'état de chaque PR."
         },
         "api": {
           "step": "API",
           "title": "Maintenant, la fonctionnalité du jour.",
-          "text": "La tâche du jour, c'est l'API des projets. Dans Requests, vous ouvrez <code>GET /v1/projects</code>, passez <code>limit</code> à 5 et envoyez. Ensuite, le POST crée le projet vitrine. Les agents continuent sur la première page, et vous n'avez ouvert aucun autre programme."
+          "text": "<b>Bientôt dans l'app.</b> La tâche du jour, c'est l'API des projets. Dans Requests, vous ouvrez <code>GET /v1/projects</code>, passez <code>limit</code> à 5 et envoyez. Ensuite, le POST crée le projet vitrine. Les agents continuent sur la première page, et vous n'avez ouvert aucun autre programme."
         },
         "store": {
           "step": "Boutique",
@@ -388,12 +388,13 @@
         "automacoes": "Tâches d'IA planifiées, avec historique.",
         "prompts": "Bibliothèque de prompts et de techniques, avec une session de Chat à côté.",
         "projetos": "Projets et sessions : ajouter, cloner et mettre en favori.",
-        "recursos": "Skills, mémoire, agents, MCP et instructions.",
+        "recursos": "MCP ; skills, mémoire, agents et instructions arrivent bientôt.",
         "links": "Liens avec tags. Collez une URL et ↵.",
         "ferramentas": "JSON, et Markdown vers Word.",
         "config": "Comptes, fournisseurs, raccourcis, accès et apparence.",
         "plugins": "Catalogue, graphe et changement de fournisseur avec aperçu."
-      }
+      },
+      "soon": "bientôt"
     },
     "rack": {
       "service": {
@@ -432,7 +433,7 @@
         "hint": "Essayez : cliquez sur un plugin pour le désactiver, sur un service pour le changer, ou installez-en un de la communauté.",
         "on": "<b>{name}</b> est de retour, sans rien redémarrer.",
         "off": "<b>{name}</b> désactivé. S'il était ouvert dans un volet, le volet reste là en attendant un autre plugin.",
-        "noAi": "<b>IA désactivée.</b> {users} attendent un fournisseur ; Terminal, Workspaces, notes, base de données et agenda ne changent pas.",
+        "noAi": "<b>IA désactivée.</b> {users} attendent un fournisseur ; Terminal, Workspaces et base de données ne changent pas.",
         "swap": "aperçu · {service} : <b>{from} → {to}</b>",
         "swapUsers": "aperçu · {service} : <b>{from} → {to}</b> · {users} terminent ce qu'ils font et redémarrent sur le nouveau fournisseur",
         "install": "C'est fait, <b>Kanban de @ana</b> est installé. Il n'a demandé l'accès qu'à api.github.com.",
@@ -891,19 +892,13 @@
         "un harness d'agents",
         "un terminal",
         "un gestionnaire de worktrees",
-        "un client d'API",
-        "un client de base de données",
-        "une app de notes",
-        "un agenda"
+        "un client de base de données"
       ],
       "stars": [
         "agents",
         "terminal",
         "worktrees",
-        "API",
-        "base de données",
-        "notes",
-        "agenda"
+        "base de données"
       ]
     },
     "dl": {
@@ -948,7 +943,7 @@
     "q3": "Mes appels passent-ils par vos serveurs ?",
     "a3": "Non. Cadente parle directement au fournisseur que vous avez choisi, avec votre abonnement ou votre clé. Le serveur de Cadente ne garde que votre compte.",
     "q4": "Ça marche sans IA ?",
-    "a4": "Oui. L'IA est un plugin comme les autres : désactivez-la et gardez terminal, workspaces, notes, base de données et agenda.",
+    "a4": "Oui. L'IA est un plugin comme les autres : désactivez-la et gardez terminal, workspaces et base de données.",
     "q5": "Si c'est gratuit, comment gagnez-vous de l'argent ?",
     "a5": "Avec la boutique de plugins, quand elle ouvrira : Cadente garde 30 % des ventes et des abonnements, et 10 % des dons. L'app reste gratuite.",
     "q6": "Dans quelles langues ?",

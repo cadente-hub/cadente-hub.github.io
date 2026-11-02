@@ -1,8 +1,8 @@
 {
   "meta": {
     "title": "Cadente — her şeyin, yapay zekânın bile eklenti olduğu merkez",
-    "description": "Cadente; Claude Code, Codex, terminal, veritabanı, notlar ve takvimi tek pencerede toplayan ücretsiz bir masaüstü uygulaması. Her şey eklenti, yapay zekâ bile.",
-    "ogDescription": "Her şeyin, yapay zekânın bile eklenti olduğu merkez: ajanlar, terminal, veritabanı ve notlar tek pencerede.",
+    "description": "Cadente; Claude Code, Codex, terminal ve veritabanını tek pencerede toplayan ücretsiz bir masaüstü uygulaması. Her şey eklenti, yapay zekâ bile.",
+    "ogDescription": "Her şeyin, yapay zekânın bile eklenti olduğu merkez: ajanlar, terminal ve veritabanı tek pencerede.",
     "skip": "İçeriğe geç"
   },
   "nav": {
@@ -19,7 +19,7 @@
   },
   "hero": {
     "eyebrow": "Ücretsiz · Mac, Windows ve Linux · Rust ile yazıldı · 15 dil",
-    "lede": "Ajanlar, terminal, veritabanı, notlar ve takvim aynı pencerede, hepsi klavyeden. Her parça bir eklenti: kullandığınızı tutun, istediğinizi değiştirin, gerisini kapatın, yapay zekâyı bile. Üstelik hiçbir ücreti yok.",
+    "lede": "Ajanlar, terminal ve veritabanı aynı pencerede, hepsi klavyeden. Her parça bir eklenti: kullandığınızı tutun, istediğinizi değiştirin, gerisini kapatın, yapay zekâyı bile. Üstelik hiçbir ücreti yok.",
     "watch": "Bir iş gününü izleyin",
     "anyCli": "herhangi bir CLI",
     "before": "Cadente",
@@ -29,7 +29,7 @@
   },
   "theater": {
     "label": "Cadente kullanımda",
-    "intro": "Cadente'de bir iş günü, saat 9'dan mesai bitimine kadar",
+    "intro": "Cadente prototipinde bir iş günü, uygulamanın gittiği tasarım; bu penceredeki bazı eklentiler henüz yolda",
     "chapters": "Bölümler"
   },
   "creator": {
@@ -83,7 +83,7 @@
   "plugins": {
     "eyebrow": "Yerleşik eklentiler",
     "title": "Her bölme<br /><span class=\"muted\">neye ihtiyacınız varsa o olur.</span>",
-    "lede": "Chat, Terminal, Workspaces, Requests, Takvim, Odak: yerleşik eklentilerin hepsi aynı şekilde çalışır. <kbd>↵</kbd> açar, <kbd>.</kbd> neler yapabileceğinizi gösterir, <kbd>/</kbd> komutları listeler, <kbd>⇥</kbd> görünümü değiştirir. Birini öğrenen hepsini öğrenir. Görmek için birine tıklayın.",
+    "lede": "Chat, Terminal, Workspaces, Projeler, Otomasyonlar, Odak: yerleşik eklentilerin hepsi aynı şekilde çalışır. <kbd>↵</kbd> açar, <kbd>.</kbd> neler yapabileceğinizi gösterir, <kbd>/</kbd> komutları listeler, <kbd>⇥</kbd> görünümü değiştirir. Birini öğrenen hepsini öğrenir. Görmek için birine tıklayın.",
     "gridLabel": "Yerleşik eklentiler",
     "communityBig": "<span class=\"violet-text\">Bir de topluluğun</span><br />yapacakları.",
     "communityText": "Mağaza yakında açılıyor: herkes yayımlayabilir ve kurmak her zaman ücretsiz. Yapay zekâ kullanmıyor musunuz? Yalnızca üretkenlik eklentilerini tutun.",
@@ -105,7 +105,7 @@
   "owner": {
     "eyebrow": "Her şey eklenti",
     "title": "Yapay zekâ bile<br /><span class=\"violet-text\">bir eklenti.</span>",
-    "lede": "Chat, Terminal, kenar çubuğu, YZ sağlayıcısı, hatta tema: Cadente'nin her parçası, topluluğunkiler gibi bir eklentidir. Sağlayıcıyı değiştirin, kullanmadığınızı kapatın; isterseniz yapay zekâyı da kapatıp terminal, veritabanı, notlar ve takvimden oluşan bir merkezle devam edin.",
+    "lede": "Chat, Terminal, kenar çubuğu, YZ sağlayıcısı, hatta tema: Cadente'nin her parçası, topluluğunkiler gibi bir eklentidir. Sağlayıcıyı değiştirin, kullanmadığınızı kapatın; isterseniz yapay zekâyı da kapatıp terminal, workspaces ve veritabanından oluşan bir merkezle devam edin.",
     "plugins": "Eklentiler",
     "installKanban": "topluluktan Kanban kur",
     "services": "Servisler",
@@ -114,7 +114,7 @@
     "forSafety": "güvenliğiniz için",
     "base": "eklenti yöneticisi · kabuk · seçici",
     "install": "Kurun",
-    "installText": "Bir bağlantıdan ya da klasörden, hiçbir şeyi yeniden başlatmadan.",
+    "installText": "Bir klasörden, hiçbir şeyi yeniden başlatmadan.",
     "remove": "Kapatın",
     "removeText": "Yerleşik eklentiler de kapatılabilir.",
     "swap": "Değiştirin",
@@ -129,7 +129,7 @@
     "layer4": "Arayüz",
     "layer4Text": "Kenar çubuğu ve tema bile birer eklenti.",
     "noAi": "Yapay zekâ olmadan da",
-    "noAiText": "Yapay zekâyı kapatın, gerisi çalışmaya devam eder: terminal, workspaces, notlar, veritabanı ve takvim."
+    "noAiText": "Yapay zekâyı kapatın, gerisi çalışmaya devam eder: terminal, workspaces ve veritabanı."
   },
   "store": {
     "eyebrow": "Eklenti mağazası · yakında",
@@ -183,12 +183,12 @@
         "ci": {
           "step": "CI",
           "title": "Derken login'in CI'ı kırılıyor.",
-          "text": "Yeni bir sayfada açık dört branch ve her PR'ın durumu duruyor. Login kırmızı. Branch'i açarsınız; <kbd>⌘J</kbd> nerede olduğunuzu zaten bilen bir Chat çağırır, size de yalnızca nedenini sormak kalır. Diff hemen yanda açılır."
+          "text": "Yeni bir sayfada açık dört branch ve her PR'ın durumu duruyor. Login kırmızı. Branch'i açarsınız; <kbd>⌘J</kbd> nerede olduğunuzu zaten bilen bir Chat çağırır, size de yalnızca nedenini sormak kalır. Diff hemen yanda açılır. <b>Yakında uygulamada:</b> her PR'ın durumu."
         },
         "api": {
           "step": "API",
           "title": "Şimdi sıra günün özelliğinde.",
-          "text": "Bugünün görevi projeler API'si. Requests'te <code>GET /v1/projects</code> isteğini açar, <code>limit</code> değerini 5 yapar ve gönderirsiniz. Ardından POST vitrin projesini oluşturur. Ajanlar ilk sayfada çalışmayı sürdürüyor ve siz başka bir program açmadınız."
+          "text": "<b>Yakında uygulamada.</b> Bugünün görevi projeler API'si. Requests'te <code>GET /v1/projects</code> isteğini açar, <code>limit</code> değerini 5 yapar ve gönderirsiniz. Ardından POST vitrin projesini oluşturur. Ajanlar ilk sayfada çalışmayı sürdürüyor ve siz başka bir program açmadınız."
         },
         "store": {
           "step": "Mağaza",
@@ -388,12 +388,13 @@
         "automacoes": "Zamanlanmış YZ görevleri, geçmişiyle.",
         "prompts": "Prompt ve teknik kütüphanesi, yanda bir Chat oturumuyla.",
         "projetos": "Projeler ve oturumlar: ekleyin, klonlayın, favorilere ekleyin.",
-        "recursos": "Skills, bellek, agents, MCP'ler ve talimatlar.",
+        "recursos": "MCP'ler; skills, bellek, agents ve talimatlar yakında geliyor.",
         "links": "Etiketli bağlantılar. Bir URL yapıştırın ve ↵.",
         "ferramentas": "JSON araçları ve Markdown'dan Word'e.",
         "config": "Hesaplar, sağlayıcılar, kısayollar, erişim ve görünüş.",
         "plugins": "Katalog, graf ve önizlemeli sağlayıcı değişimi."
-      }
+      },
+      "soon": "yakında"
     },
     "rack": {
       "service": {
@@ -431,7 +432,7 @@
         "hint": "Deneyin: kapatmak için bir eklentiye, değiştirmek için bir servise tıklayın ya da topluluktan bir eklenti kurun.",
         "on": "<b>{name}</b> geri geldi, hiçbir şey yeniden başlatılmadan.",
         "off": "<b>{name}</b> kapatıldı. Bir bölmede açıksa, bölme başka bir eklentiyi bekleyerek yerinde kalır.",
-        "noAi": "<b>YZ kapalı.</b> {users} bir sağlayıcı bekliyor; Terminal, Workspaces, notlar, veritabanı ve takvim aynen çalışmaya devam ediyor.",
+        "noAi": "<b>YZ kapalı.</b> {users} bir sağlayıcı bekliyor; Terminal, Workspaces ve veritabanı aynen çalışmaya devam ediyor.",
         "swap": "önizleme · {service}: <b>{from} → {to}</b>",
         "swapUsers": "önizleme · {service}: <b>{from} → {to}</b> · {users} ellerindeki işi bitirip yeni sağlayıcıda yeniden başlar",
         "install": "Tamam, <b>@ana'nın Kanban'ı</b> kuruldu. Yalnızca api.github.com'a erişim istedi.",
@@ -888,19 +889,13 @@
         "bir ajan harness'ı",
         "bir terminal",
         "bir worktree yöneticisi",
-        "bir API istemcisi",
-        "bir veritabanı istemcisi",
-        "bir not uygulaması",
-        "bir takvim"
+        "bir veritabanı istemcisi"
       ],
       "stars": [
         "ajanlar",
         "terminal",
         "worktree",
-        "API",
-        "veritabanı",
-        "notlar",
-        "takvim"
+        "veritabanı"
       ]
     },
     "dl": {
@@ -945,7 +940,7 @@
     "q3": "Çağrılarım sizin sunucularınızdan geçiyor mu?",
     "a3": "Hayır. Cadente, seçtiğiniz sağlayıcıyla aboneliğiniz ya da anahtarınızla doğrudan konuşur. Cadente'nin sunucusu yalnızca hesabınızı tutar.",
     "q4": "Yapay zekâ olmadan çalışır mı?",
-    "a4": "Çalışır. Yapay zekâ da diğerleri gibi bir eklenti: kapatın; terminal, workspaces, notlar, veritabanı ve takvimle devam edin.",
+    "a4": "Çalışır. Yapay zekâ da diğerleri gibi bir eklenti: kapatın; terminal, workspaces ve veritabanıyla devam edin.",
     "q5": "Ücretsizse nasıl para kazanıyorsunuz?",
     "a5": "Açıldığında eklenti mağazasından: Cadente satışların ve aboneliklerin %30'unu, bağışların %10'unu alır. Uygulama ücretsiz kalır.",
     "q6": "Hangi dillerde?",
