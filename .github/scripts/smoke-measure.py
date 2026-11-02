@@ -153,8 +153,11 @@ else:
 
 # P6: energy (CPU time where the runner has no energy counter) of each state, per second: the
 # mean of this version's runs against the mean of the last beta's, measured alternately here.
-# A difference below the noise of an idle state is not a regression: 0.05 energy impact per
-# second, or 5 ms of CPU per second (0.5% of one core).
+# A difference below the noise of an idle state is not a regression: 5 ms of CPU per second
+# (0.5% of one core), or the energy of that CPU, 0.5 energy impact per second (on the macOS
+# runner one energy impact per second went with 10 ms/s of CPU in the script: 17.6 with 174.2,
+# 24.1 with 236.8, 14.4 with 143.7, run 41524827131). The 0.05 used before was below what the
+# same code varies in a 10 s idle state there (closed: 0.017 and 0.176 in the same run).
 beta_runs = [states for which, states in p6["beta"] if which]
 new_runs = [states for which, states in p6["new"] if which]
 if beta_runs and new_runs:
@@ -188,7 +191,7 @@ if beta_runs and new_runs:
             failures.append(f"P6: o estado {name} faltou numa das medições")
             continue
         if old_energy is not None and new_energy is not None:
-            metric, prev, new, floor = "energia/s", old_energy, new_energy, 0.05
+            metric, prev, new, floor = "energia/s", old_energy, new_energy, 0.5
         else:
             metric, prev, new, floor = "CPU ms/s", old_cpu, new_cpu, 5.0
         change = (new / prev - 1) * 100 if prev else 0.0
