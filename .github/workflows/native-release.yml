@@ -402,11 +402,13 @@ jobs:
           rm -rf _builder
           bash "$RUNNER_TEMP/clone-private.sh" src "${{ needs.resolve.outputs.sha }}"
 
+      # Optimized: signing runs minisign's scrypt and the best gzip level once per payload, and the
+      # unoptimized build spent 149 s there (run 41396863235) on the release's critical path.
       - name: Build the packaging tool
         working-directory: src
         run: |
           rustup toolchain install --profile minimal "$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml)" > /dev/null 2>&1
-          cargo build --quiet --locked -p xtask > "$RUNNER_TEMP/xtask-build.log" 2>&1 || { echo "::error::xtask did not build"; exit 1; }
+          cargo build --quiet --locked --release -p xtask > "$RUNNER_TEMP/xtask-build.log" 2>&1 || { echo "::error::xtask did not build"; exit 1; }
 
       - uses: actions/download-artifact@v4
         with:
@@ -424,9 +426,9 @@ jobs:
             cp ../bins/bin-$TARGET/* "target/$TARGET/release/"
             # Artifacts drop the executable bit, and the tar of the payload records it.
             chmod +x target/$TARGET/release/cadente-native-ui*
-            ./target/debug/xtask payload --target "$TARGET"
+            ./target/release/xtask payload --target "$TARGET"
           done
-          ./target/debug/xtask feed "$RELEASE_CHANNEL" dist/descriptor-*.json
+          ./target/release/xtask feed "$RELEASE_CHANNEL" dist/descriptor-*.json
 
       - name: Release notes
         env:
