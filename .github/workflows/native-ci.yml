@@ -114,7 +114,8 @@ jobs:
               -d "{\"state\":\"pending\",\"target_url\":\"https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\",\"description\":\"native-ci on ${OS} running\",\"context\":\"native-ci/${OS}\"}" >/dev/null 2>&1 || true
           done
 
-  # Each system runs three jobs side by side; the run takes as long as the slowest one, not their sum.
+  # Each system runs lint, tests and ruler side by side (Windows runs its tests in two halves); the run
+  # takes as long as the slowest job, not their sum.
   # `cargo clippy --all-targets -D warnings` also type-checks every target, so no separate `cargo check`.
   lint:
     name: lint ${{ matrix.os }}
@@ -285,8 +286,9 @@ jobs:
           if-no-files-found: ignore
           retention-days: 1
 
+  # Windows compiles and runs the same suite about 1.6 times slower, so its tests run in two halves.
   tests:
-    name: tests ${{ matrix.os }}
+    name: tests ${{ matrix.os }}${{ matrix.part && format(' {0}/2', matrix.part) || '' }}
     needs: resolve
     if: needs.resolve.outputs.skip != 'true'
     runs-on: ${{ matrix.os }}
@@ -296,14 +298,19 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-15, ubuntu-latest, windows-latest]
+        include:
+          - { os: macos-15 }
+          - { os: ubuntu-latest }
+          - { os: windows-latest, part: "1" }
+          - { os: windows-latest, part: "2" }
     defaults:
       run:
         shell: bash
     env:
       SHA: ${{ needs.resolve.outputs.sha }}
       MATRIX_OS: ${{ matrix.os }}
-      JOB_KIND: tests
+      JOB_KIND: tests${{ matrix.part && format('-{0}', matrix.part) || '' }}
+      PART: ${{ matrix.part }}
     steps:
       - name: Setup builder scripts
         uses: actions/checkout@v4
@@ -340,12 +347,23 @@ jobs:
         with:
           node-version: 22
 
+      # Windows only, before the cache so the ruler job computes the same key. `strip = debuginfo`
+      # makes rustc pass /DEBUG:NONE, so link.exe writes no PDB for each of the 54 test binaries.
+      # TEMP moves to D:, the runner's local disk, where the tests' SQLite stores sync each commit.
+      - name: Windows build and temp settings
+        if: runner.os == 'Windows'
+        run: |
+          mkdir -p "$RUNNER_TEMP/tmp"
+          WIN_TMP="$(cygpath -w "$RUNNER_TEMP/tmp")"
+          { echo "CARGO_PROFILE_DEV_STRIP=debuginfo"; echo "TMP=$WIN_TMP"; echo "TEMP=$WIN_TMP"; } >> "$GITHUB_ENV"
+
       # The ruler job restores this same cache: both build the workspace's tests with the same features.
+      # One Windows half saves it; both would write the same key.
       - name: Rust cache
         uses: Swatinem/rust-cache@v2
         with:
           shared-key: tests
-          save-if: ${{ github.ref == 'refs/heads/main' }}
+          save-if: ${{ github.ref == 'refs/heads/main' && matrix.part != '2' }}
 
       - name: Install nextest
         uses: taiki-e/install-action@nextest
@@ -356,10 +374,10 @@ jobs:
 
       - name: Run tests (cargo nextest)
         run: |
-          echo "Passo: cargo nextest run --workspace --profile ci (sem a régua)"
+          echo "Passo: cargo nextest run --workspace --profile ci (sem a régua)${PART:+, metade $PART de 2}"
           NEXTEST_RAW="$RUNNER_TEMP/nextest_raw.log"
           set +e
-          cargo nextest run --workspace --profile ci -E "not ${RULER}" > "$NEXTEST_RAW" 2>&1
+          cargo nextest run --workspace --profile ci -E "not ${RULER}" ${PART:+--partition "hash:${PART}/2"} > "$NEXTEST_RAW" 2>&1
           NEXTEST_EXIT=$?
           set -e
           cat "$NEXTEST_RAW" >> "$RUNNER_TEMP/ci-build.log"
@@ -401,7 +419,7 @@ jobs:
         if: failure() || cancelled()
         uses: actions/upload-artifact@v4
         with:
-          name: ci-log-${{ matrix.os }}-tests
+          name: ci-log-${{ matrix.os }}-tests${{ matrix.part && format('-{0}', matrix.part) || '' }}
           path: ${{ runner.temp }}/ci-log.enc.json
           if-no-files-found: ignore
           retention-days: 1
@@ -462,6 +480,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+
+      # Same settings as the tests job, so this job finds that job's cache key.
+      - name: Windows build and temp settings
+        if: runner.os == 'Windows'
+        run: |
+          mkdir -p "$RUNNER_TEMP/tmp"
+          WIN_TMP="$(cygpath -w "$RUNNER_TEMP/tmp")"
+          { echo "CARGO_PROFILE_DEV_STRIP=debuginfo"; echo "TMP=$WIN_TMP"; echo "TEMP=$WIN_TMP"; } >> "$GITHUB_ENV"
 
       - name: Rust cache
         uses: Swatinem/rust-cache@v2
@@ -599,14 +625,15 @@ jobs:
           set -euo pipefail
           echo "::add-mask::${PRIVATE_WRITE_TOKEN}"
           gh api --paginate "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/attempts/${GITHUB_RUN_ATTEMPT}/jobs" \
-            --jq '.jobs[] | select(.name | test("^(lint|tests|ruler) (macos-15|ubuntu-latest|windows-latest)$"))
+            --jq '.jobs[] | select(.name | test("^(lint|tests|ruler) (macos-15|ubuntu-latest|windows-latest)( [0-9]/[0-9])?$"))
                   | (.name | split(" ")) as $n
-                  | [$n[1], $n[0], (.conclusion // "cancelled"), ([.steps[] | select(.conclusion == "failure") | .name][0] // "")] | @tsv' \
+                  | [$n[1], ($n[0] + (if $n[2] then " " + $n[2] else "" end)), (.conclusion // "cancelled"), ([.steps[] | select(.conclusion == "failure") | .name][0] // "")] | @tsv' \
             > "$RUNNER_TEMP/jobs.tsv"
           for OS in macos-15 ubuntu-latest windows-latest; do
-            # A system is green only when its three jobs ran and passed.
+            # A system is green only when its lint, tests (both halves on Windows) and ruler ran and passed.
+            TOTAL="$(awk -F'\t' -v os="$OS" '$1 == os' "$RUNNER_TEMP/jobs.tsv" | wc -l | tr -d ' ')"
             PASSED="$(awk -F'\t' -v os="$OS" '$1 == os && $3 == "success"' "$RUNNER_TEMP/jobs.tsv" | wc -l | tr -d ' ')"
-            if [ "$PASSED" = 3 ]; then
+            if [ "$TOTAL" -ge 3 ] && [ "$PASSED" = "$TOTAL" ]; then
               STATE=success; DESCRIPTION="native-ci passed"; CONCLUSION=success
             else
               STATE=failure; CONCLUSION=failure
