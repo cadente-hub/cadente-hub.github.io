@@ -132,6 +132,13 @@ else:
             + "; ".join(f"{f['ms']} ({f.get('after')}, +{f.get('sinceStepMs')})" for f in slowest)
             + "\n"
         )
+        # P2: the part of each that instantiated repeaters, and the Rust step before it.
+        summary.write(
+            f"\nInstanciar repeaters por quadro: `{json.dumps(report.get('instantiateMs'))}`; passo do "
+            f"roteiro em Rust: `{json.dumps(report.get('stepMs'))}`; dos mais caros (instanciar/passo): "
+            + "; ".join(f"{f['ms']} ({f.get('instantiateMs')}/{f.get('stepMs')})" for f in slowest)
+            + "\n"
+        )
     if system == "macOS":
         # D1: the installed app opens with its icon in the menu bar and the base entries.
         tray = report.get("tray") or {}
@@ -202,6 +209,23 @@ if beta_runs and new_runs:
             failures.append(f"P6: {name} gasta {change:+.1f}% de {metric} acima da última beta")
 elif report:
     summary.write("\nSem medição da última beta neste runner: o P6 não comparou.\n")
+
+# P2 diagnosis (not a gate): the other renderers on this runner, same script.
+diag = [item.split("=", 1) for item in os.environ.get("P2_DIAG", "").split(",") if "=" in item]
+if diag and report:
+    summary.write("\nDiagnóstico do P2, mesmo roteiro com outro renderizador (`SLINT_BACKEND`):\n\n")
+    summary.write("| renderizador | quadros | p50 ms | p95 ms | p99 ms | memória no roteiro MB |\n|---|---|---|---|---|---|\n")
+    rows = [("produção", report, states)] + [(name, *read(path)) for name, path in diag]
+    for name, which, which_states in rows:
+        if not which:
+            summary.write(f"| {name} | não terminou | | | | |\n")
+            continue
+        cpu = which.get("frameCpuMs") or {}
+        script = next((s for s in which_states if s["state"] == "script"), {})
+        memory = script.get("footprintKib", script.get("rssKib", 0)) / 1024
+        row = f"| {name} | {cpu.get('n')} | {cpu.get('p50')} | {cpu.get('p95')} | {cpu.get('p99')} | {memory:.1f} |"
+        summary.write(row + "\n")
+        print(f"P2 {row} mais caros {[(f['ms'], f.get('after')) for f in (which.get('slowestFrames') or [])[:6]]}")
 
 for failure in failures:
     print(f"::error::{failure}")
