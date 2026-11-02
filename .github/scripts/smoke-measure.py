@@ -16,9 +16,11 @@ out, final, target = sys.argv[1], sys.argv[2], sys.argv[3]
 power = sys.argv[4] if len(sys.argv) > 4 and sys.argv[4] else None
 beta_dir = sys.argv[5] if len(sys.argv) > 5 and sys.argv[5] else None
 system = os.environ.get("RUNNER_OS", "?")
-summary = open(os.environ.get("GITHUB_STEP_SUMMARY", os.devnull), "a")
+summary = open(os.environ.get("GITHUB_STEP_SUMMARY", os.devnull), "a", encoding="utf-8")
+# The Windows runner's console is cp1252; the errors below carry Portuguese.
+sys.stdout.reconfigure(encoding="utf-8")
 
-lines = [json.loads(line) for line in open(out) if line.strip().startswith("{")]
+lines = [json.loads(line) for line in open(out, encoding="utf-8") if line.strip().startswith("{")]
 report = next((line for line in reversed(lines) if "states" in line), None)
 states = report["states"] if report else [line for line in lines if "state" in line]
 
