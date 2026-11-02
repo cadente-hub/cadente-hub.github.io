@@ -1,9 +1,9 @@
 name: Supabase deploy
 
-# Publishes the Edge Functions and applies SQL migrations through the
-# Supabase Management API. Needs one repository secret:
+# Applies SQL migrations through the Supabase Management API. Needs one repository secret:
 #   SUPABASE_ACCESS_TOKEN  — a personal access token (supabase.com/dashboard/account/tokens)
-# Function secrets (PADDLE_API_KEY, PADDLE_WEBHOOK_SECRET) live in Supabase.
+# The Paddle functions (get-prices, paddle-webhook) left with the Pro plan (ADR 0077 §2.10, B17):
+# the 1.1.0 is free, so nothing here deploys or checks them.
 #
 # The deploy job runs the Supabase CLI with the read-only deploy key; the write to the private
 # repository happens in `record`, which runs no third-party code. The public log carries outcomes
@@ -128,45 +128,6 @@ jobs:
           fi
           echo "profiles: $(jq '[.[] | select(.kind == "policy")] | length' /tmp/audit.json) policies, row level security on, no write grant to anon/authenticated"
           rm -f /tmp/audit.json
-
-      - name: Check function secrets
-        if: steps.creds.outputs.ready == 'true'
-        run: |
-          set -euo pipefail
-          names=$(supabase secrets list --project-ref "$PROJECT_REF" -o json | jq -r '.[].name')
-          for required in PADDLE_API_KEY PADDLE_WEBHOOK_SECRET; do
-            if ! printf '%s\n' "$names" | grep -qx "$required"; then
-              echo "::warning::Function secret $required is not set in Supabase"
-            fi
-          done
-
-      - name: Deploy functions
-        if: steps.creds.outputs.ready == 'true'
-        run: |
-          set -euo pipefail
-          supabase functions deploy get-prices --project-ref "$PROJECT_REF" --use-api > /tmp/deploy.log 2>&1 || { echo "::error::get-prices did not deploy"; exit 1; }
-          supabase functions deploy paddle-webhook --project-ref "$PROJECT_REF" --use-api > /tmp/deploy.log 2>&1 || { echo "::error::paddle-webhook did not deploy"; exit 1; }
-          rm -f /tmp/deploy.log
-          echo "functions deployed: get-prices, paddle-webhook"
-
-      - name: Smoke test
-        if: steps.creds.outputs.ready == 'true'
-        run: |
-          set -euo pipefail
-          base="https://${PROJECT_REF}.supabase.co/functions/v1"
-          sleep 5
-          prices=$(curl -sS -w '\n%{http_code}' "$base/get-prices?country=BR")
-          code=$(printf '%s' "$prices" | tail -n1)
-          json=$(printf '%s' "$prices" | sed '$d')
-          echo "get-prices: HTTP $code"
-          [ "$code" = "200" ] || { echo "::error::get-prices returned HTTP $code"; exit 1; }
-          printf '%s' "$json" | jq -e '.monthly.amount and .yearly.amount' >/dev/null
-          if printf '%s' "$json" | jq -e '.fallback == true' >/dev/null; then
-            echo "::warning::get-prices answered with fallback prices — check PADDLE_API_KEY and the function logs"
-          fi
-          hook=$(curl -sS -o /dev/null -w '%{http_code}' -X POST "$base/paddle-webhook" -H 'paddle-signature: ts=1;h1=00' -d '{}')
-          echo "paddle-webhook with a bad signature: HTTP $hook"
-          [ "$hook" = "401" ] || { echo "::error::paddle-webhook should reject a bad signature with 401, got $hook"; exit 1; }
 
   record:
     # Runs no third-party code: the only job here that writes to the private repository.
