@@ -149,7 +149,17 @@ jobs:
       - name: Installer tool (Windows)
         if: runner.os == 'Windows'
         run: |
-          choco install nsis -y --no-progress
+          # Chocolatey's feed fails now and then (504) and still exits 0, so the build ran 20 min
+          # to stop at "makensis: program not found". The image may already have NSIS; otherwise
+          # retry, and stop here if makensis is still missing.
+          NSIS="/c/Program Files (x86)/NSIS"
+          for attempt in 1 2 3; do
+            [ -x "$NSIS/makensis.exe" ] && break
+            choco install nsis -y --no-progress || true
+            [ -x "$NSIS/makensis.exe" ] || sleep $((attempt * 20))
+          done
+          [ -x "$NSIS/makensis.exe" ] || { echo "::error::NSIS (makensis) did not install"; exit 1; }
+          "$NSIS/makensis.exe" -VERSION
           echo "C:\Program Files (x86)\NSIS" >> "$GITHUB_PATH"
 
       - uses: actions/setup-node@v4
