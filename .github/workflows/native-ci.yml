@@ -1323,13 +1323,19 @@ jobs:
           retention-days: 1
 
   smoke:
-    # D3 and D4 (ADR 0076): on each system the package installs, the launcher finds the Core it
-    # ships, and the Core opens, draws frames and closes (`--measure`). On Apple Silicon the
-    # measurement is the 30 s at 120 Hz of D4; its CPU p99 and memory go to the job summary.
+    # D3 and D4 (ADR 0076), Phase P (ADR 0081 §3.5): on each system the package installs, the
+    # launcher finds the Core it ships, and the Core opens, draws and measures (`--measure`): the
+    # script of ADR 0078 §2.9, the idle open window, 100 Chats and 20 terminals opened and closed,
+    # and 60 s with the window destroyed. Frames, CPU, wake-ups, memory and, on macOS, the energy
+    # of powermetrics go to the job summary; the job fails on P4, P5 and P6 (the last beta's
+    # measurement is the `beta-measure` artifact of the run that published it).
     name: smoke ${{ matrix.target }}
     needs: [resolve, package]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
+    permissions:
+      contents: read
+      actions: read
     strategy:
       fail-fast: false
       matrix:
@@ -1345,6 +1351,24 @@ jobs:
         with:
           name: dist-${{ matrix.target }}
           path: dist
+
+      - name: Stage the measurement script and the last beta's measurement
+        env:
+          BASE: https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/scripts" "$RUNNER_TEMP/beta"
+          curl -fsSL --retry 3 -o "$RUNNER_TEMP/scripts/smoke-measure.py" "$BASE/.github/scripts/smoke-measure.py"
+          ID="$(gh api "repos/$GITHUB_REPOSITORY/actions/artifacts?name=beta-measure&per_page=20" \
+            --jq '[.artifacts[] | select(.expired == false)][0].id // empty')"
+          if [ -n "$ID" ]; then
+            gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$ID/zip" > "$RUNNER_TEMP/beta.zip"
+            (cd "$RUNNER_TEMP/beta" && unzip -oq "$RUNNER_TEMP/beta.zip")
+            echo "última beta medida: artefato $ID"; ls "$RUNNER_TEMP/beta"
+          else
+            echo "nenhuma beta medida ainda"
+          fi
 
       - name: Install the package
         id: install
@@ -1391,57 +1415,60 @@ jobs:
           echo "$FOUND"
           printf '%s' "$FOUND" | grep -q "\"version\":\"$EXPECTED\""
 
-      - name: The Core opens, draws and closes
+      - name: The Core opens, draws and measures
         env:
           DIR: ${{ steps.install.outputs.dir }}
           EXE: ${{ steps.install.outputs.exe }}
           MEASURE: ${{ matrix.measure }}
+          TARGET: ${{ matrix.target }}
         run: |
           set -euo pipefail
           export CADENTE_HOME="$RUNNER_TEMP/cadente-home"
           # Only the report reaches stdout. The Core's stderr stays in a file that this public log
           # never prints (xvfb-run would mix it into stdout).
-          OUT="$RUNNER_TEMP/measure.json" ERR="$RUNNER_TEMP/core-stderr.log"
+          OUT="$RUNNER_TEMP/measure.out" ERR="$RUNNER_TEMP/core-stderr.log"
           CORE="$DIR/cadente-core$EXE"
           export OUT ERR
           STATUS=0
+          POWER=""
+          if [ "$RUNNER_OS" = "macOS" ]; then
+            # P1: the energy of each state, from the kernel's per-task accounting, once a second.
+            POWER="$RUNNER_TEMP/power.plist"
+            python3 -c 'import time; print(int(time.time() * 1000))' > "$POWER.start"
+            sudo powermetrics --samplers tasks --show-process-energy -i 1000 -f plist -o "$POWER" \
+              > /dev/null 2> "$RUNNER_TEMP/powermetrics.err" &
+          fi
           # shellcheck disable=SC2086,SC2016
           if [ "$RUNNER_OS" = "Linux" ]; then
             xvfb-run -a -s "-screen 0 1440x900x24" sh -c 'exec "$0" "$@" > "$OUT" 2> "$ERR"' "$CORE" --measure $MEASURE || STATUS=$?
           elif [ "$RUNNER_OS" = "Windows" ]; then
             # The hosted Windows runner has no GPU: with the software renderer the Core never
-            # finished drawing there (run 41376977511 hung 20 min). The install and the launcher
-            # check above still gate the release; the draw is measured on Linux and macOS, and here
-            # only reported until the runner can show it (D3 stays open in docs/MIGRATION.md).
-            # The measurement takes 5 s; 60 s is twelve times that. The 240 s wait it replaces
-            # always ran out (run 41382444097) and held every release for 4 min.
+            # finished drawing there (run 41376977511 hung 20 min), and D3 stays open. The
+            # measurement takes about 100 s; past 180 s the states it finished are reported.
             "$CORE" --measure $MEASURE > "$OUT" 2> "$ERR" &
             PID=$!
-            for _ in $(seq 1 60); do kill -0 "$PID" 2>/dev/null || break; sleep 1; done
+            for _ in $(seq 1 180); do kill -0 "$PID" 2>/dev/null || break; sleep 1; done
             if kill -0 "$PID" 2>/dev/null; then
               kill "$PID" 2>/dev/null || true
-              echo "::warning::the Core did not finish drawing on the hosted Windows runner within 60 s"
+              echo "::warning::the Core did not finish the measurement on the hosted Windows runner within 180 s"
+              cat "$OUT" || true
+              python3 "$RUNNER_TEMP/scripts/smoke-measure.py" "$OUT" "$RUNNER_TEMP/measure.json" "$TARGET" || true
               exit 0
             fi
             wait "$PID" || STATUS=$?
           else
             "$CORE" --measure $MEASURE > "$OUT" 2> "$ERR" || STATUS=$?
           fi
+          if [ -n "$POWER" ]; then
+            sudo pkill -INT powermetrics || true
+            sleep 2
+            echo "powermetrics: $(wc -c < "$POWER" 2>/dev/null || echo 0) bytes"
+            head -c 600 "$RUNNER_TEMP/powermetrics.err" || true
+          fi
           cat "$OUT"
           [ "$STATUS" = 0 ] || { echo "::error::the Core exited with $STATUS"; exit "$STATUS"; }
-          python3 - "$RUNNER_TEMP/measure.json" <<'PY'
-          import json, os, sys
-          report = json.load(open(sys.argv[1]))
-          frames = report.get("drawnFrames", 0)
-          assert frames > 0, f"no frame drawn: {report}"
-          cpu, rss = report["frameCpuMs"], report["rssKib"]
-          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as summary:
-              summary.write(
-                  f"### {os.environ['RUNNER_OS']}: {frames} frames, CPU p99 {cpu.get('p99')} ms "
-                  f"(limit {report['budget']['cpuP99MaxMs']} ms, pass={report['pass']}), "
-                  f"RSS open {rss['windowOpen']} KiB, hidden {rss['windowHidden']} KiB\n"
-              )
-          PY
+          python3 "$RUNNER_TEMP/scripts/smoke-measure.py" "$OUT" "$RUNNER_TEMP/measure.json" "$TARGET" \
+            "$POWER" "$RUNNER_TEMP/beta"
 
       - uses: actions/upload-artifact@v4
         if: always()
@@ -1613,6 +1640,31 @@ jobs:
           # While no stable is out, the newest beta is what the site and Homebrew offer.
           STABLE_RELEASES="$(jq '.releases | length' public/feeds/stable.json 2>/dev/null || echo 0)"
           echo "stable_empty=$([ "$STABLE_RELEASES" = 0 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
+      # P6 (ADR 0081): the measurement of the beta just published is the next run's reference.
+      - uses: actions/download-artifact@v4
+        if: github.ref == 'refs/heads/main'
+        with:
+          pattern: smoke-*
+          path: smoke
+
+      - name: This beta's measurement
+        if: github.ref == 'refs/heads/main'
+        run: |
+          set -euo pipefail
+          mkdir -p beta-measure
+          for DIR in smoke/smoke-*; do
+            [ -f "$DIR/measure.json" ] && cp "$DIR/measure.json" "beta-measure/measure-${DIR#smoke/smoke-}.json"
+          done
+          ls beta-measure
+
+      - uses: actions/upload-artifact@v4
+        if: github.ref == 'refs/heads/main'
+        with:
+          name: beta-measure
+          path: beta-measure
+          retention-days: 90
+          if-no-files-found: ignore
 
       - name: Update Homebrew cask
         if: github.ref == 'refs/heads/main' && (needs.resolve.outputs.channel == 'stable' || steps.feed.outputs.stable_empty == 'true')
