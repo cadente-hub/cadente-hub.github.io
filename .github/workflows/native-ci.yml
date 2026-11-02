@@ -1,6 +1,10 @@
 name: native-ci
-run-name: native-ci ${{ inputs.sha }}
+run-name: native-ci ${{ inputs.sha }}${{ inputs.channel == 'stable' && ' stable' || '' }}
 
+# One run per commit of the private main (ADR 0082 W3): lint, tests and the ruler on the three systems,
+# and beside them the packages. `publish` waits for the three systems green, the smoke tests and the
+# signature, so a beta leaves the same run that proved its commit. The stable channel comes from
+# native-promote through native-release, which dispatches this workflow with `channel: stable`.
 on:
   workflow_dispatch:
     inputs:
@@ -8,29 +12,43 @@ on:
         description: "Private repo commit SHA (40 hex)"
         required: true
         type: string
+      channel:
+        description: "Release channel"
+        required: false
+        default: beta
+        type: choice
+        options: [beta, stable]
+      force_build:
+        description: "Branch runs only: compile even when the commit only changes documents"
+        required: false
+        default: false
+        type: boolean
+      plant_failure:
+        description: "Branch runs only: add a failing test, to prove that publish waits for green"
+        required: false
+        default: false
+        type: boolean
   # Safety net for a push that dispatched no run: every 3 hours, and only for a HEAD no run has seen.
   schedule:
     - cron: '0 */3 * * *'
 
 # Queue instead of cancelling: each run tests the private main's HEAD, and cancelling a run that is
-# almost green would hold the unstable release back for every new commit. A run from another branch
-# (a test of this workflow) queues apart from main's.
+# almost green would hold the beta back for every new commit. A run from another branch (a test of this
+# workflow) queues apart from main's.
 concurrency:
   group: native-ci-${{ github.ref }}
   cancel-in-progress: false
 
-# The lint, tests and ruler jobs compile hundreds of third-party crates, and a build script can read
-# every secret its job references. So they hold only the read-only deploy key and print no compiler or
-# test output: the full log leaves them encrypted. `resolve` and `report` compile nothing; only they
-# write to the private repository.
+# The lint, tests, ruler and package jobs compile hundreds of third-party crates, and a build script can
+# read every secret its job references. So they hold only the read-only deploy key and print no compiler
+# or test output: the full log leaves them encrypted. `resolve`, `report` and `summary` compile nothing;
+# only they write to the private repository. `sign` holds only the release key and compiles only xtask;
+# `publish` holds only the release token and compiles nothing.
 permissions:
   contents: read
 
 env:
   PRIVATE_REPO: jeancatarina/catarina-claude
-  CARGO_TERM_COLOR: always
-  # No debug info in CI: nothing here reads a backtrace.
-  CARGO_PROFILE_DEV_DEBUG: "0"
   # The v4 parity ruler drives three live windows and takes every test thread for 100 to 190 s, so it
   # runs in a job of its own: there it no longer holds back the other 2000 tests, and it reports first.
   RULER: test(=live::parity::v4_parity_actions_only_shrink_the_pending_list)
@@ -46,16 +64,27 @@ jobs:
     outputs:
       sha: ${{ steps.resolve_sha.outputs.sha }}
       skip: ${{ steps.resolve_sha.outputs.skip }}
+      channel: ${{ steps.resolve_sha.outputs.channel }}
+      docs_only: ${{ steps.changes.outputs.docs_only }}
+      base: ${{ steps.changes.outputs.base }}
+      toolchain_changed: ${{ steps.changes.outputs.toolchain_changed }}
+      release: ${{ steps.version.outputs.release }}
+      version: ${{ steps.version.outputs.version }}
+      tag: ${{ steps.version.outputs.tag }}
     steps:
       - name: Resolve and validate SHA
         id: resolve_sha
         env:
           PRIVATE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
           INPUT_SHA: ${{ inputs.sha }}
+          INPUT_CHANNEL: ${{ inputs.channel }}
           EVENT_NAME: ${{ github.event_name }}
         run: |
           set -euo pipefail
           echo "::add-mask::${PRIVATE_TOKEN}"
+          CHANNEL="${INPUT_CHANNEL:-beta}"
+          case "$CHANNEL" in beta|stable) ;; *) echo "::error::Unknown channel: $CHANNEL"; exit 1 ;; esac
+          echo "channel=$CHANNEL" >> "$GITHUB_OUTPUT"
 
           if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
             SHA="$INPUT_SHA"
@@ -84,43 +113,144 @@ jobs:
             exit 1
           fi
 
-          # Clone private repo and verify SHA is ancestor of main
-          TMP_DIR="$(mktemp -d)"
-          git clone --filter=blob:none "https://x-access-token:${PRIVATE_TOKEN}@github.com/${PRIVATE_REPO}.git" "$TMP_DIR" >/dev/null 2>&1
-          cd "$TMP_DIR"
+          # The clone stays for the next steps; it has every commit and tree, and the blobs of $SHA.
+          git clone --filter=blob:none "https://x-access-token:${PRIVATE_TOKEN}@github.com/${PRIVATE_REPO}.git" "$RUNNER_TEMP/private" >/dev/null 2>&1
+          cd "$RUNNER_TEMP/private"
           git checkout "$SHA" >/dev/null 2>&1
-          git fetch origin main >/dev/null 2>&1
           if ! git merge-base --is-ancestor "$SHA" origin/main; then
             echo "::error::SHA $SHA is not an ancestor of main."
-            rm -rf "$TMP_DIR"
             exit 1
           fi
-          rm -rf "$TMP_DIR"
 
           echo "sha=$SHA" >> "$GITHUB_OUTPUT"
           echo "skip=false" >> "$GITHUB_OUTPUT"
 
-      - name: Publish pending statuses
+      # W2 (ADR 0082): the diff from the last ancestor with the three statuses green. When it touches
+      # only docs/ (but docs/conformance/, which a launcher test reads), design/ or the root .md files,
+      # and no include_str!, include_bytes! or rerun-if-changed names a changed file, nothing compiles
+      # and no beta leaves. Warp's ci.yml (`needs-build` of dorny/paths-filter) and Zed's run_tests.yml
+      # (`orchestrate`) skip the same way, listing the documents they know.
+      - name: Changes since the last green commit
+        id: changes
         if: steps.resolve_sha.outputs.skip == 'false'
+        working-directory: ${{ runner.temp }}/private
+        env:
+          PRIVATE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
+          SHA: ${{ steps.resolve_sha.outputs.sha }}
+          CHANNEL: ${{ steps.resolve_sha.outputs.channel }}
+          FORCE_BUILD: ${{ github.ref != 'refs/heads/main' && inputs.force_build }}
+        run: |
+          set -euo pipefail
+          echo "::add-mask::${PRIVATE_TOKEN}"
+          BASE=""
+          for C in $(git rev-list --first-parent --max-count=40 "${SHA}^" 2>/dev/null); do
+            GREEN="$(curl -sf "https://api.github.com/repos/${PRIVATE_REPO}/commits/${C}/status?per_page=100" \
+              -H "Authorization: Bearer ${PRIVATE_TOKEN}" -H "Accept: application/vnd.github+json" 2>/dev/null \
+              | jq '[.statuses[] | select(.state == "success" and (.context == "native-ci/macos-15" or .context == "native-ci/ubuntu-latest" or .context == "native-ci/windows-latest"))] | length' 2>/dev/null || echo 0)"
+            if [ "${GREEN:-0}" = 3 ]; then BASE="$C"; break; fi
+          done
+          echo "base=$BASE" >> "$GITHUB_OUTPUT"
+
+          # W1: the run after a change of the pinned Rust rebuilds everything and stays out of the p90.
+          PREVIOUS="${BASE:-$(git rev-parse "${SHA}^" 2>/dev/null || true)}"
+          TOOLCHAIN_CHANGED=false
+          if [ -n "$PREVIOUS" ] && [ "$(git rev-parse "${PREVIOUS}:rust-toolchain.toml" 2>/dev/null)" != "$(git rev-parse "${SHA}:rust-toolchain.toml")" ]; then
+            TOOLCHAIN_CHANGED=true
+          fi
+          echo "toolchain_changed=$TOOLCHAIN_CHANGED" >> "$GITHUB_OUTPUT"
+
+          DOCS_ONLY=false
+          if [ "$CHANNEL" = "beta" ] && [ -n "$BASE" ] && [ "$FORCE_BUILD" != "true" ]; then
+            CHANGED="$(git diff --no-renames --name-only "$BASE" "$SHA")"
+            CODE="$(printf '%s\n' "$CHANGED" | grep -vE '^(docs/|design/|[^/]+\.md$)' | grep -c . || true)"
+            CONFORMANCE="$(printf '%s\n' "$CHANGED" | grep -c '^docs/conformance/' || true)"
+            if [ -n "$CHANGED" ] && [ "$CODE" = 0 ] && [ "$CONFORMANCE" = 0 ]; then
+              READS="$(grep -rhE --include='*.rs' 'include_(str|bytes)!|rerun-if-changed' . 2>/dev/null || true)"
+              READ_BY_BUILD=""
+              while IFS= read -r FILE; do
+                if printf '%s' "$READS" | grep -qF "$FILE"; then READ_BY_BUILD="$FILE"; break; fi
+              done <<< "$CHANGED"
+              if [ -z "$READ_BY_BUILD" ]; then
+                DOCS_ONLY=true
+              else
+                echo "A document changed here is read by the build; compiling."
+              fi
+            fi
+            echo "$(printf '%s\n' "$CHANGED" | grep -c . || true) files changed since ${BASE:0:12}; documents only: $DOCS_ONLY"
+          else
+            echo "Compiling: channel $CHANNEL, last green ancestor '${BASE:0:12}', force_build '$FORCE_BUILD'."
+          fi
+          echo "docs_only=$DOCS_ONLY" >> "$GITHUB_OUTPUT"
+
+      - name: Mark a toolchain change
+        if: steps.changes.outputs.toolchain_changed == 'true'
+        run: echo "::notice::rust-toolchain.toml changed; this run rebuilds everything and stays out of the p90 (ADR 0082, decisão 3)."
+
+      - name: Number the release
+        id: version
+        if: steps.resolve_sha.outputs.skip == 'false' && steps.changes.outputs.docs_only != 'true'
+        working-directory: ${{ runner.temp }}/private
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ steps.resolve_sha.outputs.sha }}
+          CHANNEL: ${{ steps.resolve_sha.outputs.channel }}
+        run: |
+          set -euo pipefail
+          BASE="$(sed -n 's/^version = "\(.*\)"/\1/p' crates/app/Cargo.toml | head -1)"
+          printf '%s' "$BASE" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$' || { echo "::error::crate version is not X.Y.Z: $BASE"; exit 1; }
+          RELEASE=true
+          if [ "$CHANNEL" = "stable" ]; then
+            VERSION="$BASE"
+            if gh release view "v${VERSION}" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+              echo "::error::v${VERSION} already exists; raise the crate version first"; exit 1
+            fi
+          else
+            LAST="$(gh release list --repo "$GITHUB_REPOSITORY" --limit 300 --json tagName --jq '.[].tagName' | sed -n "s/^v${BASE}-beta\.\([0-9]*\)$/\1/p" | sort -n | tail -1)"
+            VERSION="${BASE}-beta.$(( ${LAST:-0} + 1 ))"
+            # A commit becomes one beta: a second run of it tests again and publishes nothing.
+            if gh api "repos/${GITHUB_REPOSITORY}/releases?per_page=30" --jq '.[] | select(.prerelease) | .body' | grep -qxF "commit: ${SHA}"; then
+              echo "$SHA already has a beta; this run tests and publishes nothing."
+              RELEASE=false
+            fi
+          fi
+          echo "release=$RELEASE" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Release $VERSION from $SHA (publishes: $RELEASE)"
+
+      # A run from another branch tests this workflow and leaves the commit's statuses alone.
+      - name: Publish the statuses
+        if: steps.resolve_sha.outputs.skip == 'false' && github.ref == 'refs/heads/main'
         env:
           PRIVATE_WRITE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
           SHA: ${{ steps.resolve_sha.outputs.sha }}
+          DOCS_ONLY: ${{ steps.changes.outputs.docs_only }}
+          BASE: ${{ steps.changes.outputs.base }}
         run: |
           echo "::add-mask::${PRIVATE_WRITE_TOKEN}"
+          if [ "$DOCS_ONLY" = "true" ]; then
+            STATE=success; DESCRIPTION="sem código desde ${BASE:0:12}"
+          else
+            STATE=pending; DESCRIPTION="native-ci running"
+          fi
           for OS in macos-15 ubuntu-latest windows-latest; do
+            BODY="$(jq -cn --arg state "$STATE" --arg description "$DESCRIPTION" --arg context "native-ci/$OS" \
+              --arg url "https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" \
+              '{state: $state, target_url: $url, description: $description, context: $context}')"
             curl -sf -X POST "https://api.github.com/repos/${PRIVATE_REPO}/statuses/${SHA}" \
               -H "Authorization: Bearer ${PRIVATE_WRITE_TOKEN}" \
               -H "Accept: application/vnd.github+json" \
-              -d "{\"state\":\"pending\",\"target_url\":\"https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\",\"description\":\"native-ci on ${OS} running\",\"context\":\"native-ci/${OS}\"}" >/dev/null 2>&1 || true
+              -d "$BODY" >/dev/null 2>&1 || echo "::warning::Could not record the status of $OS"
+            echo "$OS: $STATE $DESCRIPTION"
           done
 
-  # Each system runs lint, tests and ruler side by side (Windows runs its tests in two halves); the run
-  # takes as long as the slowest job, not their sum.
-  # `cargo clippy --all-targets -D warnings` also type-checks every target, so no separate `cargo check`.
+  # Each system runs lint, tests and ruler side by side; the run takes as long as the slowest job, not
+  # their sum. `cargo clippy --all-targets -D warnings` also type-checks every target, so no separate
+  # `cargo check`.
   lint:
     name: lint ${{ matrix.os }}
     needs: resolve
-    if: needs.resolve.outputs.skip != 'true'
+    if: needs.resolve.outputs.skip != 'true' && needs.resolve.outputs.docs_only != 'true'
     runs-on: ${{ matrix.os }}
     # Without a limit a hung step holds the run, and the queue behind it, for six hours.
     timeout-minutes: 45
@@ -137,7 +267,13 @@ jobs:
       SHA: ${{ needs.resolve.outputs.sha }}
       MATRIX_OS: ${{ matrix.os }}
       JOB_KIND: lint
+      CARGO_TERM_COLOR: always
+      # No debug info in CI: nothing here reads a backtrace.
+      CARGO_PROFILE_DEV_DEBUG: "0"
     steps:
+      - name: Start the clock
+        run: echo "t0=$(date +%s)" > "$RUNNER_TEMP/metrics.env"
+
       - name: Setup builder scripts
         uses: actions/checkout@v4
         with:
@@ -178,6 +314,7 @@ jobs:
 
       # Clippy compiles the dependencies in check mode, which shares nothing with the test build.
       - name: Rust cache
+        id: cache
         uses: Swatinem/rust-cache@v2
         with:
           shared-key: lint
@@ -187,8 +324,12 @@ jobs:
         uses: taiki-e/install-action@nextest
 
       - name: Initialize log file
+        env:
+          CACHE_HIT: ${{ steps.cache.outputs.cache-hit }}
         run: |
           touch "$RUNNER_TEMP/ci-build.log"
+          if [ "$CACHE_HIT" = "true" ]; then CACHE=inteiro; elif [ -d target ] && [ -n "$(ls -A target 2>/dev/null)" ]; then CACHE=parcial; else CACHE=nenhum; fi
+          { echo "cache=$CACHE"; echo "work_start=$(date +%s)"; } >> "$RUNNER_TEMP/metrics.env"
 
       # Compiler and test output names files, lines, tests and screens of the private source: it goes
       # only to ci-build.log. The public log says which step failed, how long cargo took, and no more.
@@ -207,10 +348,12 @@ jobs:
         run: |
           echo "Passo: cargo clippy --workspace --all-targets -- -D warnings"
           CLIPPY_RAW="$RUNNER_TEMP/clippy_raw.log"
+          START=$(date +%s)
           set +e
-          cargo clippy --workspace --all-targets --message-format short -- -D warnings > "$CLIPPY_RAW" 2>&1
+          cargo clippy --workspace --all-targets --timings --message-format short -- -D warnings > "$CLIPPY_RAW" 2>&1
           CLIPPY_EXIT=$?
           set -e
+          echo "compile_s=$(( $(date +%s) - START ))" >> "$RUNNER_TEMP/metrics.env"
           cat "$CLIPPY_RAW" >> "$RUNNER_TEMP/ci-build.log"
           sed 's/\x1b\[[0-9;]*m//g' "$CLIPPY_RAW" | grep -E '^ *Finished ' | sed -E 's/^ *//' | tail -1 || true
           if [ $CLIPPY_EXIT -eq 0 ]; then
@@ -260,37 +403,56 @@ jobs:
           done
           rm -f "$RUNNER_TEMP/failed_step"
 
-      # Runs on a timeout or cancellation too: the log of a hung step is the one most needed.
-      - name: Seal the build log
-        if: failure() || cancelled()
+      # Runs on a timeout or cancellation too: the log of a hung step is the one most needed. The
+      # cargo --timings report names the crates, so it is sealed on every run.
+      - name: Seal the build log and the timings
+        if: always()
         run: |
-          FAILED_STEP="passo desconhecido"
-          [ -f "$RUNNER_TEMP/failed_step" ] && FAILED_STEP="$(cat "$RUNNER_TEMP/failed_step")"
-          {
-            echo "native-ci ${JOB_KIND} ${MATRIX_OS} ${SHA}: falhou em ${FAILED_STEP}"
-            echo "run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
-            echo
-            cat "$RUNNER_TEMP/ci-build.log" 2>/dev/null || true
-          } > "$RUNNER_TEMP/sealed.log"
-          node "$RUNNER_TEMP/scripts/ci-log-crypto.cjs" encrypt "$RUNNER_TEMP/scripts/ci-log-key.pub.pem" \
-            "$RUNNER_TEMP/sealed.log" "$RUNNER_TEMP/ci-log.enc.json"
-          rm -f "$RUNNER_TEMP/sealed.log"
-          echo "Falhou em ${FAILED_STEP}; o log completo vai para o ci-logs do repositório privado."
+          mkdir -p "$RUNNER_TEMP/sealed"
+          if [ -f target/cargo-timings/cargo-timing.html ]; then
+            node "$RUNNER_TEMP/scripts/ci-log-crypto.cjs" encrypt "$RUNNER_TEMP/scripts/ci-log-key.pub.pem" \
+              target/cargo-timings/cargo-timing.html "$RUNNER_TEMP/sealed/timings.enc.json" || true
+          fi
+          if [ "${{ job.status }}" != "success" ]; then
+            FAILED_STEP="passo desconhecido"
+            [ -f "$RUNNER_TEMP/failed_step" ] && FAILED_STEP="$(cat "$RUNNER_TEMP/failed_step")"
+            {
+              echo "native-ci ${JOB_KIND} ${MATRIX_OS} ${SHA}: falhou em ${FAILED_STEP}"
+              echo "run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+              echo
+              cat "$RUNNER_TEMP/ci-build.log" 2>/dev/null || true
+            } > "$RUNNER_TEMP/sealed.log"
+            node "$RUNNER_TEMP/scripts/ci-log-crypto.cjs" encrypt "$RUNNER_TEMP/scripts/ci-log-key.pub.pem" \
+              "$RUNNER_TEMP/sealed.log" "$RUNNER_TEMP/sealed/ci-log.enc.json"
+            rm -f "$RUNNER_TEMP/sealed.log"
+            echo "Falhou em ${FAILED_STEP}; o log completo vai para o ci-logs do repositório privado."
+          fi
 
       - name: Upload the sealed log
-        if: failure() || cancelled()
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ci-log-${{ matrix.os }}-lint
-          path: ${{ runner.temp }}/ci-log.enc.json
+          path: ${{ runner.temp }}/sealed/
           if-no-files-found: ignore
           retention-days: 1
 
-  # Windows compiles and runs the same suite about 1.6 times slower, so its tests run in two halves.
+      - name: Upload the metrics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: metrics-lint-${{ matrix.os }}
+          path: ${{ runner.temp }}/metrics.env
+          if-no-files-found: ignore
+          retention-days: 1
+
+  # W5 (ADR 0082): one test build per system. This job compiles the tests once, stores the nextest
+  # archive for the ruler (and, on Windows, for the second half of the tests), and runs its part.
+  # Windows runs the suite about 1.6 times slower, so its tests run in two halves.
   tests:
     name: tests ${{ matrix.os }}${{ matrix.part && format(' {0}/2', matrix.part) || '' }}
     needs: resolve
-    if: needs.resolve.outputs.skip != 'true'
+    if: needs.resolve.outputs.skip != 'true' && needs.resolve.outputs.docs_only != 'true'
     runs-on: ${{ matrix.os }}
     timeout-minutes: 90
     permissions:
@@ -302,7 +464,6 @@ jobs:
           - { os: macos-15 }
           - { os: ubuntu-latest }
           - { os: windows-latest, part: "1" }
-          - { os: windows-latest, part: "2" }
     defaults:
       run:
         shell: bash
@@ -311,7 +472,13 @@ jobs:
       MATRIX_OS: ${{ matrix.os }}
       JOB_KIND: tests${{ matrix.part && format('-{0}', matrix.part) || '' }}
       PART: ${{ matrix.part }}
+      CARGO_TERM_COLOR: always
+      CARGO_PROFILE_DEV_DEBUG: "0"
+      PLANT_FAILURE: ${{ github.ref != 'refs/heads/main' && inputs.plant_failure && matrix.os == 'ubuntu-latest' }}
     steps:
+      - name: Start the clock
+        run: echo "t0=$(date +%s)" > "$RUNNER_TEMP/metrics.env"
+
       - name: Setup builder scripts
         uses: actions/checkout@v4
         with:
@@ -334,6 +501,12 @@ jobs:
           DEPLOY_KEY: ${{ secrets.CATARINA_PRIVATE_DEPLOY_KEY }}
         run: bash "$RUNNER_TEMP/scripts/clone-private.sh" . "$SHA"
 
+      # Branch runs only (W3 proof): a failing unit test in the smallest crate, so the run turns red and
+      # publish does not run. The test name is the only thing the public log can show of it.
+      - name: Plant a failing test
+        if: env.PLANT_FAILURE == 'true'
+        run: printf '\n#[test]\nfn planted_failure_for_the_publish_gate() {\n    panic!("planted by the native-ci branch run");\n}\n' >> crates/frame-journal/src/lib.rs
+
       - name: Rust toolchain
         uses: dtolnay/rust-toolchain@stable
 
@@ -347,9 +520,9 @@ jobs:
         with:
           node-version: 22
 
-      # Windows only, before the cache so the ruler job computes the same key. `strip = debuginfo`
-      # makes rustc pass /DEBUG:NONE, so link.exe writes no PDB for each of the 54 test binaries.
-      # TEMP moves to D:, the runner's local disk, where the tests' SQLite stores sync each commit.
+      # Windows only, before the cache so the key stays the one main saved. `strip = debuginfo` makes
+      # rustc pass /DEBUG:NONE, so link.exe writes no PDB for each of the 54 test binaries. TEMP moves to
+      # D:, the runner's local disk, where the tests' SQLite stores sync each commit.
       - name: Windows build and temp settings
         if: runner.os == 'Windows'
         run: |
@@ -357,33 +530,84 @@ jobs:
           WIN_TMP="$(cygpath -w "$RUNNER_TEMP/tmp")"
           { echo "CARGO_PROFILE_DEV_STRIP=debuginfo"; echo "TMP=$WIN_TMP"; echo "TEMP=$WIN_TMP"; } >> "$GITHUB_ENV"
 
-      # The ruler job restores this same cache: both build the workspace's tests with the same features.
-      # One Windows half saves it; both would write the same key.
       - name: Rust cache
+        id: cache
         uses: Swatinem/rust-cache@v2
         with:
           shared-key: tests
-          save-if: ${{ github.ref == 'refs/heads/main' && matrix.part != '2' }}
+          save-if: ${{ github.ref == 'refs/heads/main' }}
 
       - name: Install nextest
         uses: taiki-e/install-action@nextest
 
       - name: Initialize log file
+        env:
+          CACHE_HIT: ${{ steps.cache.outputs.cache-hit }}
         run: |
           touch "$RUNNER_TEMP/ci-build.log"
+          if [ "$CACHE_HIT" = "true" ]; then CACHE=inteiro; elif [ -d target ] && [ -n "$(ls -A target 2>/dev/null)" ]; then CACHE=parcial; else CACHE=nenhum; fi
+          { echo "cache=$CACHE"; echo "work_start=$(date +%s)"; } >> "$RUNNER_TEMP/metrics.env"
+
+      - name: Build the tests (cargo nextest archive)
+        run: |
+          echo "Passo: cargo nextest archive --workspace"
+          RAW="$RUNNER_TEMP/archive_raw.log"
+          START=$(date +%s)
+          set +e
+          cargo nextest archive --workspace --timings --archive-file "$RUNNER_TEMP/nextest.tar.zst" > "$RAW" 2>&1
+          EXIT=$?
+          set -e
+          echo "compile_s=$(( $(date +%s) - START ))" >> "$RUNNER_TEMP/metrics.env"
+          cat "$RAW" >> "$RUNNER_TEMP/ci-build.log"
+          sed 's/\x1b\[[0-9;]*m//g' "$RAW" | grep -E '^ *Finished ' | sed -E 's/^ *//' | tail -1 || true
+          if [ $EXIT -eq 0 ]; then
+            echo "archive_mb=$(( $(wc -c < "$RUNNER_TEMP/nextest.tar.zst") / 1048576 ))" >> "$RUNNER_TEMP/metrics.env"
+            echo "Resultado: OK ($(( $(wc -c < "$RUNNER_TEMP/nextest.tar.zst") / 1048576 )) MB de arquivo)"
+          else
+            echo "Resultado: FALHOU"
+            echo "cargo nextest archive" > "$RUNNER_TEMP/failed_step"
+            exit 1
+          fi
+
+      - name: Mark the archive upload
+        run: echo "upload_start=$(date +%s)" >> "$RUNNER_TEMP/metrics.env"
+
+      # Already compressed with zstd, so the artifact stores it as is.
+      - name: Upload the test archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: nextest-${{ matrix.os }}
+          path: ${{ runner.temp }}/nextest.tar.zst
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Documentation tests (cargo test --doc)
+        run: |
+          START="$(sed -n 's/^upload_start=//p' "$RUNNER_TEMP/metrics.env")"
+          echo "upload_s=$(( $(date +%s) - START ))" >> "$RUNNER_TEMP/metrics.env"
+          echo "Passo: cargo test --workspace --doc"
+          if cargo test --workspace --doc >> "$RUNNER_TEMP/ci-build.log" 2>&1; then
+            echo "Resultado: OK"
+          else
+            echo "Resultado: FALHOU"
+            echo "cargo test --doc" > "$RUNNER_TEMP/failed_step"
+            exit 1
+          fi
 
       - name: Run tests (cargo nextest)
         run: |
           echo "Passo: cargo nextest run --workspace --profile ci (sem a régua)${PART:+, metade $PART de 2}"
           NEXTEST_RAW="$RUNNER_TEMP/nextest_raw.log"
+          START=$(date +%s)
           set +e
           cargo nextest run --workspace --profile ci -E "not ${RULER}" ${PART:+--partition "hash:${PART}/2"} > "$NEXTEST_RAW" 2>&1
           NEXTEST_EXIT=$?
           set -e
+          echo "test_s=$(( $(date +%s) - START ))" >> "$RUNNER_TEMP/metrics.env"
           cat "$NEXTEST_RAW" >> "$RUNNER_TEMP/ci-build.log"
-          # Only the build time and the counts are public; the names of the tests that failed are in the
-          # private log.
-          sed 's/\x1b\[[0-9;]*m//g' "$NEXTEST_RAW" | grep -E '^ *(Finished |Summary \[)' | sed -E 's/^ *//' || true
+          # Only the counts are public; the names of the tests that failed are in the private log.
+          sed 's/\x1b\[[0-9;]*m//g' "$NEXTEST_RAW" | grep -E '^ *Summary \[' | sed -E 's/^ *//' || true
 
           if [ $NEXTEST_EXIT -eq 0 ]; then
             echo "Resultado: OK"
@@ -399,53 +623,82 @@ jobs:
             exit 1
           fi
 
-      - name: Seal the build log
-        if: failure() || cancelled()
+      - name: Seal the build log and the timings
+        if: always()
         run: |
-          FAILED_STEP="passo desconhecido"
-          [ -f "$RUNNER_TEMP/failed_step" ] && FAILED_STEP="$(cat "$RUNNER_TEMP/failed_step")"
-          {
-            echo "native-ci ${JOB_KIND} ${MATRIX_OS} ${SHA}: falhou em ${FAILED_STEP}"
-            echo "run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
-            echo
-            cat "$RUNNER_TEMP/ci-build.log" 2>/dev/null || true
-          } > "$RUNNER_TEMP/sealed.log"
-          node "$RUNNER_TEMP/scripts/ci-log-crypto.cjs" encrypt "$RUNNER_TEMP/scripts/ci-log-key.pub.pem" \
-            "$RUNNER_TEMP/sealed.log" "$RUNNER_TEMP/ci-log.enc.json"
-          rm -f "$RUNNER_TEMP/sealed.log"
-          echo "Falhou em ${FAILED_STEP}; o log completo vai para o ci-logs do repositório privado."
+          mkdir -p "$RUNNER_TEMP/sealed"
+          if [ -f target/cargo-timings/cargo-timing.html ]; then
+            node "$RUNNER_TEMP/scripts/ci-log-crypto.cjs" encrypt "$RUNNER_TEMP/scripts/ci-log-key.pub.pem" \
+              target/cargo-timings/cargo-timing.html "$RUNNER_TEMP/sealed/timings.enc.json" || true
+          fi
+          if [ "${{ job.status }}" != "success" ]; then
+            FAILED_STEP="passo desconhecido"
+            [ -f "$RUNNER_TEMP/failed_step" ] && FAILED_STEP="$(cat "$RUNNER_TEMP/failed_step")"
+            {
+              echo "native-ci ${JOB_KIND} ${MATRIX_OS} ${SHA}: falhou em ${FAILED_STEP}"
+              echo "run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+              echo
+              cat "$RUNNER_TEMP/ci-build.log" 2>/dev/null || true
+            } > "$RUNNER_TEMP/sealed.log"
+            node "$RUNNER_TEMP/scripts/ci-log-crypto.cjs" encrypt "$RUNNER_TEMP/scripts/ci-log-key.pub.pem" \
+              "$RUNNER_TEMP/sealed.log" "$RUNNER_TEMP/sealed/ci-log.enc.json"
+            rm -f "$RUNNER_TEMP/sealed.log"
+            echo "Falhou em ${FAILED_STEP}; o log completo vai para o ci-logs do repositório privado."
+          fi
 
       - name: Upload the sealed log
-        if: failure() || cancelled()
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ci-log-${{ matrix.os }}-tests${{ matrix.part && format('-{0}', matrix.part) || '' }}
-          path: ${{ runner.temp }}/ci-log.enc.json
+          path: ${{ runner.temp }}/sealed/
           if-no-files-found: ignore
           retention-days: 1
 
-  # The parity ruler and the documentation tests. `--lib` builds only the unit-test binaries, which hold
-  # the ruler, with the same features as the tests job, so the shared cache stays warm for both.
-  ruler:
-    name: ruler ${{ matrix.os }}
+      - name: Upload the metrics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: metrics-tests-${{ matrix.os }}${{ matrix.part && format('-{0}-2', matrix.part) || '' }}
+          path: ${{ runner.temp }}/metrics.env
+          if-no-files-found: ignore
+          retention-days: 1
+
+  # The parity ruler on each system and the second half of the Windows tests, from the archive the tests
+  # job of the same system stores (W5): they compile nothing. They start with the run, prepare the
+  # machine while that job compiles, and wait for its archive.
+  from-archive:
+    name: ${{ matrix.kind }} ${{ matrix.os }}${{ matrix.part && format(' {0}/2', matrix.part) || '' }}
     needs: resolve
-    if: needs.resolve.outputs.skip != 'true'
+    if: needs.resolve.outputs.skip != 'true' && needs.resolve.outputs.docs_only != 'true'
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 60
+    timeout-minutes: 90
     permissions:
       contents: read
+      actions: read
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-15, ubuntu-latest, windows-latest]
+        include:
+          - { os: macos-15, kind: ruler, producer: "tests macos-15" }
+          - { os: ubuntu-latest, kind: ruler, producer: "tests ubuntu-latest" }
+          - { os: windows-latest, kind: ruler, producer: "tests windows-latest 1/2" }
+          - { os: windows-latest, kind: tests, part: "2", producer: "tests windows-latest 1/2" }
     defaults:
       run:
         shell: bash
     env:
       SHA: ${{ needs.resolve.outputs.sha }}
       MATRIX_OS: ${{ matrix.os }}
-      JOB_KIND: ruler
+      JOB_KIND: ${{ matrix.kind }}${{ matrix.part && format('-{0}', matrix.part) || '' }}
+      PART: ${{ matrix.part }}
+      KIND: ${{ matrix.kind }}
+      PRODUCER: ${{ matrix.producer }}
+      CARGO_TERM_COLOR: always
     steps:
+      - name: Start the clock
+        run: echo "t0=$(date +%s)" > "$RUNNER_TEMP/metrics.env"
+
       - name: Setup builder scripts
         uses: actions/checkout@v4
         with:
@@ -463,60 +716,95 @@ jobs:
           cp _builder/.github/scripts/clone-private.sh _builder/.github/scripts/ci-log-crypto.cjs _builder/.github/ci-log-key.pub.pem "$RUNNER_TEMP/scripts/"
           rm -rf _builder
 
+      # The tests read fixtures from the workspace, so the archive runs over the same checkout.
       - name: Clone private repository
         env:
           DEPLOY_KEY: ${{ secrets.CATARINA_PRIVATE_DEPLOY_KEY }}
         run: bash "$RUNNER_TEMP/scripts/clone-private.sh" . "$SHA"
-
-      - name: Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
 
       - name: System libraries (Linux)
         if: runner.os == 'Linux'
         timeout-minutes: 10
         run: sudo apt-get -o Acquire::Retries=3 update && sudo apt-get -o Acquire::Retries=3 install -y libfontconfig1-dev libxkbcommon-dev libssl-dev pkg-config libdbus-1-dev
 
+      # The tests start Node MCP servers.
       - name: Node 22
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
-      # Same settings as the tests job, so this job finds that job's cache key.
-      - name: Windows build and temp settings
+      - name: Windows temp settings
         if: runner.os == 'Windows'
         run: |
           mkdir -p "$RUNNER_TEMP/tmp"
           WIN_TMP="$(cygpath -w "$RUNNER_TEMP/tmp")"
-          { echo "CARGO_PROFILE_DEV_STRIP=debuginfo"; echo "TMP=$WIN_TMP"; echo "TEMP=$WIN_TMP"; } >> "$GITHUB_ENV"
-
-      - name: Rust cache
-        uses: Swatinem/rust-cache@v2
-        with:
-          shared-key: tests
-          save-if: false
+          { echo "TMP=$WIN_TMP"; echo "TEMP=$WIN_TMP"; } >> "$GITHUB_ENV"
 
       - name: Install nextest
         uses: taiki-e/install-action@nextest
 
-      - name: Initialize log file
+      - name: Wait for the test archive
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARTIFACT: nextest-${{ matrix.os }}
         run: |
+          set -euo pipefail
           touch "$RUNNER_TEMP/ci-build.log"
+          echo "work_start=$(date +%s)" >> "$RUNNER_TEMP/metrics.env"
+          START=$(date +%s)
+          echo "archive" > "$RUNNER_TEMP/failed_step"
+          while :; do
+            ID="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts?name=${ARTIFACT}" --jq '.artifacts[0].id // empty' 2>/dev/null || true)"
+            [ -n "$ID" ] && break
+            STATE="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/attempts/${GITHUB_RUN_ATTEMPT}/jobs?per_page=100" \
+              --jq ".jobs[] | select(.name == \"${PRODUCER}\") | .status" 2>/dev/null || true)"
+            if [ "$STATE" = "completed" ]; then
+              ID="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts?name=${ARTIFACT}" --jq '.artifacts[0].id // empty' 2>/dev/null || true)"
+              [ -n "$ID" ] && break
+              echo "::error::${PRODUCER} ended without the test archive (it failed to build the tests)"
+              exit 1
+            fi
+            sleep 10
+          done
+          echo "wait_s=$(( $(date +%s) - START ))" >> "$RUNNER_TEMP/metrics.env"
+          START=$(date +%s)
+          gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts/${ID}/zip" > "$RUNNER_TEMP/nextest.zip"
+          if command -v unzip >/dev/null; then
+            unzip -q -o "$RUNNER_TEMP/nextest.zip" -d "$RUNNER_TEMP"
+          else
+            7z x -y -o"$RUNNER_TEMP" "$RUNNER_TEMP/nextest.zip" >/dev/null
+          fi
+          rm -f "$RUNNER_TEMP/nextest.zip"
+          { echo "download_s=$(( $(date +%s) - START ))"; echo "archive_mb=$(( $(wc -c < "$RUNNER_TEMP/nextest.tar.zst") / 1048576 ))"; } >> "$RUNNER_TEMP/metrics.env"
+          rm -f "$RUNNER_TEMP/failed_step"
+          echo "Arquivo de testes: $(( $(wc -c < "$RUNNER_TEMP/nextest.tar.zst") / 1048576 )) MB"
 
-      - name: Parity ruler (cargo nextest)
+      # Extracted into the checkout, the binaries sit at the paths they were built for, so the
+      # `CARGO_BIN_EXE_*` the tests carry still point at them.
+      - name: Run from the archive (cargo nextest)
         run: |
-          echo "Passo: cargo nextest run --workspace --lib --profile ci (só a régua)"
+          if [ "$KIND" = "ruler" ]; then
+            echo "Passo: cargo nextest run --archive-file (só a régua)"
+            FILTER="kind(lib) & ${RULER}"
+          else
+            echo "Passo: cargo nextest run --archive-file (sem a régua, metade $PART de 2)"
+            FILTER="not ${RULER}"
+          fi
           NEXTEST_RAW="$RUNNER_TEMP/nextest_raw.log"
+          START=$(date +%s)
           set +e
-          cargo nextest run --workspace --lib --profile ci -E "${RULER}" > "$NEXTEST_RAW" 2>&1
+          cargo-nextest nextest run --archive-file "$RUNNER_TEMP/nextest.tar.zst" --extract-to . --extract-overwrite \
+            --workspace-remap . --profile ci -E "$FILTER" ${PART:+--partition "hash:${PART}/2"} > "$NEXTEST_RAW" 2>&1
           NEXTEST_EXIT=$?
           set -e
+          echo "test_s=$(( $(date +%s) - START ))" >> "$RUNNER_TEMP/metrics.env"
           cat "$NEXTEST_RAW" >> "$RUNNER_TEMP/ci-build.log"
           PUBLIC="$(sed 's/\x1b\[[0-9;]*m//g' "$NEXTEST_RAW" | grep -E '^ *(Finished |Summary \[)' | sed -E 's/^ *//' || true)"
           printf '%s\n' "$PUBLIC"
           # A filter that matches nothing must not pass as a green ruler.
-          RAN_ONE=false
-          if printf '%s' "$PUBLIC" | grep -qE '\] 1 test run: 1 passed'; then RAN_ONE=true; fi
-          if [ $NEXTEST_EXIT -eq 0 ] && [ "$RAN_ONE" = true ]; then
+          RAN_OK=true
+          if [ "$KIND" = "ruler" ] && ! printf '%s' "$PUBLIC" | grep -qE '\] 1 test run: 1 passed'; then RAN_OK=false; fi
+          if [ $NEXTEST_EXIT -eq 0 ] && [ "$RAN_OK" = true ]; then
             echo "Resultado: OK"
           else
             if [ $NEXTEST_EXIT -eq 0 ]; then echo "::error::The ruler filter did not run exactly one test"; fi
@@ -527,24 +815,14 @@ jobs:
               fi
             done
             echo "Resultado: FALHOU"
-            echo "régua" > "$RUNNER_TEMP/failed_step"
-            exit 1
-          fi
-
-      - name: Documentation tests (cargo test --doc)
-        run: |
-          echo "Passo: cargo test --workspace --doc"
-          if cargo test --workspace --doc >> "$RUNNER_TEMP/ci-build.log" 2>&1; then
-            echo "Resultado: OK"
-          else
-            echo "Resultado: FALHOU"
-            echo "cargo test --doc" > "$RUNNER_TEMP/failed_step"
+            [ "$KIND" = "ruler" ] && echo "régua" > "$RUNNER_TEMP/failed_step" || echo "cargo nextest" > "$RUNNER_TEMP/failed_step"
             exit 1
           fi
 
       - name: Seal the build log
         if: failure() || cancelled()
         run: |
+          mkdir -p "$RUNNER_TEMP/sealed"
           FAILED_STEP="passo desconhecido"
           [ -f "$RUNNER_TEMP/failed_step" ] && FAILED_STEP="$(cat "$RUNNER_TEMP/failed_step")"
           {
@@ -554,7 +832,7 @@ jobs:
             cat "$RUNNER_TEMP/ci-build.log" 2>/dev/null || true
           } > "$RUNNER_TEMP/sealed.log"
           node "$RUNNER_TEMP/scripts/ci-log-crypto.cjs" encrypt "$RUNNER_TEMP/scripts/ci-log-key.pub.pem" \
-            "$RUNNER_TEMP/sealed.log" "$RUNNER_TEMP/ci-log.enc.json"
+            "$RUNNER_TEMP/sealed.log" "$RUNNER_TEMP/sealed/ci-log.enc.json"
           rm -f "$RUNNER_TEMP/sealed.log"
           echo "Falhou em ${FAILED_STEP}; o log completo vai para o ci-logs do repositório privado."
 
@@ -562,23 +840,34 @@ jobs:
         if: failure() || cancelled()
         uses: actions/upload-artifact@v4
         with:
-          name: ci-log-${{ matrix.os }}-ruler
-          path: ${{ runner.temp }}/ci-log.enc.json
+          name: ci-log-${{ matrix.os }}-${{ matrix.kind }}${{ matrix.part && format('-{0}', matrix.part) || '' }}
+          path: ${{ runner.temp }}/sealed/
           if-no-files-found: ignore
           retention-days: 1
 
-  # Compiles nothing: decrypts the sealed logs into the private ci-logs branch, records one commit
-  # status per system (green only when its lint, tests and ruler are), decides the Supabase deploy and
-  # keeps one generation of each Rust cache.
+      - name: Upload the metrics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: metrics-${{ matrix.kind }}-${{ matrix.os }}${{ matrix.part && format('-{0}-2', matrix.part) || '' }}
+          path: ${{ runner.temp }}/metrics.env
+          if-no-files-found: ignore
+          retention-days: 1
+
+  # Compiles nothing: decrypts the sealed logs and timings into the private ci-logs branch, records one
+  # commit status per system (green only when its lint, tests and ruler are), decides the Supabase
+  # deploy and keeps one generation of each Rust cache.
   report:
     name: report
-    needs: [resolve, lint, tests, ruler]
-    if: always() && needs.resolve.result == 'success' && needs.resolve.outputs.skip != 'true'
+    needs: [resolve, lint, tests, from-archive]
+    if: always() && needs.resolve.result == 'success' && needs.resolve.outputs.skip != 'true' && needs.resolve.outputs.docs_only != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
       contents: read
       actions: write
+    outputs:
+      green: ${{ steps.statuses.outputs.green }}
     env:
       SHA: ${{ needs.resolve.outputs.sha }}
     steps:
@@ -599,7 +888,7 @@ jobs:
           pattern: ci-log-*
           path: ${{ runner.temp }}/sealed
 
-      - name: Store the logs in the private repository
+      - name: Store the logs and timings in the private repository
         env:
           CI_LOG_PRIVATE_KEY: ${{ secrets.CI_LOG_PRIVATE_KEY }}
           PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
@@ -607,20 +896,24 @@ jobs:
           set -euo pipefail
           source .github/scripts/persist-private-log.sh
           shopt -s nullglob
-          for ENVELOPE in "$RUNNER_TEMP"/sealed/ci-log-*/ci-log.enc.json; do
-            NAME="$(basename "$(dirname "$ENVELOPE")")"
+          OUT="$RUNNER_TEMP/plain"
+          mkdir -p "$OUT"
+          for DIR in "$RUNNER_TEMP"/sealed/ci-log-*; do
+            NAME="$(basename "$DIR")"
             NAME="${NAME#ci-log-}"
-            if node .github/scripts/ci-log-crypto.cjs decrypt "$ENVELOPE" "$RUNNER_TEMP/$NAME.log"; then
-              persist_private_build_log "$RUNNER_TEMP/$NAME.log" "$NAME" "$NAME"
-            fi
-            rm -f "$RUNNER_TEMP/$NAME.log"
+            [ -f "$DIR/ci-log.enc.json" ] && node .github/scripts/ci-log-crypto.cjs decrypt "$DIR/ci-log.enc.json" "$OUT/$NAME.log" || true
+            [ -f "$DIR/timings.enc.json" ] && node .github/scripts/ci-log-crypto.cjs decrypt "$DIR/timings.enc.json" "$OUT/timings-$NAME.html" || true
           done
+          for LOG in "$OUT"/*.log; do echo "log completo de $(basename "$LOG" .log): ci-logs/public-actions/${GITHUB_RUN_ID}/$(basename "$LOG")"; done
+          persist_private_files "$OUT" "public-actions/${GITHUB_RUN_ID}" "native-ci logs and timings"
+          rm -rf "$OUT"
 
       - name: Record the commit statuses
         id: statuses
         env:
           GH_TOKEN: ${{ github.token }}
           PRIVATE_WRITE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
+          ON_MAIN: ${{ github.ref == 'refs/heads/main' }}
         run: |
           set -euo pipefail
           echo "::add-mask::${PRIVATE_WRITE_TOKEN}"
@@ -629,6 +922,7 @@ jobs:
                   | (.name | split(" ")) as $n
                   | [$n[1], ($n[0] + (if $n[2] then " " + $n[2] else "" end)), (.conclusion // "cancelled"), ([.steps[] | select(.conclusion == "failure") | .name][0] // "")] | @tsv' \
             > "$RUNNER_TEMP/jobs.tsv"
+          GREEN=true
           for OS in macos-15 ubuntu-latest windows-latest; do
             # A system is green only when its lint, tests (both halves on Windows) and ruler ran and passed.
             TOTAL="$(awk -F'\t' -v os="$OS" '$1 == os' "$RUNNER_TEMP/jobs.tsv" | wc -l | tr -d ' ')"
@@ -636,11 +930,14 @@ jobs:
             if [ "$TOTAL" -ge 3 ] && [ "$PASSED" = "$TOTAL" ]; then
               STATE=success; DESCRIPTION="native-ci passed"; CONCLUSION=success
             else
-              STATE=failure; CONCLUSION=failure
+              STATE=failure; CONCLUSION=failure; GREEN=false
               DESCRIPTION="$(awk -F'\t' -v os="$OS" '$1 == os && $3 != "success" { printf "%s%s: %s", sep, $2, ($4 != "" ? $4 : $3); sep = "; " }' "$RUNNER_TEMP/jobs.tsv")"
               DESCRIPTION="Failed at ${DESCRIPTION:-a job that did not run}"
             fi
             [ "$OS" = "ubuntu-latest" ] && echo "ubuntu=$CONCLUSION" >> "$GITHUB_OUTPUT"
+            echo "$OS: $STATE ${DESCRIPTION}"
+            # A run from another branch tests this workflow and leaves the commit's statuses alone.
+            [ "$ON_MAIN" = "true" ] || continue
             BODY="$(jq -cn --arg state "$STATE" --arg description "${DESCRIPTION:0:140}" --arg context "native-ci/$OS" \
               --arg url "https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" \
               '{state: $state, target_url: $url, description: $description, context: $context}')"
@@ -648,8 +945,8 @@ jobs:
               -H "Authorization: Bearer ${PRIVATE_WRITE_TOKEN}" \
               -H "Accept: application/vnd.github+json" \
               -d "$BODY" >/dev/null 2>&1 || echo "::warning::Could not record the status of $OS"
-            echo "$OS: $STATE ${DESCRIPTION}"
           done
+          echo "green=$GREEN" >> "$GITHUB_OUTPUT"
 
       - name: Trigger Supabase deploy
         # Only main deploys; a run from another branch tests this workflow.
@@ -691,27 +988,655 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: bash .github/scripts/prune-rust-caches.sh
 
-  unstable:
-    # Every commit of main that passes on the three systems becomes an unstable (beta) release;
-    # promoting it to stable stays a manual native-promote run. A run from another branch never releases.
-    name: unstable release
-    needs: [resolve, lint, tests, ruler]
-    if: github.ref == 'refs/heads/main' && needs.resolve.outputs.skip != 'true' && success()
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
+  # The packages build beside lint, tests and ruler (W3). Each secret lives in the job that needs it, and
+  # never next to third-party code it does not need: this job compiles ~700 crates with only the
+  # read-only deploy key, and its output stays out of the public log.
+  package:
+    name: package ${{ matrix.target }}
+    needs: resolve
+    if: needs.resolve.outputs.skip != 'true' && needs.resolve.outputs.docs_only != 'true' && needs.resolve.outputs.release == 'true'
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
     permissions:
       contents: read
-      actions: write
+    strategy:
+      fail-fast: false
+      matrix:
+        # The Intel Mac build compiles on Apple Silicon: the macos-15-intel runner took 31 to 45 min for
+        # the same build that takes 9 to 16 here, and no step runs the x64 binary on the build machine.
+        include:
+          - { os: macos-15, target: aarch64-apple-darwin }
+          - { os: macos-15, target: x86_64-apple-darwin }
+          - { os: ubuntu-22.04, target: x86_64-unknown-linux-gnu }
+          - { os: windows-latest, target: x86_64-pc-windows-msvc }
+    defaults:
+      run:
+        shell: bash
+    # No XTASK_FREE_DISK: deleting the compiled dependencies before rust-cache saved them left a 173 MB
+    # cache, and every release compiled all ~700 crates again.
     env:
-      GH_TOKEN: ${{ github.token }}
+      CARGO_INCREMENTAL: 0
+      RELEASE_VERSION: ${{ needs.resolve.outputs.version }}
+      RELEASE_CHANNEL: ${{ needs.resolve.outputs.channel }}
+      APPLE_SIGNING_IDENTITY: "-"
       SHA: ${{ needs.resolve.outputs.sha }}
     steps:
-      - name: Dispatch native-release (beta)
+      - name: Start the clock
+        run: echo "t0=$(date +%s)" > "$RUNNER_TEMP/metrics.env"
+
+      - name: Setup builder scripts
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            .github/scripts/clone-private.sh
+            .github/scripts/ci-log-crypto.cjs
+            .github/ci-log-key.pub.pem
+          sparse-checkout-cone-mode: false
+          path: _builder
+          persist-credentials: false
+
+      - name: Stage builder scripts
+        run: |
+          mkdir -p "$RUNNER_TEMP/scripts"
+          cp _builder/.github/scripts/clone-private.sh _builder/.github/scripts/ci-log-crypto.cjs _builder/.github/ci-log-key.pub.pem "$RUNNER_TEMP/scripts/"
+          rm -rf _builder
+
+      - name: Clone the private repository at the commit
+        env:
+          DEPLOY_KEY: ${{ secrets.CATARINA_PRIVATE_DEPLOY_KEY }}
+        run: bash "$RUNNER_TEMP/scripts/clone-private.sh" src "$SHA"
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      # The build uses the toolchain pinned in rust-toolchain.toml, not `stable`: the cross target goes
+      # into that one.
+      - name: Target of the pinned toolchain
+        working-directory: src
+        run: rustup target add "${{ matrix.target }}"
+
+      # Both Mac targets build on the same runner type, so the target goes into the cache key.
+      - uses: Swatinem/rust-cache@v2
+        id: cache
+        with:
+          workspaces: src
+          key: ${{ matrix.target }}
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+
+      - name: System libraries (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libfontconfig1-dev libxkbcommon-dev libssl-dev pkg-config libdbus-1-dev dpkg-dev
+          curl -fsSL -o appimagetool https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x appimagetool
+          sudo mv appimagetool /usr/local/bin/appimagetool
+
+      - name: Installer tool (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          # Chocolatey's feed fails now and then (504) and still exits 0, so the build ran 20 min
+          # to stop at "makensis: program not found". The image may already have NSIS; otherwise
+          # retry, and stop here if makensis is still missing.
+          NSIS="/c/Program Files (x86)/NSIS"
+          for attempt in 1 2 3; do
+            [ -x "$NSIS/makensis.exe" ] && break
+            choco install nsis -y --no-progress || true
+            [ -x "$NSIS/makensis.exe" ] || sleep $((attempt * 20))
+          done
+          [ -x "$NSIS/makensis.exe" ] || { echo "::error::NSIS (makensis) did not install"; exit 1; }
+          "$NSIS/makensis.exe" -VERSION
+          echo "C:\Program Files (x86)\NSIS" >> "$GITHUB_PATH"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Keep the build machine's paths out of the binaries
+        env:
+          CACHE_HIT: ${{ steps.cache.outputs.cache-hit }}
+        run: |
+          ROOT="$PWD/src"
+          CARGO_DIR="${CARGO_HOME:-$HOME/.cargo}"
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            ROOT="$(cygpath -w "$ROOT")"
+            CARGO_DIR="$(cygpath -w "$CARGO_DIR")"
+          fi
+          echo "RUSTFLAGS=--remap-path-prefix=${ROOT}=cadente --remap-path-prefix=${CARGO_DIR}=cargo" >> "$GITHUB_ENV"
+          if [ "$CACHE_HIT" = "true" ]; then CACHE=inteiro; elif [ -d src/target ] && [ -n "$(ls -A src/target 2>/dev/null)" ]; then CACHE=parcial; else CACHE=nenhum; fi
+          { echo "cache=$CACHE"; echo "work_start=$(date +%s)"; } >> "$RUNNER_TEMP/metrics.env"
+
+      # The same build `xtask bundle` starts, with the version it passes, so the bundle finds it done;
+      # only here can cargo write the --timings report.
+      - name: Build (cargo build --release)
+        working-directory: src
+        env:
+          CADENTE_BUILD_VERSION: ${{ needs.resolve.outputs.version }}
         run: |
           set -euo pipefail
-          if gh run list -R "$GITHUB_REPOSITORY" -w native-release.yml --json displayTitle --jq '.[].displayTitle' | grep -qxF "native-release beta $SHA"; then
-            echo "$SHA already has an unstable release run; nothing to do."
-            exit 0
+          echo "Passo: cargo build --release --target ${{ matrix.target }}"
+          START=$(date +%s)
+          if cargo build --release -p cadente-app -p cadente-launcher --target "${{ matrix.target }}" --timings > "$RUNNER_TEMP/release-build.log" 2>&1; then
+            echo "compile_s=$(( $(date +%s) - START ))" >> "$RUNNER_TEMP/metrics.env"
+            sed 's/\x1b\[[0-9;]*m//g' "$RUNNER_TEMP/release-build.log" | grep -E '^ *Finished ' | sed -E 's/^ *//' || true
+            echo "Resultado: OK"
+          else
+            echo "Resultado: FALHOU"
+            exit 1
           fi
-          gh workflow run native-release.yml -R "$GITHUB_REPOSITORY" -f sha="$SHA" -f channel=beta
-          echo "native-release beta dispatched for $SHA"
+
+      - name: Bundle
+        working-directory: src
+        run: |
+          set -euo pipefail
+          echo "Passo: cargo xtask bundle --target ${{ matrix.target }}"
+          if cargo xtask bundle --target "${{ matrix.target }}" >> "$RUNNER_TEMP/release-build.log" 2>&1; then
+            sed 's/\x1b\[[0-9;]*m//g' "$RUNNER_TEMP/release-build.log" | grep -E '^ *Finished ' | sed -E 's/^ *//' | tail -1 || true
+            echo "Resultado: OK"
+          else
+            echo "Resultado: FALHOU"
+            exit 1
+          fi
+
+      - name: Ad-hoc signature of the update binary (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          BIN="src/target/${{ matrix.target }}/release/cadente-native-ui"
+          codesign --verify "$BIN" 2>/dev/null || codesign --force --sign - "$BIN"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ matrix.target }}
+          path: |
+            src/dist/*.dmg
+            src/dist/*.AppImage
+            src/dist/*.deb
+            src/dist/cadente-*-windows-x64.exe
+          if-no-files-found: error
+          retention-days: 1
+
+      # The update payload is packed and signed in `sign`, which holds the release key.
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bin-${{ matrix.target }}
+          path: |
+            src/target/${{ matrix.target }}/release/cadente-native-ui
+            src/target/${{ matrix.target }}/release/cadente-native-ui.exe
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Seal the build log and the timings
+        if: always()
+        run: |
+          mkdir -p "$RUNNER_TEMP/sealed"
+          if [ -f src/target/cargo-timings/cargo-timing.html ]; then
+            node "$RUNNER_TEMP/scripts/ci-log-crypto.cjs" encrypt "$RUNNER_TEMP/scripts/ci-log-key.pub.pem" \
+              src/target/cargo-timings/cargo-timing.html "$RUNNER_TEMP/sealed/timings.enc.json" || true
+          fi
+          if [ "${{ job.status }}" != "success" ]; then
+            {
+              echo "native-ci package ${{ matrix.target }} ${SHA}"
+              echo "run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+              echo
+              cat "$RUNNER_TEMP/release-build.log" 2>/dev/null || true
+            } > "$RUNNER_TEMP/sealed.log"
+            node "$RUNNER_TEMP/scripts/ci-log-crypto.cjs" encrypt "$RUNNER_TEMP/scripts/ci-log-key.pub.pem" \
+              "$RUNNER_TEMP/sealed.log" "$RUNNER_TEMP/sealed/ci-log.enc.json"
+            rm -f "$RUNNER_TEMP/sealed.log"
+          fi
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: release-log-${{ matrix.target }}
+          path: ${{ runner.temp }}/sealed/
+          if-no-files-found: ignore
+          retention-days: 1
+
+      - name: Upload the metrics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: metrics-package-${{ matrix.target }}
+          path: ${{ runner.temp }}/metrics.env
+          if-no-files-found: ignore
+          retention-days: 1
+
+  smoke:
+    # D3 and D4 (ADR 0076): on each system the package installs, the launcher finds the Core it
+    # ships, and the Core opens, draws frames and closes (`--measure`). On Apple Silicon the
+    # measurement is the 30 s at 120 Hz of D4; its CPU p99 and memory go to the job summary.
+    name: smoke ${{ matrix.target }}
+    needs: [resolve, package]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: macos-15, target: aarch64-apple-darwin, measure: "30 120" }
+          - { os: ubuntu-22.04, target: x86_64-unknown-linux-gnu, measure: "5 60" }
+          - { os: windows-latest, target: x86_64-pc-windows-msvc, measure: "5 60" }
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist-${{ matrix.target }}
+          path: dist
+
+      - name: Install the package
+        id: install
+        run: |
+          set -euo pipefail
+          case "$RUNNER_OS" in
+            macOS)
+              hdiutil attach dist/*.dmg -mountpoint /Volumes/CadenteSmoke -nobrowse -quiet
+              cp -R /Volumes/CadenteSmoke/Cadente.app "$RUNNER_TEMP/"
+              hdiutil detach /Volumes/CadenteSmoke -quiet
+              DIR="$RUNNER_TEMP/Cadente.app/Contents/MacOS"
+              test -f "$RUNNER_TEMP/Cadente.app/Contents/SharedSupport/baseline_version/metadata.json"
+              EXE="" ;;
+            Linux)
+              sudo apt-get -o Acquire::Retries=3 update
+              sudo apt-get -o Acquire::Retries=3 install -y xvfb libgl1-mesa-dri libegl1 libxkbcommon-x11-0
+              sudo apt-get -o Acquire::Retries=3 install -y ./dist/*.deb
+              DIR=/usr/bin
+              test -f /usr/lib/Cadente/baseline_version/metadata.json
+              EXE="" ;;
+            Windows)
+              INSTALLER="$(ls dist/cadente-*-windows-x64.exe | head -1)"
+              "$INSTALLER" //S
+              for _ in $(seq 1 60); do [ -f "$LOCALAPPDATA/Programs/Cadente/cadente-core.exe" ] && break; sleep 2; done
+              DIR="$LOCALAPPDATA/Programs/Cadente"
+              test -f "$DIR/baseline_version/metadata.json"
+              EXE=".exe" ;;
+          esac
+          test -x "$DIR/cadente$EXE"
+          test -x "$DIR/cadente-core$EXE"
+          echo "dir=$DIR" >> "$GITHUB_OUTPUT"
+          echo "exe=$EXE" >> "$GITHUB_OUTPUT"
+
+      - name: The launcher finds the Core it ships
+        env:
+          DIR: ${{ steps.install.outputs.dir }}
+          EXE: ${{ steps.install.outputs.exe }}
+          EXPECTED: ${{ needs.resolve.outputs.version }}
+        run: |
+          set -euo pipefail
+          FOUND="$("$DIR/cadente$EXE" --system-install)"
+          echo "$FOUND"
+          printf '%s' "$FOUND" | grep -q "\"version\":\"$EXPECTED\""
+
+      - name: The Core opens, draws and closes
+        env:
+          DIR: ${{ steps.install.outputs.dir }}
+          EXE: ${{ steps.install.outputs.exe }}
+          MEASURE: ${{ matrix.measure }}
+        run: |
+          set -euo pipefail
+          export CADENTE_HOME="$RUNNER_TEMP/cadente-home"
+          # Only the report reaches stdout. The Core's stderr stays in a file that this public log
+          # never prints (xvfb-run would mix it into stdout).
+          OUT="$RUNNER_TEMP/measure.json" ERR="$RUNNER_TEMP/core-stderr.log"
+          CORE="$DIR/cadente-core$EXE"
+          export OUT ERR
+          STATUS=0
+          # shellcheck disable=SC2086,SC2016
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            xvfb-run -a -s "-screen 0 1440x900x24" sh -c 'exec "$0" "$@" > "$OUT" 2> "$ERR"' "$CORE" --measure $MEASURE || STATUS=$?
+          elif [ "$RUNNER_OS" = "Windows" ]; then
+            # The hosted Windows runner has no GPU: with the software renderer the Core never
+            # finished drawing there (run 41376977511 hung 20 min). The install and the launcher
+            # check above still gate the release; the draw is measured on Linux and macOS, and here
+            # only reported until the runner can show it (D3 stays open in docs/MIGRATION.md).
+            # The measurement takes 5 s; 60 s is twelve times that. The 240 s wait it replaces
+            # always ran out (run 41382444097) and held every release for 4 min.
+            "$CORE" --measure $MEASURE > "$OUT" 2> "$ERR" &
+            PID=$!
+            for _ in $(seq 1 60); do kill -0 "$PID" 2>/dev/null || break; sleep 1; done
+            if kill -0 "$PID" 2>/dev/null; then
+              kill "$PID" 2>/dev/null || true
+              echo "::warning::the Core did not finish drawing on the hosted Windows runner within 60 s"
+              exit 0
+            fi
+            wait "$PID" || STATUS=$?
+          else
+            "$CORE" --measure $MEASURE > "$OUT" 2> "$ERR" || STATUS=$?
+          fi
+          cat "$OUT"
+          [ "$STATUS" = 0 ] || { echo "::error::the Core exited with $STATUS"; exit "$STATUS"; }
+          python3 - "$RUNNER_TEMP/measure.json" <<'PY'
+          import json, os, sys
+          report = json.load(open(sys.argv[1]))
+          frames = report.get("drawnFrames", 0)
+          assert frames > 0, f"no frame drawn: {report}"
+          cpu, rss = report["frameCpuMs"], report["rssKib"]
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as summary:
+              summary.write(
+                  f"### {os.environ['RUNNER_OS']}: {frames} frames, CPU p99 {cpu.get('p99')} ms "
+                  f"(limit {report['budget']['cpuP99MaxMs']} ms, pass={report['pass']}), "
+                  f"RSS open {rss['windowOpen']} KiB, hidden {rss['windowHidden']} KiB\n"
+              )
+          PY
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: smoke-${{ matrix.target }}
+          path: ${{ runner.temp }}/measure.json
+          if-no-files-found: ignore
+
+  sign:
+    # Holds the release key. Compiles only xtask (no third-party action, no shared cache) and packs
+    # the update payloads from the binaries the package jobs built. It runs beside the smoke tests:
+    # signing publishes nothing, and `publish` waits for both.
+    name: sign the payloads and the feed
+    needs: [resolve, package]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    env:
+      RELEASE_VERSION: ${{ needs.resolve.outputs.version }}
+      RELEASE_CHANNEL: ${{ needs.resolve.outputs.channel }}
+    steps:
+      - name: Setup builder scripts
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/scripts/clone-private.sh
+          sparse-checkout-cone-mode: false
+          path: _builder
+          persist-credentials: false
+
+      - name: Clone the private repository for the packaging tool
+        env:
+          DEPLOY_KEY: ${{ secrets.CATARINA_PRIVATE_DEPLOY_KEY }}
+        run: |
+          cp _builder/.github/scripts/clone-private.sh "$RUNNER_TEMP/clone-private.sh"
+          rm -rf _builder
+          bash "$RUNNER_TEMP/clone-private.sh" src "${{ needs.resolve.outputs.sha }}"
+
+      # Optimized: signing runs minisign's scrypt and the best gzip level once per payload, and the
+      # unoptimized build spent 149 s there (run 41396863235) on the release's critical path.
+      - name: Build the packaging tool
+        working-directory: src
+        run: |
+          rustup toolchain install --profile minimal "$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml)" > /dev/null 2>&1
+          cargo build --quiet --locked --release -p xtask > "$RUNNER_TEMP/xtask-build.log" 2>&1 || { echo "::error::xtask did not build"; exit 1; }
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: bin-*
+          path: bins
+
+      - name: Sign the update payloads and the feed
+        working-directory: src
+        env:
+          CADENTE_RELEASE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          for TARGET in aarch64-apple-darwin x86_64-apple-darwin x86_64-unknown-linux-gnu x86_64-pc-windows-msvc; do
+            mkdir -p "target/$TARGET/release"
+            cp ../bins/bin-$TARGET/* "target/$TARGET/release/"
+            # Artifacts drop the executable bit, and the tar of the payload records it.
+            chmod +x target/$TARGET/release/cadente-native-ui*
+            ./target/release/xtask payload --target "$TARGET"
+          done
+          ./target/release/xtask feed "$RELEASE_CHANNEL" dist/descriptor-*.json
+
+      - name: Release notes
+        env:
+          SHA: ${{ needs.resolve.outputs.sha }}
+        run: |
+          set -euo pipefail
+          {
+            echo "Cadente ${RELEASE_VERSION}"
+            echo
+            if [ -f src/docs/release/notes.md ]; then sed '1d' src/docs/release/notes.md; fi
+            echo
+            echo "commit: ${SHA}"
+            echo
+            echo "---"
+            echo "*Built via Secure Public Builder*"
+          } > src/dist/release-notes.md
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: signed
+          path: |
+            src/dist/cadente-*.tar.gz
+            src/dist/cadente-*.zip
+            src/dist/*.minisig
+            src/dist/feeds/
+            src/dist/release-notes.md
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    # Holds the release token and compiles nothing. It runs only when the three systems are green
+    # (`report`), the packages passed the smoke tests and the payloads are signed. Only a run from main
+    # publishes; on another branch this job lists what it would publish.
+    name: publish
+    needs: [resolve, report, sign, smoke]
+    if: needs.report.outputs.green == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    env:
+      RELEASE_VERSION: ${{ needs.resolve.outputs.version }}
+      RELEASE_CHANNEL: ${{ needs.resolve.outputs.channel }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: dist-*
+          path: dist
+          merge-multiple: true
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: signed
+          path: signed
+
+      - name: Checksums
+        run: |
+          set -euo pipefail
+          mv signed/release-notes.md release-notes.md
+          mv signed/feeds feeds
+          mv signed/* dist/
+          (cd dist && sha256sum * > SHA256SUMS.txt)
+
+      - name: What a main run would publish
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "Ensaio: um run de main publicaria v${RELEASE_VERSION} (${RELEASE_CHANNEL}) com:"
+          ls -1 dist feeds
+
+      - name: Create the release
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ secrets.CATARINA_RELEASE_TOKEN }}
+          TAG: ${{ needs.resolve.outputs.tag }}
+        run: |
+          set -euo pipefail
+          echo "::add-mask::${GH_TOKEN}"
+          gh release delete "$TAG" --repo "$GITHUB_REPOSITORY" --yes 2>/dev/null || true
+          if [ "$RELEASE_CHANNEL" = "stable" ]; then FLAGS="--latest"; else FLAGS="--prerelease"; fi
+          gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --title "Cadente v${RELEASE_VERSION}" \
+            --notes-file release-notes.md $FLAGS dist/*
+
+      - name: Publish the feed on the site
+        id: feed
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ secrets.CATARINA_RELEASE_TOKEN }}
+        run: |
+          set -euo pipefail
+          echo "::add-mask::${GH_TOKEN}"
+          git clone --depth=1 "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" site
+          cd site
+          mkdir -p public/feeds
+          cp ../feeds/* public/feeds/
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/feeds
+          git commit -m "chore: publish ${RELEASE_CHANNEL} feed for v${RELEASE_VERSION}" || echo "No changes"
+          # The site branch moves while a run lasts (a push of this workflow, another feed): rebase first.
+          for attempt in 1 2 3; do
+            git push && break
+            git pull --rebase origin main
+          done
+          # While no stable is out, the newest beta is what the site and Homebrew offer.
+          STABLE_RELEASES="$(jq '.releases | length' public/feeds/stable.json 2>/dev/null || echo 0)"
+          echo "stable_empty=$([ "$STABLE_RELEASES" = 0 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
+      - name: Update Homebrew cask
+        if: github.ref == 'refs/heads/main' && (needs.resolve.outputs.channel == 'stable' || steps.feed.outputs.stable_empty == 'true')
+        env:
+          GH_TOKEN: ${{ secrets.CATARINA_RELEASE_TOKEN }}
+        run: |
+          set -euo pipefail
+          echo "::add-mask::${GH_TOKEN}"
+          git clone --depth=1 "https://x-access-token:${GH_TOKEN}@github.com/cadente-hub/homebrew-apps.git" homebrew-repo
+          cd homebrew-repo
+          ARM64_SHA=$(sha256sum ../dist/cadente-${RELEASE_VERSION}-macos-arm64.dmg | awk '{print $1}')
+          X64_SHA=$(sha256sum ../dist/cadente-${RELEASE_VERSION}-macos-x64.dmg | awk '{print $1}')
+          cat > Casks/cadente.rb <<RUBY
+          cask "cadente" do
+            version "${RELEASE_VERSION}"
+
+            if Hardware::CPU.arm?
+              url "https://github.com/cadente-hub/cadente-hub.github.io/releases/download/v#{version}/cadente-#{version}-macos-arm64.dmg"
+              sha256 "${ARM64_SHA}"
+            else
+              url "https://github.com/cadente-hub/cadente-hub.github.io/releases/download/v#{version}/cadente-#{version}-macos-x64.dmg"
+              sha256 "${X64_SHA}"
+            end
+
+            name "Cadente"
+            desc "AI-powered desktop assistant — chat, terminal, Git and more"
+            homepage "https://cadente-hub.github.io"
+
+            auto_updates true
+            depends_on macos: ">= :big_sur"
+
+            app "Cadente.app"
+
+            # Unsigned app: drop the quarantine flag and sign ad-hoc so it opens without the "is damaged" error.
+            postflight do
+              system_command "/usr/bin/xattr",
+                             args: ["-cr", "#{appdir}/Cadente.app"],
+                             sudo: true
+              system_command "/usr/bin/codesign",
+                             args: ["--force", "--deep", "--sign", "-", "#{appdir}/Cadente.app"],
+                             sudo: true
+            end
+
+            zap trash: [
+              "~/Library/Application Support/com.cadente.app",
+              "~/Library/Caches/com.cadente.app",
+              "~/Library/Preferences/com.cadente.app.plist",
+              "~/Library/Saved Application State/com.cadente.app.savedState",
+            ]
+          end
+          RUBY
+          sed -i 's/^          //' Casks/cadente.rb
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Casks/cadente.rb
+          git diff --cached --quiet && { echo "No cask changes"; exit 0; }
+          git commit -m "chore: bump cadente to v${RELEASE_VERSION}"
+          git push
+
+  # W1 (ADR 0082): compiles nothing. Stores the package logs and timings in the private ci-logs branch,
+  # writes the run summary (duration, preparation, cache, compile and test time of each job) and keeps
+  # one line per main run there, from which it takes the p50 and p90 of the last 20 runs.
+  summary:
+    name: summary
+    needs: [resolve, lint, tests, from-archive, report, package, smoke, sign, publish]
+    if: always() && needs.resolve.result == 'success' && needs.resolve.outputs.skip != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Setup builder scripts
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            .github/scripts/ci-log-crypto.cjs
+            .github/scripts/persist-private-log.sh
+            .github/scripts/ci-summary.sh
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          pattern: release-log-*
+          path: ${{ runner.temp }}/sealed
+
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          pattern: metrics-*
+          path: ${{ runner.temp }}/metrics
+
+      - name: Store the package logs and timings in the private repository
+        env:
+          CI_LOG_PRIVATE_KEY: ${{ secrets.CI_LOG_PRIVATE_KEY }}
+          PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
+        run: |
+          set -euo pipefail
+          source .github/scripts/persist-private-log.sh
+          shopt -s nullglob
+          OUT="$RUNNER_TEMP/plain"
+          mkdir -p "$OUT"
+          for DIR in "$RUNNER_TEMP"/sealed/release-log-*; do
+            TARGET="$(basename "$DIR")"
+            TARGET="${TARGET#release-log-}"
+            [ -f "$DIR/ci-log.enc.json" ] && node .github/scripts/ci-log-crypto.cjs decrypt "$DIR/ci-log.enc.json" "$OUT/release-$TARGET.log" || true
+            [ -f "$DIR/timings.enc.json" ] && node .github/scripts/ci-log-crypto.cjs decrypt "$DIR/timings.enc.json" "$OUT/timings-release-$TARGET.html" || true
+          done
+          for LOG in "$OUT"/*.log; do echo "log completo de $(basename "$LOG" .log): ci-logs/public-actions/${GITHUB_RUN_ID}/$(basename "$LOG")"; done
+          persist_private_files "$OUT" "public-actions/${GITHUB_RUN_ID}" "native-ci package logs and timings"
+          rm -rf "$OUT"
+
+      - name: Run summary
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
+          SHA: ${{ needs.resolve.outputs.sha }}
+          CHANNEL: ${{ needs.resolve.outputs.channel }}
+          COMPILED: ${{ needs.resolve.outputs.docs_only != 'true' }}
+          TOOLCHAIN_CHANGED: ${{ needs.resolve.outputs.toolchain_changed }}
+          RECORD_HISTORY: ${{ github.ref == 'refs/heads/main' }}
+          METRICS_DIR: ${{ runner.temp }}/metrics
+        run: |
+          set -euo pipefail
+          echo "::add-mask::${PRIVATE_LOG_TOKEN}"
+          HISTORY_DIR="$RUNNER_TEMP/history"
+          git clone --depth=1 --branch ci-logs "https://x-access-token:${PRIVATE_LOG_TOKEN}@github.com/${PRIVATE_REPO}.git" "$HISTORY_DIR" >/dev/null 2>&1 || HISTORY_DIR=""
+          export HISTORY_DIR
+          bash .github/scripts/ci-summary.sh > "$RUNNER_TEMP/summary.md"
+          cat "$RUNNER_TEMP/summary.md" >> "$GITHUB_STEP_SUMMARY"
+          cat "$RUNNER_TEMP/summary.md"
+          if [ "$RECORD_HISTORY" = "true" ] && [ -n "$HISTORY_DIR" ]; then
+            git -C "$HISTORY_DIR" config user.name "github-actions[bot]"
+            git -C "$HISTORY_DIR" config user.email "github-actions[bot]@users.noreply.github.com"
+            for attempt in 1 2 3 4 5; do
+              git -C "$HISTORY_DIR" add metrics/runs.tsv
+              git -C "$HISTORY_DIR" commit -m "ci: record native-ci run ${GITHUB_RUN_ID}" >/dev/null 2>&1 || break
+              git -C "$HISTORY_DIR" push origin ci-logs >/dev/null 2>&1 && break
+              LINE="$(tail -1 "$HISTORY_DIR/metrics/runs.tsv")"
+              git -C "$HISTORY_DIR" fetch --depth=1 origin ci-logs >/dev/null 2>&1 || true
+              git -C "$HISTORY_DIR" reset --hard origin/ci-logs >/dev/null 2>&1 || true
+              mkdir -p "$HISTORY_DIR/metrics"
+              printf '%s\n' "$LINE" >> "$HISTORY_DIR/metrics/runs.tsv"
+              sleep "$attempt"
+            done
+          fi
