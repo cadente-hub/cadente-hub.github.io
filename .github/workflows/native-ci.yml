@@ -571,7 +571,13 @@ jobs:
           # shellcheck disable=SC2086
           dpkg -s $PKGS > /dev/null 2>&1 || { sudo apt-get -o Acquire::Retries=3 update && sudo apt-get -o Acquire::Retries=3 install -y $PKGS; }
 
+      # W6: the tests start Node MCP servers; Node 22 is installed only when the image lacks it.
+      - name: Node on the image
+        id: node
+        run: echo "major=$(node --version 2>/dev/null | sed -E 's/^v([0-9]+).*/\1/')" >> "$GITHUB_OUTPUT"
+
       - name: Node 22
+        if: steps.node.outputs.major != '22'
         uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -794,8 +800,13 @@ jobs:
           # shellcheck disable=SC2086
           dpkg -s $PKGS > /dev/null 2>&1 || { sudo apt-get -o Acquire::Retries=3 update && sudo apt-get -o Acquire::Retries=3 install -y $PKGS; }
 
-      # The tests start Node MCP servers.
+      # W6: the tests start Node MCP servers; Node 22 is installed only when the image lacks it.
+      - name: Node on the image
+        id: node
+        run: echo "major=$(node --version 2>/dev/null | sed -E 's/^v([0-9]+).*/\1/')" >> "$GITHUB_OUTPUT"
+
       - name: Node 22
+        if: steps.node.outputs.major != '22'
         uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -1152,6 +1163,14 @@ jobs:
           curl -fsSL -o appimagetool https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
           chmod +x appimagetool
           sudo mv appimagetool /usr/local/bin/appimagetool
+
+      # W6: the image has no NSIS, and Chocolatey took about 20 s to install it; its folder is cached.
+      - name: Installer tool cache (Windows)
+        if: runner.os == 'Windows'
+        uses: actions/cache@v4
+        with:
+          path: C:\Program Files (x86)\NSIS
+          key: nsis-windows-v1
 
       - name: Installer tool (Windows)
         if: runner.os == 'Windows'

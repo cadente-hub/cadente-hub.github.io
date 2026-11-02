@@ -31,12 +31,14 @@ KEYS
 export GIT_SSH_COMMAND="ssh -i '$ssh_dir/key' -o IdentitiesOnly=yes -o UserKnownHostsFile='$ssh_dir/known_hosts' -o StrictHostKeyChecking=yes -o BatchMode=yes"
 export GIT_TERMINAL_PROMPT=0
 
-if ! git clone --quiet --no-checkout "git@github.com:${PRIVATE_REPO}.git" "$dest" >/dev/null 2>&1; then
-  echo "::error::Could not clone the private repository with the deploy key"
+# Only the commit, without history (ADR 0082 W6): nothing that builds or tests reads the checkout's git
+# history, and the full clone took 10 to 13 s on Windows.
+mkdir -p "$dest"
+git init --quiet "$dest"
+git -C "$dest" remote add origin "git@github.com:${PRIVATE_REPO}.git"
+if ! git -C "$dest" fetch --quiet --depth=1 origin "$sha" >/dev/null 2>&1; then
+  echo "::error::Could not fetch commit $sha from the private repository with the deploy key"
   exit 1
 fi
-if ! git -C "$dest" checkout --quiet "$sha" >/dev/null 2>&1; then
-  echo "::error::Commit $sha is not in the private repository"
-  exit 1
-fi
+git -C "$dest" checkout --quiet --detach FETCH_HEAD >/dev/null 2>&1
 git -C "$dest" remote remove origin
