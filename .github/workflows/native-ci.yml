@@ -419,16 +419,17 @@ jobs:
         run: |
           set -uo pipefail
           LOG="$RUNNER_TEMP/ci-build.log"
-          # Branch runs only: each plant must make this step fail (the O1 proof).
+          # Branch runs only: each plant must make this step fail (the O1 proof). awk stops at the first
+          # entry; `sed | head` broke the pipe and failed the step before the check ran.
           case "$PLANT_SIZE" in
             new-file-401)
               for N in $(seq 401); do echo "// linha $N"; done > crates/app/src/o1_probe.rs
               git add crates/app/src/o1_probe.rs ;;
             above-ceiling)
-              FIRST="$(sed -n 's/^"\([^"]*\)" = [0-9]*$/\1/p' .config/lines.toml | head -1)"
+              FIRST="$(awk -F'"' '/^"/ {print $2; exit}' .config/lines.toml)"
               echo "// uma linha acima do teto" >> "$FIRST" ;;
             copied-block)
-              FIRST="$(sed -n 's/^"\([^"]*\.rs\)" = [0-9]*$/\1/p' .config/lines.toml | grep -v '/tests/' | head -1)"
+              FIRST="$(awk -F'"' '/^"/ && $2 ~ /[.]rs$/ && $2 !~ /\/tests\// {print $2; exit}' .config/lines.toml)"
               { echo "mod o1_probe {"; sed -n '100,180p' "$FIRST"; echo "}"; } > crates/app/src/o1_probe.rs ;;
           esac
           echo "Passo: cargo xtask lines"
