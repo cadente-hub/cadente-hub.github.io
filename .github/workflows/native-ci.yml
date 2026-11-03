@@ -39,11 +39,6 @@ on:
         default: none
         type: choice
         options: [none, new-file-401, above-ceiling, copied-block]
-      sccache_tests:
-        description: "Branch runs only (W8): build the tests through sccache, without saving it, and print the folder size"
-        required: false
-        default: false
-        type: boolean
       warm_up:
         description: "Compile every job and save the caches, publish nothing (after a change of cache key)"
         required: false
@@ -667,22 +662,31 @@ jobs:
           if [ "$CACHE_HIT" = "true" ]; then CACHE=inteiro; elif [ -d target ] && [ -n "$(ls -A target 2>/dev/null)" ]; then CACHE=parcial; else CACHE=nenhum; fi
           { echo "cache=$CACHE"; echo "work_start=$(date +%s)"; } >> "$RUNNER_TEMP/metrics.env"
 
-      # Branch runs only (W8): how large a sccache of the test build would be. The wrapper goes in this
-      # step alone, after rust-cache computed its key, and cargo does not fingerprint it, so the cached
-      # dependencies stay fresh and only the workspace crates pass through sccache.
-      - name: Install sccache (W8 measurement)
-        if: github.ref != 'refs/heads/main' && inputs.sccache_tests
+      # W8 (ADR 0082): the workspace crates of the test build come from a sccache folder per system, as
+      # in the packages (Zed's release.yml). A branch measured it (runs 41710337347 and 41714436183): 121,
+      # 119 and 134 MB, 27 of the 74 workspace compilations (a test binary is not cached). It fits since
+      # the two Mac package caches became one (the repository went from 9.58 to 8.69 GB). The wrapper goes
+      # in the build step alone, after rust-cache computed its key, and cargo does not fingerprint it, so
+      # the cached dependencies stay fresh and only the workspace crates pass through sccache.
+      - name: Install sccache
         uses: taiki-e/install-action@sccache
+
+      - name: Restore the sccache folder
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ runner.temp }}/sccache
+          key: sccache-tests-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: sccache-tests-${{ runner.os }}-
 
       - name: Build the tests (cargo nextest archive)
         env:
-          SCCACHE_TESTS: ${{ github.ref != 'refs/heads/main' && inputs.sccache_tests }}
+          RUSTC_WRAPPER: sccache
+          SCCACHE_DIR: ${{ runner.temp }}/sccache
+          SCCACHE_CACHE_SIZE: ${{ vars.SCCACHE_CACHE_SIZE || '2G' }}
+          SCCACHE_IDLE_TIMEOUT: "0"
         run: |
           echo "Passo: cargo nextest archive --workspace"
           RAW="$RUNNER_TEMP/archive_raw.log"
-          if [ "$SCCACHE_TESTS" = "true" ]; then
-            export RUSTC_WRAPPER=sccache SCCACHE_DIR="$RUNNER_TEMP/sccache" SCCACHE_CACHE_SIZE=10G SCCACHE_IDLE_TIMEOUT=0
-          fi
           START=$(date +%s)
           set +e
           cargo nextest archive --config .ci/.cargo/config.toml --workspace --timings --archive-file "$RUNNER_TEMP/nextest.tar.zst" > "$RAW" 2>&1
@@ -694,17 +698,26 @@ jobs:
           if [ $EXIT -eq 0 ]; then
             echo "archive_mb=$(( $(wc -c < "$RUNNER_TEMP/nextest.tar.zst") / 1048576 ))" >> "$RUNNER_TEMP/metrics.env"
             echo "Resultado: OK ($(( $(wc -c < "$RUNNER_TEMP/nextest.tar.zst") / 1048576 )) MB de arquivo)"
-            if [ "$SCCACHE_TESTS" = "true" ]; then
-              STATS="$(sccache --show-stats --stats-format json 2>/dev/null || echo '{}')"
-              echo "W8: sccache dos testes com $(du -sm "$SCCACHE_DIR" | cut -f1) MB na pasta;" \
-                "$(printf '%s' "$STATS" | jq -r '[.stats.compile_requests // 0, ([.stats.cache_misses.counts // {} | .[]] | add // 0), ([.stats.not_cached // {} | .[]] | add // 0)] | "\(.[0]) pedidos, \(.[1]) guardados, \(.[2]) que o sccache não guarda"')"
-              sccache --stop-server > /dev/null 2>&1 || true
-            fi
+            # Hit and miss counts only; the names of what compiled stay in the sealed timings.
+            STATS="$(sccache --show-stats --stats-format json 2>/dev/null || echo '{}')"
+            HITS="$(printf '%s' "$STATS" | jq -r '[.stats.cache_hits.counts // {} | .[]] | add // 0')"
+            MISSES="$(printf '%s' "$STATS" | jq -r '[.stats.cache_misses.counts // {} | .[]] | add // 0')"
+            SIZE="$(du -sm "$SCCACHE_DIR" 2>/dev/null | cut -f1)"
+            echo "sccache: ${HITS} acertos, ${MISSES} faltas, ${SIZE:-0} MB na pasta"
+            { echo "sccache_hits=$HITS"; echo "sccache_misses=$MISSES"; echo "sccache_mb=${SIZE:-0}"; } >> "$RUNNER_TEMP/metrics.env"
+            sccache --stop-server > /dev/null 2>&1 || true
           else
             echo "Resultado: FALHOU"
             echo "cargo nextest archive" > "$RUNNER_TEMP/failed_step"
             exit 1
           fi
+
+      - name: Save the sccache folder
+        if: github.ref == 'refs/heads/main' && vars.SCCACHE_SAVE == 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ runner.temp }}/sccache
+          key: sccache-tests-${{ runner.os }}-${{ github.run_id }}
 
       - name: Mark the archive upload
         run: echo "upload_start=$(date +%s)" >> "$RUNNER_TEMP/metrics.env"
