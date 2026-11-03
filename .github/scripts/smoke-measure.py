@@ -175,6 +175,14 @@ else:
 # runner one energy impact per second went with 10 ms/s of CPU in the script: 17.6 with 174.2,
 # 24.1 with 236.8, 14.4 with 143.7, run 41524827131). The 0.05 used before was below what the
 # same code varies in a 10 s idle state there (closed: 0.017 and 0.176 in the same run).
+# The noise floor of a state measured by A/A runs (the same code as beta and as this version),
+# where it is above the floors above. On the macOS runner the open idle window is at 0.02 to
+# 0.3 or at 1.0 to 2.3 energy/s for the same code, the second while the 60 ms pulse is woken again
+# (`pulseTicks`), and four runs of each side differed by up to 0.635 (A/A, run 41583510591) and
+# 0.762 (beta 10 against the next commit, run 41589279580). The closed window stays below 0.3, so
+# a version that spends 8 ms/s more still fails there (+0.82, run 41584087538).
+AA_FLOOR = {("macOS", "idleOpen", "energia/s"): 1.0}
+
 beta_runs = [states for which, states in p6["beta"] if which]
 new_runs = [states for which, states in p6["new"] if which]
 
@@ -235,6 +243,7 @@ if beta_runs and new_runs:
             metric, prev, new, floor = "energia/s", old_energy, new_energy, 0.5
         else:
             metric, prev, new, floor = "CPU ms/s", old_cpu, new_cpu, 5.0
+        floor = max(floor, AA_FLOOR.get((system, name, metric), 0.0))
         change = (new / prev - 1) * 100 if prev else 0.0
         index = 1 if metric == "energia/s" else 0
         low, high = change_interval(
