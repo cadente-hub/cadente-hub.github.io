@@ -33,6 +33,12 @@ on:
         required: false
         default: ""
         type: string
+      plant_size:
+        description: "Branch runs only (O1 proof): break R5 or R6 in the Linux lint"
+        required: false
+        default: none
+        type: choice
+        options: [none, new-file-401, above-ceiling, copied-block]
       warm_up:
         description: "Compile every job and save the caches, publish nothing (after a change of cache key)"
         required: false
@@ -388,6 +394,65 @@ jobs:
           else
             echo "Resultado: FALHOU"
             echo "cargo fmt" > "$RUNNER_TEMP/failed_step"
+            exit 1
+          fi
+
+      # R5 and R6 (ADR 0083 O1): no .rs or .slint above 400 lines or its ceiling in .config/lines.toml,
+      # and no clone beyond .config/clones.toml (jscpd 4.3.0, the DSH's configuration, in .jscpd.json).
+      # Only on Linux: both read files, not the system. Their output names private files, so it goes only
+      # to the sealed log.
+      - name: Node on the image
+        id: node
+        if: runner.os == 'Linux'
+        run: echo "major=$(node --version 2>/dev/null | sed -E 's/^v([0-9]+).*/\1/')" >> "$GITHUB_OUTPUT"
+
+      - name: Node 22
+        if: runner.os == 'Linux' && steps.node.outputs.major != '22'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: File size and duplication (cargo xtask lines, jscpd)
+        if: runner.os == 'Linux'
+        env:
+          PLANT_SIZE: ${{ github.ref != 'refs/heads/main' && inputs.plant_size || 'none' }}
+        run: |
+          set -uo pipefail
+          LOG="$RUNNER_TEMP/ci-build.log"
+          # Branch runs only: each plant must make this step fail (the O1 proof).
+          case "$PLANT_SIZE" in
+            new-file-401)
+              for N in $(seq 401); do echo "// linha $N"; done > crates/app/src/o1_probe.rs
+              git add crates/app/src/o1_probe.rs ;;
+            above-ceiling)
+              FIRST="$(sed -n 's/^"\([^"]*\)" = [0-9]*$/\1/p' .config/lines.toml | head -1)"
+              echo "// uma linha acima do teto" >> "$FIRST" ;;
+            copied-block)
+              FIRST="$(sed -n 's/^"\([^"]*\.rs\)" = [0-9]*$/\1/p' .config/lines.toml | grep -v '/tests/' | head -1)"
+              { echo "mod o1_probe {"; sed -n '100,180p' "$FIRST"; echo "}"; } > crates/app/src/o1_probe.rs ;;
+          esac
+          echo "Passo: cargo xtask lines"
+          if cargo xtask lines >> "$LOG" 2>&1; then
+            echo "Resultado: OK"
+          else
+            echo "Resultado: FALHOU"
+            echo "cargo xtask lines" > "$RUNNER_TEMP/failed_step"
+            exit 1
+          fi
+          echo "Passo: jscpd 4.3.0 (.jscpd.json)"
+          set +e
+          npx --yes jscpd@4.3.0 --config .jscpd.json --reporters console,json --output "$RUNNER_TEMP/jscpd" crates xtask build >> "$LOG" 2>&1
+          JSCPD_EXIT=$?
+          set -e
+          CLONES="$(jq '.statistics.total.clones' "$RUNNER_TEMP/jscpd/jscpd-report.json" 2>/dev/null || echo "")"
+          CEILING="$(sed -n 's/^clones = \([0-9]*\)$/\1/p' .config/clones.toml)"
+          echo "jscpd: $CLONES clones, teto $CEILING" >> "$LOG"
+          if [ "$JSCPD_EXIT" -eq 0 ] && [ -n "$CLONES" ] && [ -n "$CEILING" ] && [ "$CLONES" -le "$CEILING" ]; then
+            echo "Resultado: OK"
+            if [ "$CLONES" -lt "$CEILING" ]; then echo "::notice::Há menos clones que o teto da .config/clones.toml; baixe o teto."; fi
+          else
+            echo "Resultado: FALHOU"
+            echo "jscpd" > "$RUNNER_TEMP/failed_step"
             exit 1
           fi
 
