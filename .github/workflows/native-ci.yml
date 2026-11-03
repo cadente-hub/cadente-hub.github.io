@@ -1492,7 +1492,7 @@ jobs:
             for WARM in "$OLD" "$NEW"; do
               CADENTE_HOME="$RUNNER_TEMP/home-warm" "$WARM" --dump-plugins > /dev/null 2>> "$ERR" || true
             done
-            export CADENTE_MEASURE_CHATS=0 CADENTE_MEASURE_TERMINALS=0 CADENTE_MEASURE_CLOSED_S=10 CADENTE_MEASURE_MIN_FRAMES=0
+            export CADENTE_MEASURE_CHATS=0 CADENTE_MEASURE_TERMINALS=0 CADENTE_MEASURE_CLOSED_S=10 CADENTE_MEASURE_MIN_FRAMES=0 CADENTE_MEASURE_WARM_UP=0
             for RUN in beta-1 new-1 new-2 beta-2 new-3 beta-3 beta-4 new-4; do
               OUT="$RUNNER_TEMP/p6-$RUN.out"
               case "$RUN" in
@@ -1502,7 +1502,7 @@ jobs:
                   P6_NEW="$P6_NEW,$OUT" ;;
               esac
             done
-            unset CADENTE_MEASURE_CHATS CADENTE_MEASURE_TERMINALS CADENTE_MEASURE_CLOSED_S CADENTE_MEASURE_MIN_FRAMES
+            unset CADENTE_MEASURE_CHATS CADENTE_MEASURE_TERMINALS CADENTE_MEASURE_CLOSED_S CADENTE_MEASURE_MIN_FRAMES CADENTE_MEASURE_WARM_UP
           fi
           export P6_BETA P6_NEW
           if [ -n "$POWER" ]; then
