@@ -1333,16 +1333,18 @@ jobs:
     name: smoke ${{ matrix.target }}
     needs: [resolve, package]
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 20
+    timeout-minutes: 30
     permissions:
       contents: read
     strategy:
       fail-fast: false
       matrix:
         include:
-          - { os: macos-15, target: aarch64-apple-darwin, measure: "30 120", payload: darwin-aarch64.tar.gz }
-          - { os: ubuntu-22.04, target: x86_64-unknown-linux-gnu, measure: "5 60", payload: linux-x86_64.tar.gz }
-          - { os: windows-latest, target: x86_64-pc-windows-msvc, measure: "5 60", payload: windows-x86_64.zip }
+          # `measure`: the P6 runs; `p2`: the full run, whose counted script also runs until it drew
+          # 500 frames (at most 90 s), after an uncounted warm-up (Zed's `tooling/perf`).
+          - { os: macos-15, target: aarch64-apple-darwin, measure: "30 120", p2: "30 120", payload: darwin-aarch64.tar.gz }
+          - { os: ubuntu-22.04, target: x86_64-unknown-linux-gnu, measure: "5 60", p2: "30 60", payload: linux-x86_64.tar.gz }
+          - { os: windows-latest, target: x86_64-pc-windows-msvc, measure: "5 60", p2: "30 60", payload: windows-x86_64.zip }
     defaults:
       run:
         shell: bash
@@ -1423,6 +1425,7 @@ jobs:
           DIR: ${{ steps.install.outputs.dir }}
           EXE: ${{ steps.install.outputs.exe }}
           MEASURE: ${{ matrix.measure }}
+          P2_MEASURE: ${{ matrix.p2 }}
           TARGET: ${{ matrix.target }}
         run: |
           set -euo pipefail
@@ -1430,7 +1433,7 @@ jobs:
           # never prints (xvfb-run would mix it into stdout).
           ERR="$RUNNER_TEMP/core-stderr.log"
           export ERR
-          # measure <binary> <output> <home> [beta]: the Core's status. It has 300 s, and 20 s to
+          # measure <binary> <output> <home> [beta]: the Core's status. It has $LIMIT s (300), and 20 s to
           # exit once its report is out (D3: it closes). The last beta may not exit on Windows
           # (1.1.0-beta.7 waited forever for its runtime there); for it the report is enough.
           measure() {
@@ -1451,9 +1454,9 @@ jobs:
                 echo "::error::$1 wrote its report and did not exit within 20 s (D3)"
                 return 1
               fi
-              if [ "$WAITED" -ge 300 ]; then
+              if [ "$WAITED" -ge "${LIMIT:-300}" ]; then
                 kill "$PID" 2>/dev/null || true
-                echo "::error::$1 did not finish the measurement within 300 s"
+                echo "::error::$1 did not finish the measurement within ${LIMIT:-300} s"
                 return 1
               fi
               sleep 1
@@ -1472,7 +1475,7 @@ jobs:
           fi
           # The full run first: P1, P4 and P5, and the warm-up of the runner for P6.
           STATUS=0
-          measure "$DIR/cadente-core$EXE" "$RUNNER_TEMP/measure.out" "$RUNNER_TEMP/cadente-home" || STATUS=$?
+          MEASURE="$P2_MEASURE" LIMIT=420 measure "$DIR/cadente-core$EXE" "$RUNNER_TEMP/measure.out" "$RUNNER_TEMP/cadente-home" || STATUS=$?
           # P6: the last beta and this version alternately (B A A B A B B A), without the sessions of P5.
           P6_BETA="" P6_NEW=""
           OLD="$(ls "$RUNNER_TEMP"/beta/cadente "$RUNNER_TEMP"/beta/cadente.exe 2>/dev/null | head -1 || true)"
@@ -1489,7 +1492,7 @@ jobs:
             for WARM in "$OLD" "$NEW"; do
               CADENTE_HOME="$RUNNER_TEMP/home-warm" "$WARM" --dump-plugins > /dev/null 2>> "$ERR" || true
             done
-            export CADENTE_MEASURE_CHATS=0 CADENTE_MEASURE_TERMINALS=0 CADENTE_MEASURE_CLOSED_S=10
+            export CADENTE_MEASURE_CHATS=0 CADENTE_MEASURE_TERMINALS=0 CADENTE_MEASURE_CLOSED_S=10 CADENTE_MEASURE_MIN_FRAMES=0
             for RUN in beta-1 new-1 new-2 beta-2 new-3 beta-3 beta-4 new-4; do
               OUT="$RUNNER_TEMP/p6-$RUN.out"
               case "$RUN" in
@@ -1499,27 +1502,9 @@ jobs:
                   P6_NEW="$P6_NEW,$OUT" ;;
               esac
             done
-            unset CADENTE_MEASURE_CHATS CADENTE_MEASURE_TERMINALS CADENTE_MEASURE_CLOSED_S
+            unset CADENTE_MEASURE_CHATS CADENTE_MEASURE_TERMINALS CADENTE_MEASURE_CLOSED_S CADENTE_MEASURE_MIN_FRAMES
           fi
           export P6_BETA P6_NEW
-          # P2 diagnosis (not a gate): the same script with the other renderers Slint offers on this
-          # runner, chosen by its documented `SLINT_BACKEND` (`winit-skia` is Metal on macOS).
-          P2_DIAG=""
-          if [ "$STATUS" = 0 ] && [ "$RUNNER_OS" != "Windows" ]; then
-            export CADENTE_MEASURE_CHATS=0 CADENTE_MEASURE_TERMINALS=0 CADENTE_MEASURE_CLOSED_S=3 CADENTE_MEASURE_IDLE_S=3
-            RENDERERS="winit-skia-software"
-            [ "$RUNNER_OS" = "macOS" ] && RENDERERS="winit-skia winit-skia+partial winit-skia-software"
-            for R in $RENDERERS; do
-              OUT="$RUNNER_TEMP/p2-$R.out"
-              case "$R" in
-                *+partial) SLINT_BACKEND="${R%+partial}" SLINT_SKIA_PARTIAL_RENDERING=1 measure "$DIR/cadente-core$EXE" "$OUT" "$RUNNER_TEMP/home-p2-$R" beta || true ;;
-                *) SLINT_BACKEND="$R" measure "$DIR/cadente-core$EXE" "$OUT" "$RUNNER_TEMP/home-p2-$R" beta || true ;;
-              esac
-              P2_DIAG="$P2_DIAG,$R=$OUT"
-            done
-            unset CADENTE_MEASURE_CHATS CADENTE_MEASURE_TERMINALS CADENTE_MEASURE_CLOSED_S CADENTE_MEASURE_IDLE_S
-          fi
-          export P2_DIAG
           if [ -n "$POWER" ]; then
             sudo pkill -INT powermetrics || true
             sleep 2

@@ -123,6 +123,13 @@ else:
         f"{churn.get('firstCycleGrowthPercent')}%, os outros de {churn.get('baseKib')} a "
         f"{churn.get('afterKib')} KiB (tolerância {churn.get('tolerancePercent')}% por ciclo).\n"
     )
+    idle = next((s for s in states if s["state"] == "idleOpen"), None)
+    if idle is not None:
+        # P3: who woke the pulse while the window was idle (`bridge::origins`, file and line).
+        summary.write(
+            f"\nJanela parada: {idle.get('pulseTicks')} ticks do pulso, acordado por "
+            f"`{json.dumps(idle.get('wakeOrigins') or {})}`.\n"
+        )
     if "tray" in report:
         summary.write(f"\nBandeja: `{json.dumps(report['tray'], ensure_ascii=False)}`\n")
     slowest = report.get("slowestFrames") or []
