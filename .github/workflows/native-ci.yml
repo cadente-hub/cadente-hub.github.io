@@ -39,6 +39,11 @@ on:
         default: none
         type: choice
         options: [none, new-file-401, above-ceiling, copied-block]
+      sccache_tests:
+        description: "Branch runs only (W8): build the tests through sccache, without saving it, and print the folder size"
+        required: false
+        default: false
+        type: boolean
       warm_up:
         description: "Compile every job and save the caches, publish nothing (after a change of cache key)"
         required: false
@@ -84,6 +89,7 @@ jobs:
       docs_only: ${{ steps.changes.outputs.docs_only }}
       base: ${{ steps.changes.outputs.base }}
       toolchain_changed: ${{ steps.changes.outputs.toolchain_changed }}
+      toolchain: ${{ steps.changes.outputs.toolchain }}
       release: ${{ steps.version.outputs.release }}
       publish: ${{ steps.version.outputs.publish }}
       version: ${{ steps.version.outputs.version }}
@@ -175,6 +181,8 @@ jobs:
             TOOLCHAIN_CHANGED=true
           fi
           echo "toolchain_changed=$TOOLCHAIN_CHANGED" >> "$GITHUB_OUTPUT"
+          # W6: the jobs that compile install this channel while they clone.
+          echo "toolchain=$(git show "${SHA}:rust-toolchain.toml" | sed -n 's/^channel = "\(.*\)"/\1/p')" >> "$GITHUB_OUTPUT"
 
           DOCS_ONLY=false
           if [ "$CHANNEL" = "beta" ] && [ -n "$BASE" ] && [ "$FORCE_BUILD" != "true" ]; then
@@ -337,33 +345,21 @@ jobs:
           BASE: https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}
         run: |
           mkdir -p "$RUNNER_TEMP/scripts"
-          for F in .github/scripts/clone-private.sh .github/scripts/ci-log-crypto.cjs .github/ci-log-key.pub.pem; do
+          for F in .github/scripts/clone-private.sh .github/scripts/prepare-job.sh .github/scripts/ci-log-crypto.cjs .github/ci-log-key.pub.pem; do
             curl -fsSL --retry 3 -o "$RUNNER_TEMP/scripts/${F##*/}" "$BASE/$F"
           done
 
-      - name: Clone private repository
+      # W6 (ADR 0082): only the toolchain rust-toolchain.toml pins, with its components (installing
+      # `stable` first, as before, added a second toolchain nothing built with), and apt only for what
+      # the image lacks (the index update alone took 10 to 30 s); both run while the commit is cloned.
+      - name: Clone private repository, Rust toolchain and system libraries
         env:
           DEPLOY_KEY: ${{ secrets.CATARINA_PRIVATE_DEPLOY_KEY }}
-        run: bash "$RUNNER_TEMP/scripts/clone-private.sh" . "$SHA"
-
-      # W6 (ADR 0082): only the toolchain rust-toolchain.toml pins, with its components; installing
-      # `stable` first, as before, added a second toolchain nothing built with.
-      - name: Rust toolchain (rust-toolchain.toml)
+          TOOLCHAIN: ${{ needs.resolve.outputs.toolchain }}
+          NEXTEST: "true"
         run: |
-          CHANNEL="$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml)"
-          rustup toolchain install "$CHANNEL" --profile minimal -c rustfmt -c clippy --no-self-update > /dev/null
-          rustup default "$CHANNEL" > /dev/null
-          rustc --version
-
-      - name: System libraries (Linux)
-        if: runner.os == 'Linux'
-        # apt hung once for over an hour on a mirror; retry the download and give up in time.
-        timeout-minutes: 10
-        # W6 (ADR 0082): apt only for what the image lacks; the index update alone took 10 to 30 s.
-        run: |
-          PKGS="libfontconfig1-dev libxkbcommon-dev libssl-dev pkg-config libdbus-1-dev"
-          # shellcheck disable=SC2086
-          dpkg -s $PKGS > /dev/null 2>&1 || { sudo apt-get -o Acquire::Retries=3 update && sudo apt-get -o Acquire::Retries=3 install -y $PKGS; }
+          bash "$RUNNER_TEMP/scripts/prepare-job.sh" "$SHA" "$TOOLCHAIN" "" \
+            libfontconfig1-dev libxkbcommon-dev libssl-dev pkg-config libdbus-1-dev
 
       # Clippy compiles the dependencies in check mode, which shares nothing with the test build.
       - name: Rust cache
@@ -372,9 +368,6 @@ jobs:
         with:
           shared-key: lint
           save-if: ${{ github.ref == 'refs/heads/main' }}
-
-      - name: Install nextest
-        uses: taiki-e/install-action@nextest
 
       - name: Initialize log file
         env:
@@ -597,38 +590,27 @@ jobs:
           BASE: https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}
         run: |
           mkdir -p "$RUNNER_TEMP/scripts"
-          for F in .github/scripts/clone-private.sh .github/scripts/ci-log-crypto.cjs .github/ci-log-key.pub.pem; do
+          for F in .github/scripts/clone-private.sh .github/scripts/prepare-job.sh .github/scripts/ci-log-crypto.cjs .github/ci-log-key.pub.pem; do
             curl -fsSL --retry 3 -o "$RUNNER_TEMP/scripts/${F##*/}" "$BASE/$F"
           done
 
-      - name: Clone private repository
+      # W6 (ADR 0082): only the toolchain rust-toolchain.toml pins, with its components (installing
+      # `stable` first, as before, added a second toolchain nothing built with), and apt only for what
+      # the image lacks (the index update alone took 10 to 30 s); both run while the commit is cloned.
+      - name: Clone private repository, Rust toolchain and system libraries
         env:
           DEPLOY_KEY: ${{ secrets.CATARINA_PRIVATE_DEPLOY_KEY }}
-        run: bash "$RUNNER_TEMP/scripts/clone-private.sh" . "$SHA"
+          TOOLCHAIN: ${{ needs.resolve.outputs.toolchain }}
+          NEXTEST: "true"
+        run: |
+          bash "$RUNNER_TEMP/scripts/prepare-job.sh" "$SHA" "$TOOLCHAIN" "" \
+            libfontconfig1-dev libxkbcommon-dev libssl-dev pkg-config libdbus-1-dev
 
       # Branch runs only (W3 proof): a failing unit test in the smallest crate, so the run turns red and
       # publish does not run. The test name is the only thing the public log can show of it.
       - name: Plant a failing test
         if: env.PLANT_FAILURE == 'true'
         run: printf '\n#[test]\nfn planted_failure_for_the_publish_gate() {\n    panic!("planted by the native-ci branch run");\n}\n' >> crates/frame-journal/src/lib.rs
-
-      # W6 (ADR 0082): only the toolchain rust-toolchain.toml pins, with its components; installing
-      # `stable` first, as before, added a second toolchain nothing built with.
-      - name: Rust toolchain (rust-toolchain.toml)
-        run: |
-          CHANNEL="$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml)"
-          rustup toolchain install "$CHANNEL" --profile minimal -c rustfmt -c clippy --no-self-update > /dev/null
-          rustup default "$CHANNEL" > /dev/null
-          rustc --version
-
-      - name: System libraries (Linux)
-        if: runner.os == 'Linux'
-        timeout-minutes: 10
-        # W6 (ADR 0082): apt only for what the image lacks; the index update alone took 10 to 30 s.
-        run: |
-          PKGS="libfontconfig1-dev libxkbcommon-dev libssl-dev pkg-config libdbus-1-dev"
-          # shellcheck disable=SC2086
-          dpkg -s $PKGS > /dev/null 2>&1 || { sudo apt-get -o Acquire::Retries=3 update && sudo apt-get -o Acquire::Retries=3 install -y $PKGS; }
 
       # W6: the tests start Node MCP servers; Node 22 is installed only when the image lacks it.
       - name: Node on the image
@@ -676,9 +658,6 @@ jobs:
           shared-key: tests
           save-if: ${{ github.ref == 'refs/heads/main' }}
 
-      - name: Install nextest
-        uses: taiki-e/install-action@nextest
-
       - name: Initialize log file
         env:
           CACHE_HIT: ${{ steps.cache.outputs.cache-hit }}
@@ -687,10 +666,22 @@ jobs:
           if [ "$CACHE_HIT" = "true" ]; then CACHE=inteiro; elif [ -d target ] && [ -n "$(ls -A target 2>/dev/null)" ]; then CACHE=parcial; else CACHE=nenhum; fi
           { echo "cache=$CACHE"; echo "work_start=$(date +%s)"; } >> "$RUNNER_TEMP/metrics.env"
 
+      # Branch runs only (W8): how large a sccache of the test build would be. The wrapper goes in this
+      # step alone, after rust-cache computed its key, and cargo does not fingerprint it, so the cached
+      # dependencies stay fresh and only the workspace crates pass through sccache.
+      - name: Install sccache (W8 measurement)
+        if: github.ref != 'refs/heads/main' && inputs.sccache_tests
+        uses: taiki-e/install-action@sccache
+
       - name: Build the tests (cargo nextest archive)
+        env:
+          SCCACHE_TESTS: ${{ github.ref != 'refs/heads/main' && inputs.sccache_tests }}
         run: |
           echo "Passo: cargo nextest archive --workspace"
           RAW="$RUNNER_TEMP/archive_raw.log"
+          if [ "$SCCACHE_TESTS" = "true" ]; then
+            export RUSTC_WRAPPER=sccache SCCACHE_DIR="$RUNNER_TEMP/sccache" SCCACHE_CACHE_SIZE=10G SCCACHE_IDLE_TIMEOUT=0
+          fi
           START=$(date +%s)
           set +e
           cargo nextest archive --config .ci/.cargo/config.toml --workspace --timings --archive-file "$RUNNER_TEMP/nextest.tar.zst" > "$RAW" 2>&1
@@ -702,6 +693,12 @@ jobs:
           if [ $EXIT -eq 0 ]; then
             echo "archive_mb=$(( $(wc -c < "$RUNNER_TEMP/nextest.tar.zst") / 1048576 ))" >> "$RUNNER_TEMP/metrics.env"
             echo "Resultado: OK ($(( $(wc -c < "$RUNNER_TEMP/nextest.tar.zst") / 1048576 )) MB de arquivo)"
+            if [ "$SCCACHE_TESTS" = "true" ]; then
+              STATS="$(sccache --show-stats --stats-format json 2>/dev/null || echo '{}')"
+              echo "W8: sccache dos testes com $(du -sm "$SCCACHE_DIR" | cut -f1) MB na pasta;" \
+                "$(printf '%s' "$STATS" | jq -r '[.stats.compile_requests // 0, ([.stats.cache_misses.counts // {} | .[]] | add // 0), ([.stats.not_cached // {} | .[]] | add // 0)] | "\(.[0]) pedidos, \(.[1]) guardados, \(.[2]) que o sccache não guarda"')"
+              sccache --stop-server > /dev/null 2>&1 || true
+            fi
           else
             echo "Resultado: FALHOU"
             echo "cargo nextest archive" > "$RUNNER_TEMP/failed_step"
@@ -1132,35 +1129,42 @@ jobs:
   # The packages build beside lint, tests and ruler (W3). Each secret lives in the job that needs it, and
   # never next to third-party code it does not need: this job compiles ~700 crates with only the
   # read-only deploy key, and its output stays out of the public log.
-  package:
-    name: package ${{ matrix.target }}
+  #
+  # W10 (ADR 0082): one job per system, as Zed's release.yml has one bundle job per target
+  # (`bundle_mac_aarch64`, `bundle_linux_x86_64`, `bundle_windows_x86_64`), so the smoke of a system
+  # waits only for its own package. With one matrix job every smoke waited for the slowest package: in
+  # run 41690859507 the x86_64 Mac package waited 5.1 min for a macOS runner, and the three smokes
+  # started at 9.1 min instead of 3.6. The jobs share their steps through YAML anchors. The two Mac
+  # targets build in one job, so the run asks for five macOS runners at the start (lint, tests, ruler,
+  # this job and the macOS P6), the organization's limit on the Free plan: with a job per Mac target the
+  # sixth waited for a free one (run 41714436183: the Apple Silicon package waited 4.8 min, until the
+  # lint ended, and the Intel one more than 16 min).
+  # The Intel Mac build compiles on Apple Silicon: the macos-15-intel runner took 31 to 45 min for the
+  # same build that takes 9 to 16 here, and no step runs the x64 binary on the build machine.
+  package-macos:
+    name: package ${{ matrix.target }}${{ matrix.second && format(' {0}', matrix.second) || '' }}
     needs: resolve
-    if: needs.resolve.outputs.skip != 'true' && needs.resolve.outputs.docs_only != 'true' && needs.resolve.outputs.release == 'true'
+    if: &package-if needs.resolve.outputs.skip != 'true' && needs.resolve.outputs.docs_only != 'true' && needs.resolve.outputs.release == 'true'
     runs-on: ${{ matrix.os }}
     timeout-minutes: 90
-    permissions:
+    permissions: &read-only
       contents: read
     strategy:
-      fail-fast: false
       matrix:
-        # The Intel Mac build compiles on Apple Silicon: the macos-15-intel runner took 31 to 45 min for
-        # the same build that takes 9 to 16 here, and no step runs the x64 binary on the build machine.
         include:
-          - { os: macos-15, target: aarch64-apple-darwin }
-          - { os: macos-15, target: x86_64-apple-darwin }
-          - { os: ubuntu-22.04, target: x86_64-unknown-linux-gnu }
-          - { os: windows-latest, target: x86_64-pc-windows-msvc }
-    defaults:
+          # One cache for both Mac targets (`apple-darwin-package`), as the build shares one target/.
+          - { os: macos-15, target: aarch64-apple-darwin, second: x86_64-apple-darwin, cache: apple-darwin }
+    defaults: &bash
       run:
         shell: bash
     # No XTASK_FREE_DISK: deleting the compiled dependencies before rust-cache saved them left a 173 MB
     # cache, and every release compiled all ~700 crates again.
-    env:
+    env: &package-env
       RELEASE_VERSION: ${{ needs.resolve.outputs.version }}
       RELEASE_CHANNEL: ${{ needs.resolve.outputs.channel }}
       APPLE_SIGNING_IDENTITY: "-"
       SHA: ${{ needs.resolve.outputs.sha }}
-    steps:
+    steps: &package-steps
       - name: Start the clock
         run: echo "t0=$(date +%s)" > "$RUNNER_TEMP/metrics.env"
 
@@ -1171,30 +1175,31 @@ jobs:
           BASE: https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}
         run: |
           mkdir -p "$RUNNER_TEMP/scripts"
-          for F in .github/scripts/clone-private.sh .github/scripts/ci-log-crypto.cjs .github/ci-log-key.pub.pem; do
+          for F in .github/scripts/clone-private.sh .github/scripts/prepare-job.sh .github/scripts/ci-log-crypto.cjs .github/ci-log-key.pub.pem; do
             curl -fsSL --retry 3 -o "$RUNNER_TEMP/scripts/${F##*/}" "$BASE/$F"
           done
 
-      - name: Clone the private repository at the commit
-        env:
-          DEPLOY_KEY: ${{ secrets.CATARINA_PRIVATE_DEPLOY_KEY }}
-        run: bash "$RUNNER_TEMP/scripts/clone-private.sh" . "$SHA"
-
-      # W6 (ADR 0082): only the pinned toolchain, with the cross target. The checkout is the workspace, so
+      # W6 (ADR 0082): only the pinned toolchain, with the cross target, and the system libraries the
+      # image lacks, both installed while the commit is cloned. The checkout is the workspace, so
       # rust-cache reads the pinned rustc too; from a subfolder it read the image's `stable`, and every new
       # stable changed the key.
-      - name: Rust toolchain (rust-toolchain.toml)
+      - name: Clone the private repository at the commit, Rust toolchain and system libraries
+        env:
+          DEPLOY_KEY: ${{ secrets.CATARINA_PRIVATE_DEPLOY_KEY }}
+          TOOLCHAIN: ${{ needs.resolve.outputs.toolchain }}
+          TARGETS: ${{ matrix.target }} ${{ matrix.second }}
         run: |
-          CHANNEL="$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml)"
-          rustup toolchain install "$CHANNEL" --profile minimal -c rustfmt -c clippy -t "${{ matrix.target }}" --no-self-update > /dev/null
-          rustup default "$CHANNEL" > /dev/null
-          rustc --version
+          bash "$RUNNER_TEMP/scripts/prepare-job.sh" "$SHA" "$TOOLCHAIN" "$TARGETS" \
+            libfontconfig1-dev libxkbcommon-dev libssl-dev pkg-config libdbus-1-dev dpkg-dev
 
-      # Both Mac targets build on the same runner type, so the target goes into the cache key.
+      # Both Mac targets build on the same runner type, so the target goes into the cache key. The key
+      # names the job `package` itself, as it did when the four targets were one matrix job: rust-cache
+      # adds the job id to `key` (`v0-rust-<target>-package-<os>-...`), and the new job ids would have
+      # missed every cache of main (W4).
       - uses: Swatinem/rust-cache@v2
         id: cache
         with:
-          key: ${{ matrix.target }}
+          shared-key: ${{ matrix.cache || matrix.target }}-package
           save-if: ${{ github.ref == 'refs/heads/main' }}
 
       # W8 (ADR 0082): a cache by content (sccache, as Zed's release.yml uses) keeps the workspace crates
@@ -1208,15 +1213,12 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ${{ runner.temp }}/sccache
-          key: sccache-${{ matrix.target }}-${{ github.run_id }}
-          restore-keys: sccache-${{ matrix.target }}-
+          key: sccache-${{ matrix.cache || matrix.target }}-${{ github.run_id }}
+          restore-keys: sccache-${{ matrix.cache || matrix.target }}-
 
-      - name: System libraries (Linux)
+      - name: AppImage tool (Linux)
         if: runner.os == 'Linux'
         run: |
-          PKGS="libfontconfig1-dev libxkbcommon-dev libssl-dev pkg-config libdbus-1-dev dpkg-dev"
-          # shellcheck disable=SC2086
-          dpkg -s $PKGS > /dev/null 2>&1 || { sudo apt-get -o Acquire::Retries=3 update && sudo apt-get -o Acquire::Retries=3 install -y $PKGS; }
           curl -fsSL -o appimagetool https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
           chmod +x appimagetool
           sudo mv appimagetool /usr/local/bin/appimagetool
@@ -1259,9 +1261,20 @@ jobs:
           if [ "$CACHE_HIT" = "true" ]; then CACHE=inteiro; elif [ -d target ] && [ -n "$(ls -A target 2>/dev/null)" ]; then CACHE=parcial; else CACHE=nenhum; fi
           { echo "cache=$CACHE"; echo "work_start=$(date +%s)"; } >> "$RUNNER_TEMP/metrics.env"
 
+      # W10 (ADR 0082): the Mac job builds both Mac targets, Apple Silicon first. Its artifacts go up
+      # before the Intel build starts, so the macOS smoke (which waits for the artifact, not for this
+      # job) starts as early as with a job of its own. The steps of one target are anchored and run
+      # again for the second; a job with one target skips the second pass (`T` empty).
+      - name: First target
+        env:
+          FIRST: ${{ matrix.target }}
+        run: echo "T=$FIRST" >> "$GITHUB_ENV"
+
       # The same build `xtask bundle` starts, with the version it passes, so the bundle finds it done;
       # only here can cargo write the --timings report.
-      - name: Build (cargo build --release)
+      - &package-build
+        name: Build (cargo build --release)
+        if: env.T != ''
         env:
           CADENTE_BUILD_VERSION: ${{ needs.resolve.outputs.version }}
           RUSTC_WRAPPER: sccache
@@ -1270,11 +1283,13 @@ jobs:
           SCCACHE_IDLE_TIMEOUT: "0"
         run: |
           set -euo pipefail
-          echo "Passo: cargo build --release --target ${{ matrix.target }}"
+          echo "Passo: cargo build --release --target $T"
           START=$(date +%s)
-          if cargo build --release -p cadente-app -p cadente-launcher --target "${{ matrix.target }}" --timings > "$RUNNER_TEMP/release-build.log" 2>&1; then
-            echo "compile_s=$(( $(date +%s) - START ))" >> "$RUNNER_TEMP/metrics.env"
-            sed 's/\x1b\[[0-9;]*m//g' "$RUNNER_TEMP/release-build.log" | grep -E '^ *Finished ' | sed -E 's/^ *//' || true
+          if cargo build --release -p cadente-app -p cadente-launcher --target "$T" --timings >> "$RUNNER_TEMP/release-build.log" 2>&1; then
+            BEFORE="$(sed -n 's/^compile_s=//p' "$RUNNER_TEMP/metrics.env" | tail -1)"
+            echo "compile_s=$(( ${BEFORE:-0} + $(date +%s) - START ))" >> "$RUNNER_TEMP/metrics.env"
+            cp target/cargo-timings/cargo-timing.html "$RUNNER_TEMP/timings-$T.html" 2>/dev/null || true
+            sed 's/\x1b\[[0-9;]*m//g' "$RUNNER_TEMP/release-build.log" | grep -E '^ *Finished ' | sed -E 's/^ *//' | tail -1 || true
             echo "Resultado: OK"
           else
             echo "Resultado: FALHOU"
@@ -1284,7 +1299,9 @@ jobs:
       # The xtask binary runs directly, not through `cargo xtask` (`cargo run`): cargo run and the rustup proxy
       # change PATH for the process, cc-rs tracks PATH (`rerun-if-env-changed`), and the bundle's own cargo
       # build then recompiled ring and everything above it, the Core included (run 41442022328).
-      - name: Bundle
+      - &package-bundle
+        name: Bundle
+        if: env.T != ''
         env:
           RUSTC_WRAPPER: sccache
           SCCACHE_DIR: ${{ runner.temp }}/sccache
@@ -1292,15 +1309,63 @@ jobs:
           SCCACHE_IDLE_TIMEOUT: "0"
         run: |
           set -euo pipefail
-          echo "Passo: xtask bundle --target ${{ matrix.target }}"
+          echo "Passo: xtask bundle --target $T"
           if cargo build --quiet -p xtask >> "$RUNNER_TEMP/release-build.log" 2>&1 \
-            && ./target/debug/xtask bundle --target "${{ matrix.target }}" >> "$RUNNER_TEMP/release-build.log" 2>&1; then
+            && ./target/debug/xtask bundle --target "$T" >> "$RUNNER_TEMP/release-build.log" 2>&1; then
             sed 's/\x1b\[[0-9;]*m//g' "$RUNNER_TEMP/release-build.log" | grep -E '^ *Finished ' | sed -E 's/^ *//' | tail -1 || true
             echo "Resultado: OK"
           else
             echo "Resultado: FALHOU"
             exit 1
           fi
+
+      - &package-sign
+        name: Ad-hoc signature of the update binary (macOS)
+        if: runner.os == 'macOS' && env.T != ''
+        run: |
+          BIN="target/$T/release/cadente-native-ui"
+          codesign --verify "$BIN" 2>/dev/null || codesign --force --sign - "$BIN"
+
+      - &package-dist
+        name: Upload the installer
+        if: env.T != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ env.T }}
+          path: |
+            dist/*.dmg
+            dist/*.AppImage
+            dist/*.deb
+            dist/cadente-*-windows-x64.exe
+          if-no-files-found: error
+          retention-days: 1
+
+      # The update payload is packed and signed in `sign`, which holds the release key.
+      - &package-bin
+        name: Upload the update binary
+        if: env.T != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: bin-${{ env.T }}
+          path: |
+            target/${{ env.T }}/release/cadente-native-ui
+            target/${{ env.T }}/release/cadente-native-ui.exe
+          if-no-files-found: error
+          retention-days: 1
+
+      # The installer of the first target leaves dist/, so the second upload holds only its own.
+      - name: Second target
+        env:
+          SECOND: ${{ matrix.second }}
+        run: |
+          if [ -n "$SECOND" ]; then mkdir -p "$RUNNER_TEMP/dist-done" && mv dist/* "$RUNNER_TEMP/dist-done/"; fi
+          echo "T=$SECOND" >> "$GITHUB_ENV"
+
+      - *package-build
+      - *package-bundle
+      - *package-sign
+      - *package-dist
+      - *package-bin
 
       # Hit and miss counts only; the names of what compiled stay in the sealed timings.
       - name: sccache counts
@@ -1322,42 +1387,16 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: ${{ runner.temp }}/sccache
-          key: sccache-${{ matrix.target }}-${{ github.run_id }}
-
-      - name: Ad-hoc signature of the update binary (macOS)
-        if: runner.os == 'macOS'
-        run: |
-          BIN="target/${{ matrix.target }}/release/cadente-native-ui"
-          codesign --verify "$BIN" 2>/dev/null || codesign --force --sign - "$BIN"
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: dist-${{ matrix.target }}
-          path: |
-            dist/*.dmg
-            dist/*.AppImage
-            dist/*.deb
-            dist/cadente-*-windows-x64.exe
-          if-no-files-found: error
-          retention-days: 1
-
-      # The update payload is packed and signed in `sign`, which holds the release key.
-      - uses: actions/upload-artifact@v4
-        with:
-          name: bin-${{ matrix.target }}
-          path: |
-            target/${{ matrix.target }}/release/cadente-native-ui
-            target/${{ matrix.target }}/release/cadente-native-ui.exe
-          if-no-files-found: error
-          retention-days: 1
+          key: sccache-${{ matrix.cache || matrix.target }}-${{ github.run_id }}
 
       - name: Seal the build log and the timings
         if: always()
         run: |
           mkdir -p "$RUNNER_TEMP/sealed"
-          if [ -f target/cargo-timings/cargo-timing.html ]; then
+          # The timings of the first target (the Apple Silicon build in the Mac job).
+          if [ -f "$RUNNER_TEMP/timings-${{ matrix.target }}.html" ]; then
             node "$RUNNER_TEMP/scripts/ci-log-crypto.cjs" encrypt "$RUNNER_TEMP/scripts/ci-log-key.pub.pem" \
-              target/cargo-timings/cargo-timing.html "$RUNNER_TEMP/sealed/timings.enc.json" || true
+              "$RUNNER_TEMP/timings-${{ matrix.target }}.html" "$RUNNER_TEMP/sealed/timings.enc.json" || true
           fi
           if [ "${{ job.status }}" != "success" ]; then
             {
@@ -1383,38 +1422,91 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: metrics-package-${{ matrix.target }}
+          name: metrics-package-${{ matrix.target }}${{ matrix.second && format('-{0}', matrix.second) || '' }}
           path: ${{ runner.temp }}/metrics.env
           if-no-files-found: ignore
           retention-days: 1
 
-  smoke:
+  package-linux:
+    name: package ${{ matrix.target }}${{ matrix.second && format(' {0}', matrix.second) || '' }}
+    needs: resolve
+    if: *package-if
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    permissions: *read-only
+    strategy:
+      matrix:
+        include:
+          - { os: ubuntu-22.04, target: x86_64-unknown-linux-gnu, second: "", cache: "" }
+    defaults: *bash
+    env: *package-env
+    steps: *package-steps
+
+  package-windows:
+    name: package ${{ matrix.target }}${{ matrix.second && format(' {0}', matrix.second) || '' }}
+    needs: resolve
+    if: *package-if
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    permissions: *read-only
+    strategy:
+      matrix:
+        include:
+          - { os: windows-latest, target: x86_64-pc-windows-msvc, second: "", cache: "" }
+    defaults: *bash
+    env: *package-env
+    steps: *package-steps
+
+  smoke-macos:
     # D3 and D4 (ADR 0076), Phase P (ADR 0081 §3.5): on each system the package installs, the
     # launcher finds the Core it ships, and the Core opens, draws and measures (`--measure`): the
     # script of ADR 0078 §2.9, the idle open window, 100 Chats and 20 terminals opened and closed,
     # and 60 s with the window destroyed. Frames, CPU, wake-ups, memory and, on macOS, the energy
     # of powermetrics go to the job summary; the job fails on P4, P5 and P6. P6 measures the last
-    # published beta on the same runner first: two hosted runners differ by more than 10%
-    # (the script's CPU on Linux went from 390 to 620 ms/s between two runs of the same code).
-    name: smoke ${{ matrix.target }}
-    needs: [resolve, package]
+    # published beta and this version alternately on one runner: two hosted runners differ by more
+    # than 10% (the script's CPU on Linux went from 390 to 620 ms/s between two runs of the same code).
+    #
+    # W10 (ADR 0082): two jobs per system, side by side. `full` is the full run (P1, P2, P4 and P5);
+    # `p6` the rounds of P6, the last beta and this version on the same runner. In one job the two
+    # took 13.9 min on macOS (4.7 of the full run, 9.2 of P6, run 41690859507), the longest step of
+    # the run. In its own job P6 no longer has the full run before it to warm the runner, so each
+    # binary runs one discarded round first, as Zed's `tooling/perf` profiles with hyperfine
+    # `--warmup 1` (`hyp_profile`) and `triage_test` skips a test's first loop. Each smoke waits only
+    # for the package of its own target.
+    name: smoke ${{ matrix.target }} ${{ matrix.part }}
+    needs: [resolve, package-macos]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
-    permissions:
+    permissions: &smoke-permissions
       contents: read
+      actions: read
     strategy:
-      fail-fast: false
       matrix:
         include:
           # `measure`: the P6 runs; `p2`: the full run, whose counted script also runs until it drew
           # 500 frames (at most 90 s), after an uncounted warm-up (Zed's `tooling/perf`).
-          - { os: macos-15, target: aarch64-apple-darwin, measure: "30 120", p2: "30 120", payload: darwin-aarch64.tar.gz }
-          - { os: ubuntu-22.04, target: x86_64-unknown-linux-gnu, measure: "5 60", p2: "30 60", payload: linux-x86_64.tar.gz }
-          - { os: windows-latest, target: x86_64-pc-windows-msvc, measure: "5 60", p2: "30 60", payload: windows-x86_64.zip }
-    defaults:
-      run:
-        shell: bash
-    steps:
+          - { part: full, os: macos-15, target: aarch64-apple-darwin, measure: "30 120", p2: "30 120", payload: darwin-aarch64.tar.gz }
+    defaults: *bash
+    steps: &smoke-steps
+      # A job that starts before its package (the macOS P6) waits here for the package's artifact; a job
+      # that needs the package finds it at once. A package that failed ends the wait.
+      - name: Wait for the package of this target
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET: ${{ matrix.target }}
+        run: |
+          set -euo pipefail
+          for _ in $(seq 1 240); do
+            FOUND="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts?name=dist-${TARGET}" --jq '.total_count' 2>/dev/null || echo 0)"
+            [ "${FOUND:-0}" -gt 0 ] && exit 0
+            ENDED="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/attempts/${GITHUB_RUN_ATTEMPT}/jobs?per_page=100" \
+              --jq "[.jobs[] | select((.name | startswith(\"package \")) and (.name | split(\" \") | index(\"${TARGET}\") != null) and .status == \"completed\") | .conclusion][0] // empty" 2>/dev/null || true)"
+            if [ -n "$ENDED" ] && [ "$ENDED" != success ]; then echo "::error::package ${TARGET} ended ${ENDED}"; exit 1; fi
+            sleep 10
+          done
+          echo "::error::package ${TARGET} did not upload its artifact within 40 min"
+          exit 1
+
       - uses: actions/download-artifact@v4
         with:
           name: dist-${{ matrix.target }}
@@ -1426,10 +1518,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ needs.resolve.outputs.version }}
           PAYLOAD: ${{ matrix.payload }}
+          PART: ${{ matrix.part }}
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/scripts" "$RUNNER_TEMP/beta"
           curl -fsSL --retry 3 -o "$RUNNER_TEMP/scripts/smoke-measure.py" "$BASE/.github/scripts/smoke-measure.py"
+          [ "$PART" = p6 ] || exit 0
           # The newest published release other than this version: the app payload the launcher installs.
           TAG="$(gh release list -R "$GITHUB_REPOSITORY" --limit 20 --exclude-drafts --json tagName \
             --jq "[.[].tagName | select(. != \"v${VERSION}\")][0] // empty")"
@@ -1440,6 +1534,23 @@ jobs:
           else
             echo "nenhuma beta para comparar"
           fi
+
+      # W6 (ADR 0082): the .deb closure the smoke installs on Linux comes from a cache of this runner
+      # image, as the DSH keeps Wine's (`ci-master.yml`, "Install Wine": `--download-only` once, then
+      # `dpkg -i` with no repository access). The mirror is the slow part: 73.6 MB at 166 kB/s held this
+      # step 7 min 39 s in run 41700377757, and 8 min in run 41448416563.
+      - name: Cache key of the system packages (Linux)
+        id: debs
+        if: runner.os == 'Linux'
+        run: echo "key=smoke-debs-${ImageOS:-linux}-${ImageVersion:-v0}" >> "$GITHUB_OUTPUT"
+
+      - name: Restore the system packages (Linux)
+        id: debs-cache
+        if: runner.os == 'Linux'
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/smoke-debs
+          key: ${{ steps.debs.outputs.key }}
 
       - name: Install the package
         id: install
@@ -1454,10 +1565,26 @@ jobs:
               test -f "$RUNNER_TEMP/Cadente.app/Contents/SharedSupport/baseline_version/metadata.json"
               EXE="" ;;
             Linux)
-              # W6: apt only for what the image lacks (a slow mirror held this step 8 min in run 41448416563).
-              if ! dpkg -s xvfb libgl1-mesa-dri libegl1 libxkbcommon-x11-0 > /dev/null 2>&1 || ! sudo dpkg -i ./dist/*.deb > /dev/null 2>&1; then
+              # W6: apt only for what the image lacks, and from the cached closure when it is there; if the
+              # closure cannot satisfy the package (its dependencies changed), apt installs from the mirror.
+              PKGS="xvfb libgl1-mesa-dri libegl1 libxkbcommon-x11-0"
+              DEBS="$HOME/smoke-debs"
+              # shellcheck disable=SC2086
+              if dpkg -s $PKGS > /dev/null 2>&1 && sudo dpkg -i ./dist/*.deb > /dev/null 2>&1; then
+                echo "pacotes do sistema: já na imagem"
+              elif compgen -G "$DEBS/*.deb" > /dev/null && sudo DEBIAN_FRONTEND=noninteractive dpkg -i "$DEBS"/*.deb ./dist/*.deb > /dev/null 2>&1; then
+                echo "pacotes do sistema: do cache ($(ls "$DEBS" | wc -l) .deb)"
+              else
+                sudo DEBIAN_FRONTEND=noninteractive dpkg --configure -a || true
                 sudo apt-get -o Acquire::Retries=3 update
-                sudo apt-get -o Acquire::Retries=3 install -y xvfb libgl1-mesa-dri libegl1 libxkbcommon-x11-0 ./dist/*.deb
+                # shellcheck disable=SC2086
+                sudo apt-get -o Acquire::Retries=3 install -y -f --download-only $PKGS ./dist/*.deb
+                mkdir -p "$DEBS"
+                find /var/cache/apt/archives -maxdepth 1 -name '*.deb' ! -name 'cadente*' -exec cp {} "$DEBS/" \;
+                # shellcheck disable=SC2086
+                sudo apt-get -o Acquire::Retries=3 install -y -f $PKGS ./dist/*.deb
+                echo "pacotes do sistema: do espelho ($(ls "$DEBS" | wc -l) .deb guardados)"
+                echo "debs_new=true" >> "$GITHUB_OUTPUT"
               fi
               DIR=/usr/bin
               test -f /usr/lib/Cadente/baseline_version/metadata.json
@@ -1474,6 +1601,15 @@ jobs:
           test -x "$DIR/cadente-core$EXE"
           echo "dir=$DIR" >> "$GITHUB_OUTPUT"
           echo "exe=$EXE" >> "$GITHUB_OUTPUT"
+
+      # Saved by main only, once per runner image; the cache guard keeps one generation.
+      - name: Save the system packages (Linux)
+        if: runner.os == 'Linux' && github.ref == 'refs/heads/main' && steps.install.outputs.debs_new == 'true'
+        continue-on-error: true
+        uses: actions/cache/save@v4
+        with:
+          path: ~/smoke-debs
+          key: ${{ steps.debs.outputs.key }}
 
       - name: The launcher finds the Core it ships
         env:
@@ -1493,6 +1629,7 @@ jobs:
           MEASURE: ${{ matrix.measure }}
           P2_MEASURE: ${{ matrix.p2 }}
           TARGET: ${{ matrix.target }}
+          PART: ${{ matrix.part }}
         run: |
           set -euo pipefail
           # Only the reports reach stdout. The Core's stderr stays in a file that this public log
@@ -1539,13 +1676,16 @@ jobs:
             sudo powermetrics --samplers tasks --show-process-energy -i 1000 -f plist -o "$POWER" \
               > /dev/null 2> "$RUNNER_TEMP/powermetrics.err" &
           fi
-          # The full run first: P1, P4 and P5, and the warm-up of the runner for P6.
+          # `full`: P1, P2, P4 and P5.
           STATUS=0
-          MEASURE="$P2_MEASURE" LIMIT=420 measure "$DIR/cadente-core$EXE" "$RUNNER_TEMP/measure.out" "$RUNNER_TEMP/cadente-home" || STATUS=$?
-          # P6: the last beta and this version alternately (B A A B A B B A), without the sessions of P5.
+          if [ "$PART" = full ]; then
+            MEASURE="$P2_MEASURE" LIMIT=420 measure "$DIR/cadente-core$EXE" "$RUNNER_TEMP/measure.out" "$RUNNER_TEMP/cadente-home" || STATUS=$?
+          fi
+          # `p6`: the last beta and this version alternately (B A A B A B B A), without the sessions of P5,
+          # after one discarded round of each (hyperfine's `--warmup 1` in Zed's `tooling/perf`).
           P6_BETA="" P6_NEW=""
           OLD="$(ls "$RUNNER_TEMP"/beta/cadente "$RUNNER_TEMP"/beta/cadente.exe 2>/dev/null | head -1 || true)"
-          if [ -n "$OLD" ] && [ "$STATUS" = 0 ]; then
+          if [ "$PART" = p6 ] && [ -n "$OLD" ]; then
             chmod +x "$OLD"
             # Both run from the same kind of place and are started once before: the same binary
             # from the installed package and from a copy in the runner's temp folder are not the
@@ -1559,9 +1699,11 @@ jobs:
               CADENTE_HOME="$RUNNER_TEMP/home-warm" "$WARM" --dump-plugins > /dev/null 2>> "$ERR" || true
             done
             export CADENTE_MEASURE_CHATS=0 CADENTE_MEASURE_TERMINALS=0 CADENTE_MEASURE_CLOSED_S=10 CADENTE_MEASURE_MIN_FRAMES=0 CADENTE_MEASURE_WARM_UP=0
-            for RUN in beta-1 new-1 new-2 beta-2 new-3 beta-3 beta-4 new-4; do
+            for RUN in warm-beta warm-new beta-1 new-1 new-2 beta-2 new-3 beta-3 beta-4 new-4; do
               OUT="$RUNNER_TEMP/p6-$RUN.out"
               case "$RUN" in
+                warm-beta) measure "$OLD" "$OUT" "$RUNNER_TEMP/home-$RUN" beta || echo "::warning::the last beta's warm-up round did not finish" ;;
+                warm-new) measure "$NEW" "$OUT" "$RUNNER_TEMP/home-$RUN" || STATUS=$? ;;
                 beta-*) measure "$OLD" "$OUT" "$RUNNER_TEMP/home-$RUN" beta || echo "::warning::the last beta's run $RUN did not finish"
                   P6_BETA="$P6_BETA,$OUT" ;;
                 new-*) measure "$NEW" "$OUT" "$RUNNER_TEMP/home-$RUN" || STATUS=$?
@@ -1570,15 +1712,17 @@ jobs:
             done
             unset CADENTE_MEASURE_CHATS CADENTE_MEASURE_TERMINALS CADENTE_MEASURE_CLOSED_S CADENTE_MEASURE_MIN_FRAMES CADENTE_MEASURE_WARM_UP
           fi
-          export P6_BETA P6_NEW
+          export P6_BETA P6_NEW SMOKE_PART="$PART"
           if [ -n "$POWER" ]; then
             sudo pkill -INT powermetrics || true
             sleep 2
             echo "powermetrics: $(wc -c < "$POWER" 2>/dev/null || echo 0) bytes"
             head -c 600 "$RUNNER_TEMP/powermetrics.err" || true
           fi
-          echo "esta versão, rodada completa:"
-          cat "$RUNNER_TEMP/measure.out"
+          if [ "$PART" = full ]; then
+            echo "esta versão, rodada completa:"
+            cat "$RUNNER_TEMP/measure.out"
+          fi
           for FILE in ${P6_BETA//,/ } ${P6_NEW//,/ }; do echo "$(basename "$FILE"):"; tail -1 "$FILE" || true; done
           RESULT=0
           python3 "$RUNNER_TEMP/scripts/smoke-measure.py" "$RUNNER_TEMP/measure.out" "$RUNNER_TEMP/measure.json" "$TARGET" \
@@ -1589,16 +1733,66 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: smoke-${{ matrix.target }}
+          name: smoke-${{ matrix.target }}-${{ matrix.part }}
           path: ${{ runner.temp }}/measure.json
           if-no-files-found: ignore
+
+  # W10 (ADR 0082): the macOS P6 asks for its runner when the run starts and waits for the package
+  # there. A macOS arm64 runner often comes only after 5 or 10 minutes ("Due to capacity constraints,
+  # jobs targeting macOS arm64 runners may experience longer queue times"): the P6, the longest job,
+  # waited 5.2 min after its package in run 41690859507 and 5.0 min in run 41706787306. Asked for at
+  # the start, that wait runs beside the package build. The runner waits idle for about 3 minutes, at
+  # no cost; the Linux and Windows runners come at once and wait for their package as before.
+  smoke-macos-p6:
+    name: smoke ${{ matrix.target }} ${{ matrix.part }}
+    needs: resolve
+    if: *package-if
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    permissions: *smoke-permissions
+    strategy:
+      matrix:
+        include:
+          - { part: p6, os: macos-15, target: aarch64-apple-darwin, measure: "30 120", p2: "30 120", payload: darwin-aarch64.tar.gz }
+    defaults: *bash
+    steps: *smoke-steps
+
+  smoke-linux:
+    name: smoke ${{ matrix.target }} ${{ matrix.part }}
+    needs: [resolve, package-linux]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    permissions: *smoke-permissions
+    strategy:
+      fail-fast: false
+      matrix:
+        part: &smoke-parts [full, p6]
+        include:
+          - { os: ubuntu-22.04, target: x86_64-unknown-linux-gnu, measure: "5 60", p2: "30 60", payload: linux-x86_64.tar.gz }
+    defaults: *bash
+    steps: *smoke-steps
+
+  smoke-windows:
+    name: smoke ${{ matrix.target }} ${{ matrix.part }}
+    needs: [resolve, package-windows]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    permissions: *smoke-permissions
+    strategy:
+      fail-fast: false
+      matrix:
+        part: *smoke-parts
+        include:
+          - { os: windows-latest, target: x86_64-pc-windows-msvc, measure: "5 60", p2: "30 60", payload: windows-x86_64.zip }
+    defaults: *bash
+    steps: *smoke-steps
 
   sign:
     # Holds the release key. Compiles only xtask (no third-party action, no shared cache) and packs
     # the update payloads from the binaries the package jobs built. It runs beside the smoke tests:
     # signing publishes nothing, and `publish` waits for both.
     name: sign the payloads and the feed
-    needs: [resolve, package]
+    needs: [resolve, package-macos, package-linux, package-windows]
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
@@ -1684,7 +1878,7 @@ jobs:
     # (`report`), the packages passed the smoke tests and the payloads are signed. Only a run from main
     # publishes; on another branch this job lists what it would publish.
     name: publish
-    needs: [resolve, report, sign, smoke]
+    needs: [resolve, report, sign, smoke-macos, smoke-macos-p6, smoke-linux, smoke-windows]
     if: needs.report.outputs.green == 'true' && needs.resolve.outputs.publish == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -1820,7 +2014,7 @@ jobs:
   # one line per main run there, from which it takes the p50 and p90 of the last 20 runs.
   summary:
     name: summary
-    needs: [resolve, lint, tests, from-archive, report, package, smoke, sign, publish]
+    needs: [resolve, lint, tests, from-archive, report, package-macos, package-linux, package-windows, smoke-macos, smoke-macos-p6, smoke-linux, smoke-windows, sign, publish]
     if: always() && needs.resolve.result == 'success' && needs.resolve.outputs.skip != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10

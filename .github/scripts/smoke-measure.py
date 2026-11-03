@@ -7,7 +7,9 @@ usage: smoke-measure.py <measure output> <final report> <target> [powermetrics p
 
 P6 reads two more lists of `--measure` outputs, comma-separated, from the environment: P6_BETA
 (the last published beta) and P6_NEW (this version), measured alternately on this runner after
-the full run (B A A B A B B A). The first `--measure` on a runner is cold: in an A/A test of the same
+one discarded round of each (B A A B A B B A). SMOKE_PART says which job of the system this is
+(W10, ADR 0082): `full` judges the full run (P1, P2, P4, P5 and D3), `p6` only the rounds of P6;
+without it, both. The first `--measure` on a runner is cold: in an A/A test of the same
 code (diag-p5, run 41518156298) it spent 359 ms/s of CPU in the script and the next five 740 to
 868. Zed's gpui-bench skill (`.agents/skills/gpui-bench/SKILL.md`): do not compare a cold
 baseline with a warm candidate, and alternate baseline and candidate runs when results are noisy.
@@ -46,7 +48,8 @@ def paths(var):
     return [p for p in os.environ.get(var, "").split(",") if p]
 
 
-report, states = read(out)
+part = os.environ.get("SMOKE_PART", "")
+report, states = read(out) if part != "p6" else (None, [])
 p6 = {name: [read(p) for p in paths(var)] for name, var in (("beta", "P6_BETA"), ("new", "P6_NEW"))}
 
 # powermetrics: one plist per sample, NUL-separated; each task line has the energy impact per
@@ -92,11 +95,12 @@ for runs in p6.values():
 if report:
     json.dump(report, open(final, "w"))
 
-summary.write(f"### {system} ({target})\n\n")
-if not report:
+summary.write(f"### {system} ({target}){' P6' if part == 'p6' else ''}\n\n")
+if not report and part != "p6":
     summary.write("O `--measure` não terminou; estados medidos até parar:\n\n")
-summary.write("| estado | s | quadros | CPU % | despertares/s | memória MB | energia/s |\n")
-summary.write("|---|---|---|---|---|---|---|\n")
+if part != "p6":
+    summary.write("| estado | s | quadros | CPU % | despertares/s | memória MB | energia/s |\n")
+    summary.write("|---|---|---|---|---|---|---|\n")
 for state in states:
     value = state.get("energyImpactPerS")
     if value is None and state.get("energyNj"):
@@ -108,7 +112,9 @@ for state in states:
     )
 
 failures = []
-if not report:
+if part == "p6":
+    pass
+elif not report:
     failures.append("D3: o `--measure` não terminou com o relatório")
 else:
     frames, cpu = report.get("drawnFrames", 0), report["frameCpuMs"]
@@ -217,8 +223,8 @@ def change_interval(old, new):
 if beta_runs and new_runs:
     version = next((which.get("version") for which, _ in p6["beta"] if which and which.get("version")), "publicada")
     summary.write(
-        f"\nÚltima beta ({version}) contra esta versão no mesmo runner, depois de uma rodada de "
-        f"aquecimento, alternadas ({len(beta_runs)} e {len(new_runs)} rodadas; média por estado):\n\n"
+        f"\nÚltima beta ({version}) contra esta versão no mesmo runner, depois de uma rodada "
+        f"descartada de cada, alternadas ({len(beta_runs)} e {len(new_runs)} rodadas; média por estado):\n\n"
     )
     summary.write(
         "| estado | métrica | última beta | esta versão | diferença | intervalo de 95% |\n|---|---|---|---|---|---|\n"
@@ -264,7 +270,9 @@ if beta_runs and new_runs:
                 f"P6: {name} gasta {change:+.1f}% de {metric} acima da última beta, e o intervalo de 95% "
                 f"começa em {low:+.1f}%"
             )
-elif report:
+elif part == "full":
+    summary.write("\nO P6 mede no outro job deste sistema (`p6`).\n")
+elif report or part == "p6":
     summary.write("\nSem medição da última beta neste runner: o P6 não comparou.\n")
 
 # P2 diagnosis (not a gate): the other renderers on this runner, same script.
