@@ -1473,21 +1473,29 @@ jobs:
           # The full run first: P1, P4 and P5, and the warm-up of the runner for P6.
           STATUS=0
           measure "$DIR/cadente-core$EXE" "$RUNNER_TEMP/measure.out" "$RUNNER_TEMP/cadente-home" || STATUS=$?
-          # P6: the last beta and this version alternately (B A A B), without the sessions of P5.
+          # P6: the last beta and this version alternately (B A A B A B B A), without the sessions of P5.
           P6_BETA="" P6_NEW=""
           OLD="$(ls "$RUNNER_TEMP"/beta/cadente "$RUNNER_TEMP"/beta/cadente.exe 2>/dev/null | head -1 || true)"
           if [ -n "$OLD" ] && [ "$STATUS" = 0 ]; then
             chmod +x "$OLD"
+            # Both run from the same kind of place and are started once before: the same binary
+            # from the installed package and from a copy in the runner's temp folder are not the
+            # same first start (Zed's gpui-bench skill: no cold baseline against a warm candidate).
+            mkdir -p "$RUNNER_TEMP/new"
+            NEW="$RUNNER_TEMP/new/cadente-core$EXE"
+            cp "$DIR/cadente-core$EXE" "$NEW"
             # The first start of a binary is cold too (its pages, and Defender's scan on Windows:
             # the beta's first run spent 55 ms/s and the next three 83 to 86, run 41521469409).
-            CADENTE_HOME="$RUNNER_TEMP/home-warm" "$OLD" --dump-plugins > /dev/null 2>> "$ERR" || true
+            for WARM in "$OLD" "$NEW"; do
+              CADENTE_HOME="$RUNNER_TEMP/home-warm" "$WARM" --dump-plugins > /dev/null 2>> "$ERR" || true
+            done
             export CADENTE_MEASURE_CHATS=0 CADENTE_MEASURE_TERMINALS=0 CADENTE_MEASURE_CLOSED_S=10
-            for RUN in beta-1 new-1 new-2 beta-2; do
+            for RUN in beta-1 new-1 new-2 beta-2 new-3 beta-3 beta-4 new-4; do
               OUT="$RUNNER_TEMP/p6-$RUN.out"
               case "$RUN" in
                 beta-*) measure "$OLD" "$OUT" "$RUNNER_TEMP/home-$RUN" beta || echo "::warning::the last beta's run $RUN did not finish"
                   P6_BETA="$P6_BETA,$OUT" ;;
-                new-*) measure "$DIR/cadente-core$EXE" "$OUT" "$RUNNER_TEMP/home-$RUN" || STATUS=$?
+                new-*) measure "$NEW" "$OUT" "$RUNNER_TEMP/home-$RUN" || STATUS=$?
                   P6_NEW="$P6_NEW,$OUT" ;;
               esac
             done

@@ -7,7 +7,7 @@ usage: smoke-measure.py <measure output> <final report> <target> [powermetrics p
 
 P6 reads two more lists of `--measure` outputs, comma-separated, from the environment: P6_BETA
 (the last published beta) and P6_NEW (this version), measured alternately on this runner after
-the full run (B A A B). The first `--measure` on a runner is cold: in an A/A test of the same
+the full run (B A A B A B B A). The first `--measure` on a runner is cold: in an A/A test of the same
 code (diag-p5, run 41518156298) it spent 359 ms/s of CPU in the script and the next five 740 to
 868. Zed's gpui-bench skill (`.agents/skills/gpui-bench/SKILL.md`): do not compare a cold
 baseline with a warm candidate, and alternate baseline and candidate runs when results are noisy.
@@ -119,9 +119,9 @@ else:
         f"(limite {limit} ms, {cpu.get('n')} quadros do roteiro); memória aberta "
         f"{memory.get('windowOpen')} KiB, antes de fechar {memory.get('beforeClose')} KiB, destruída "
         f"{memory.get('windowClosed')} KiB; {churn.get('chats')} Chats e {churn.get('terminals')} "
-        f"terminais, duas vezes: o primeiro ciclo {churn.get('firstCycleGrowthPercent')}%, o segundo "
-        f"{churn.get('baseKib')} → {churn.get('afterKib')} KiB ({churn.get('growthPercent')}%, "
-        f"tolerância {churn.get('tolerancePercent')}%).\n"
+        f"terminais, {churn.get('cycles')} vezes: o primeiro ciclo (aquecimento) "
+        f"{churn.get('firstCycleGrowthPercent')}%, os outros de {churn.get('baseKib')} a "
+        f"{churn.get('afterKib')} KiB (tolerância {churn.get('tolerancePercent')}% por ciclo).\n"
     )
     if "tray" in report:
         summary.write(f"\nBandeja: `{json.dumps(report['tray'], ensure_ascii=False)}`\n")
@@ -152,28 +152,62 @@ else:
         failures.append("P4: a janela destruída passou de 1% de CPU ou abriu processo filho")
     if report.get("closedBelowOpen") is not True:
         failures.append("P5: a memória com a janela destruída não ficou abaixo da aberta")
+    summary.write(
+        f"\nP5 por ciclo depois do aquecimento: {churn.get('cycleGrowthPercent')}% (média "
+        f"{churn.get('growthPercent')}%, ponta de baixo do intervalo de 95% "
+        f"{churn.get('growthLowPercent')}%); memória ao fim de cada um: {churn.get('endsKib')} KiB.\n"
+    )
     if churn.get("pass") is not True:
         failures.append(
-            f"P5: o segundo ciclo de sessões cresceu {churn.get('growthPercent')}% (> 5%; "
-            f"o primeiro, {churn.get('firstCycleGrowthPercent')}%)"
+            f"P5: cada ciclo de sessões cresceu {churn.get('cycleGrowthPercent')}%, e o intervalo de "
+            f"95% da média começa em {churn.get('growthLowPercent')}% (> 5%)"
         )
 
 # P6: energy (CPU time where the runner has no energy counter) of each state, per second: the
 # mean of this version's runs against the mean of the last beta's, measured alternately here.
-# A difference below the noise of an idle state is not a regression: 5 ms of CPU per second
+# Two runs of each were noise: the code of beta 9 measured against beta 9 itself spent +15.6% of
+# CPU in the script on Windows (run 41576090561). As Criterion decides a change
+# (`report.rs`, `compare_to_threshold`), a state regresses only when the whole 95% interval of
+# the change lies above the 10% limit, from four runs of each (Zed's gpui-bench skill: more
+# alternated runs when results are noisy).
+# A difference below the noise of an idle state is not a regression either: 5 ms of CPU per second
 # (0.5% of one core), or the energy of that CPU, 0.5 energy impact per second (on the macOS
 # runner one energy impact per second went with 10 ms/s of CPU in the script: 17.6 with 174.2,
 # 24.1 with 236.8, 14.4 with 143.7, run 41524827131). The 0.05 used before was below what the
 # same code varies in a 10 s idle state there (closed: 0.017 and 0.176 in the same run).
 beta_runs = [states for which, states in p6["beta"] if which]
 new_runs = [states for which, states in p6["new"] if which]
+
+
+def resample_means(values):
+    """The mean of every resample (with replacement) of `values`: n**n of them, exact."""
+    means = [0.0]
+    for _ in values:
+        means = [m + v for m in means for v in values]
+    return [m / len(values) for m in means]
+
+
+def change_interval(old, new):
+    """The 95% interval of new's mean over old's, in percent, by Criterion's percentile bootstrap
+    of a change (`analysis/compare.rs`, `stats`: a.mean() / b.mean() - 1), every resample
+    enumerated so the same runs give the same verdict."""
+    olds, news = resample_means(old), resample_means(new)
+    changes = sorted(
+        (n / o - 1) * 100 if o else (0.0 if n == 0 else float("inf")) for o in olds for n in news
+    )
+    at = lambda q: changes[int((len(changes) - 1) * q)]
+    return at(0.025), at(0.975)
+
+
 if beta_runs and new_runs:
     version = next((which.get("version") for which, _ in p6["beta"] if which and which.get("version")), "publicada")
     summary.write(
         f"\nÚltima beta ({version}) contra esta versão no mesmo runner, depois de uma rodada de "
         f"aquecimento, alternadas ({len(beta_runs)} e {len(new_runs)} rodadas; média por estado):\n\n"
     )
-    summary.write("| estado | métrica | última beta | esta versão | diferença |\n|---|---|---|---|---|\n")
+    summary.write(
+        "| estado | métrica | última beta | esta versão | diferença | intervalo de 95% |\n|---|---|---|---|---|---|\n"
+    )
 
     def per_second(runs, name):
         found = [s for run in runs for s in run if s["state"] == name]
@@ -202,11 +236,18 @@ if beta_runs and new_runs:
         else:
             metric, prev, new, floor = "CPU ms/s", old_cpu, new_cpu, 5.0
         change = (new / prev - 1) * 100 if prev else 0.0
-        row = f"| {name} | {metric} | {prev:.3f} | {new:.3f} | {change:+.1f}% |"
+        index = 1 if metric == "energia/s" else 0
+        low, high = change_interval(
+            [run[index] for run in runs_of(beta_runs, name)], [run[index] for run in runs_of(new_runs, name)]
+        )
+        row = f"| {name} | {metric} | {prev:.3f} | {new:.3f} | {change:+.1f}% | {low:+.1f}% a {high:+.1f}% |"
         summary.write(row + "\n")
         print(f"P6 {row} beta {runs_of(beta_runs, name)} esta {runs_of(new_runs, name)}")
-        if new > prev * 1.10 and new - prev > floor:
-            failures.append(f"P6: {name} gasta {change:+.1f}% de {metric} acima da última beta")
+        if low > 10.0 and new - prev > floor:
+            failures.append(
+                f"P6: {name} gasta {change:+.1f}% de {metric} acima da última beta, e o intervalo de 95% "
+                f"começa em {low:+.1f}%"
+            )
 elif report:
     summary.write("\nSem medição da última beta neste runner: o P6 não comparou.\n")
 
