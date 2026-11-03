@@ -161,7 +161,8 @@ jobs:
           PRIVATE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
           SHA: ${{ steps.resolve_sha.outputs.sha }}
           CHANNEL: ${{ steps.resolve_sha.outputs.channel }}
-          FORCE_BUILD: ${{ github.ref != 'refs/heads/main' && inputs.force_build }}
+          # A warm-up run compiles whatever the commit changed: it exists to save the caches.
+          FORCE_BUILD: ${{ (github.ref != 'refs/heads/main' && inputs.force_build) || inputs.warm_up }}
         run: |
           set -euo pipefail
           echo "::add-mask::${PRIVATE_TOKEN}"
