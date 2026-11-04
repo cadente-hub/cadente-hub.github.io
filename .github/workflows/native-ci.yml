@@ -800,6 +800,18 @@ jobs:
               "$RUNNER_TEMP/sealed.log" "$RUNNER_TEMP/sealed/ci-log.enc.json"
             rm -f "$RUNNER_TEMP/sealed.log"
             echo "Falhou em ${FAILED_STEP}; o log completo vai para o ci-logs do repositório privado."
+          else
+            # A green run keeps a summary (one line per test and the totals), so a passing test is provable.
+            {
+              echo "native-ci ${JOB_KIND} ${MATRIX_OS} ${SHA}: passou (resumo dos testes)"
+              echo "run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+              echo
+              sed 's/\x1b\[[0-9;]*m//g' "$RUNNER_TEMP/ci-build.log" 2>/dev/null \
+                | grep -E '^ *(PASS|FAIL|SLOW|FLAKY|LEAK|SKIP|TIMEOUT|Starting|Summary|Finished) ' || true
+            } > "$RUNNER_TEMP/sealed.log"
+            node "$RUNNER_TEMP/scripts/ci-log-crypto.cjs" encrypt "$RUNNER_TEMP/scripts/ci-log-key.pub.pem" \
+              "$RUNNER_TEMP/sealed.log" "$RUNNER_TEMP/sealed/ci-log.enc.json"
+            rm -f "$RUNNER_TEMP/sealed.log"
           fi
 
       - name: Upload the sealed log
