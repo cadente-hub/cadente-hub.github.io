@@ -2,9 +2,11 @@ name: native-ci
 run-name: native-ci ${{ inputs.sha }}${{ inputs.channel == 'stable' && ' stable' || '' }}
 
 # One run per commit of the private main (ADR 0082 W3): lint, tests and the ruler on the three systems,
-# and beside them the packages. `publish` waits for the three systems green, the smoke tests and the
+# and beside them the packages. `publish` waits for the three systems green, the basic smoke and the
 # signature, so a beta leaves the same run that proved its commit. The stable channel comes from
 # native-promote through native-release, which dispatches this workflow with `channel: stable`.
+# The long measurement (P1, P2, P4, P5 and P6) runs beside and after `publish` and gives the commit
+# `native-ci/perf`, which native-promote requires (W10, ADR 0082 §7, as Zed's nightly leaves perf out).
 on:
   workflow_dispatch:
     inputs:
@@ -253,6 +255,7 @@ jobs:
           SHA: ${{ steps.resolve_sha.outputs.sha }}
           DOCS_ONLY: ${{ steps.changes.outputs.docs_only }}
           BASE: ${{ steps.changes.outputs.base }}
+          RELEASE: ${{ steps.version.outputs.release }}
         run: |
           echo "::add-mask::${PRIVATE_WRITE_TOKEN}"
           if [ "$DOCS_ONLY" = "true" ]; then
@@ -260,7 +263,10 @@ jobs:
           else
             STATE=pending; DESCRIPTION="native-ci running"
           fi
-          for OS in macos-15 ubuntu-latest windows-latest; do
+          # W10: a run that builds packages also measures them, and `perf` writes the verdict.
+          CONTEXTS="macos-15 ubuntu-latest windows-latest"
+          [ "$DOCS_ONLY" != "true" ] && [ "$RELEASE" = "true" ] && CONTEXTS="$CONTEXTS perf"
+          for OS in $CONTEXTS; do
             BODY="$(jq -cn --arg state "$STATE" --arg description "$DESCRIPTION" --arg context "native-ci/$OS" \
               --arg url "https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" \
               '{state: $state, target_url: $url, description: $description, context: $context}')"
@@ -1185,13 +1191,13 @@ jobs:
         run: echo "t0=$(date +%s)" > "$RUNNER_TEMP/metrics.env"
 
       # W6 (ADR 0082): the three builder files come straight from this commit of the public repository;
-      # the checkout action took 6 to 11 s on Windows.
+      # the checkout action took 6 to 11 s on Windows. The fourth is the basic smoke's (W10).
       - name: Stage builder scripts
         env:
           BASE: https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}
         run: |
           mkdir -p "$RUNNER_TEMP/scripts"
-          for F in .github/scripts/clone-private.sh .github/scripts/prepare-job.sh .github/scripts/ci-log-crypto.cjs .github/ci-log-key.pub.pem; do
+          for F in .github/scripts/clone-private.sh .github/scripts/prepare-job.sh .github/scripts/ci-log-crypto.cjs .github/ci-log-key.pub.pem .github/scripts/smoke-measure.py; do
             curl -fsSL --retry 3 -o "$RUNNER_TEMP/scripts/${F##*/}" "$BASE/$F"
           done
 
@@ -1369,6 +1375,229 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
+      # W10 (ADR 0082, decisão 1 emendada; Zed's release_nightly.yml publishes with no performance
+      # job): the basic smoke runs here, on the runner that built the installer, and holds the beta. The
+      # package installs, the launcher finds the Core it ships, and the Core opens, draws, keeps the tray
+      # in the menu bar on macOS (D1) and closes (D3), with a short `--measure` and no sessions. The long
+      # measurement (P1, P2, P4, P5 and P6) runs in the `perf` jobs, beside and after `publish`, and
+      # gives the commit the `native-ci/perf` status that native-promote requires.
+      #
+      # W6 (ADR 0082): the .deb closure the smoke installs on Linux comes from a cache of this runner
+      # image, as the DSH keeps Wine's (`ci-master.yml`, "Install Wine": `--download-only` once, then
+      # `dpkg -i` with no repository access). The mirror is the slow part: 73.6 MB at 166 kB/s held this
+      # step 7 min 39 s in run 41700377757, and 8 min in run 41448416563.
+      - &smoke-debs-key
+        name: Cache key of the system packages (Linux)
+        id: debs
+        if: runner.os == 'Linux'
+        run: echo "key=smoke-debs-${ImageOS:-linux}-${ImageVersion:-v0}" >> "$GITHUB_OUTPUT"
+
+      - &smoke-debs-restore
+        name: Restore the system packages (Linux)
+        id: debs-cache
+        if: runner.os == 'Linux'
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/smoke-debs
+          key: ${{ steps.debs.outputs.key }}
+
+      - &smoke-install
+        name: Install the package
+        id: install
+        run: |
+          set -euo pipefail
+          case "$RUNNER_OS" in
+            macOS)
+              hdiutil attach dist/*.dmg -mountpoint /Volumes/CadenteSmoke -nobrowse -quiet
+              cp -R /Volumes/CadenteSmoke/Cadente.app "$RUNNER_TEMP/"
+              hdiutil detach /Volumes/CadenteSmoke -quiet
+              DIR="$RUNNER_TEMP/Cadente.app/Contents/MacOS"
+              test -f "$RUNNER_TEMP/Cadente.app/Contents/SharedSupport/baseline_version/metadata.json"
+              EXE="" ;;
+            Linux)
+              # W6: apt only for what the image lacks, and from the cached closure when it is there; if the
+              # closure cannot satisfy the package (its dependencies changed), apt installs from the mirror.
+              PKGS="xvfb libgl1-mesa-dri libegl1 libxkbcommon-x11-0"
+              DEBS="$HOME/smoke-debs"
+              # shellcheck disable=SC2086
+              if dpkg -s $PKGS > /dev/null 2>&1 && sudo dpkg -i ./dist/*.deb > /dev/null 2>&1; then
+                echo "pacotes do sistema: já na imagem"
+              elif compgen -G "$DEBS/*.deb" > /dev/null && sudo DEBIAN_FRONTEND=noninteractive dpkg -i "$DEBS"/*.deb ./dist/*.deb > /dev/null 2>&1; then
+                echo "pacotes do sistema: do cache ($(ls "$DEBS" | wc -l) .deb)"
+              else
+                sudo DEBIAN_FRONTEND=noninteractive dpkg --configure -a || true
+                sudo apt-get -o Acquire::Retries=3 update
+                # shellcheck disable=SC2086
+                sudo apt-get -o Acquire::Retries=3 install -y -f --download-only $PKGS ./dist/*.deb
+                mkdir -p "$DEBS"
+                find /var/cache/apt/archives -maxdepth 1 -name '*.deb' ! -name 'cadente*' -exec cp {} "$DEBS/" \;
+                # shellcheck disable=SC2086
+                sudo apt-get -o Acquire::Retries=3 install -y -f $PKGS ./dist/*.deb
+                echo "pacotes do sistema: do espelho ($(ls "$DEBS" | wc -l) .deb guardados)"
+                echo "debs_new=true" >> "$GITHUB_OUTPUT"
+              fi
+              DIR=/usr/bin
+              test -f /usr/lib/Cadente/baseline_version/metadata.json
+              EXE="" ;;
+            Windows)
+              INSTALLER="$(ls dist/cadente-*-windows-x64.exe | head -1)"
+              "$INSTALLER" //S
+              for _ in $(seq 1 60); do [ -f "$LOCALAPPDATA/Programs/Cadente/cadente-core.exe" ] && break; sleep 2; done
+              DIR="$LOCALAPPDATA/Programs/Cadente"
+              test -f "$DIR/baseline_version/metadata.json"
+              EXE=".exe" ;;
+          esac
+          test -x "$DIR/cadente$EXE"
+          test -x "$DIR/cadente-core$EXE"
+          echo "dir=$DIR" >> "$GITHUB_OUTPUT"
+          echo "exe=$EXE" >> "$GITHUB_OUTPUT"
+
+      # Saved by main only, once per runner image; the cache guard keeps one generation.
+      - &smoke-debs-save
+        name: Save the system packages (Linux)
+        if: runner.os == 'Linux' && github.ref == 'refs/heads/main' && steps.install.outputs.debs_new == 'true'
+        continue-on-error: true
+        uses: actions/cache/save@v4
+        with:
+          path: ~/smoke-debs
+          key: ${{ steps.debs.outputs.key }}
+
+      - &smoke-launcher
+        name: The launcher finds the Core it ships
+        env:
+          DIR: ${{ steps.install.outputs.dir }}
+          EXE: ${{ steps.install.outputs.exe }}
+          EXPECTED: ${{ needs.resolve.outputs.version }}
+        run: |
+          set -euo pipefail
+          FOUND="$("$DIR/cadente$EXE" --system-install)"
+          echo "$FOUND"
+          printf '%s' "$FOUND" | grep -q "\"version\":\"$EXPECTED\""
+
+      - &smoke-measure
+        name: The Core opens, draws and measures
+        env:
+          DIR: ${{ steps.install.outputs.dir }}
+          EXE: ${{ steps.install.outputs.exe }}
+          # The package job has no `part`: there this step is the basic smoke (W10).
+          MEASURE: ${{ matrix.measure || '5 60' }}
+          P2_MEASURE: ${{ matrix.p2 }}
+          TARGET: ${{ matrix.target }}
+          PART: ${{ matrix.part || 'basic' }}
+        run: |
+          set -euo pipefail
+          # Only the reports reach stdout. The Core's stderr stays in a file that this public log
+          # never prints (xvfb-run would mix it into stdout).
+          ERR="$RUNNER_TEMP/core-stderr.log"
+          export ERR
+          # measure <binary> <output> <home> [beta]: the Core's status. It has $LIMIT s (300), and 20 s to
+          # exit once its report is out (D3: it closes). The last beta may not exit on Windows
+          # (1.1.0-beta.7 waited forever for its runtime there); for it the report is enough.
+          measure() {
+            local OUT="$2" STATUS=0 WAITED=0 REPORTED=""
+            export OUT CADENTE_HOME="$3"
+            # shellcheck disable=SC2086,SC2016
+            if [ "$RUNNER_OS" = "Linux" ]; then
+              xvfb-run -a -s "-screen 0 1440x900x24" sh -c 'exec "$0" "$@" > "$OUT" 2>> "$ERR"' "$1" --measure $MEASURE &
+            else
+              "$1" --measure $MEASURE > "$OUT" 2>> "$ERR" &
+            fi
+            local PID=$!
+            while kill -0 "$PID" 2>/dev/null; do
+              if [ -z "$REPORTED" ] && grep -q '"states"' "$OUT" 2>/dev/null; then REPORTED=$WAITED; fi
+              if [ -n "$REPORTED" ] && [ $((WAITED - REPORTED)) -ge 20 ]; then
+                kill "$PID" 2>/dev/null || true
+                [ "${4:-}" = beta ] && return 0
+                echo "::error::$1 wrote its report and did not exit within 20 s (D3)"
+                return 1
+              fi
+              if [ "$WAITED" -ge "${LIMIT:-300}" ]; then
+                kill "$PID" 2>/dev/null || true
+                echo "::error::$1 did not finish the measurement within ${LIMIT:-300} s"
+                return 1
+              fi
+              sleep 1
+              WAITED=$((WAITED + 1))
+            done
+            wait "$PID" || STATUS=$?
+            return "$STATUS"
+          }
+          POWER=""
+          if [ "$RUNNER_OS" = "macOS" ] && [ "$PART" != basic ]; then
+            # P1: the energy of each state, from the kernel's per-task accounting, once a second.
+            POWER="$RUNNER_TEMP/power.plist"
+            python3 -c 'import time; print(int(time.time() * 1000))' > "$POWER.start"
+            sudo powermetrics --samplers tasks --show-process-energy -i 1000 -f plist -o "$POWER" \
+              > /dev/null 2> "$RUNNER_TEMP/powermetrics.err" &
+          fi
+          # `basic` (W10): D1 and D3 only, with no sessions and short idle states, about 30 s.
+          STATUS=0
+          if [ "$PART" = basic ]; then
+            CADENTE_MEASURE_CHATS=0 CADENTE_MEASURE_TERMINALS=0 CADENTE_MEASURE_IDLE_S=2 CADENTE_MEASURE_CLOSED_S=2 \
+              CADENTE_MEASURE_MIN_FRAMES=0 CADENTE_MEASURE_WARM_UP=0 LIMIT=180 \
+              measure "$DIR/cadente-core$EXE" "$RUNNER_TEMP/measure.out" "$RUNNER_TEMP/cadente-home" || STATUS=$?
+          fi
+          # `full`: P1, P2, P4 and P5.
+          if [ "$PART" = full ]; then
+            MEASURE="$P2_MEASURE" LIMIT=420 measure "$DIR/cadente-core$EXE" "$RUNNER_TEMP/measure.out" "$RUNNER_TEMP/cadente-home" || STATUS=$?
+          fi
+          # `p6`: the last beta and this version alternately (B A A B A B B A), without the sessions of P5,
+          # after one discarded round of each (hyperfine's `--warmup 1` in Zed's `tooling/perf`).
+          P6_BETA="" P6_NEW=""
+          OLD="$(ls "$RUNNER_TEMP"/beta/cadente "$RUNNER_TEMP"/beta/cadente.exe 2>/dev/null | head -1 || true)"
+          if [ "$PART" = p6 ] && [ -n "$OLD" ]; then
+            chmod +x "$OLD"
+            # Both run from the same kind of place and are started once before: the same binary
+            # from the installed package and from a copy in the runner's temp folder are not the
+            # same first start (Zed's gpui-bench skill: no cold baseline against a warm candidate).
+            mkdir -p "$RUNNER_TEMP/new"
+            NEW="$RUNNER_TEMP/new/cadente-core$EXE"
+            cp "$DIR/cadente-core$EXE" "$NEW"
+            # The first start of a binary is cold too (its pages, and Defender's scan on Windows:
+            # the beta's first run spent 55 ms/s and the next three 83 to 86, run 41521469409).
+            for WARM in "$OLD" "$NEW"; do
+              CADENTE_HOME="$RUNNER_TEMP/home-warm" "$WARM" --dump-plugins > /dev/null 2>> "$ERR" || true
+            done
+            export CADENTE_MEASURE_CHATS=0 CADENTE_MEASURE_TERMINALS=0 CADENTE_MEASURE_CLOSED_S=10 CADENTE_MEASURE_MIN_FRAMES=0 CADENTE_MEASURE_WARM_UP=0
+            for RUN in warm-beta warm-new beta-1 new-1 new-2 beta-2 new-3 beta-3 beta-4 new-4; do
+              OUT="$RUNNER_TEMP/p6-$RUN.out"
+              case "$RUN" in
+                warm-beta) measure "$OLD" "$OUT" "$RUNNER_TEMP/home-$RUN" beta || echo "::warning::the last beta's warm-up round did not finish" ;;
+                warm-new) measure "$NEW" "$OUT" "$RUNNER_TEMP/home-$RUN" || STATUS=$? ;;
+                beta-*) measure "$OLD" "$OUT" "$RUNNER_TEMP/home-$RUN" beta || echo "::warning::the last beta's run $RUN did not finish"
+                  P6_BETA="$P6_BETA,$OUT" ;;
+                new-*) measure "$NEW" "$OUT" "$RUNNER_TEMP/home-$RUN" || STATUS=$?
+                  P6_NEW="$P6_NEW,$OUT" ;;
+              esac
+            done
+            unset CADENTE_MEASURE_CHATS CADENTE_MEASURE_TERMINALS CADENTE_MEASURE_CLOSED_S CADENTE_MEASURE_MIN_FRAMES CADENTE_MEASURE_WARM_UP
+          fi
+          export P6_BETA P6_NEW SMOKE_PART="$PART"
+          if [ -n "$POWER" ]; then
+            sudo pkill -INT powermetrics || true
+            sleep 2
+            echo "powermetrics: $(wc -c < "$POWER" 2>/dev/null || echo 0) bytes"
+            head -c 600 "$RUNNER_TEMP/powermetrics.err" || true
+          fi
+          if [ "$PART" != p6 ]; then
+            echo "esta versão, rodada ${PART}:"
+            cat "$RUNNER_TEMP/measure.out"
+          fi
+          for FILE in ${P6_BETA//,/ } ${P6_NEW//,/ }; do echo "$(basename "$FILE"):"; tail -1 "$FILE" || true; done
+          RESULT=0
+          python3 "$RUNNER_TEMP/scripts/smoke-measure.py" "$RUNNER_TEMP/measure.out" "$RUNNER_TEMP/measure.json" "$TARGET" \
+            "$POWER" || RESULT=$?
+          [ "$STATUS" = 0 ] || { echo "::error::the Core exited with $STATUS"; exit "$STATUS"; }
+          exit "$RESULT"
+
+      - &smoke-upload
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: smoke-${{ matrix.target }}-${{ matrix.part || 'basic' }}
+          path: ${{ runner.temp }}/measure.json
+          if-no-files-found: ignore
+
       # The installer of the first target leaves dist/, so the second upload holds only its own.
       - name: Second target
         env:
@@ -1420,6 +1649,8 @@ jobs:
               echo "run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
               echo
               cat "$RUNNER_TEMP/release-build.log" 2>/dev/null || true
+              # The basic smoke's Core stderr (W10), never printed in this public log.
+              if [ -s "$RUNNER_TEMP/core-stderr.log" ]; then echo; echo "== core stderr (smoke básico)"; cat "$RUNNER_TEMP/core-stderr.log"; fi
             } > "$RUNNER_TEMP/sealed.log"
             node "$RUNNER_TEMP/scripts/ci-log-crypto.cjs" encrypt "$RUNNER_TEMP/scripts/ci-log-key.pub.pem" \
               "$RUNNER_TEMP/sealed.log" "$RUNNER_TEMP/sealed/ci-log.enc.json"
@@ -1489,7 +1720,12 @@ jobs:
     # binary runs one discarded round first, as Zed's `tooling/perf` profiles with hyperfine
     # `--warmup 1` (`hyp_profile`) and `triage_test` skips a test's first loop. Each smoke waits only
     # for the package of its own target.
-    name: smoke ${{ matrix.target }} ${{ matrix.part }}
+    #
+    # W10, decisão 1 emendada (ADR 0082 §7): these jobs no longer hold `publish`, as Zed's nightly
+    # leaves `tooling/perf` out of the release. They measure the same as before, with the same rounds and
+    # limits; `perf` turns their result into the commit's `native-ci/perf`, which native-promote requires
+    # before a stable. The basic smoke that holds the beta runs in the package job.
+    name: perf ${{ matrix.target }} ${{ matrix.part }}
     needs: [resolve, package-macos]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
@@ -1551,207 +1787,13 @@ jobs:
             echo "nenhuma beta para comparar"
           fi
 
-      # W6 (ADR 0082): the .deb closure the smoke installs on Linux comes from a cache of this runner
-      # image, as the DSH keeps Wine's (`ci-master.yml`, "Install Wine": `--download-only` once, then
-      # `dpkg -i` with no repository access). The mirror is the slow part: 73.6 MB at 166 kB/s held this
-      # step 7 min 39 s in run 41700377757, and 8 min in run 41448416563.
-      - name: Cache key of the system packages (Linux)
-        id: debs
-        if: runner.os == 'Linux'
-        run: echo "key=smoke-debs-${ImageOS:-linux}-${ImageVersion:-v0}" >> "$GITHUB_OUTPUT"
-
-      - name: Restore the system packages (Linux)
-        id: debs-cache
-        if: runner.os == 'Linux'
-        uses: actions/cache/restore@v4
-        with:
-          path: ~/smoke-debs
-          key: ${{ steps.debs.outputs.key }}
-
-      - name: Install the package
-        id: install
-        run: |
-          set -euo pipefail
-          case "$RUNNER_OS" in
-            macOS)
-              hdiutil attach dist/*.dmg -mountpoint /Volumes/CadenteSmoke -nobrowse -quiet
-              cp -R /Volumes/CadenteSmoke/Cadente.app "$RUNNER_TEMP/"
-              hdiutil detach /Volumes/CadenteSmoke -quiet
-              DIR="$RUNNER_TEMP/Cadente.app/Contents/MacOS"
-              test -f "$RUNNER_TEMP/Cadente.app/Contents/SharedSupport/baseline_version/metadata.json"
-              EXE="" ;;
-            Linux)
-              # W6: apt only for what the image lacks, and from the cached closure when it is there; if the
-              # closure cannot satisfy the package (its dependencies changed), apt installs from the mirror.
-              PKGS="xvfb libgl1-mesa-dri libegl1 libxkbcommon-x11-0"
-              DEBS="$HOME/smoke-debs"
-              # shellcheck disable=SC2086
-              if dpkg -s $PKGS > /dev/null 2>&1 && sudo dpkg -i ./dist/*.deb > /dev/null 2>&1; then
-                echo "pacotes do sistema: já na imagem"
-              elif compgen -G "$DEBS/*.deb" > /dev/null && sudo DEBIAN_FRONTEND=noninteractive dpkg -i "$DEBS"/*.deb ./dist/*.deb > /dev/null 2>&1; then
-                echo "pacotes do sistema: do cache ($(ls "$DEBS" | wc -l) .deb)"
-              else
-                sudo DEBIAN_FRONTEND=noninteractive dpkg --configure -a || true
-                sudo apt-get -o Acquire::Retries=3 update
-                # shellcheck disable=SC2086
-                sudo apt-get -o Acquire::Retries=3 install -y -f --download-only $PKGS ./dist/*.deb
-                mkdir -p "$DEBS"
-                find /var/cache/apt/archives -maxdepth 1 -name '*.deb' ! -name 'cadente*' -exec cp {} "$DEBS/" \;
-                # shellcheck disable=SC2086
-                sudo apt-get -o Acquire::Retries=3 install -y -f $PKGS ./dist/*.deb
-                echo "pacotes do sistema: do espelho ($(ls "$DEBS" | wc -l) .deb guardados)"
-                echo "debs_new=true" >> "$GITHUB_OUTPUT"
-              fi
-              DIR=/usr/bin
-              test -f /usr/lib/Cadente/baseline_version/metadata.json
-              EXE="" ;;
-            Windows)
-              INSTALLER="$(ls dist/cadente-*-windows-x64.exe | head -1)"
-              "$INSTALLER" //S
-              for _ in $(seq 1 60); do [ -f "$LOCALAPPDATA/Programs/Cadente/cadente-core.exe" ] && break; sleep 2; done
-              DIR="$LOCALAPPDATA/Programs/Cadente"
-              test -f "$DIR/baseline_version/metadata.json"
-              EXE=".exe" ;;
-          esac
-          test -x "$DIR/cadente$EXE"
-          test -x "$DIR/cadente-core$EXE"
-          echo "dir=$DIR" >> "$GITHUB_OUTPUT"
-          echo "exe=$EXE" >> "$GITHUB_OUTPUT"
-
-      # Saved by main only, once per runner image; the cache guard keeps one generation.
-      - name: Save the system packages (Linux)
-        if: runner.os == 'Linux' && github.ref == 'refs/heads/main' && steps.install.outputs.debs_new == 'true'
-        continue-on-error: true
-        uses: actions/cache/save@v4
-        with:
-          path: ~/smoke-debs
-          key: ${{ steps.debs.outputs.key }}
-
-      - name: The launcher finds the Core it ships
-        env:
-          DIR: ${{ steps.install.outputs.dir }}
-          EXE: ${{ steps.install.outputs.exe }}
-          EXPECTED: ${{ needs.resolve.outputs.version }}
-        run: |
-          set -euo pipefail
-          FOUND="$("$DIR/cadente$EXE" --system-install)"
-          echo "$FOUND"
-          printf '%s' "$FOUND" | grep -q "\"version\":\"$EXPECTED\""
-
-      - name: The Core opens, draws and measures
-        env:
-          DIR: ${{ steps.install.outputs.dir }}
-          EXE: ${{ steps.install.outputs.exe }}
-          MEASURE: ${{ matrix.measure }}
-          P2_MEASURE: ${{ matrix.p2 }}
-          TARGET: ${{ matrix.target }}
-          PART: ${{ matrix.part }}
-        run: |
-          set -euo pipefail
-          # Only the reports reach stdout. The Core's stderr stays in a file that this public log
-          # never prints (xvfb-run would mix it into stdout).
-          ERR="$RUNNER_TEMP/core-stderr.log"
-          export ERR
-          # measure <binary> <output> <home> [beta]: the Core's status. It has $LIMIT s (300), and 20 s to
-          # exit once its report is out (D3: it closes). The last beta may not exit on Windows
-          # (1.1.0-beta.7 waited forever for its runtime there); for it the report is enough.
-          measure() {
-            local OUT="$2" STATUS=0 WAITED=0 REPORTED=""
-            export OUT CADENTE_HOME="$3"
-            # shellcheck disable=SC2086,SC2016
-            if [ "$RUNNER_OS" = "Linux" ]; then
-              xvfb-run -a -s "-screen 0 1440x900x24" sh -c 'exec "$0" "$@" > "$OUT" 2>> "$ERR"' "$1" --measure $MEASURE &
-            else
-              "$1" --measure $MEASURE > "$OUT" 2>> "$ERR" &
-            fi
-            local PID=$!
-            while kill -0 "$PID" 2>/dev/null; do
-              if [ -z "$REPORTED" ] && grep -q '"states"' "$OUT" 2>/dev/null; then REPORTED=$WAITED; fi
-              if [ -n "$REPORTED" ] && [ $((WAITED - REPORTED)) -ge 20 ]; then
-                kill "$PID" 2>/dev/null || true
-                [ "${4:-}" = beta ] && return 0
-                echo "::error::$1 wrote its report and did not exit within 20 s (D3)"
-                return 1
-              fi
-              if [ "$WAITED" -ge "${LIMIT:-300}" ]; then
-                kill "$PID" 2>/dev/null || true
-                echo "::error::$1 did not finish the measurement within ${LIMIT:-300} s"
-                return 1
-              fi
-              sleep 1
-              WAITED=$((WAITED + 1))
-            done
-            wait "$PID" || STATUS=$?
-            return "$STATUS"
-          }
-          POWER=""
-          if [ "$RUNNER_OS" = "macOS" ]; then
-            # P1: the energy of each state, from the kernel's per-task accounting, once a second.
-            POWER="$RUNNER_TEMP/power.plist"
-            python3 -c 'import time; print(int(time.time() * 1000))' > "$POWER.start"
-            sudo powermetrics --samplers tasks --show-process-energy -i 1000 -f plist -o "$POWER" \
-              > /dev/null 2> "$RUNNER_TEMP/powermetrics.err" &
-          fi
-          # `full`: P1, P2, P4 and P5.
-          STATUS=0
-          if [ "$PART" = full ]; then
-            MEASURE="$P2_MEASURE" LIMIT=420 measure "$DIR/cadente-core$EXE" "$RUNNER_TEMP/measure.out" "$RUNNER_TEMP/cadente-home" || STATUS=$?
-          fi
-          # `p6`: the last beta and this version alternately (B A A B A B B A), without the sessions of P5,
-          # after one discarded round of each (hyperfine's `--warmup 1` in Zed's `tooling/perf`).
-          P6_BETA="" P6_NEW=""
-          OLD="$(ls "$RUNNER_TEMP"/beta/cadente "$RUNNER_TEMP"/beta/cadente.exe 2>/dev/null | head -1 || true)"
-          if [ "$PART" = p6 ] && [ -n "$OLD" ]; then
-            chmod +x "$OLD"
-            # Both run from the same kind of place and are started once before: the same binary
-            # from the installed package and from a copy in the runner's temp folder are not the
-            # same first start (Zed's gpui-bench skill: no cold baseline against a warm candidate).
-            mkdir -p "$RUNNER_TEMP/new"
-            NEW="$RUNNER_TEMP/new/cadente-core$EXE"
-            cp "$DIR/cadente-core$EXE" "$NEW"
-            # The first start of a binary is cold too (its pages, and Defender's scan on Windows:
-            # the beta's first run spent 55 ms/s and the next three 83 to 86, run 41521469409).
-            for WARM in "$OLD" "$NEW"; do
-              CADENTE_HOME="$RUNNER_TEMP/home-warm" "$WARM" --dump-plugins > /dev/null 2>> "$ERR" || true
-            done
-            export CADENTE_MEASURE_CHATS=0 CADENTE_MEASURE_TERMINALS=0 CADENTE_MEASURE_CLOSED_S=10 CADENTE_MEASURE_MIN_FRAMES=0 CADENTE_MEASURE_WARM_UP=0
-            for RUN in warm-beta warm-new beta-1 new-1 new-2 beta-2 new-3 beta-3 beta-4 new-4; do
-              OUT="$RUNNER_TEMP/p6-$RUN.out"
-              case "$RUN" in
-                warm-beta) measure "$OLD" "$OUT" "$RUNNER_TEMP/home-$RUN" beta || echo "::warning::the last beta's warm-up round did not finish" ;;
-                warm-new) measure "$NEW" "$OUT" "$RUNNER_TEMP/home-$RUN" || STATUS=$? ;;
-                beta-*) measure "$OLD" "$OUT" "$RUNNER_TEMP/home-$RUN" beta || echo "::warning::the last beta's run $RUN did not finish"
-                  P6_BETA="$P6_BETA,$OUT" ;;
-                new-*) measure "$NEW" "$OUT" "$RUNNER_TEMP/home-$RUN" || STATUS=$?
-                  P6_NEW="$P6_NEW,$OUT" ;;
-              esac
-            done
-            unset CADENTE_MEASURE_CHATS CADENTE_MEASURE_TERMINALS CADENTE_MEASURE_CLOSED_S CADENTE_MEASURE_MIN_FRAMES CADENTE_MEASURE_WARM_UP
-          fi
-          export P6_BETA P6_NEW SMOKE_PART="$PART"
-          if [ -n "$POWER" ]; then
-            sudo pkill -INT powermetrics || true
-            sleep 2
-            echo "powermetrics: $(wc -c < "$POWER" 2>/dev/null || echo 0) bytes"
-            head -c 600 "$RUNNER_TEMP/powermetrics.err" || true
-          fi
-          if [ "$PART" = full ]; then
-            echo "esta versão, rodada completa:"
-            cat "$RUNNER_TEMP/measure.out"
-          fi
-          for FILE in ${P6_BETA//,/ } ${P6_NEW//,/ }; do echo "$(basename "$FILE"):"; tail -1 "$FILE" || true; done
-          RESULT=0
-          python3 "$RUNNER_TEMP/scripts/smoke-measure.py" "$RUNNER_TEMP/measure.out" "$RUNNER_TEMP/measure.json" "$TARGET" \
-            "$POWER" || RESULT=$?
-          [ "$STATUS" = 0 ] || { echo "::error::the Core exited with $STATUS"; exit "$STATUS"; }
-          exit "$RESULT"
-
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: smoke-${{ matrix.target }}-${{ matrix.part }}
-          path: ${{ runner.temp }}/measure.json
-          if-no-files-found: ignore
+      - *smoke-debs-key
+      - *smoke-debs-restore
+      - *smoke-install
+      - *smoke-debs-save
+      - *smoke-launcher
+      - *smoke-measure
+      - *smoke-upload
 
   # W10 (ADR 0082): the macOS P6 asks for its runner when the run starts and waits for the package
   # there. A macOS arm64 runner often comes only after 5 or 10 minutes ("Due to capacity constraints,
@@ -1760,7 +1802,7 @@ jobs:
   # the start, that wait runs beside the package build. The runner waits idle for about 3 minutes, at
   # no cost; the Linux and Windows runners come at once and wait for their package as before.
   smoke-macos-p6:
-    name: smoke ${{ matrix.target }} ${{ matrix.part }}
+    name: perf ${{ matrix.target }} ${{ matrix.part }}
     needs: resolve
     if: *package-if
     runs-on: ${{ matrix.os }}
@@ -1774,7 +1816,7 @@ jobs:
     steps: *smoke-steps
 
   smoke-linux:
-    name: smoke ${{ matrix.target }} ${{ matrix.part }}
+    name: perf ${{ matrix.target }} ${{ matrix.part }}
     needs: [resolve, package-linux]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
@@ -1789,7 +1831,7 @@ jobs:
     steps: *smoke-steps
 
   smoke-windows:
-    name: smoke ${{ matrix.target }} ${{ matrix.part }}
+    name: perf ${{ matrix.target }} ${{ matrix.part }}
     needs: [resolve, package-windows]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
@@ -1805,8 +1847,8 @@ jobs:
 
   sign:
     # Holds the release key. Compiles only xtask (no third-party action, no shared cache) and packs
-    # the update payloads from the binaries the package jobs built. It runs beside the smoke tests:
-    # signing publishes nothing, and `publish` waits for both.
+    # the update payloads from the binaries the package jobs built. It runs beside the long measurement,
+    # which `publish` does not wait for (W10).
     name: sign the payloads and the feed
     needs: [resolve, package-macos, package-linux, package-windows]
     runs-on: ubuntu-latest
@@ -1891,10 +1933,11 @@ jobs:
 
   publish:
     # Holds the release token and compiles nothing. It runs only when the three systems are green
-    # (`report`), the packages passed the smoke tests and the payloads are signed. Only a run from main
+    # (`report`), the packages passed the basic smoke and the payloads are signed. Only a run from main
     # publishes; on another branch this job lists what it would publish.
     name: publish
-    needs: [resolve, report, sign, smoke-macos, smoke-macos-p6, smoke-linux, smoke-windows]
+    # W10: the basic smoke ran in each package job, which `sign` needs; the long measurement does not hold it.
+    needs: [resolve, report, sign]
     if: needs.report.outputs.green == 'true' && needs.resolve.outputs.publish == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -2025,12 +2068,69 @@ jobs:
           git commit -m "chore: bump cadente to v${RELEASE_VERSION}"
           git push
 
+  # W10, decisão 1 emendada (ADR 0082 §7): the verdict of the long measurement, P1, P2, P4, P5 and P6 on
+  # the three systems, as the commit status `native-ci/perf`. It holds nothing in this run; native-promote
+  # refuses a beta whose commit lacks it green, so the measurement gates the stable channel, as Zed's stable
+  # follows its nightly. Compiles nothing.
+  perf:
+    name: perf
+    needs: [resolve, smoke-macos, smoke-macos-p6, smoke-linux, smoke-windows]
+    if: always() && needs.resolve.result == 'success' && needs.resolve.outputs.skip != 'true' && needs.resolve.outputs.docs_only != 'true' && needs.resolve.outputs.release == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Record native-ci/perf
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PRIVATE_WRITE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
+          SHA: ${{ needs.resolve.outputs.sha }}
+          ON_MAIN: ${{ github.ref == 'refs/heads/main' && !inputs.warm_up }}
+        run: |
+          set -euo pipefail
+          echo "::add-mask::${PRIVATE_WRITE_TOKEN}"
+          gh api --paginate "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/attempts/${GITHUB_RUN_ATTEMPT}/jobs" \
+            --jq '.jobs[] | select(.name | startswith("perf ")) | [.name, (.conclusion // "cancelled")] | @tsv' \
+            > "$RUNNER_TEMP/perf.tsv"
+          # Six jobs: the full run and P6 on each system. One that did not run or did not pass fails the status.
+          TOTAL="$(wc -l < "$RUNNER_TEMP/perf.tsv" | tr -d ' ')"
+          PASSED="$(awk -F'\t' '$2 == "success"' "$RUNNER_TEMP/perf.tsv" | wc -l | tr -d ' ')"
+          if [ "$TOTAL" = 6 ] && [ "$PASSED" = 6 ]; then
+            STATE=success; DESCRIPTION="P1, P2, P4, P5 e P6 nos três sistemas"
+          else
+            STATE=failure
+            DESCRIPTION="reprovou: $(awk -F'\t' '$2 != "success" { printf "%s%s (%s)", sep, $1, $2; sep = ", " }' "$RUNNER_TEMP/perf.tsv")"
+            [ "$TOTAL" = 6 ] || DESCRIPTION="${DESCRIPTION}; ${TOTAL} de 6 jobs"
+          fi
+          {
+            echo "## native-ci/perf: ${STATE}"
+            echo
+            echo "A medição longa não segura o beta; a promoção para a estável exige este status verde (ADR 0082 §7)."
+            echo
+            echo "| Job | Resultado |"
+            echo "|---|---|"
+            awk -F'\t' '{ printf "| %s | %s |\n", $1, $2 }' "$RUNNER_TEMP/perf.tsv"
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$ON_MAIN" != "true" ]; then
+            echo "Ensaio: um run de main gravaria native-ci/perf=${STATE} (${DESCRIPTION}) em ${SHA}."
+            exit 0
+          fi
+          BODY="$(jq -cn --arg state "$STATE" --arg description "${DESCRIPTION:0:140}" --arg context "native-ci/perf" \
+            --arg url "https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" \
+            '{state: $state, target_url: $url, description: $description, context: $context}')"
+          curl -sf -X POST "https://api.github.com/repos/${PRIVATE_REPO}/statuses/${SHA}" \
+            -H "Authorization: Bearer ${PRIVATE_WRITE_TOKEN}" -H "Accept: application/vnd.github+json" \
+            -d "$BODY" > /dev/null
+          echo "native-ci/perf: ${STATE} (${DESCRIPTION})"
+
   # W1 (ADR 0082): compiles nothing. Stores the package logs and timings in the private ci-logs branch,
   # writes the run summary (duration, preparation, cache, compile and test time of each job) and keeps
   # one line per main run there, from which it takes the p50 and p90 of the last 20 runs.
   summary:
     name: summary
-    needs: [resolve, lint, tests, from-archive, report, package-macos, package-linux, package-windows, smoke-macos, smoke-macos-p6, smoke-linux, smoke-windows, sign, publish]
+    needs: [resolve, lint, tests, from-archive, report, package-macos, package-linux, package-windows, smoke-macos, smoke-macos-p6, smoke-linux, smoke-windows, sign, publish, perf]
     if: always() && needs.resolve.result == 'success' && needs.resolve.outputs.skip != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10

@@ -9,7 +9,8 @@ P6 reads two more lists of `--measure` outputs, comma-separated, from the enviro
 (the last published beta) and P6_NEW (this version), measured alternately on this runner after
 one discarded round of each (B A A B A B B A). SMOKE_PART says which job of the system this is
 (W10, ADR 0082): `full` judges the full run (P1, P2, P4, P5 and D3), `p6` only the rounds of P6;
-without it, both. The first `--measure` on a runner is cold: in an A/A test of the same
+without it, both. `basic` is the smoke of the package job, the one that holds the beta: only D1
+(the tray, on macOS) and D3 (a report, frames drawn); the long measurement judges the rest. The first `--measure` on a runner is cold: in an A/A test of the same
 code (diag-p5, run 41518156298) it spent 359 ms/s of CPU in the script and the next five 740 to
 868. Zed's gpui-bench skill (`.agents/skills/gpui-bench/SKILL.md`): do not compare a cold
 baseline with a warm candidate, and alternate baseline and candidate runs when results are noisy.
@@ -95,7 +96,7 @@ for runs in p6.values():
 if report:
     json.dump(report, open(final, "w"))
 
-summary.write(f"### {system} ({target}){' P6' if part == 'p6' else ''}\n\n")
+summary.write(f"### {system} ({target}){' P6' if part == 'p6' else ' smoke básico' if part == 'basic' else ''}\n\n")
 if not report and part != "p6":
     summary.write("O `--measure` não terminou; estados medidos até parar:\n\n")
 if part != "p6":
@@ -161,20 +162,21 @@ else:
             failures.append(f"D1: a bandeja não está na barra com a base: {tray}")
     if frames <= 0:
         failures.append("D3: nenhum quadro desenhado")
-    if report.get("closedQuiet") is not True:
-        failures.append("P4: a janela destruída passou de 1% de CPU ou abriu processo filho")
-    if report.get("closedBelowOpen") is not True:
-        failures.append("P5: a memória com a janela destruída não ficou abaixo da aberta")
-    summary.write(
-        f"\nP5 por ciclo depois do aquecimento: {churn.get('cycleGrowthPercent')}% (média "
-        f"{churn.get('growthPercent')}%, ponta de baixo do intervalo de 95% "
-        f"{churn.get('growthLowPercent')}%); memória ao fim de cada um: {churn.get('endsKib')} KiB.\n"
-    )
-    if churn.get("pass") is not True:
-        failures.append(
-            f"P5: cada ciclo de sessões cresceu {churn.get('cycleGrowthPercent')}%, e o intervalo de "
-            f"95% da média começa em {churn.get('growthLowPercent')}% (> 5%)"
+    if part != "basic":
+        if report.get("closedQuiet") is not True:
+            failures.append("P4: a janela destruída passou de 1% de CPU ou abriu processo filho")
+        if report.get("closedBelowOpen") is not True:
+            failures.append("P5: a memória com a janela destruída não ficou abaixo da aberta")
+        summary.write(
+            f"\nP5 por ciclo depois do aquecimento: {churn.get('cycleGrowthPercent')}% (média "
+            f"{churn.get('growthPercent')}%, ponta de baixo do intervalo de 95% "
+            f"{churn.get('growthLowPercent')}%); memória ao fim de cada um: {churn.get('endsKib')} KiB.\n"
         )
+        if churn.get("pass") is not True:
+            failures.append(
+                f"P5: cada ciclo de sessões cresceu {churn.get('cycleGrowthPercent')}%, e o intervalo de "
+                f"95% da média começa em {churn.get('growthLowPercent')}% (> 5%)"
+            )
 
 # P6: energy (CPU time where the runner has no energy counter) of each state, per second: the
 # mean of this version's runs against the mean of the last beta's, measured alternately here.
@@ -272,6 +274,8 @@ if beta_runs and new_runs:
             )
 elif part == "full":
     summary.write("\nO P6 mede no outro job deste sistema (`p6`).\n")
+elif part == "basic":
+    summary.write("\nA medição longa (P1, P2, P4, P5 e P6) fica nos jobs `perf` deste run.\n")
 elif report or part == "p6":
     summary.write("\nSem medição da última beta neste runner: o P6 não comparou.\n")
 

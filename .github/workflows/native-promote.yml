@@ -2,6 +2,10 @@ name: Native Promote to Stable
 
 # Promotes a tested native beta: builds the same commit as the stable version of the crate.
 # (The version is compiled into the app, so a promotion is a rebuild of the commit, not a rename.)
+#
+# W10, decisão 1 emendada (ADR 0082 §7): the beta leaves without waiting for the long measurement
+# (P1, P2, P4, P5 and P6), as Zed's nightly does; the stable needs it. A beta whose commit lacks a green
+# `native-ci/perf` is refused here. A run from another branch checks and starts nothing.
 
 on:
   workflow_dispatch:
@@ -22,12 +26,29 @@ jobs:
       - name: Find the commit of the beta and start the stable build
         env:
           GH_TOKEN: ${{ secrets.CATARINA_RELEASE_TOKEN }}
+          PRIVATE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
+          PRIVATE_REPO: jeancatarina/catarina-claude
           BETA: ${{ inputs.beta_version }}
         run: |
+          echo "::add-mask::${PRIVATE_TOKEN}"
           set -euo pipefail
           printf '%s' "$BETA" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+-beta\.[0-9]+$' || { echo "::error::Expected X.Y.Z-beta.N, got: $BETA"; exit 1; }
           BODY="$(gh release view "v${BETA}" --repo "$GITHUB_REPOSITORY" --json body --jq .body)"
           SHA="$(printf '%s\n' "$BODY" | sed -n 's/^commit: \([0-9a-f]\{40\}\)$/\1/p' | head -1)"
           [ -n "$SHA" ] || { echo "::error::v${BETA} does not record its commit"; exit 1; }
+          # The newest native-ci/perf of the commit (the API lists the statuses newest first).
+          PERF="$(curl -sf "https://api.github.com/repos/${PRIVATE_REPO}/commits/${SHA}/statuses?per_page=100" \
+            -H "Authorization: Bearer ${PRIVATE_TOKEN}" -H "Accept: application/vnd.github+json" \
+            | jq -r '[.[] | select(.context == "native-ci/perf")][0] | if . == null then "nenhum" else "\(.state)\t\(.description // "")\t\(.target_url // "")" end')" \
+            || { echo "::error::could not read the statuses of ${SHA}"; exit 1; }
+          if [ "${PERF%%$'\t'*}" != success ]; then
+            echo "::error::v${BETA} (commit ${SHA}) has no green native-ci/perf (${PERF//$'\t'/ · }); the stable needs the long measurement (ADR 0082 §7)"
+            exit 1
+          fi
+          echo "native-ci/perf: ${PERF//$'\t'/ · }"
+          if [ "$GITHUB_REF" != refs/heads/main ]; then
+            echo "Ensaio: um run de main promoveria v${BETA} (commit ${SHA})."
+            exit 0
+          fi
           echo "Promoting v${BETA} (commit ${SHA})"
           gh workflow run native-release.yml --repo "$GITHUB_REPOSITORY" -f sha="$SHA" -f channel=stable

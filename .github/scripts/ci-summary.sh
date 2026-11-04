@@ -15,6 +15,7 @@ gh api --paginate "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/atte
   --jq '.jobs[]' | jq -s '.' > "$jobs_json"
 run_json="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}")"
 run_start="$(printf '%s' "$run_json" | jq -r '.run_started_at | fromdate')"
+run_created="$(printf '%s' "$run_json" | jq -r '.created_at | fromdate')"
 now="$(date +%s)"
 
 min() { awk -v s="$1" 'BEGIN { if (s == "" || s == "-") print "—"; else printf "%d min %02d s", s / 60, s % 60 }'; }
@@ -63,8 +64,21 @@ echo
 
 publish_end="$(jq -r '[.[] | select(.name == "publish" and .conclusion == "success") | .completed_at | fromdate] | max // empty' "$jobs_json")"
 duration=$((now - run_start))
+# W10 (ADR 0082): the beta's time, from the dispatch to the end of publish, and the runner queue on its
+# critical path: from publish back, each step goes to the job that ended last before it was created,
+# and each job of that chain adds its wait for a runner.
+publish_s=""; queue_s=""
 if [ -n "$publish_end" ]; then
-  echo "Do início do run ao fim do publish: $(min $((publish_end - run_start)))."
+  publish_s=$((publish_end - run_created))
+  # `perf` and the cache guard hold nothing, so they are not links of the chain.
+  queue_s="$(jq -r '[.[] | select(.started_at != null and .completed_at != null and .conclusion != "skipped")
+      | select((.name | startswith("perf")) or .name == "cache guard" | not)
+      | {name, c: (.created_at | fromdate), s: (.started_at | fromdate), e: (.completed_at | fromdate)}] as $j
+    | def walk_back($cur; $q):
+        ($j | map(select(.name != $cur.name and .e <= $cur.c + 10)) | max_by(.e)) as $prev
+        | if $prev == null then $q + ($cur.s - $cur.c) else walk_back($prev; $q + ($cur.s - $cur.c)) end;
+      ($j | map(select(.name == "publish")) | first) as $p | if $p == null then "" else walk_back($p; 0) end' "$jobs_json")"
+  echo "Do disparo ao fim do publish: $(min "$publish_s"), dos quais $(min "$queue_s") de fila por runner no caminho crítico; sem a fila, $(min $((publish_s - queue_s)))."
 fi
 echo "Duração do run até este resumo: $(min "$duration")."
 echo
@@ -83,8 +97,8 @@ if [ -n "${HISTORY_DIR:-}" ] && [ -d "$HISTORY_DIR" ]; then
   mkdir -p "$(dirname "$history")"
   touch "$history"
   if [ "${RECORD_HISTORY:-false}" = "true" ]; then
-    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$GITHUB_RUN_ID" "$SHA" "$run_start" "$duration" \
-      "${COMPILED:-true}" "${TOOLCHAIN_CHANGED:-false}" "$cache_none" >> "$history"
+    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$GITHUB_RUN_ID" "$SHA" "$run_start" "$duration" \
+      "${COMPILED:-true}" "${TOOLCHAIN_CHANGED:-false}" "$cache_none" "$publish_s" "$queue_s" >> "$history"
   fi
   counted="$(awk -F'\t' '$5 == "true" && $6 == "false"' "$history" | tail -20)"
   n="$(printf '%s' "$counted" | grep -c . || true)"
@@ -101,5 +115,15 @@ if [ -n "${HISTORY_DIR:-}" ] && [ -d "$HISTORY_DIR" ]; then
     echo "p50 $(min "$p50") e p90 $(min "$p90") nas últimas ${n} rodadas que compilaram (meta: p90 de até 10 min)."
     echo "Fora da conta: ${docs} sem código e ${tool} com troca de toolchain, entre as 20 últimas de cada tipo."
     echo "Rodadas com algum job sem cache: ${cold:-nenhuma}."
+  fi
+  # W10: the runs that published a beta (columns 8 and 9 since W10), from the dispatch to publish, minus
+  # the runner queue on the critical path; the toolchain change stays out.
+  beta="$(awk -F'\t' '$6 == "false" && $8 != "" && $9 != "" { print $1 "\t" ($8 - $9) }' "$history" | tail -20)"
+  nb="$(printf '%s' "$beta" | grep -c . || true)"
+  if [ "$nb" -gt 0 ]; then
+    stats="$(printf '%s\n' "$beta" | cut -f2 | sort -n | awk '{ a[NR] = $1 } END {
+      p50 = a[int((NR - 1) * 0.5) + 1]; i = (NR - 1) * 0.9; lo = int(i) + 1; hi = (lo < NR) ? lo + 1 : lo;
+      p90 = a[lo] + (a[hi] - a[lo]) * (i - int(i)); printf "%d %d", p50, p90 }')"
+    echo "Do disparo ao publish, sem a fila por runner: p50 $(min "${stats% *}") e p90 $(min "${stats#* }") nas últimas ${nb} rodadas que publicaram beta (meta: p90 de até 10 min; runs $(printf '%s\n' "$beta" | cut -f1 | paste -sd, -))."
   fi
 fi
