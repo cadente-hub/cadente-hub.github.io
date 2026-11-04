@@ -977,25 +977,37 @@ jobs:
             exit 1
           fi
 
+      # A green run keeps a summary too (one line per test and the totals), so that a passing test is
+      # provable from ci-logs and not only a failing one; the full log stays failure-only.
       - name: Seal the build log
-        if: failure() || cancelled()
+        if: always()
         run: |
           mkdir -p "$RUNNER_TEMP/sealed"
           FAILED_STEP="passo desconhecido"
           [ -f "$RUNNER_TEMP/failed_step" ] && FAILED_STEP="$(cat "$RUNNER_TEMP/failed_step")"
           {
-            echo "native-ci ${JOB_KIND} ${MATRIX_OS} ${SHA}: falhou em ${FAILED_STEP}"
+            if [ "${{ job.status }}" = "success" ]; then
+              echo "native-ci ${JOB_KIND} ${MATRIX_OS} ${SHA}: passou (resumo dos testes)"
+            else
+              echo "native-ci ${JOB_KIND} ${MATRIX_OS} ${SHA}: falhou em ${FAILED_STEP}"
+            fi
             echo "run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
             echo
-            cat "$RUNNER_TEMP/ci-build.log" 2>/dev/null || true
+            if [ "${{ job.status }}" = "success" ]; then
+              sed 's/\x1b\[[0-9;]*m//g' "$RUNNER_TEMP/ci-build.log" 2>/dev/null \
+                | grep -E '^ *(PASS|FAIL|SLOW|FLAKY|LEAK|SKIP|TIMEOUT|Starting|Summary|Finished) ' || true
+            else
+              cat "$RUNNER_TEMP/ci-build.log" 2>/dev/null || true
+            fi
           } > "$RUNNER_TEMP/sealed.log"
           node "$RUNNER_TEMP/scripts/ci-log-crypto.cjs" encrypt "$RUNNER_TEMP/scripts/ci-log-key.pub.pem" \
             "$RUNNER_TEMP/sealed.log" "$RUNNER_TEMP/sealed/ci-log.enc.json"
           rm -f "$RUNNER_TEMP/sealed.log"
-          echo "Falhou em ${FAILED_STEP}; o log completo vai para o ci-logs do repositório privado."
+          if [ "${{ job.status }}" = "success" ]; then echo "Passou; o resumo dos testes vai para o ci-logs do repositório privado."; else
+            echo "Falhou em ${FAILED_STEP}; o log completo vai para o ci-logs do repositório privado."; fi
 
       - name: Upload the sealed log
-        if: failure() || cancelled()
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ci-log-${{ matrix.os }}-${{ matrix.kind }}${{ matrix.part && format('-{0}', matrix.part) || '' }}
