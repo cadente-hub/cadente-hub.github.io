@@ -1898,7 +1898,7 @@ jobs:
         run: |
           cp _builder/.github/scripts/clone-private.sh "$RUNNER_TEMP/clone-private.sh"
           rm -rf _builder
-          bash "$RUNNER_TEMP/clone-private.sh" src "${{ needs.resolve.outputs.sha }}"
+          CLONE_DEPTH=400 bash "$RUNNER_TEMP/clone-private.sh" src "${{ needs.resolve.outputs.sha }}"
 
       # Optimized: signing runs minisign's scrypt and the best gzip level once per payload, and the
       # unoptimized build spent 149 s there (run 41396863235) on the release's critical path.
@@ -1931,13 +1931,24 @@ jobs:
       - name: Release notes
         env:
           SHA: ${{ needs.resolve.outputs.sha }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
+          # The notes are the commit subjects since the last release (the "commit:" line of its body),
+          # because a fixed text made every release say the same thing. Only feat, fix and perf reach
+          # the customer; the rest is internal.
+          PREV="$(gh api "repos/${GITHUB_REPOSITORY}/releases?per_page=30" --jq '[.[].body | capture("(?m)^commit: (?<c>[0-9a-f]{40})$").c][0] // ""')"
+          if [ -n "$PREV" ] && git -C src cat-file -e "${PREV}^{commit}" 2>/dev/null; then RANGE="${PREV}..${SHA}"; else RANGE="${SHA}"; fi
+          git -C src log --no-merges --format=%s "$RANGE" -n 200 > "$RUNNER_TEMP/subjects.txt"
           {
             echo "Cadente ${RELEASE_VERSION}"
             echo
-            if [ -f src/docs/release/notes.md ]; then sed '1d' src/docs/release/notes.md; fi
-            echo
+            for KIND in "feat:Novidades" "fix|perf:Correções e melhorias"; do
+              PATTERN="${KIND%%:*}"; TITLE="${KIND#*:}"
+              LINES="$(sed -nE "s/^(${PATTERN})(\([^)]*\))?: (.*)$/- \3/p" "$RUNNER_TEMP/subjects.txt" | awk '!seen[$0]++' | head -40)"
+              if [ -n "$LINES" ]; then echo "### ${TITLE}"; echo; echo "$LINES"; echo; fi
+            done
+            if ! grep -qE '^(feat|fix|perf)' "$RUNNER_TEMP/subjects.txt"; then echo "Ajustes internos, sem mudança visível."; echo; fi
             echo "commit: ${SHA}"
             echo
             echo "---"

@@ -31,7 +31,8 @@ KEYS
 export GIT_SSH_COMMAND="ssh -i '$ssh_dir/key' -o IdentitiesOnly=yes -o UserKnownHostsFile='$ssh_dir/known_hosts' -o StrictHostKeyChecking=yes -o BatchMode=yes"
 export GIT_TERMINAL_PROMPT=0
 
-# Only the commit, without history (ADR 0082 W6): nothing that builds or tests reads the checkout's git
+# Only the commit, without history unless CLONE_DEPTH asks for it (the release notes read the commits
+# since the last release); ADR 0082 W6: nothing that builds or tests reads the checkout's git
 # history, and the full clone took 10 to 13 s on Windows.
 mkdir -p "$dest"
 git init --quiet "$dest"
@@ -40,7 +41,7 @@ git -C "$dest" remote add origin "git@github.com:${PRIVATE_REPO}.git"
 # growing, jittered wait before giving up.
 fetched=0
 for attempt in 1 2 3 4 5; do
-  if git -C "$dest" fetch --quiet --depth=1 origin "$sha" >/dev/null 2>&1; then
+  if git -C "$dest" fetch --quiet --depth="${CLONE_DEPTH:-1}" origin "$sha" >/dev/null 2>&1; then
     fetched=1
     break
   fi
