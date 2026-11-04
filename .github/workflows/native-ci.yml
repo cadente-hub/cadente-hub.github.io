@@ -1795,16 +1795,14 @@ jobs:
       - *smoke-measure
       - *smoke-upload
 
-  # W10 (ADR 0082): the macOS P6 asks for its runner when the run starts and waits for the package
-  # there. A macOS arm64 runner often comes only after 5 or 10 minutes ("Due to capacity constraints,
-  # jobs targeting macOS arm64 runners may experience longer queue times"): the P6, the longest job,
-  # waited 5.2 min after its package in run 41690859507 and 5.0 min in run 41706787306. Asked for at
-  # the start, that wait runs beside the package build. The runner waits idle for about 3 minutes, at
-  # no cost; the Linux and Windows runners come at once and wait for their package as before.
+  # W10 (ADR 0082): the macOS P6 asked for its runner when the run started, while it held `publish`, so
+  # the macOS arm64 queue ran beside the package build. Now that it holds nothing (decisão 1 emendada),
+  # it waits for the package like the full run: asked for at the start it took the fifth macOS runner of
+  # the plan Free from the lint, tests, ruler and package of the next run (run 41758027473, with run
+  # 41757746180 of main beside it, queued the macOS tests 3.6 min and the ruler 7.1 min).
   smoke-macos-p6:
     name: perf ${{ matrix.target }} ${{ matrix.part }}
-    needs: resolve
-    if: *package-if
+    needs: [resolve, package-macos]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 45
     permissions: *smoke-permissions
