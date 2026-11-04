@@ -36,7 +36,18 @@ export GIT_TERMINAL_PROMPT=0
 mkdir -p "$dest"
 git init --quiet "$dest"
 git -C "$dest" remote add origin "git@github.com:${PRIVATE_REPO}.git"
-if ! git -C "$dest" fetch --quiet --depth=1 origin "$sha" >/dev/null 2>&1; then
+# Many jobs open an SSH connection to GitHub in the same second, and a few are refused: retry with a
+# growing, jittered wait before giving up.
+fetched=0
+for attempt in 1 2 3 4 5; do
+  if git -C "$dest" fetch --quiet --depth=1 origin "$sha" >/dev/null 2>&1; then
+    fetched=1
+    break
+  fi
+  echo "::warning::Fetch of $sha failed (attempt $attempt of 5)"
+  sleep $((attempt * 4 + RANDOM % 5))
+done
+if [ "$fetched" != 1 ]; then
   echo "::error::Could not fetch commit $sha from the private repository with the deploy key"
   exit 1
 fi
