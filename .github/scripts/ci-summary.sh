@@ -67,9 +67,13 @@ duration=$((now - run_start))
 # W10 (ADR 0082): the beta's time, from the dispatch to the end of publish, and the runner queue on its
 # critical path: from publish back, each step goes to the job that ended last before it was created,
 # and each job of that chain adds its wait for a runner.
+# The run's wait for the previous run of its group (`concurrency`) stays apart, as ADR 0082 §2 says: the
+# count starts when the first job was created.
 publish_s=""; queue_s=""
-if [ -n "$publish_end" ]; then
-  publish_s=$((publish_end - run_created))
+first_job="$(jq -r '[.[] | .created_at | fromdate] | min // empty' "$jobs_json")"
+if [ -n "$publish_end" ] && [ -n "$first_job" ]; then
+  publish_s=$((publish_end - first_job))
+  [ "$first_job" -gt "$run_created" ] && echo "Espera pelo run anterior do mesmo grupo: $(min $((first_job - run_created)))."
   # `perf` and the cache guard hold nothing, so they are not links of the chain.
   queue_s="$(jq -r '[.[] | select(.started_at != null and .completed_at != null and .conclusion != "skipped")
       | select((.name | startswith("perf")) or .name == "cache guard" | not)
@@ -78,7 +82,7 @@ if [ -n "$publish_end" ]; then
         ($j | map(select(.name != $cur.name and .e <= $cur.c + 10)) | max_by(.e)) as $prev
         | if $prev == null then $q + ($cur.s - $cur.c) else walk_back($prev; $q + ($cur.s - $cur.c)) end;
       ($j | map(select(.name == "publish")) | first) as $p | if $p == null then "" else walk_back($p; 0) end' "$jobs_json")"
-  echo "Do disparo ao fim do publish: $(min "$publish_s"), dos quais $(min "$queue_s") de fila por runner no caminho crítico; sem a fila, $(min $((publish_s - queue_s)))."
+  echo "Do disparo (primeiro job) ao fim do publish: $(min "$publish_s"), dos quais $(min "$queue_s") de fila por runner no caminho crítico; sem a fila, $(min $((publish_s - queue_s)))."
 fi
 echo "Duração do run até este resumo: $(min "$duration")."
 echo
