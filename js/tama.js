@@ -2,7 +2,8 @@
 // is loose over the panes, with no window: he floats, wanders, gets hungry and dirty, and the visitor drags him,
 // feeds him (f) and gives him a bath (b). He is drawn in ANSI half blocks (▀ ▄), two sprite pixels per character,
 // from the app's sprite sheet in the site palette.
-import sheet from './cadu.sprites.json' with { type: 'json' };
+// The pet is drawn in half blocks, so it uses the sheet of 16 px, with its own face (ADR 0087 §4.3).
+import sheet from './cadu16.sprites.json' with { type: 'json' };
 import { COLORS, MUD } from './cadu-colors.mjs';
 import { t as tr } from './i18n.js';
 
@@ -11,7 +12,7 @@ const say = key => tr(`tama.${key}`);
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const color = ch => (ch === '.' ? null : MUD[ch] ?? COLORS[sheet.palette[ch]]);
 // A frown for the hungry face, drawn over the resting frame.
-const FRAMES = { ...sheet.frames, hungry: sheet.frames.rest.map((r, y) => (y === 10 ? '....SGGKKGGD....' : y === 11 ? '.....SKGGKD.....' : r)) };
+const FRAMES = { ...sheet.frames, hungry: sheet.frames.error };
 // Where mud sticks, in order: more dirt, more spots. Every spot sits on Cadu's body.
 const SPOTS = [[6, 5], [10, 9], [2, 7], [13, 8], [5, 9], [9, 5], [10, 10], [3, 8], [7, 11], [10, 6]];
 const MAX = 5;
@@ -21,9 +22,9 @@ function ansi(rows, dirt) {
   const px = rows.map(r => [...r]);
   SPOTS.slice(0, dirt * 2).forEach(([x, y], i) => { if (px[y]?.[x] && px[y][x] !== '.') px[y][x] = i % 2 ? 'N' : 'M'; });
   const out = [];
-  for (let y = 0; y < 16; y += 2) {
+  for (let y = 0; y < sheet.size; y += 2) {
     let line = '';
-    for (let x = 0; x < 16; x++) {
+    for (let x = 0; x < sheet.size; x++) {
       const t = color(px[y][x]), b = color(px[y + 1][x]);
       line += !t && !b ? ' ' : !b ? `<i style="color:${t}">▀</i>` : !t ? `<i style="color:${b}">▄</i>` : `<i style="color:${t};background:${b}">▀</i>`;
     }

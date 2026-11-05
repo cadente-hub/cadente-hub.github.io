@@ -12,14 +12,18 @@ import { fileURLToPath } from 'node:url';
 import { COLORS } from '../js/cadu-colors.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const sheet = JSON.parse(fs.readFileSync(path.join(root, 'js/cadu.sprites.json'), 'utf8'));
+// Cadu C (ADR 0087 §4.3): a sheet of 32 px for the marks and a sheet of 16 px, with its own face, for the 16 px icon.
+const load = f => JSON.parse(fs.readFileSync(path.join(root, f), 'utf8'));
+const sheet = load('js/cadu.sprites.json'), sheet16 = load('js/cadu16.sprites.json');
+const N = sheet.size;
+const colorAtIn = sh => (x, y) => { const r = sh.frames.rest[y]?.[x]; return r && r !== '.' ? COLORS[sh.palette[r]] : null; };
+const colorAt = colorAtIn(sheet);
 const rest = sheet.frames.rest;
-const colorAt = (x, y) => (rest[y]?.[x] && rest[y][x] !== '.' ? COLORS[sheet.palette[rest[y][x]]] : null);
 
 // SVG: one rect per pixel run, no anti-aliasing.
 const rects = [];
 rest.forEach((row, y) => {
-  for (let x = 0; x < 16; x++) {
+  for (let x = 0; x < N; x++) {
     if (row[x] === '.') continue;
     let end = x;
     while (row[end + 1] === row[x]) end++;
@@ -28,7 +32,7 @@ rest.forEach((row, y) => {
   }
 });
 const body = rects.join('');
-fs.writeFileSync(path.join(root, 'assets/logo-symbol.svg'), `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" shape-rendering="crispEdges"><title>Cadente</title>${body}</svg>\n`);
+fs.writeFileSync(path.join(root, 'assets/logo-symbol.svg'), `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${N} ${N}" shape-rendering="crispEdges"><title>Cadente</title>${body}</svg>\n`);
 
 // The pages draw the same mark inline from assets/logo-symbol.svg (scripts/i18n/pages.mjs, {{@brand}}).
 
@@ -45,17 +49,18 @@ function png(W, H, pixel) {
   return Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), chunk('IHDR', ihdr), chunk('IDAT', zlib.deflateSync(raw, { level: 9 })), chunk('IEND', Buffer.alloc(0))]);
 }
 // Cadu at `cell` pixels per sprite pixel, centred, over a background function.
-const cadu = (W, H, cell, bg) => png(W, H, (x, y) => {
-  const ox = Math.floor((W - 16 * cell) / 2), oy = Math.floor((H - 16 * cell) / 2);
-  const c = colorAt(Math.floor((x - ox) / cell), Math.floor((y - oy) / cell));
+const cadu = (W, H, cell, bg, sh = sheet) => png(W, H, (x, y) => {
+  const n = sh.size, at = colorAtIn(sh);
+  const ox = Math.floor((W - n * cell) / 2), oy = Math.floor((H - n * cell) / 2);
+  const c = at(Math.floor((x - ox) / cell), Math.floor((y - oy) / cell));
   return x >= ox && y >= oy && c ? [...hex(c), 255] : bg(x, y);
 });
 const clear = () => [0, 0, 0, 0];
 const black = () => [0, 0, 0, 255];
 
-fs.writeFileSync(path.join(root, 'assets/favicon-32.png'), cadu(32, 32, 2, clear));
-fs.writeFileSync(path.join(root, 'assets/apple-touch-icon.png'), cadu(180, 180, 10, black));
-const icons = [[16, 1], [32, 2], [48, 3]].map(([s, c]) => [s, cadu(s, s, c, clear)]);
+fs.writeFileSync(path.join(root, 'assets/favicon-32.png'), cadu(32, 32, 1, clear));
+fs.writeFileSync(path.join(root, 'assets/apple-touch-icon.png'), cadu(180, 180, 5, black));
+const icons = [[16, 1, sheet16], [32, 1, sheet], [48, 3, sheet16]].map(([s, c, sh]) => [s, cadu(s, s, c, clear, sh)]);
 const head = Buffer.alloc(6 + 16 * icons.length);
 head.writeUInt16LE(0, 0); head.writeUInt16LE(1, 2); head.writeUInt16LE(icons.length, 4);
 let offset = head.length;
@@ -70,7 +75,7 @@ fs.writeFileSync(path.join(root, 'assets/favicon.ico'), Buffer.concat([head, ...
 const glow = hex(COLORS.body);
 // The share card is linked by absolute URL from the meta tags, so it ships from public/ as is.
 fs.mkdirSync(path.join(root, 'public/assets'), { recursive: true });
-fs.writeFileSync(path.join(root, 'public/assets/og-image.png'), cadu(1200, 630, 24, (x, y) => {
+fs.writeFileSync(path.join(root, 'public/assets/og-image.png'), cadu(1200, 630, 12, (x, y) => {
   const dx = (x - 600) / 150, dy = (y - 315) / 150, k = 0.32 * Math.exp(-(dx * dx + dy * dy) / 2);
   return [...glow.map(c => Math.round(c * k)), 255];
 }));

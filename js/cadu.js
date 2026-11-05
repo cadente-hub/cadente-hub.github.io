@@ -1,5 +1,5 @@
 // Cadu, the Cadente mascot and app icon. The art is the app's own sprite sheet:
-// 16×16 frames of role characters, drawn here as one SVG path per colour role.
+// 32×32 frames of role characters (Cadu C, ADR 0087), drawn here as one SVG path per colour role.
 import sheet from './cadu.sprites.json' with { type: 'json' };
 import { COLORS } from './cadu-colors.mjs';
 
@@ -21,7 +21,7 @@ export function frameSVG(name, cls = 'cadu') {
       x = end + 1;
     }
   });
-  return `<svg class="${cls}" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">${ORDER.filter(r => paths[r]).map(r => `<path fill="${COLORS[r]}" d="${paths[r]}"/>`).join('')}</svg>`;
+  return `<svg class="${cls}" viewBox="0 0 ${sheet.size} ${sheet.size}" shape-rendering="crispEdges" aria-hidden="true">${ORDER.filter(r => paths[r]).map(r => `<path fill="${COLORS[r]}" d="${paths[r]}"/>`).join('')}</svg>`;
 }
 
 const cache = {};
