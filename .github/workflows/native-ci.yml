@@ -1949,7 +1949,7 @@ jobs:
             echo
             for KIND in "feat:Novidades" "fix|perf:Correções e melhorias"; do
               PATTERN="${KIND%%:*}"; TITLE="${KIND#*:}"
-              LINES="$(sed -nE "s/^(${PATTERN})(\([^)]*\))?: (.*)$/- \3/p" "$RUNNER_TEMP/subjects.txt" | awk -v table="$DONE_VERBS" 'BEGIN{n=split(table,t," ");for(i=1;i<=n;i++){split(t[i],kv,"=");m[kv[1]]=kv[2]}} {w=$2; if(w in m)$2=m[w]} !seen[$0]++' | head -40)"
+              LINES="$(sed -nE "s/^(${PATTERN})(\([^)]*\))?: (.*)$/- \3/p" "$RUNNER_TEMP/subjects.txt" | awk -v table="$DONE_VERBS" 'BEGIN{n=split(table,t," ");for(i=1;i<=n;i++){split(t[i],kv,"=");m[kv[1]]=kv[2];lk=tolower(kv[1]);lv=tolower(kv[2]);m[lk]=lv}} function done(w,  r){if(w in m)return m[w]; if(w ~ /^[A-ZÀ-Ú][a-zà-ú]+(que)$/ && length(w)>5){return substr(w,1,length(w)-3) "cado"} if(w ~ /^[A-ZÀ-Ú][a-zà-ú]+(gue)$/ && length(w)>5){return substr(w,1,length(w)-3) "gado"} if(w ~ /^[A-ZÀ-Ú][a-zà-ú]{3,}e$/){return substr(w,1,length(w)-1) "ado"} return w} {$2=done($2); for(i=3;i<NF;i++){if($i=="e" && ($(i+1) in m))$(i+1)=m[$(i+1)]}} !seen[$0]++' | head -40)"
               if [ -n "$LINES" ]; then echo "### ${TITLE}"; echo; echo "$LINES"; echo; fi
             done
             if ! grep -qE '^(feat|fix|perf)' "$RUNNER_TEMP/subjects.txt"; then echo "Ajustes internos, sem mudança visível."; echo; fi
