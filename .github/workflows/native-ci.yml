@@ -146,7 +146,8 @@ jobs:
           echo "skip=false" >> "$GITHUB_OUTPUT"
 
       # W2 (ADR 0082): the diff from the last ancestor with the three statuses green. When it touches
-      # only docs/ (but docs/conformance/, which a launcher test reads), design/ or the root .md files,
+      # only docs/ (but docs/conformance/, which a launcher test reads), design/, .claude/ (the agents'
+      # skills and their scripts, which cargo never reads) or the root .md files,
       # and no include_str!, include_bytes! or rerun-if-changed names a changed file, nothing compiles
       # and no beta leaves. Warp's ci.yml (`needs-build` of dorny/paths-filter) and Zed's run_tests.yml
       # (`orchestrate`) skip the same way, listing the documents they know.
@@ -185,7 +186,7 @@ jobs:
           DOCS_ONLY=false
           if [ "$CHANNEL" = "beta" ] && [ -n "$BASE" ] && [ "$FORCE_BUILD" != "true" ]; then
             CHANGED="$(git diff --no-renames --name-only "$BASE" "$SHA")"
-            CODE="$(printf '%s\n' "$CHANGED" | grep -vE '^(docs/|design/|[^/]+\.md$)' | grep -c . || true)"
+            CODE="$(printf '%s\n' "$CHANGED" | grep -vE '^(docs/|design/|\.claude/|[^/]+\.md$)' | grep -c . || true)"
             CONFORMANCE="$(printf '%s\n' "$CHANGED" | grep -c '^docs/conformance/' || true)"
             if [ -n "$CHANGED" ] && [ "$CODE" = 0 ] && [ "$CONFORMANCE" = 0 ]; then
               READS="$(grep -rhE --include='*.rs' 'include_(str|bytes)!|rerun-if-changed' . 2>/dev/null || true)"
