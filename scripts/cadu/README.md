@@ -7,3 +7,7 @@ used here. Then `node scripts/brand-assets.mjs` redraws the logo, favicons and s
 the same two sheets to `crates/app/assets/brand/`.
 
 Poses are parameters of `Pose` in `caduframes.py`; `variants.py` holds the body shape (variant C).
+
+`python3 -B scripts/cadu/sideframes.py` writes `js/cadu-side.sprites.json`: the five short sidebar
+acts from ADR 0090. It imports the same variant C and reuses the approved Chat wave, sleep and
+twinkle frames byte for byte; it is deliberately unrelated to the plugin generator mascot.
