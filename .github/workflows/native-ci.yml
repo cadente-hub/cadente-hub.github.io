@@ -134,7 +134,13 @@ jobs:
           fi
 
           # The clone stays for the next steps; it has every commit and tree, and the blobs of $SHA.
-          git clone --filter=blob:none "https://x-access-token:${PRIVATE_TOKEN}@github.com/${PRIVATE_REPO}.git" "$RUNNER_TEMP/private" >/dev/null 2>&1
+          # Y13 (ADR 0091): a refused or dropped connection is not the commit's fault: three tries.
+          for attempt in 1 2 3; do
+            rm -rf "$RUNNER_TEMP/private"
+            git clone --filter=blob:none "https://x-access-token:${PRIVATE_TOKEN}@github.com/${PRIVATE_REPO}.git" "$RUNNER_TEMP/private" >/dev/null 2>&1 && break
+            if [ "$attempt" = 3 ]; then echo "::error::Could not clone the private repository after 3 attempts"; exit 1; fi
+            sleep $((attempt * 5))
+          done
           cd "$RUNNER_TEMP/private"
           git checkout "$SHA" >/dev/null 2>&1
           if ! git merge-base --is-ancestor "$SHA" origin/main; then

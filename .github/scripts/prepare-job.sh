@@ -22,6 +22,18 @@ fi
 logs="$RUNNER_TEMP/prepare"
 mkdir -p "$logs"
 
+# Y13 (ADR 0091): the steps that only fetch from the network try again, three times with a growing
+# wait. A compile or a test never goes through here: a red one stays red.
+retry() {
+  local attempt=1
+  until "$@"; do
+    if [ "$attempt" -ge 3 ]; then return 1; fi
+    echo "::warning::$1 failed (attempt $attempt of 3); trying again"
+    sleep $((attempt * 10))
+    attempt=$((attempt + 1))
+  done
+}
+
 # One `-t` per target (the Mac job builds two). A string, not an array: the macOS bash (3.2) calls an
 # empty array unbound under `set -u`.
 target_flags=""
@@ -30,7 +42,7 @@ for one in $target; do
   target_flags="$target_flags -t $one"
 done
 # shellcheck disable=SC2086
-env -u DEPLOY_KEY rustup toolchain install "$channel" --profile minimal -c rustfmt -c clippy $target_flags \
+retry env -u DEPLOY_KEY rustup toolchain install "$channel" --profile minimal -c rustfmt -c clippy $target_flags \
   --no-self-update > "$logs/rustup.log" 2>&1 &
 rustup_pid=$!
 
@@ -39,7 +51,7 @@ if [ "$RUNNER_OS" = "Linux" ] && [ "$#" -gt 0 ]; then
   # apt only for what the image lacks; it hung once for over an hour on a mirror, so it retries the
   # download and gives up after 10 minutes.
   if ! dpkg -s "$@" > /dev/null 2>&1; then
-    env -u DEPLOY_KEY bash -c 'timeout 600 sudo apt-get -o Acquire::Retries=3 update \
+    retry env -u DEPLOY_KEY bash -c 'timeout 600 sudo apt-get -o Acquire::Retries=3 update \
       && timeout 600 sudo apt-get -o Acquire::Retries=3 install -y "$@"' apt "$@" > "$logs/apt.log" 2>&1 &
     apt_pid=$!
   fi
@@ -54,7 +66,7 @@ if [ "${NEXTEST:-false}" = "true" ]; then
   esac
   mkdir -p "$RUNNER_TEMP/bin"
   # From inside the folder: GNU tar reads `D:` in `-C D:\a\...` as a remote host on Windows.
-  env -u DEPLOY_KEY bash -c 'cd "$2" && curl -LsSf --retry 3 "https://get.nexte.st/latest/$1" | tar zxf -' \
+  retry env -u DEPLOY_KEY bash -c 'cd "$2" && curl -LsSf --retry 3 "https://get.nexte.st/latest/$1" | tar zxf -' \
     nextest "$platform" "$RUNNER_TEMP/bin" > "$logs/nextest.log" 2>&1 &
   nextest_pid=$!
   # Before ~/.cargo/bin, which rust-cache restores with whatever nextest it saved.
