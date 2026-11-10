@@ -196,7 +196,16 @@ else:
 # (`pulseTicks`), and four runs of each side differed by up to 0.635 (A/A, run 41583510591) and
 # 0.762 (beta 10 against the next commit, run 41589279580). The closed window stays below 0.3, so
 # a version that spends 8 ms/s more still fails there (+0.82, run 41584087538).
-AA_FLOOR = {("macOS", "idleOpen", "energia/s"): 1.0}
+# The same two modes show on the Linux runner in CPU: the open idle window is at 8 to 9 ms/s or at
+# 22 to 24 ms/s for the same code (beta: 22, 8, 9, 23 in run 42806373202; 9, 22, 22, 8 in run
+# 42817536410), and four runs of this version landed all in the high mode against a beta with two
+# in the low one (+87.8%, interval from +17.9%, run 42820147738). 15 ms/s covers the gap between
+# the modes; the closed window stays at 1 to 2 ms/s, so a version that spends 15 ms/s more still
+# fails there.
+AA_FLOOR = {
+    ("macOS", "idleOpen", "energia/s"): 1.0,
+    ("Linux", "idleOpen", "CPU ms/s"): 15.0,
+}
 
 beta_runs = [states for which, states in p6["beta"] if which]
 new_runs = [states for which, states in p6["new"] if which]
