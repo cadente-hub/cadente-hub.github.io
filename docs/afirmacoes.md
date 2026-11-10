@@ -1,7 +1,7 @@
 # O que o site afirma, e onde está a prova
 
 Cada afirmação da home tem que estar no código do app (`cadente-app`) ou numa decisão escrita (ADR). Afirmação sem
-prova sai do site. Conferido em 02/11/2026, com o app na versão 1.1.0 (beta 1.1.0-beta.5; o canal estável ainda não
+prova sai do site. Conferido em 09/11/2026, com o app na versão 1.1.0 (beta 1.1.0-beta.100; o canal estável ainda não
 tem versão, e o site oferece a beta), pela revisão da ADR 0081 (§3.3) do repositório do app.
 
 | Afirmação no site | Estado | Prova |
