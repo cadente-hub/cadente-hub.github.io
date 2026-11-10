@@ -66,7 +66,8 @@ publish_end="$(jq -r '[.[] | select(.name == "publish" and .conclusion == "succe
 duration=$((now - run_start))
 # W10 (ADR 0082): the beta's time, from the dispatch to the end of publish, and the runner queue on its
 # critical path: from publish back, each step goes to the job that ended last before it was created,
-# and each job of that chain adds its wait for a runner.
+# and each job of that chain adds its wait for a runner. A step must have been created strictly before
+# the job it precedes: on a rerun the jobs of two attempts overlap, and without that the walk looped forever.
 # The run's wait for the previous run of its group (`concurrency`) stays apart, as ADR 0082 §2 says: the
 # count starts when the first job was created.
 publish_s=""; queue_s=""
@@ -79,7 +80,7 @@ if [ -n "$publish_end" ] && [ -n "$first_job" ]; then
       | select((.name | startswith("perf")) or .name == "cache guard" | not)
       | {name, c: (.created_at | fromdate), s: (.started_at | fromdate), e: (.completed_at | fromdate)}] as $j
     | def walk_back($cur; $q):
-        ($j | map(select(.name != $cur.name and .e <= $cur.c + 10)) | max_by(.e)) as $prev
+        ($j | map(select(.name != $cur.name and .c < $cur.c and .e <= $cur.c + 10)) | max_by(.e)) as $prev
         | if $prev == null then $q + ($cur.s - $cur.c) else walk_back($prev; $q + ($cur.s - $cur.c)) end;
       ($j | map(select(.name == "publish")) | first) as $p | if $p == null then "" else walk_back($p; 0) end' "$jobs_json")"
   echo "Do disparo (primeiro job) ao fim do publish: $(min "$publish_s"), dos quais $(min "$queue_s") de fila por runner no caminho crítico; sem a fila, $(min $((publish_s - queue_s)))."
