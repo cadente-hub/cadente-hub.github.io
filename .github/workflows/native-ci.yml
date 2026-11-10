@@ -936,7 +936,13 @@ jobs:
             STATE="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/attempts/${GITHUB_RUN_ATTEMPT}/jobs?per_page=100" \
               --jq ".jobs[] | select(.name == \"${PRODUCER}\") | .status" 2>/dev/null || true)"
             if [ "$STATE" = "completed" ]; then
-              ID="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts?name=${ARTIFACT}" --jq '.artifacts[0].id // empty' 2>/dev/null || true)"
+              # The artifact list can show the upload a little after the job is marked completed:
+              # ask again for a minute before saying the producer ended without it.
+              for _ in 1 2 3 4 5 6; do
+                ID="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts?name=${ARTIFACT}" --jq '.artifacts[0].id // empty' 2>/dev/null || true)"
+                [ -n "$ID" ] && break
+                sleep 10
+              done
               [ -n "$ID" ] && break
               echo "::error::${PRODUCER} ended without the test archive (it failed to build the tests)"
               exit 1
