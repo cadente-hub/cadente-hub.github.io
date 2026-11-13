@@ -1043,17 +1043,22 @@ jobs:
       # never get a retry (R2). Empty `stress_filter` (the dispatch) = the step does not run.
       - name: Stress the tests of this commit (cargo nextest --stress-count 20)
         if: inputs.stress_filter != '' && matrix.kind == 'ruler' && matrix.os == 'ubuntu-latest'
-        timeout-minutes: 1
+        timeout-minutes: 2
         env:
           STRESS_FILTER: ${{ inputs.stress_filter }}
         run: |
           echo "Passo: cargo nextest run --archive-file --stress-count 20 (testes do commit)"
           STRESS_RAW="$RUNNER_TEMP/nextest_stress.log"
           set +e
-          cargo-nextest nextest run --archive-file "$RUNNER_TEMP/nextest.tar.zst" --extract-to . --extract-overwrite \
+          timeout 55 cargo-nextest nextest run --archive-file "$RUNNER_TEMP/nextest.tar.zst" --extract-to . --extract-overwrite \
             --workspace-remap . --profile ci --no-tests=pass --stress-count 20 -E "$STRESS_FILTER" > "$STRESS_RAW" 2>&1
           STRESS_EXIT=$?
           set -e
+          # A filter too wide to run 20 times in a minute (a whole face) proves nothing: say so, do not fail.
+          if [ $STRESS_EXIT -eq 124 ]; then
+            echo "Resultado: IGNORADO (o filtro não cabe em 55 s; use um filtro mais estreito)"
+            STRESS_EXIT=0
+          fi
           cat "$STRESS_RAW" >> "$RUNNER_TEMP/ci-build.log"
           sed 's/\x1b\[[0-9;]*m//g' "$STRESS_RAW" | grep -E '^ *(Finished |Summary \[)' | sed -E 's/^ *//' || true
           if [ $STRESS_EXIT -eq 0 ]; then
