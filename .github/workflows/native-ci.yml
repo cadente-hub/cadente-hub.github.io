@@ -2099,6 +2099,7 @@ jobs:
         env:
           SHA: ${{ needs.resolve.outputs.sha }}
           GH_TOKEN: ${{ github.token }}
+          CHANNEL: ${{ needs.resolve.outputs.channel }}
         run: |
           set -euo pipefail
           # The notes are what a person using the app wants to know, and nothing else (read like Zed's
@@ -2107,12 +2108,22 @@ jobs:
           # The gate checks the wording (release_note_check.py); the subject, the codes and the tools of a
           # commit never reach the customer. Only commits since the last release (the "commit:" line of
           # its body) count.
-          PREV="$(gh api "repos/${GITHUB_REPOSITORY}/releases?per_page=30" --jq '[.[].body | capture("(?m)^commit: (?<c>[0-9a-f]{40})$").c][0] // ""')"
+          # A stable release says everything since the last stable one (the whole history for the first),
+          # because the betas in between were never shown as a release of their own; a beta says what
+          # changed since the last release of any kind.
+          if [ "$CHANNEL" = stable ]; then
+            PREV="$(gh api "repos/${GITHUB_REPOSITORY}/releases?per_page=100" --jq '[.[] | select(.prerelease == false) | .body | capture("(?m)^commit: (?<c>[0-9a-f]{40})$").c][0] // ""')"
+            LIMIT=5000
+          else
+            PREV="$(gh api "repos/${GITHUB_REPOSITORY}/releases?per_page=30" --jq '[.[].body | capture("(?m)^commit: (?<c>[0-9a-f]{40})$").c][0] // ""')"
+            LIMIT=200
+          fi
           if [ -n "$PREV" ] && git -C src cat-file -e "${PREV}^{commit}" 2>/dev/null; then RANGE="${PREV}..${SHA}"; else RANGE="${SHA}"; fi
-          git -C src log --no-merges --format='%x1e%s%x1f%(trailers:key=Release-Note,valueonly,separator=%x1d)' "$RANGE" -n 200 > "$RUNNER_TEMP/commits.txt"
-          python3 - "$RUNNER_TEMP/commits.txt" "${RELEASE_VERSION}" "${SHA}" > src/dist/release-notes.md <<'PY'
+          git -C src log --no-merges --format='%x1e%s%x1f%(trailers:key=Release-Note,valueonly,separator=%x1d)' "$RANGE" -n "$LIMIT" > "$RUNNER_TEMP/commits.txt"
+          python3 - "$RUNNER_TEMP/commits.txt" "${RELEASE_VERSION}" "${SHA}" "$CHANNEL" > src/dist/release-notes.md <<'PY'
           import re, sys
-          path, version, sha = sys.argv[1:4]
+          path, version, sha, channel = sys.argv[1:5]
+          cap = 500 if channel == "stable" else 40
           titles = {"Added": "What's new", "Improved": "Improvements", "Changed": "Improvements", "Removed": "Improvements", "Fixed": "Fixes"}
           notes = {"What's new": [], "Improvements": [], "Fixes": []}
           for record in open(path, encoding="utf-8").read().split("\x1e"):
@@ -2126,7 +2137,7 @@ jobs:
           for title, lines in notes.items():
               if lines:
                   print(f"### {title}\n")
-                  print("\n".join(f"- {line}" for line in lines[:40]) + "\n")
+                  print("\n".join(f"- {line}" for line in lines[:cap]) + "\n")
           if not any(notes.values()):
               print("Internal changes, nothing visible.\n")
           print(f"commit: {sha}\n\n---\n*Built via Secure Public Builder*")
