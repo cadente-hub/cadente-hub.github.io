@@ -1172,11 +1172,13 @@ jobs:
 
   # Compiles nothing: decrypts the sealed logs and timings into the private ci-logs branch, records one
   # commit status per system (green only when its lint, tests and ruler are), decides the Supabase
-  # deploy and keeps one generation of each Rust cache.
+  # deploy and keeps one generation of each Rust cache. A pre-flight (`only=lint`) keeps its logs too,
+  # so a red lint can be read (run 43504731185 failed on Windows with no log to read); it records no
+  # status, deploys nothing and leaves the caches alone, since tests and the ruler did not run.
   report:
     name: report
     needs: [resolve, lint, tests, from-archive]
-    if: always() && needs.resolve.result == 'success' && needs.resolve.outputs.skip != 'true' && needs.resolve.outputs.docs_only != 'true' && needs.resolve.outputs.lint_only != 'true'
+    if: always() && needs.resolve.result == 'success' && needs.resolve.outputs.skip != 'true' && needs.resolve.outputs.docs_only != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -1226,6 +1228,7 @@ jobs:
 
       - name: Record the commit statuses
         id: statuses
+        if: needs.resolve.outputs.lint_only != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           PRIVATE_WRITE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
@@ -1266,7 +1269,7 @@ jobs:
 
       - name: Trigger Supabase deploy
         # Only main deploys; a run from another branch tests this workflow.
-        if: github.ref == 'refs/heads/main' && steps.statuses.outputs.ubuntu == 'success'
+        if: github.ref == 'refs/heads/main' && needs.resolve.outputs.lint_only != 'true' && steps.statuses.outputs.ubuntu == 'success'
         env:
           GH_TOKEN: ${{ github.token }}
           PRIVATE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
@@ -1298,7 +1301,7 @@ jobs:
       # The repository has 10 GB of cache. Each Cargo.lock change saved a new generation beside the old
       # one, the total reached 9.9 GB and GitHub evicted caches still in use, so builds started cold.
       - name: Keep one generation of each Rust cache
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' && needs.resolve.outputs.lint_only != 'true'
         continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
