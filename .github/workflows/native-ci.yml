@@ -1814,7 +1814,9 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/scripts" "$RUNNER_TEMP/beta"
-          curl -fsSL --retry 3 -o "$RUNNER_TEMP/scripts/smoke-measure.py" "$BASE/.github/scripts/smoke-measure.py"
+          for F in .github/scripts/smoke-measure.py .github/scripts/ci-log-crypto.cjs .github/ci-log-key.pub.pem; do
+            curl -fsSL --retry 3 -o "$RUNNER_TEMP/scripts/${F##*/}" "$BASE/$F"
+          done
           [ "$PART" = p6 ] || exit 0
           # The newest published release other than this version: the app payload the launcher installs.
           TAG="$(gh release list -R "$GITHUB_REPOSITORY" --limit 20 --exclude-drafts --json tagName \
@@ -1834,6 +1836,36 @@ jobs:
       - *smoke-launcher
       - *smoke-measure
       - *smoke-upload
+
+      # Y13 (ADR 0091 T12): a red smoke or perf job seals its full log (the script's report, the rounds and the
+      # Core's stderr, which the public log never prints) into the private ci-logs, like lint, tests and
+      # package do. The `summary` job reads every `release-log-*` artifact and writes `release-<name>.log`.
+      - name: Seal the log of the smoke
+        if: failure() || cancelled()
+        env:
+          TARGET: ${{ matrix.target }}
+          PART: ${{ matrix.part }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/sealed"
+          {
+            echo "native-ci perf ${TARGET} ${PART} ${GITHUB_SHA}"
+            echo "run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            for F in "$RUNNER_TEMP"/measure.out "$RUNNER_TEMP"/p6-*.out "$RUNNER_TEMP"/powermetrics.err; do
+              [ -s "$F" ] && { echo; echo "== $(basename "$F")"; cat "$F"; }
+            done
+            if [ -s "$RUNNER_TEMP/core-stderr.log" ]; then echo; echo "== core stderr"; cat "$RUNNER_TEMP/core-stderr.log"; fi
+          } > "$RUNNER_TEMP/sealed.log" 2>&1 || true
+          node "$RUNNER_TEMP/scripts/ci-log-crypto.cjs" encrypt "$RUNNER_TEMP/scripts/ci-log-key.pub.pem" \
+            "$RUNNER_TEMP/sealed.log" "$RUNNER_TEMP/sealed/ci-log.enc.json"
+          rm -f "$RUNNER_TEMP/sealed.log"
+
+      - uses: actions/upload-artifact@v4
+        if: failure() || cancelled()
+        with:
+          name: release-log-perf-${{ matrix.target }}-${{ matrix.part }}
+          path: ${{ runner.temp }}/sealed/
+          if-no-files-found: ignore
+          retention-days: 1
 
   # W10 (ADR 0082): the macOS P6 asked for its runner when the run started, while it held `publish`, so
   # the macOS arm64 queue ran beside the package build. Now that it holds nothing (decisão 1 emendada),
@@ -1900,7 +1932,10 @@ jobs:
       - name: Setup builder scripts
         uses: actions/checkout@v4
         with:
-          sparse-checkout: .github/scripts/clone-private.sh
+          sparse-checkout: |
+            .github/scripts/clone-private.sh
+            .github/scripts/ci-log-crypto.cjs
+            .github/ci-log-key.pub.pem
           sparse-checkout-cone-mode: false
           path: _builder
           persist-credentials: false
@@ -1910,6 +1945,7 @@ jobs:
           DEPLOY_KEY: ${{ secrets.CATARINA_PRIVATE_DEPLOY_KEY }}
         run: |
           cp _builder/.github/scripts/clone-private.sh "$RUNNER_TEMP/clone-private.sh"
+          cp _builder/.github/scripts/ci-log-crypto.cjs _builder/.github/ci-log-key.pub.pem "$RUNNER_TEMP/"
           rm -rf _builder
           CLONE_DEPTH=400 bash "$RUNNER_TEMP/clone-private.sh" src "${{ needs.resolve.outputs.sha }}"
 
@@ -1932,6 +1968,8 @@ jobs:
           CADENTE_RELEASE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
         run: |
           set -euo pipefail
+          # Y13: the output of the signing also goes to a file, sealed below when the job fails.
+          exec > >(tee -a "$RUNNER_TEMP/sign.log") 2>&1
           for TARGET in aarch64-apple-darwin x86_64-apple-darwin x86_64-unknown-linux-gnu x86_64-pc-windows-msvc; do
             mkdir -p "target/$TARGET/release"
             cp ../bins/bin-$TARGET/* "target/$TARGET/release/"
@@ -1988,6 +2026,30 @@ jobs:
             src/dist/feeds/
             src/dist/release-notes.md
           if-no-files-found: error
+          retention-days: 1
+
+      # Y13 (ADR 0091 T12): a red sign job seals the build of the tool and the signing output.
+      - name: Seal the log of the signing
+        if: failure() || cancelled()
+        run: |
+          mkdir -p "$RUNNER_TEMP/sealed"
+          {
+            echo "native-ci sign ${{ needs.resolve.outputs.sha }}"
+            echo "run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            for F in "$RUNNER_TEMP/xtask-build.log" "$RUNNER_TEMP/sign.log"; do
+              [ -s "$F" ] && { echo; echo "== $(basename "$F")"; cat "$F"; }
+            done
+          } > "$RUNNER_TEMP/sealed.log" 2>&1 || true
+          node "$RUNNER_TEMP/ci-log-crypto.cjs" encrypt "$RUNNER_TEMP/ci-log-key.pub.pem" \
+            "$RUNNER_TEMP/sealed.log" "$RUNNER_TEMP/sealed/ci-log.enc.json"
+          rm -f "$RUNNER_TEMP/sealed.log"
+
+      - uses: actions/upload-artifact@v4
+        if: failure() || cancelled()
+        with:
+          name: release-log-sign
+          path: ${{ runner.temp }}/sealed/
+          if-no-files-found: ignore
           retention-days: 1
 
   publish:
@@ -2261,7 +2323,8 @@ jobs:
           { git clone --depth=1 --filter=blob:none --sparse --branch ci-logs "https://x-access-token:${PRIVATE_LOG_TOKEN}@github.com/${PRIVATE_REPO}.git" "$HISTORY_DIR" \
             && git -C "$HISTORY_DIR" sparse-checkout set metrics; } >/dev/null 2>&1 || HISTORY_DIR=""
           export HISTORY_DIR
-          bash .github/scripts/ci-summary.sh > "$RUNNER_TEMP/summary.md"
+          # Y13: bounded memory (1 GiB of address space) so a huge log cannot take the runner down.
+          ( ulimit -v 1048576; bash .github/scripts/ci-summary.sh > "$RUNNER_TEMP/summary.md" )
           cat "$RUNNER_TEMP/summary.md" >> "$GITHUB_STEP_SUMMARY"
           cat "$RUNNER_TEMP/summary.md"
           if [ "$RECORD_HISTORY" = "true" ] && [ -n "$HISTORY_DIR" ]; then
