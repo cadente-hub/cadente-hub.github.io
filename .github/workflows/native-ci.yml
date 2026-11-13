@@ -969,6 +969,9 @@ jobs:
           if [ "$KIND" = "ruler" ]; then
             echo "Passo: cargo nextest run --archive-file (só a régua)"
             FILTER="kind(lib) & ${RULER}"
+            # Y12 (ADR 0091): the ruler writes the seconds each face took ({"face": seconds}); the upload
+            # below hands them to `summary`, which keeps the slowest system's in ci-logs/metrics.
+            export CADENTE_RULER_TIMES_OUT="$RUNNER_TEMP/ruler-times.json"
           else
             echo "Passo: cargo nextest run --archive-file (sem a régua, metade $PART de 2)"
             FILTER="not ${RULER}"
@@ -1037,6 +1040,15 @@ jobs:
         with:
           name: ci-log-${{ matrix.os }}-${{ matrix.kind }}${{ matrix.part && format('-{0}', matrix.part) || '' }}
           path: ${{ runner.temp }}/sealed/
+          if-no-files-found: ignore
+          retention-days: 1
+
+      - name: Upload the seconds of each ruler face
+        if: always() && matrix.kind == 'ruler'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ruler-times-${{ matrix.os }}
+          path: ${{ runner.temp }}/ruler-times.json
           if-no-files-found: ignore
           retention-days: 1
 
@@ -2284,6 +2296,14 @@ jobs:
           pattern: metrics-*
           path: ${{ runner.temp }}/metrics
 
+      # Y12: the seconds each ruler face took on each system (written only by a ruler that passed).
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        timeout-minutes: 1
+        with:
+          pattern: ruler-times-*
+          path: ${{ runner.temp }}/ruler-times
+
       - name: Store the package logs and timings in the private repository
         env:
           CI_LOG_PRIVATE_KEY: ${{ secrets.CI_LOG_PRIVATE_KEY }}
@@ -2331,7 +2351,25 @@ jobs:
             git -C "$HISTORY_DIR" config user.name "github-actions[bot]"
             git -C "$HISTORY_DIR" config user.email "github-actions[bot]@users.noreply.github.com"
             for attempt in 1 2 3 4 5; do
+              # Y12 (ADR 0091): the slowest system's seconds per face of a ruler that passed, for
+              # `.config/ruler-times.json`, which the plan of the shards reads (`shard_plan.rs`).
+              mkdir -p "$HISTORY_DIR/metrics"
+              python3 -I - "$RUNNER_TEMP/ruler-times" "$HISTORY_DIR/metrics/ruler-times.json" <<'PY' || true
+          import glob, json, sys
+          worst = {}
+          files = glob.glob(sys.argv[1] + "/*/ruler-times.json")
+          for path in files:
+              try:
+                  for face, secs in json.load(open(path)).items():
+                      worst[face] = max(worst.get(face, 0.0), float(secs))
+              except (ValueError, OSError):
+                  pass
+          if len(files) == 3 and worst:
+              json.dump(dict(sorted(worst.items())), open(sys.argv[2], "w"), indent=1)
+              open(sys.argv[2], "a").write("\n")
+          PY
               git -C "$HISTORY_DIR" add metrics/runs.tsv
+              [ ! -f "$HISTORY_DIR/metrics/ruler-times.json" ] || git -C "$HISTORY_DIR" add metrics/ruler-times.json
               git -C "$HISTORY_DIR" commit -m "ci: record native-ci run ${GITHUB_RUN_ID}" >/dev/null 2>&1 || break
               git -C "$HISTORY_DIR" push origin ci-logs >/dev/null 2>&1 && break
               LINE="$(tail -1 "$HISTORY_DIR/metrics/runs.tsv")"
