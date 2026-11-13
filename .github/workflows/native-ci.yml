@@ -41,6 +41,11 @@ on:
         default: none
         type: choice
         options: [none, new-file-401, above-ceiling, copied-block]
+      stress_filter:
+        description: "Y6 (ADR 0091): a nextest filter of the tests this commit touched, run 20 times on Linux (`--stress-count 20`, at most 60 s); empty = no stress run"
+        required: false
+        default: ""
+        type: string
       warm_up:
         description: "Compile every job and save the caches, publish nothing (after a change of cache key)"
         required: false
@@ -1002,6 +1007,32 @@ jobs:
             done
             echo "Resultado: FALHOU"
             [ "$KIND" = "ruler" ] && echo "régua" > "$RUNNER_TEMP/failed_step" || echo "cargo nextest" > "$RUNNER_TEMP/failed_step"
+            exit 1
+          fi
+
+      # Y6 (ADR 0091): the tests this commit touched run 20 times in a row (`--stress-count 20`), once, on
+      # Linux, in at most a minute: a `thread::sleep` and a race fail here, in the commit's own run, and
+      # never get a retry (R2). Empty `stress_filter` (the dispatch) = the step does not run.
+      - name: Stress the tests of this commit (cargo nextest --stress-count 20)
+        if: inputs.stress_filter != '' && matrix.kind == 'ruler' && matrix.os == 'ubuntu-latest'
+        timeout-minutes: 1
+        env:
+          STRESS_FILTER: ${{ inputs.stress_filter }}
+        run: |
+          echo "Passo: cargo nextest run --archive-file --stress-count 20 (testes do commit)"
+          STRESS_RAW="$RUNNER_TEMP/nextest_stress.log"
+          set +e
+          cargo-nextest nextest run --archive-file "$RUNNER_TEMP/nextest.tar.zst" --extract-to . --extract-overwrite \
+            --workspace-remap . --profile ci --no-tests=pass --stress-count 20 -E "$STRESS_FILTER" > "$STRESS_RAW" 2>&1
+          STRESS_EXIT=$?
+          set -e
+          cat "$STRESS_RAW" >> "$RUNNER_TEMP/ci-build.log"
+          sed 's/\x1b\[[0-9;]*m//g' "$STRESS_RAW" | grep -E '^ *(Finished |Summary \[)' | sed -E 's/^ *//' || true
+          if [ $STRESS_EXIT -eq 0 ]; then
+            echo "Resultado: OK"
+          else
+            echo "Resultado: FALHOU"
+            echo "estresse (20 vezes)" > "$RUNNER_TEMP/failed_step"
             exit 1
           fi
 
