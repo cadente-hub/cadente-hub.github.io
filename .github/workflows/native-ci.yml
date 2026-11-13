@@ -46,6 +46,16 @@ on:
         required: false
         default: ""
         type: string
+      only:
+        description: "Y1 (ADR 0091): `lint` runs only the lint job (and windows_filter) on `preflight/<sha>` of the private repository, with no status, no package and no release"
+        required: false
+        default: ""
+        type: string
+      windows_filter:
+        description: "Y1, only=lint: a nextest filter run on Windows when the diff builds path text by hand (T7); empty = none"
+        required: false
+        default: ""
+        type: string
       warm_up:
         description: "Compile every job and save the caches, publish nothing (after a change of cache key)"
         required: false
@@ -59,7 +69,7 @@ on:
 # almost green would hold the beta back for every new commit. A run from another branch (a test of this
 # workflow) queues apart from main's.
 concurrency:
-  group: native-ci-${{ github.ref }}
+  group: native-ci-${{ github.ref }}${{ inputs.only == 'lint' && format('-preflight-{0}', inputs.sha) || '' }}
   cancel-in-progress: false
 
 # The lint, tests, ruler and package jobs compile hundreds of third-party crates, and a build script can
@@ -89,6 +99,7 @@ jobs:
       skip: ${{ steps.resolve_sha.outputs.skip }}
       channel: ${{ steps.resolve_sha.outputs.channel }}
       docs_only: ${{ steps.changes.outputs.docs_only }}
+      lint_only: ${{ steps.resolve_sha.outputs.lint_only }}
       base: ${{ steps.changes.outputs.base }}
       toolchain_changed: ${{ steps.changes.outputs.toolchain_changed }}
       toolchain: ${{ steps.changes.outputs.toolchain }}
@@ -103,6 +114,7 @@ jobs:
           PRIVATE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
           INPUT_SHA: ${{ inputs.sha }}
           INPUT_CHANNEL: ${{ inputs.channel }}
+          INPUT_ONLY: ${{ inputs.only }}
           EVENT_NAME: ${{ github.event_name }}
         run: |
           set -euo pipefail
@@ -148,10 +160,26 @@ jobs:
           done
           cd "$RUNNER_TEMP/private"
           git checkout "$SHA" >/dev/null 2>&1
-          if ! git merge-base --is-ancestor "$SHA" origin/main; then
+          # Y1 (ADR 0091): `only=lint` takes a commit that is the tip of `preflight/<sha>` and not yet on
+          # main; it runs the lint and writes nothing to the private repository.
+          LINT_ONLY=false
+          case "${INPUT_ONLY:-}" in
+            "") ;;
+            lint)
+              LINT_ONLY=true
+              TIP="$(git rev-parse "refs/remotes/origin/preflight/${SHA}" 2>/dev/null || true)"
+              if [ "$TIP" != "$SHA" ]; then
+                echo "::error::only=lint needs the branch preflight/${SHA} at ${SHA}."
+                exit 1
+              fi
+              ;;
+            *) echo "::error::Unknown only: ${INPUT_ONLY}"; exit 1 ;;
+          esac
+          if [ "$LINT_ONLY" = false ] && ! git merge-base --is-ancestor "$SHA" origin/main; then
             echo "::error::SHA $SHA is not an ancestor of main."
             exit 1
           fi
+          echo "lint_only=$LINT_ONLY" >> "$GITHUB_OUTPUT"
 
           echo "sha=$SHA" >> "$GITHUB_OUTPUT"
           echo "skip=false" >> "$GITHUB_OUTPUT"
@@ -171,7 +199,7 @@ jobs:
           SHA: ${{ steps.resolve_sha.outputs.sha }}
           CHANNEL: ${{ steps.resolve_sha.outputs.channel }}
           # A warm-up run compiles whatever the commit changed: it exists to save the caches.
-          FORCE_BUILD: ${{ (github.ref != 'refs/heads/main' && inputs.force_build) || inputs.warm_up }}
+          FORCE_BUILD: ${{ (github.ref != 'refs/heads/main' && inputs.force_build) || inputs.warm_up || inputs.only == 'lint' }}
         run: |
           set -euo pipefail
           echo "::add-mask::${PRIVATE_TOKEN}"
@@ -223,7 +251,7 @@ jobs:
 
       - name: Number the release
         id: version
-        if: steps.resolve_sha.outputs.skip == 'false' && steps.changes.outputs.docs_only != 'true'
+        if: steps.resolve_sha.outputs.skip == 'false' && steps.changes.outputs.docs_only != 'true' && inputs.only != 'lint'
         working-directory: ${{ runner.temp }}/private
         env:
           GH_TOKEN: ${{ github.token }}
@@ -261,7 +289,7 @@ jobs:
       # A run from another branch tests this workflow and leaves the commit's statuses alone, and so does
       # a warm-up run, which tests a commit that already has its verdict.
       - name: Publish the statuses
-        if: steps.resolve_sha.outputs.skip == 'false' && github.ref == 'refs/heads/main' && !inputs.warm_up
+        if: steps.resolve_sha.outputs.skip == 'false' && github.ref == 'refs/heads/main' && !inputs.warm_up && inputs.only != 'lint'
         env:
           PRIVATE_WRITE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
           SHA: ${{ steps.resolve_sha.outputs.sha }}
@@ -297,7 +325,7 @@ jobs:
   cache-guard:
     name: cache guard
     needs: resolve
-    if: github.ref == 'refs/heads/main' && needs.resolve.outputs.skip != 'true' && needs.resolve.outputs.docs_only != 'true'
+    if: github.ref == 'refs/heads/main' && needs.resolve.outputs.skip != 'true' && needs.resolve.outputs.docs_only != 'true' && needs.resolve.outputs.lint_only != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     permissions:
@@ -572,7 +600,7 @@ jobs:
   tests:
     name: tests ${{ matrix.os }}${{ matrix.part && format(' {0}/2', matrix.part) || '' }}
     needs: resolve
-    if: needs.resolve.outputs.skip != 'true' && needs.resolve.outputs.docs_only != 'true'
+    if: needs.resolve.outputs.skip != 'true' && needs.resolve.outputs.docs_only != 'true' && needs.resolve.outputs.lint_only != 'true'
     runs-on: ${{ matrix.os }}
     timeout-minutes: 90
     permissions:
@@ -850,7 +878,7 @@ jobs:
   from-archive:
     name: ${{ matrix.kind }} ${{ matrix.os }}${{ matrix.part && format(' {0}/2', matrix.part) || '' }}
     needs: resolve
-    if: needs.resolve.outputs.skip != 'true' && needs.resolve.outputs.docs_only != 'true'
+    if: needs.resolve.outputs.skip != 'true' && needs.resolve.outputs.docs_only != 'true' && needs.resolve.outputs.lint_only != 'true'
     runs-on: ${{ matrix.os }}
     timeout-minutes: 90
     permissions:
@@ -1092,13 +1120,58 @@ jobs:
           if-no-files-found: ignore
           retention-days: 1
 
+  # Y1 (ADR 0091): the Windows tests of a pre-flight (`only=lint` with `windows_filter`): the diff built path
+  # text by hand (T7), which lint does not catch. It clones `preflight/<sha>`, compiles the tests of the
+  # filter and runs them; it writes no status and holds nothing but the read-only deploy key.
+  preflight-windows:
+    name: preflight windows
+    needs: resolve
+    if: needs.resolve.outputs.lint_only == 'true' && inputs.windows_filter != ''
+    runs-on: windows-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    defaults:
+      run:
+        shell: bash
+    env:
+      SHA: ${{ needs.resolve.outputs.sha }}
+    steps:
+      - name: Stage builder scripts
+        env:
+          BASE: https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/scripts"
+          for F in .github/scripts/clone-private.sh .github/scripts/prepare-job.sh; do
+            curl -fsSL --retry 3 -o "$RUNNER_TEMP/scripts/${F##*/}" "$BASE/$F"
+          done
+      - name: Clone private repository, Rust toolchain and nextest
+        env:
+          DEPLOY_KEY: ${{ secrets.CATARINA_PRIVATE_DEPLOY_KEY }}
+          TOOLCHAIN: ${{ needs.resolve.outputs.toolchain }}
+          NEXTEST: "true"
+        run: bash "$RUNNER_TEMP/scripts/prepare-job.sh" "$SHA" "$TOOLCHAIN" ""
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: preflight-windows
+          save-if: "false"
+      - name: Run the Windows tests of the diff (cargo nextest)
+        env:
+          WINDOWS_FILTER: ${{ inputs.windows_filter }}
+        run: |
+          echo "Passo: cargo nextest run -E <filtro do diff> (Windows)"
+          cargo nextest run --workspace --no-fail-fast --no-tests=pass -E "$WINDOWS_FILTER" > "$RUNNER_TEMP/preflight.log" 2>&1 \
+            && echo "Resultado: OK" \
+            || { echo "Resultado: FALHOU (o log não sai: nomes de arquivos privados)"; exit 1; }
+
   # Compiles nothing: decrypts the sealed logs and timings into the private ci-logs branch, records one
   # commit status per system (green only when its lint, tests and ruler are), decides the Supabase
   # deploy and keeps one generation of each Rust cache.
   report:
     name: report
     needs: [resolve, lint, tests, from-archive]
-    if: always() && needs.resolve.result == 'success' && needs.resolve.outputs.skip != 'true' && needs.resolve.outputs.docs_only != 'true'
+    if: always() && needs.resolve.result == 'success' && needs.resolve.outputs.skip != 'true' && needs.resolve.outputs.docs_only != 'true' && needs.resolve.outputs.lint_only != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -1244,7 +1317,7 @@ jobs:
   package-macos:
     name: package ${{ matrix.target }}${{ matrix.second && format(' {0}', matrix.second) || '' }}
     needs: resolve
-    if: &package-if needs.resolve.outputs.skip != 'true' && needs.resolve.outputs.docs_only != 'true' && needs.resolve.outputs.release == 'true'
+    if: &package-if needs.resolve.outputs.skip != 'true' && needs.resolve.outputs.docs_only != 'true' && needs.resolve.outputs.release == 'true' && needs.resolve.outputs.lint_only != 'true'
     runs-on: ${{ matrix.os }}
     timeout-minutes: 90
     permissions: &read-only
@@ -2239,7 +2312,7 @@ jobs:
   perf:
     name: perf
     needs: [resolve, smoke-macos, smoke-macos-p6, smoke-linux, smoke-windows]
-    if: always() && needs.resolve.result == 'success' && needs.resolve.outputs.skip != 'true' && needs.resolve.outputs.docs_only != 'true' && needs.resolve.outputs.release == 'true'
+    if: always() && needs.resolve.result == 'success' && needs.resolve.outputs.skip != 'true' && needs.resolve.outputs.docs_only != 'true' && needs.resolve.outputs.release == 'true' && needs.resolve.outputs.lint_only != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -2295,7 +2368,7 @@ jobs:
   summary:
     name: summary
     needs: [resolve, lint, tests, from-archive, report, package-macos, package-linux, package-windows, smoke-macos, smoke-macos-p6, smoke-linux, smoke-windows, sign, publish, perf]
-    if: always() && needs.resolve.result == 'success' && needs.resolve.outputs.skip != 'true'
+    if: always() && needs.resolve.result == 'success' && needs.resolve.outputs.skip != 'true' && needs.resolve.outputs.lint_only != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
