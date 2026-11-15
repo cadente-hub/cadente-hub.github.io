@@ -1,0 +1,117 @@
+name: Plugin Index
+
+# ADR 0077 §2.9: lists the public repositories with the `cadente-plugin` topic, checks each latest
+# `.cdb`, applies the block list and the naming rules, signs the index with its own key (not the
+# release key) and publishes it on the site. The steps are `cadente-updates`'s `plugin_index`
+# example and `cargo xtask sign --index`, built from the private repository.
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: plugin-index
+  cancel-in-progress: false
+
+jobs:
+  # Without the signing key there is no index to publish: say so and stop green, instead of
+  # failing every 6 hours until the owner stores the key (`CADENTE_INDEX_KEY`).
+  key:
+    runs-on: ubuntu-latest
+    outputs:
+      ready: ${{ steps.check.outputs.ready }}
+    steps:
+      - id: check
+        env:
+          CADENTE_INDEX_KEY: ${{ secrets.CADENTE_INDEX_KEY }}
+        run: |
+          if [ -n "$CADENTE_INDEX_KEY" ]; then echo "ready=true" >> "$GITHUB_OUTPUT"; else
+            echo "::warning::CADENTE_INDEX_KEY is not set; no plugin index is published"; fi
+
+  index:
+    needs: key
+    if: needs.key.outputs.ready == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get the builder tools
+        env:
+          PRIVATE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
+        run: |
+          set -euo pipefail
+          echo "::add-mask::${PRIVATE_TOKEN}"
+          git clone --depth=1 "https://x-access-token:${PRIVATE_TOKEN}@github.com/jeancatarina/catarina-claude.git" ../src
+          cd ../src
+          rustup toolchain install "$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml)" --profile minimal
+          cargo build -q -p cadente-updates --example plugin_index -p xtask
+
+      - name: Collect the repositories with the topic
+        env:
+          GH_TOKEN: ${{ secrets.CATARINA_RELEASE_TOKEN }}
+        run: |
+          set -euo pipefail
+          mkdir -p dl
+          echo '[]' > downloads.json
+          i=0
+          gh api --paginate "search/repositories?q=topic:cadente-plugin&per_page=100" \
+            --jq '.items[] | [.owner.login, .name, (.description // ""), .html_url] | @tsv' > repos.tsv
+          while IFS=$'\t' read -r owner name description url; do
+            asset="$(gh api "repos/${owner}/${name}/releases/latest" \
+              --jq '[.assets[] | select(.name | endswith(".cdb"))][0].browser_download_url // empty' 2>/dev/null || true)"
+            if [ -z "$asset" ]; then echo "left out ${owner}/${name}: no release with a .cdb"; continue; fi
+            i=$((i + 1))
+            if ! curl -fsSL --max-filesize 33554432 --max-time 120 -o "dl/${i}.cdb" "$asset"; then
+              echo "left out ${owner}/${name}: the download failed"; continue
+            fi
+            jq --arg owner "$owner" --arg name "$name" --arg description "$description" \
+               --arg repository "$url" --arg asset "$asset" --arg file "dl/${i}.cdb" \
+               '. + [{owner: $owner, name: $name, description: $description, repository: $repository, artifactUrl: $asset, file: $file}]' \
+               downloads.json > downloads.next && mv downloads.next downloads.json
+          done < repos.tsv
+          echo "$(jq length downloads.json) repositories with a package"
+
+      - name: Build, sign and check the index
+        env:
+          CADENTE_INDEX_KEY: ${{ secrets.CADENTE_INDEX_KEY }}
+        run: |
+          set -euo pipefail
+          echo "::add-mask::${CADENTE_INDEX_KEY}"
+          tools=../src/target/debug
+          $tools/examples/plugin_index collect downloads.json candidates.json
+          jq -n --slurpfile candidates candidates.json --slurpfile blocklist plugins/blocklist.json \
+             --slurpfile revoked plugins/revoked.json \
+             '{candidates: $candidates[0], blocklist: $blocklist[0], openPaid: [], revoked: $revoked[0]}' > input.json
+          $tools/examples/plugin_index build input.json index.json "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          $tools/xtask sign index.json --index
+          $tools/examples/plugin_index verify index.json
+
+      - name: Publish the index on the site
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ secrets.CATARINA_RELEASE_TOKEN }}
+        run: |
+          set -euo pipefail
+          echo "::add-mask::${GH_TOKEN}"
+          git clone --depth=1 "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" site
+          cd site
+          # The time changes on every run: publish only when what the index says changed.
+          if [ -f public/plugins/index.json ] && \
+             [ "$(jq -S 'del(.generatedAt)' public/plugins/index.json)" = "$(jq -S 'del(.generatedAt)' ../index.json)" ]; then
+            echo "The index did not change."; exit 0
+          fi
+          mkdir -p public/plugins
+          cp ../index.json ../index.json.minisig public/plugins/
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/plugins
+          git commit -m "chore: publish plugin index"
+          for attempt in 1 2 3; do
+            git push && break
+            git pull --rebase origin main
+          done
