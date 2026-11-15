@@ -7,7 +7,6 @@ export const APPS = [
   ['▦', 'kanban', 'ana', 'productivity'],
   ['✎', 'board', 'bitcraft', 'productivity'],
   ['⛁', 'postgres', 'leo', 'data'],
-  ['❖', 'docs', 'sofia', 'productivity'],
   ['◍', 'browser', 'orbita', 'dev'],
   ['◆', 'testWriter', 'ana', 'ai'],
   ['◑', 'neon', 'bitcraft', 'themes'],

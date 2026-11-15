@@ -1,4 +1,4 @@
-// Documentos, a community plugin used in the site's demo: a vault of .md notes with the
+// Documentos, a plugin that ships with Cadente (first-party), used in the site's demo: a vault of .md notes with the
 // file tree on the left, the note in live preview in the middle (the line under the caret shows its markdown) and the
 // links on the right. ↑↓ walk the lines, End edits one in place, ↵ opens a new line that continues the list, espaço
 // ticks a task, ⇥ moves between the tree and the note. Nothing goes through the prompt bar.
@@ -26,7 +26,7 @@ const opened = (S, leaf) => S.store.docs.find(x => x.id === leaf.data.open);
 const links = d => [...d.lines.join('\n').matchAll(/\[\[([^\]]+)\]\]/g)].map(m => m[1]);
 
 export const docs = fromManifest({
-  id: 'docs', title: 'Documentos', short: 'MD', glyph: '❖', community: true, author: 'sofia', cursorless: true,
+  id: 'docs', title: 'Documentos', short: 'MD', glyph: '❖', cursorless: true,
   keywords: 'documentos notas markdown md cofre wiki',
   hint: '↵ nova linha · End edita · espaço marca a tarefa · ⇥ arquivos',
   init: () => ({ open: null, nav: 0, at: 0, focus: 'files' }),
