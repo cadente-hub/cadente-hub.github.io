@@ -163,6 +163,8 @@ else:
     if frames <= 0:
         failures.append("D3: nenhum quadro desenhado")
     if part != "basic":
+        if not isinstance(cpu.get("p99"), (int, float)) or cpu["p99"] > limit:
+            failures.append(f"P2: CPU por quadro p99 {cpu.get('p99')} ms excede o orçamento de {limit} ms")
         if report.get("closedQuiet") is not True:
             failures.append("P4: a janela destruída passou de 1% de CPU ou abriu processo filho")
         if report.get("closedBelowOpen") is not True:
