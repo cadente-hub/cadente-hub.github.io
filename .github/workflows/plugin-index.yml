@@ -1,9 +1,9 @@
 name: Plugin Index
 
 # ADR 0077 §2.9: lists the public repositories with the `cadente-plugin` topic, checks each latest
-# `.cdb`, applies the block list and the naming rules, signs the index with its own key (not the
-# release key) and publishes it on the site. The steps are `cadente-updates`'s `plugin_index`
-# example and `cargo xtask sign --index`, built from the private repository.
+# `.cdb`, applies the block list and the naming rules, signs the index with the release key (not a second one: the
+# release key, the secret the builder already has) and publishes it on the site. The steps are `cadente-updates`'s `plugin_index`
+# example and `cargo xtask sign`, built from the private repository.
 
 on:
   schedule:
@@ -19,7 +19,7 @@ concurrency:
 
 jobs:
   # Without the signing key there is no index to publish: say so and stop green, instead of
-  # failing every 6 hours until the owner stores the key (`CADENTE_INDEX_KEY`).
+  # failing every 6 hours (the key is the release key, `TAURI_SIGNING_PRIVATE_KEY`).
   key:
     runs-on: ubuntu-latest
     outputs:
@@ -27,10 +27,10 @@ jobs:
     steps:
       - id: check
         env:
-          CADENTE_INDEX_KEY: ${{ secrets.CADENTE_INDEX_KEY }}
+          RELEASE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
         run: |
-          if [ -n "$CADENTE_INDEX_KEY" ]; then echo "ready=true" >> "$GITHUB_OUTPUT"; else
-            echo "::warning::CADENTE_INDEX_KEY is not set; no plugin index is published"; fi
+          if [ -n "$RELEASE_KEY" ]; then echo "ready=true" >> "$GITHUB_OUTPUT"; else
+            echo "::warning::the release key secret is not set; no plugin index is published"; fi
 
   index:
     needs: key
@@ -78,17 +78,17 @@ jobs:
 
       - name: Build, sign and check the index
         env:
-          CADENTE_INDEX_KEY: ${{ secrets.CADENTE_INDEX_KEY }}
+          CADENTE_RELEASE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
         run: |
           set -euo pipefail
-          echo "::add-mask::${CADENTE_INDEX_KEY}"
+          echo "::add-mask::${CADENTE_RELEASE_KEY}"
           tools=../src/target/debug
           $tools/examples/plugin_index collect downloads.json candidates.json
           jq -n --slurpfile candidates candidates.json --slurpfile blocklist plugins/blocklist.json \
              --slurpfile revoked plugins/revoked.json \
              '{candidates: $candidates[0], blocklist: $blocklist[0], openPaid: [], revoked: $revoked[0]}' > input.json
           $tools/examples/plugin_index build input.json index.json "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          $tools/xtask sign index.json --index
+          $tools/xtask sign index.json
           $tools/examples/plugin_index verify index.json
 
       - name: Publish the index on the site
