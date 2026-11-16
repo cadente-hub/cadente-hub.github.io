@@ -1479,6 +1479,18 @@ jobs:
             exit 1
           fi
 
+      # The Cadente extension for Chromium browsers (ADR 0097), Rust compiled to WebAssembly, built
+      # once for the package that follows; see the script for why a failure here does not stop it.
+      - &package-extension
+        name: Browser extension (WebAssembly)
+        if: env.T != ''
+        env:
+          RUSTC_WRAPPER: sccache
+          SCCACHE_DIR: ${{ runner.temp }}/sccache
+          SCCACHE_CACHE_SIZE: ${{ matrix.sccache || vars.SCCACHE_CACHE_SIZE || '2G' }}
+          SCCACHE_IDLE_TIMEOUT: "0"
+        run: bash .github/scripts/build-extension.sh >> "$RUNNER_TEMP/release-build.log" 2>&1
+
       # The xtask binary runs directly, not through `cargo xtask` (`cargo run`): cargo run and the rustup proxy
       # change PATH for the process, cc-rs tracks PATH (`rerun-if-env-changed`), and the bundle's own cargo
       # build then recompiled ring and everything above it, the Core included (run 41442022328).
@@ -1771,6 +1783,7 @@ jobs:
           echo "T=$SECOND" >> "$GITHUB_ENV"
 
       - *package-build
+      - *package-extension
       - *package-bundle
       - *package-sign
       - *package-dist
