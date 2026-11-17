@@ -3,7 +3,8 @@ name: native-ci-retry
 # Y13 (ADR 0091 T12): when a native-ci run ends red and only the infrastructure failed (a clone, the
 # toolchain, apt, a cache, an artifact), its failed jobs run once more, without a person. A test, a
 # lint, the ruler, a build or a smoke that failed stays red: `infra-retry.sh` reads the failed steps of
-# every failed job and says `retry` only when none of them is the code's. Up to two retries per run
+# every failed job and says `retry` only when none of them is the code's. A run that ended `cancelled`
+# (the queue gave up on jobs that never had a runner) is read the same way; one a person cancelled is not. Up to two retries per run
 # (attempts 1 and 2), ten minutes apart: a macOS runner queue that gave up (jobs cancelled with no runner,
 # 15 minutes after they were asked for) does not clear in the seconds a first retry takes, and an
 # infrastructure that stays down still does not loop. The job cannot live in native-ci itself: GitHub
@@ -20,7 +21,7 @@ permissions:
 jobs:
   retry:
     name: retry the infrastructure
-    if: github.event.workflow_run.conclusion == 'failure' && github.event.workflow_run.run_attempt < 3
+    if: contains(fromJSON('["failure","cancelled"]'), github.event.workflow_run.conclusion) && github.event.workflow_run.run_attempt < 3
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:

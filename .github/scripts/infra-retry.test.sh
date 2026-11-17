@@ -39,4 +39,7 @@ expect retry "$T/queue.json"
 # A test failed next to the cancelled ones: the test decides.
 echo '{"jobs":[{"name":"lint macos-15","conclusion":"cancelled","steps":[]},{"name":"ruler windows-latest","conclusion":"failure","steps":[{"name":"Run from the archive (cargo nextest)","conclusion":"failure"}]}]}' > "$T/queue-test.json"
 expect code "$T/queue-test.json"
+# A run a person cancelled: its jobs had a runner, so it is not run again.
+echo '{"jobs":[{"name":"tests macos-15","conclusion":"cancelled","runner_name":"GitHub Actions 5","steps":[{"name":"cargo nextest run","conclusion":"cancelled"}]}]}' > "$T/by-hand.json"
+expect code "$T/by-hand.json"
 echo "infra-retry: ok"
