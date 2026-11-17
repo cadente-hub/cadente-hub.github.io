@@ -133,6 +133,14 @@ else:
     frames, cpu = report.get("drawnFrames", 0), measured(report)
     churn, memory = report.get("churn") or {}, report.get("memoryKib") or {}
     limit = report["budget"]["cpuP99MaxMs"]
+    # The macOS runner is a virtual machine with a paravirtualized GPU: the CPU time of a frame
+    # there is about twice what the same code takes on the hardware the 4 ms target is for (the p99
+    # of the UI thread's CPU time was 3.8 to 8.3 ms over consecutive runs, its p50 1.3 to 1.5 ms).
+    # The runner guards against regressions at twice the target (the owner approved this on
+    # 2026-11-17); the hardware figure is checked on a Mac (R47, `cadente-core --measure 30 120`).
+    target = limit
+    if system == "macOS":
+        limit *= 2
     # Rounds of the same script (`P2_EXTRA`, after the full one): a runner is a shared machine and
     # one round's p99 is the 5th worst of 500 frames, so a stall of the host decides it (the same
     # code gave 6.4, 7.8, 9.8, 13.6 and 21 ms on consecutive runs). The verdict is the median of the
@@ -146,7 +154,7 @@ else:
     judged = rounds[len(rounds) // 2] if rounds else None
     summary.write(
         f"\nTrabalho do quadro (sem a espera pelo buffer, p99 da espera {(report.get('bufferWaitMs') or {}).get('p99')} ms) p50 {cpu.get('p50')} ms, p95 {cpu.get('p95')} ms, p99 {cpu.get('p99')} ms "
-        f"(limite {limit} ms, {cpu.get('n')} quadros do roteiro; p99 de cada rodada {rounds}, vale a "
+        f"(alvo {target} ms, limite aqui {limit} ms, {cpu.get('n')} quadros do roteiro; p99 de cada rodada {rounds}, vale a "
         f"mediana {judged}); memória aberta "
         f"{memory.get('windowOpen')} KiB, antes de fechar {memory.get('beforeClose')} KiB, destruída "
         f"{memory.get('windowClosed')} KiB; {churn.get('chats')} Chats e {churn.get('terminals')} "
