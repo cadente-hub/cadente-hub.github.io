@@ -1821,6 +1821,7 @@ jobs:
             echo "esta versão, rodada ${PART}:"
             cat "$RUNNER_TEMP/measure.out"
           fi
+          for FILE in ${P2_EXTRA//,/ }; do echo "$(basename "$FILE") (P2 round):"; grep '"states"' "$FILE" | tail -1 || true; done
           for FILE in ${P6_BETA//,/ } ${P6_NEW//,/ }; do echo "$(basename "$FILE"):"; tail -1 "$FILE" || true; done
           RESULT=0
           python3 "$RUNNER_TEMP/scripts/smoke-measure.py" "$RUNNER_TEMP/measure.out" "$RUNNER_TEMP/measure.json" "$TARGET" \
