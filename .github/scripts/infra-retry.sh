@@ -18,10 +18,15 @@ import json, re, sys
 jobs = json.load(open(sys.argv[1]))["jobs"]
 infra = re.compile(sys.argv[2])
 bad = [j for j in jobs if j.get("conclusion") not in (None, "success", "skipped")]
+# `perf` is a measurement of the frame budget, worked on apart (P2): its failure is the code's, not the
+# infrastructure's, and it does not decide whether the jobs the queue cancelled run again.
+others = [j for j in bad if not j.get("name", "").startswith("perf ")]
 if not bad:
     print("green")
+elif not others:
+    print("code")
 else:
-    code = [s for j in bad for s in j.get("steps", [])
+    code = [s for j in others for s in j.get("steps", [])
             if s.get("conclusion") == "failure" and not infra.search(s["name"].lower())]
     print("code" if code else "retry")
 PY
@@ -37,6 +42,7 @@ case "${1:-}" in
     VERDICT="$(classify "$JOBS")"
     echo "infra-retry: $VERDICT"
     if [ "$VERDICT" = "retry" ]; then
+      sleep "${RETRY_WAIT:-0}"
       gh run rerun "$GITHUB_RUN_ID" --repo "$GITHUB_REPOSITORY" --failed
     fi
     ;;

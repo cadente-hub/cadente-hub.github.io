@@ -28,4 +28,15 @@ expect code "$T/mixed.json"
 # A smoke that failed is the code's, not infrastructure.
 echo '{"jobs":[{"conclusion":"failure","steps":[{"name":"Smoke of the package","conclusion":"failure"}]}]}' > "$T/smoke.json"
 expect code "$T/smoke.json"
+# Only `perf` failed: a measurement the code has to fix, nothing to rerun.
+echo '{"jobs":[{"name":"perf aarch64-apple-darwin full","conclusion":"failure","steps":[{"name":"Measure","conclusion":"failure"}]}]}' > "$T/perf.json"
+expect code "$T/perf.json"
+
+# `perf` failed and the queue cancelled macOS jobs that never got a runner: the cancelled ones run again.
+echo '{"jobs":[{"name":"perf aarch64-apple-darwin full","conclusion":"failure","steps":[{"name":"Measure","conclusion":"failure"}]},{"name":"lint macos-15","conclusion":"cancelled","steps":[]},{"name":"tests macos-15","conclusion":"cancelled","steps":[]}]}' > "$T/queue.json"
+expect retry "$T/queue.json"
+
+# A test failed next to the cancelled ones: the test decides.
+echo '{"jobs":[{"name":"lint macos-15","conclusion":"cancelled","steps":[]},{"name":"ruler windows-latest","conclusion":"failure","steps":[{"name":"Run from the archive (cargo nextest)","conclusion":"failure"}]}]}' > "$T/queue-test.json"
+expect code "$T/queue-test.json"
 echo "infra-retry: ok"

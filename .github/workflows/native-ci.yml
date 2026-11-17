@@ -368,7 +368,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-15, ubuntu-latest, windows-latest]
+        # The pre-flight (`only: lint`) leaves macOS out: the plan Free has five macOS runners, a pre-flight
+        # beside a run of main took one of them and the jobs of the run waited for a runner until GitHub
+        # cancelled them after 15 minutes (44 of the last 120 red jobs). macOS lint still runs on main.
+        os: ${{ fromJSON(inputs.only == 'lint' && '["ubuntu-latest","windows-latest"]' || '["macos-15","ubuntu-latest","windows-latest"]') }}
     defaults:
       run:
         shell: bash
@@ -1952,7 +1955,11 @@ jobs:
     # limits; `perf` turns their result into the commit's `native-ci/perf`, which native-promote requires
     # before a stable. The basic smoke that holds the beta runs in the package job.
     name: perf ${{ matrix.target }} ${{ matrix.part }}
-    needs: [resolve, package-macos]
+    # Never more than five macOS jobs of a run at once (the plan Free's limit): the lint, the tests and
+    # the ruler of macOS are done before the two perf jobs ask for a runner. A failed test does not stop
+    # the measurement: it runs whenever the package was built.
+    needs: [resolve, package-macos, lint, tests, from-archive]
+    if: ${{ !cancelled() && needs.package-macos.result == 'success' }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     permissions: &smoke-permissions
@@ -2060,7 +2067,8 @@ jobs:
   # 41757746180 of main beside it, queued the macOS tests 3.6 min and the ruler 7.1 min).
   smoke-macos-p6:
     name: perf ${{ matrix.target }} ${{ matrix.part }}
-    needs: [resolve, package-macos]
+    needs: [resolve, package-macos, lint, tests, from-archive]
+    if: ${{ !cancelled() && needs.package-macos.result == 'success' }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 45
     permissions: *smoke-permissions
