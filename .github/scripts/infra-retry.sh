@@ -40,9 +40,17 @@ case "${1:-}" in
   run)
     : "${GH_TOKEN:?}" "${GITHUB_REPOSITORY:?}" "${GITHUB_RUN_ID:?}"
     JOBS="$(mktemp)"
-    gh api --paginate --slurp "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/jobs?per_page=100" \
-      | python3 -I -c 'import json,sys; print(json.dumps({"jobs": [j for page in json.load(sys.stdin) for j in page["jobs"]]}))' > "$JOBS"
-    VERDICT="$(classify "$JOBS")"
+    # The jobs a queue timeout cancels may still read as unfinished in the seconds after the run
+    # completes (run 44126820245: `green` for a run that ended with three cancelled jobs), so a run
+    # that did not end successfully but reads green is read again, up to five times, 15 s apart.
+    for TRY in 1 2 3 4 5; do
+      gh api --paginate --slurp "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/jobs?per_page=100" \
+        | python3 -I -c 'import json,sys; print(json.dumps({"jobs": [j for page in json.load(sys.stdin) for j in page["jobs"]]}))' > "$JOBS"
+      VERDICT="$(classify "$JOBS")"
+      [ "$VERDICT" = green ] || break
+      [ "$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" --jq .conclusion)" = success ] && break
+      sleep "${REREAD_WAIT:-15}"
+    done
     echo "infra-retry: $VERDICT"
     if [ "$VERDICT" = "retry" ]; then
       sleep "${RETRY_WAIT:-0}"
