@@ -1760,6 +1760,7 @@ jobs:
           fi
           # `basic` (W10): D1 and D3 only, with no sessions and short idle states, about 30 s.
           STATUS=0
+          P2_EXTRA=""
           if [ "$PART" = basic ]; then
             CADENTE_MEASURE_CHATS=0 CADENTE_MEASURE_TERMINALS=0 CADENTE_MEASURE_IDLE_S=2 CADENTE_MEASURE_CLOSED_S=2 \
               CADENTE_MEASURE_MIN_FRAMES=0 CADENTE_MEASURE_WARM_UP=0 LIMIT=180 \
@@ -1768,6 +1769,15 @@ jobs:
           # `full`: P1, P2, P4 and P5.
           if [ "$PART" = full ]; then
             MEASURE="$P2_MEASURE" LIMIT=420 measure "$DIR/cadente-core$EXE" "$RUNNER_TEMP/measure.out" "$RUNNER_TEMP/cadente-home" || STATUS=$?
+            # Two more rounds of the script alone (no sessions, short idle states): the verdict on the
+            # frame budget is the median of the three p99 (Zed's `tooling/perf`), not one round's.
+            for N in 1 2; do
+              OUT="$RUNNER_TEMP/p2-extra-$N.out"
+              CADENTE_MEASURE_CHATS=0 CADENTE_MEASURE_TERMINALS=0 CADENTE_MEASURE_IDLE_S=2 CADENTE_MEASURE_CLOSED_S=2 \
+                CADENTE_MEASURE_MIN_FRAMES=0 MEASURE="$P2_MEASURE" LIMIT=420 \
+                measure "$DIR/cadente-core$EXE" "$OUT" "$RUNNER_TEMP/home-p2-$N" || echo "::warning::P2 round $N did not finish"
+              P2_EXTRA="$P2_EXTRA,$OUT"
+            done
           fi
           # `p6`: the last beta and this version alternately (B A A B A B B A), without the sessions of P5,
           # after one discarded round of each (hyperfine's `--warmup 1` in Zed's `tooling/perf`).
@@ -1800,7 +1810,7 @@ jobs:
             done
             unset CADENTE_MEASURE_CHATS CADENTE_MEASURE_TERMINALS CADENTE_MEASURE_CLOSED_S CADENTE_MEASURE_MIN_FRAMES CADENTE_MEASURE_WARM_UP
           fi
-          export P6_BETA P6_NEW SMOKE_PART="$PART"
+          export P6_BETA P6_NEW P2_EXTRA SMOKE_PART="$PART"
           if [ -n "$POWER" ]; then
             sudo pkill -INT powermetrics || true
             sleep 2

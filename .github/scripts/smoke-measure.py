@@ -124,9 +124,21 @@ else:
     frames, cpu = report.get("drawnFrames", 0), report.get("frameWorkMs") or report["frameCpuMs"]
     churn, memory = report.get("churn") or {}, report.get("memoryKib") or {}
     limit = report["budget"]["cpuP99MaxMs"]
+    # Rounds of the same script (`P2_EXTRA`, after the full one): a runner is a shared machine and
+    # one round's p99 is the 5th worst of 500 frames, so a stall of the host decides it (the same
+    # code gave 6.4, 7.8, 9.8, 13.6 and 21 ms on consecutive runs). The verdict is the median of the
+    # rounds' p99, as Zed's `tooling/perf` judges the median of its runs, not the worst.
+    rounds = [cpu.get("p99")] + [
+        (extra.get("frameWorkMs") or extra.get("frameCpuMs") or {}).get("p99")
+        for extra, _ in (read(path) for path in paths("P2_EXTRA"))
+        if extra
+    ]
+    rounds = sorted(r for r in rounds if isinstance(r, (int, float)))
+    judged = rounds[len(rounds) // 2] if rounds else None
     summary.write(
         f"\nTrabalho do quadro (sem a espera pelo buffer, p99 da espera {(report.get('bufferWaitMs') or {}).get('p99')} ms) p50 {cpu.get('p50')} ms, p95 {cpu.get('p95')} ms, p99 {cpu.get('p99')} ms "
-        f"(limite {limit} ms, {cpu.get('n')} quadros do roteiro); memória aberta "
+        f"(limite {limit} ms, {cpu.get('n')} quadros do roteiro; p99 de cada rodada {rounds}, vale a "
+        f"mediana {judged}); memória aberta "
         f"{memory.get('windowOpen')} KiB, antes de fechar {memory.get('beforeClose')} KiB, destruída "
         f"{memory.get('windowClosed')} KiB; {churn.get('chats')} Chats e {churn.get('terminals')} "
         f"terminais, {churn.get('cycles')} vezes: o primeiro ciclo (aquecimento) "
@@ -166,8 +178,11 @@ else:
     if frames <= 0:
         failures.append("D3: nenhum quadro desenhado")
     if part != "basic":
-        if not isinstance(cpu.get("p99"), (int, float)) or cpu["p99"] > limit:
-            failures.append(f"P2: CPU por quadro p99 {cpu.get('p99')} ms excede o orçamento de {limit} ms")
+        if judged is None or judged > limit:
+            failures.append(
+                f"P2: trabalho por quadro, mediana dos p99 de {len(rounds)} rodadas {rounds}: {judged} ms "
+                f"excede o orçamento de {limit} ms"
+            )
         if report.get("closedQuiet") is not True:
             failures.append("P4: a janela destruída passou de 1% de CPU ou abriu processo filho")
         if report.get("closedBelowOpen") is not True:
