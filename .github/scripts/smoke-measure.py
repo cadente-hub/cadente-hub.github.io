@@ -118,11 +118,14 @@ if part == "p6":
 elif not report:
     failures.append("D3: o `--measure` não terminou com o relatório")
 else:
-    frames, cpu = report.get("drawnFrames", 0), report["frameCpuMs"]
+    # The verdict is the work of the frame (`frameWorkMs`: its cost less the wait for the back
+    # buffer, which is the display's vsync, reported apart as `bufferWaitMs`); older reports only
+    # have `frameCpuMs`.
+    frames, cpu = report.get("drawnFrames", 0), report.get("frameWorkMs") or report["frameCpuMs"]
     churn, memory = report.get("churn") or {}, report.get("memoryKib") or {}
     limit = report["budget"]["cpuP99MaxMs"]
     summary.write(
-        f"\nQuadro p50 {cpu.get('p50')} ms, p95 {cpu.get('p95')} ms, p99 {cpu.get('p99')} ms "
+        f"\nTrabalho do quadro (sem a espera pelo buffer, p99 da espera {(report.get('bufferWaitMs') or {}).get('p99')} ms) p50 {cpu.get('p50')} ms, p95 {cpu.get('p95')} ms, p99 {cpu.get('p99')} ms "
         f"(limite {limit} ms, {cpu.get('n')} quadros do roteiro); memória aberta "
         f"{memory.get('windowOpen')} KiB, antes de fechar {memory.get('beforeClose')} KiB, destruída "
         f"{memory.get('windowClosed')} KiB; {churn.get('chats')} Chats e {churn.get('terminals')} "
@@ -300,7 +303,7 @@ if diag and report:
         if not which:
             summary.write(f"| {name} | não terminou | | | | |\n")
             continue
-        cpu = which.get("frameCpuMs") or {}
+        cpu = which.get("frameWorkMs") or which.get("frameCpuMs") or {}
         script = next((s for s in which_states if s["state"] == "script"), {})
         memory = script.get("footprintKib", script.get("rssKib", 0)) / 1024
         row = f"| {name} | {cpu.get('n')} | {cpu.get('p50')} | {cpu.get('p95')} | {cpu.get('p99')} | {memory:.1f} |"
