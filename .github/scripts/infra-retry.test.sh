@@ -42,4 +42,7 @@ expect code "$T/queue-test.json"
 # A run a person cancelled: its jobs had a runner, so it is not run again.
 echo '{"jobs":[{"name":"tests macos-15","conclusion":"cancelled","runner_name":"GitHub Actions 5","steps":[{"name":"cargo nextest run","conclusion":"cancelled"}]}]}' > "$T/by-hand.json"
 expect code "$T/by-hand.json"
+# A perf job the queue cancelled before it had a runner runs again.
+echo '{"jobs":[{"name":"perf aarch64-apple-darwin full","conclusion":"cancelled","steps":[]}]}' > "$T/perf-queue.json"
+expect retry "$T/perf-queue.json"
 echo "infra-retry: ok"

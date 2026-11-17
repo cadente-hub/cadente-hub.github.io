@@ -20,7 +20,12 @@ infra = re.compile(sys.argv[2])
 bad = [j for j in jobs if j.get("conclusion") not in (None, "success", "skipped")]
 # `perf` is a measurement of the frame budget, worked on apart (P2): its failure is the code's, not the
 # infrastructure's, and it does not decide whether the jobs the queue cancelled run again.
-others = [j for j in bad if not j.get("name", "").startswith("perf ")]
+# A `perf` job the queue cancelled before it had a runner is not a failed measurement: it runs again.
+others = [
+    j for j in bad
+    if not j.get("name", "").startswith("perf ")
+    or (j.get("conclusion") == "cancelled" and not j.get("runner_name"))
+]
 # A job cancelled after it had a runner was cancelled by a person (the queue's timeout cancels jobs that
 # never got one, `runner_name` empty): that run stays cancelled.
 by_hand = [j for j in others if j.get("conclusion") == "cancelled" and j.get("runner_name")]
