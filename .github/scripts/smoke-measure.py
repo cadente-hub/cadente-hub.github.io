@@ -45,6 +45,13 @@ def read(path):
     return report, (report["states"] if report else [line for line in lines if "state" in line])
 
 
+def measured(report):
+    for key in ("frameThreadCpuMs", "frameWorkMs", "frameCpuMs"):
+        if (report.get(key) or {}).get("n"):
+            return report[key]
+    return report.get("frameCpuMs") or {}
+
+
 def paths(var):
     return [p for p in os.environ.get(var, "").split(",") if p]
 
@@ -118,10 +125,12 @@ if part == "p6":
 elif not report:
     failures.append("D3: o `--measure` não terminou com o relatório")
 else:
-    # The verdict is the work of the frame (`frameWorkMs`: its cost less the wait for the back
-    # buffer, which is the display's vsync, reported apart as `bufferWaitMs`); older reports only
-    # have `frameCpuMs`.
-    frames, cpu = report.get("drawnFrames", 0), report.get("frameWorkMs") or report["frameCpuMs"]
+    # The verdict is the CPU time the UI thread spent on a frame (`frameThreadCpuMs`): a shared runner
+    # pauses a thread for tens of milliseconds now and then, and the same 85 texts took 1 ms and 33 ms
+    # with nothing shaped anew. Where the system gives no thread CPU time it is the work of the frame
+    # in wall time (`frameWorkMs`: its cost less the wait for the back buffer, reported apart as
+    # `bufferWaitMs`); older reports only have `frameCpuMs`.
+    frames, cpu = report.get("drawnFrames", 0), measured(report)
     churn, memory = report.get("churn") or {}, report.get("memoryKib") or {}
     limit = report["budget"]["cpuP99MaxMs"]
     # Rounds of the same script (`P2_EXTRA`, after the full one): a runner is a shared machine and
@@ -129,7 +138,7 @@ else:
     # code gave 6.4, 7.8, 9.8, 13.6 and 21 ms on consecutive runs). The verdict is the median of the
     # rounds' p99, as Zed's `tooling/perf` judges the median of its runs, not the worst.
     rounds = [cpu.get("p99")] + [
-        (extra.get("frameWorkMs") or extra.get("frameCpuMs") or {}).get("p99")
+        measured(extra).get("p99")
         for extra, _ in (read(path) for path in paths("P2_EXTRA"))
         if extra
     ]
@@ -318,7 +327,7 @@ if diag and report:
         if not which:
             summary.write(f"| {name} | não terminou | | | | |\n")
             continue
-        cpu = which.get("frameWorkMs") or which.get("frameCpuMs") or {}
+        cpu = measured(which)
         script = next((s for s in which_states if s["state"] == "script"), {})
         memory = script.get("footprintKib", script.get("rssKib", 0)) / 1024
         row = f"| {name} | {cpu.get('n')} | {cpu.get('p50')} | {cpu.get('p95')} | {cpu.get('p99')} | {memory:.1f} |"
