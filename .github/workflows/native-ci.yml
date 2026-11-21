@@ -111,6 +111,13 @@ jobs:
       version: ${{ steps.version.outputs.version }}
       tag: ${{ steps.version.outputs.tag }}
     steps:
+      - uses: actions/checkout@v4
+        with:
+          path: ci-scripts
+          sparse-checkout: .github/scripts
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+
       - name: Resolve and validate SHA
         id: resolve_sha
         env:
@@ -279,6 +286,13 @@ jobs:
             # A commit becomes one beta: a second run of it tests again and publishes nothing.
             if gh api "repos/${GITHUB_REPOSITORY}/releases?per_page=30" --jq '.[] | select(.prerelease) | .body' | grep -qxF "commit: ${SHA}"; then
               echo "$SHA already has a beta; this run tests and publishes nothing."
+              RELEASE=false
+            fi
+            # Runs go in parallel, so a newer commit may have published already: building packages for this
+            # one would be hours of runners for a beta that publish drops. It still tests, for its statuses.
+            if [ "$RELEASE" = true ] && ! gh release list --repo "$GITHUB_REPOSITORY" --limit 300 --json tagName --jq '.[].tagName' \
+                | bash "$GITHUB_WORKSPACE/ci-scripts/.github/scripts/beta-is-newest.sh" "$VERSION"; then
+              echo "A beta as new as ${VERSION} is already out; this run tests and builds no package."
               RELEASE=false
             fi
           fi
