@@ -65,11 +65,14 @@ on:
   schedule:
     - cron: '0 */3 * * *'
 
-# Queue instead of cancelling: each run tests the private main's HEAD, and cancelling a run that is
-# almost green would hold the beta back for every new commit. A run from another branch (a test of this
-# workflow) queues apart from main's.
+# One group per commit, as Zed's run_tests.yml does on main (`github.sha` in the group): every commit of the
+# private main has its own run, in parallel, and none cancels or waits for another. A shared group holds one
+# running and one pending run, and a third push cancelled the pending one, so a busy main never got a beta.
+# The beta number is the commit count of the SHA (unique and growing along main) and `publish` never moves
+# the feed backwards, so runs may finish in any order. Only a second dispatch of the same SHA queues behind
+# the first. The schedule has no SHA: it gets its own group per run.
 concurrency:
-  group: native-ci-${{ github.ref }}${{ inputs.only == 'lint' && format('-preflight-{0}', inputs.sha) || '' }}
+  group: native-ci-${{ github.ref }}-${{ inputs.only == 'lint' && 'preflight-' || '' }}${{ inputs.sha || github.run_id }}
   cancel-in-progress: false
 
 # The lint, tests, ruler and package jobs compile hundreds of third-party crates, and a build script can
@@ -269,8 +272,10 @@ jobs:
               echo "::error::v${VERSION} already exists; raise the crate version first"; exit 1
             fi
           else
-            LAST="$(gh release list --repo "$GITHUB_REPOSITORY" --limit 300 --json tagName --jq '.[].tagName' | sed -n "s/^v${BASE}-beta\.\([0-9]*\)$/\1/p" | sort -n | tail -1)"
-            VERSION="${BASE}-beta.$(( ${LAST:-0} + 1 ))"
+            # The number is the count of commits up to $SHA: no run asks the releases for "the last + 1", so
+            # runs in parallel never take the same number, and an older commit never outranks a newer one.
+            N="$(git rev-list --count "$SHA")"
+            VERSION="${BASE}-beta.${N}"
             # A commit becomes one beta: a second run of it tests again and publishes nothing.
             if gh api "repos/${GITHUB_REPOSITORY}/releases?per_page=30" --jq '.[] | select(.prerelease) | .body' | grep -qxF "commit: ${SHA}"; then
               echo "$SHA already has a beta; this run tests and publishes nothing."
@@ -2284,6 +2289,30 @@ jobs:
       RELEASE_VERSION: ${{ needs.resolve.outputs.version }}
       RELEASE_CHANNEL: ${{ needs.resolve.outputs.channel }}
     steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/scripts
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+
+      # One run per commit: this one may finish after a newer commit's. A beta never goes out behind a
+      # newer one (the feed, the release list and the cask only move forward), and the run stays green.
+      - name: Is a newer beta already out?
+        id: order
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          newest=true
+          if [ "$RELEASE_CHANNEL" = "beta" ]; then
+            out="$(gh release list --repo "$GITHUB_REPOSITORY" --limit 300 --json tagName --jq '.[].tagName')"
+            if ! printf '%s\n' "$out" | bash .github/scripts/beta-is-newest.sh "$RELEASE_VERSION"; then
+              newest=false
+              echo "A beta as new as ${RELEASE_VERSION} is already out: this run publishes nothing." | tee -a "$GITHUB_STEP_SUMMARY"
+            fi
+          fi
+          echo "newest=$newest" >> "$GITHUB_OUTPUT"
+
       - uses: actions/download-artifact@v4
         with:
           pattern: dist-*
@@ -2310,7 +2339,7 @@ jobs:
           ls -1 dist feeds
 
       - name: Create the release
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' && steps.order.outputs.newest == 'true'
         env:
           GH_TOKEN: ${{ secrets.CATARINA_RELEASE_TOKEN }}
           TAG: ${{ needs.resolve.outputs.tag }}
@@ -2324,7 +2353,7 @@ jobs:
 
       - name: Publish the feed on the site
         id: feed
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' && steps.order.outputs.newest == 'true'
         env:
           GH_TOKEN: ${{ secrets.CATARINA_RELEASE_TOKEN }}
         run: |
@@ -2332,15 +2361,22 @@ jobs:
           echo "::add-mask::${GH_TOKEN}"
           git clone --depth=1 "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" site
           cd site
-          mkdir -p public/feeds
-          cp ../feeds/* public/feeds/
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add public/feeds
-          git commit -m "chore: publish ${RELEASE_CHANNEL} feed for v${RELEASE_VERSION}" || echo "No changes"
+          # A feed that already offers this beta or a newer one stays: runs finish in any order.
+          feed_is_newer() {
+            [ "$RELEASE_CHANNEL" = "beta" ] && [ -f public/feeds/beta.json ] || return 1
+            ! jq -r '.releases[].version' public/feeds/beta.json | bash ../.github/scripts/beta-is-newest.sh "$RELEASE_VERSION"
+          }
           # The site branch moves while a run lasts (a push of this workflow, another feed): rebase first.
-          for attempt in 1 2 3; do
+          for attempt in 1 2 3 4; do
+            if feed_is_newer; then echo "The feed already offers a beta as new as ${RELEASE_VERSION}; it stays."; break; fi
+            mkdir -p public/feeds
+            cp ../feeds/* public/feeds/
+            git add public/feeds
+            git commit -m "chore: publish ${RELEASE_CHANNEL} feed for v${RELEASE_VERSION}" || { echo "No changes"; break; }
             git push && break
+            git reset --hard HEAD~1
             git pull --rebase origin main
           done
           # While no stable is out, the newest beta is what the site and Homebrew offer.
@@ -2348,7 +2384,7 @@ jobs:
           echo "stable_empty=$([ "$STABLE_RELEASES" = 0 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
 
       - name: Update Homebrew cask
-        if: github.ref == 'refs/heads/main' && (needs.resolve.outputs.channel == 'stable' || steps.feed.outputs.stable_empty == 'true')
+        if: github.ref == 'refs/heads/main' && steps.order.outputs.newest == 'true' && (needs.resolve.outputs.channel == 'stable' || steps.feed.outputs.stable_empty == 'true')
         env:
           GH_TOKEN: ${{ secrets.CATARINA_RELEASE_TOKEN }}
         run: |
@@ -2356,6 +2392,13 @@ jobs:
           echo "::add-mask::${GH_TOKEN}"
           git clone --depth=1 "https://x-access-token:${GH_TOKEN}@github.com/cadente-hub/homebrew-apps.git" homebrew-repo
           cd homebrew-repo
+          # The cask moves only forward too: a beta as old as the one it names stays out.
+          if [ "$RELEASE_CHANNEL" = "beta" ]; then
+            CURRENT="$(sed -n 's/^ *version "\(.*\)"/\1/p' Casks/cadente.rb | head -1)"
+            if ! printf '%s\n' "$CURRENT" | bash ../.github/scripts/beta-is-newest.sh "$RELEASE_VERSION"; then
+              echo "The cask already names ${CURRENT}; it stays."; exit 0
+            fi
+          fi
           ARM64_SHA=$(sha256sum ../dist/cadente-${RELEASE_VERSION}-macos-arm64.dmg | awk '{print $1}')
           X64_SHA=$(sha256sum ../dist/cadente-${RELEASE_VERSION}-macos-x64.dmg | awk '{print $1}')
           cat > Casks/cadente.rb <<RUBY
