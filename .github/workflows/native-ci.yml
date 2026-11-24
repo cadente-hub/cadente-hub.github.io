@@ -1649,6 +1649,44 @@ jobs:
           if-no-files-found: ignore
           retention-days: 1
 
+  preflight-macos-geometry:
+    name: Build native window restoration fixture
+    needs: resolve
+    if: needs.resolve.outputs.lint_only == 'true' && inputs.windows_filter == ''
+    runs-on: macos-15
+    timeout-minutes: 25
+    permissions: *read-only
+    defaults: *bash
+    env:
+      SHA: ${{ needs.resolve.outputs.sha }}
+      TARGET: x86_64-apple-darwin
+    steps:
+      - name: Stage builder scripts
+        env:
+          BASE: https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/scripts"
+          for script in clone-private.sh prepare-job.sh; do
+            curl -fsSL --retry 3 -o "$RUNNER_TEMP/scripts/$script" "$BASE/.github/scripts/$script"
+          done
+      - name: Clone the private candidate and install Rust
+        env:
+          DEPLOY_KEY: ${{ secrets.CATARINA_PRIVATE_DEPLOY_KEY }}
+          TOOLCHAIN: ${{ needs.resolve.outputs.toolchain }}
+        run: bash "$RUNNER_TEMP/scripts/prepare-job.sh" "$SHA" "$TOOLCHAIN" "$TARGET"
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: x86_64-apple-darwin-package
+          save-if: "false"
+      - name: Build the application
+        run: cargo build --release -p cadente-app --bin cadente-native-ui --features extra-grammars --target "$TARGET"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-window-restoration-fixture
+          path: target/x86_64-apple-darwin/release/cadente-native-ui
+          if-no-files-found: error
+          retention-days: 1
+
   # Compiles nothing: decrypts the sealed logs and timings into the private ci-logs branch, records one
   # commit status per system (green only when its lint, build-tests, tests 1/2, tests 2/2 and ruler are),
   # decides the Supabase deploy and keeps one generation of each Rust cache.
