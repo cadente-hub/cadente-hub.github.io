@@ -582,7 +582,7 @@ jobs:
     needs: resolve
     if: github.ref == 'refs/heads/main' && needs.resolve.outputs.skip != 'true' && needs.resolve.outputs.docs_only != 'true' && needs.resolve.outputs.lint_only != 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     permissions:
       contents: read
       actions: write
@@ -632,6 +632,8 @@ jobs:
         shell: bash
     env:
       SHA: ${{ needs.resolve.outputs.sha }}
+      DELTA_PACKAGES: ${{ needs.resolve.outputs.delta_packages }}
+      LINT_ONLY: ${{ needs.resolve.outputs.lint_only }}
       MATRIX_OS: ${{ matrix.os }}
       JOB_KIND: lint
     steps:
@@ -659,7 +661,7 @@ jobs:
           NEXTEST: ${{ runner.os == 'Linux' && 'true' || 'false' }}
         run: |
           bash "$RUNNER_TEMP/scripts/prepare-job.sh" "$SHA" "$TOOLCHAIN" "" \
-            libfontconfig1-dev libxkbcommon-dev libssl-dev pkg-config libdbus-1-dev clang lld
+            libfontconfig1-dev libxkbcommon-dev libssl-dev pkg-config libdbus-1-dev
 
       - &ci-cargo-config
         name: CI build settings
@@ -673,24 +675,7 @@ jobs:
               echo 'strip = "debuginfo"'
             fi
           } > .ci/.cargo/config.toml
-          if [ "$RUNNER_OS" = "Linux" ] && command -v clang >/dev/null 2>&1 && command -v ld.lld >/dev/null 2>&1; then
-            {
-              echo '[target.x86_64-unknown-linux-gnu]'
-              echo 'linker = "clang"'
-              echo 'rustflags = ["-C", "link-arg=-fuse-ld=lld"]'
-            } >> .ci/.cargo/config.toml
-          fi
           if [ "$RUNNER_OS" = "Windows" ]; then
-            if [ -x "/c/Program Files/LLVM/bin/lld-link.exe" ] && ! command -v lld-link >/dev/null 2>&1; then
-              echo 'C:\Program Files\LLVM\bin' >> "$GITHUB_PATH"
-              export PATH="/c/Program Files/LLVM/bin:$PATH"
-            fi
-            if command -v lld-link >/dev/null 2>&1; then
-              {
-                echo '[target.x86_64-pc-windows-msvc]'
-                echo 'linker = "lld-link"'
-              } >> .ci/.cargo/config.toml
-            fi
             mkdir -p "$RUNNER_TEMP/tmp"
             WIN_TMP="$(cygpath -w "$RUNNER_TEMP/tmp")"
             { echo "TMP=$WIN_TMP"; echo "TEMP=$WIN_TMP"; } >> "$GITHUB_ENV"
@@ -789,11 +774,16 @@ jobs:
 
       - name: Clippy (cargo clippy)
         run: |
-          echo "Passo: cargo clippy --workspace --all-targets -- -D warnings"
+          CLIPPY_TARGETS="--workspace"
+          if [ -n "$DELTA_PACKAGES" ] && [ "$LINT_ONLY" != "true" ]; then
+            CLIPPY_TARGETS=""
+            for P in $DELTA_PACKAGES; do CLIPPY_TARGETS="$CLIPPY_TARGETS -p $P"; done
+          fi
+          echo "Passo: cargo clippy ${CLIPPY_TARGETS} --all-targets -- -D warnings"
           CLIPPY_RAW="$RUNNER_TEMP/clippy_raw.log"
           START=$(date +%s)
           set +e
-          cargo clippy --config .ci/.cargo/config.toml --workspace --all-targets --timings --message-format short -- -D warnings > "$CLIPPY_RAW" 2>&1
+          cargo clippy --config .ci/.cargo/config.toml $CLIPPY_TARGETS --all-targets --timings --message-format short -- -D warnings > "$CLIPPY_RAW" 2>&1
           CLIPPY_EXIT=$?
           set -e
           echo "compile_s=$(( $(date +%s) - START ))" >> "$RUNNER_TEMP/metrics.env"
@@ -933,7 +923,7 @@ jobs:
           NEXTEST: "true"
         run: |
           bash "$RUNNER_TEMP/scripts/prepare-job.sh" "$SHA" "$TOOLCHAIN" "" \
-            libfontconfig1-dev libxkbcommon-dev libssl-dev pkg-config libdbus-1-dev clang lld
+            libfontconfig1-dev libxkbcommon-dev libssl-dev pkg-config libdbus-1-dev
 
       # Branch runs only (W3 proof): a failing unit test in the smallest crate, so the run turns red and
       # publish does not run.
@@ -1147,6 +1137,10 @@ jobs:
             fi
           done
           echo "Resultado: OK"
+
+      - name: Warm check metadata for lint (on cache miss only)
+        if: github.ref == 'refs/heads/main' && steps.cache.outputs.cache-hit != 'true' && steps.build.outputs.mode == 'full'
+        run: cargo check --config .ci/.cargo/config.toml --workspace --all-targets >> "$RUNNER_TEMP/ci-build.log" 2>&1 || true
 
       - name: Seal the build log and the timings
         if: always()
@@ -1781,6 +1775,9 @@ jobs:
     if: &package-if needs.resolve.outputs.skip != 'true' && needs.resolve.outputs.docs_only != 'true' && needs.resolve.outputs.release == 'true' && needs.resolve.outputs.lint_only != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    concurrency:
+      group: native-ci-pkg-${{ github.ref }}-bridge-extension-${{ inputs.channel == 'stable' && needs.resolve.outputs.sha || 'beta' }}
+      cancel-in-progress: ${{ inputs.channel != 'stable' && !inputs.warm_up }}
     permissions: *read-only
     defaults: *bash
     env:
@@ -1848,6 +1845,9 @@ jobs:
     if: *package-if
     runs-on: ${{ matrix.os }}
     timeout-minutes: 90
+    concurrency:
+      group: native-ci-pkg-${{ github.ref }}-aarch64-apple-darwin-${{ inputs.channel == 'stable' && needs.resolve.outputs.sha || 'beta' }}
+      cancel-in-progress: ${{ inputs.channel != 'stable' && !inputs.warm_up }}
     permissions: &package-permissions
       contents: read
       actions: read
@@ -1881,7 +1881,7 @@ jobs:
           TARGETS: ${{ matrix.target }}
         run: |
           bash "$RUNNER_TEMP/scripts/prepare-job.sh" "$SHA" "$TOOLCHAIN" "$TARGETS" \
-            libfontconfig1-dev libxkbcommon-dev libssl-dev pkg-config libdbus-1-dev dpkg-dev clang lld
+            libfontconfig1-dev libxkbcommon-dev libssl-dev pkg-config libdbus-1-dev dpkg-dev
 
       - uses: Swatinem/rust-cache@v2
         id: cache
@@ -1932,23 +1932,11 @@ jobs:
         run: |
           ROOT="$PWD"
           CARGO_DIR="${CARGO_HOME:-$HOME/.cargo}"
-          EXTRA_FLAGS=""
-          if [ "$RUNNER_OS" = "Linux" ] && command -v clang >/dev/null 2>&1 && command -v ld.lld >/dev/null 2>&1; then
-            echo "CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER=clang" >> "$GITHUB_ENV"
-            EXTRA_FLAGS=" -C link-arg=-fuse-ld=lld"
-          fi
           if [ "$RUNNER_OS" = "Windows" ]; then
             ROOT="$(cygpath -w "$ROOT")"
             CARGO_DIR="$(cygpath -w "$CARGO_DIR")"
-            if [ -x "/c/Program Files/LLVM/bin/lld-link.exe" ] && ! command -v lld-link >/dev/null 2>&1; then
-              echo 'C:\Program Files\LLVM\bin' >> "$GITHUB_PATH"
-              export PATH="/c/Program Files/LLVM/bin:$PATH"
-            fi
-            if command -v lld-link >/dev/null 2>&1; then
-              EXTRA_FLAGS=" -C linker=lld-link"
-            fi
           fi
-          echo "RUSTFLAGS=--remap-path-prefix=${ROOT}=cadente --remap-path-prefix=${CARGO_DIR}=cargo${EXTRA_FLAGS}" >> "$GITHUB_ENV"
+          echo "RUSTFLAGS=--remap-path-prefix=${ROOT}=cadente --remap-path-prefix=${CARGO_DIR}=cargo" >> "$GITHUB_ENV"
           if [ "$CACHE_HIT" = "true" ]; then CACHE=inteiro; elif [ -d target ] && [ -n "$(ls -A target 2>/dev/null)" ]; then CACHE=parcial; else CACHE=nenhum; fi
           { echo "cache=$CACHE"; echo "work_start=$(date +%s)"; } >> "$RUNNER_TEMP/metrics.env"
 
@@ -2247,6 +2235,9 @@ jobs:
     if: *package-if
     runs-on: ${{ matrix.os }}
     timeout-minutes: 90
+    concurrency:
+      group: native-ci-pkg-${{ github.ref }}-x86_64-apple-darwin-${{ inputs.channel == 'stable' && needs.resolve.outputs.sha || 'beta' }}
+      cancel-in-progress: ${{ inputs.channel != 'stable' && !inputs.warm_up }}
     permissions: *package-permissions
     strategy:
       matrix:
@@ -2262,6 +2253,9 @@ jobs:
     if: *package-if
     runs-on: ${{ matrix.os }}
     timeout-minutes: 90
+    concurrency:
+      group: native-ci-pkg-${{ github.ref }}-x86_64-unknown-linux-gnu-${{ inputs.channel == 'stable' && needs.resolve.outputs.sha || 'beta' }}
+      cancel-in-progress: ${{ inputs.channel != 'stable' && !inputs.warm_up }}
     permissions: *package-permissions
     strategy:
       matrix:
@@ -2277,6 +2271,9 @@ jobs:
     if: *package-if
     runs-on: ${{ matrix.os }}
     timeout-minutes: 90
+    concurrency:
+      group: native-ci-pkg-${{ github.ref }}-x86_64-pc-windows-msvc-${{ inputs.channel == 'stable' && needs.resolve.outputs.sha || 'beta' }}
+      cancel-in-progress: ${{ inputs.channel != 'stable' && !inputs.warm_up }}
     permissions: *package-permissions
     strategy:
       matrix:

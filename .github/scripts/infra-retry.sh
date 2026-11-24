@@ -23,8 +23,14 @@ bad = [j for j in jobs if j.get("conclusion") not in (None, "success", "skipped"
 # A `perf` job the queue cancelled before it had a runner is not a failed measurement: it runs again.
 others = [
     j for j in bad
-    if not j.get("name", "").startswith("perf ")
-    or (j.get("conclusion") == "cancelled" and not j.get("runner_name"))
+    if (
+        not j.get("name", "").startswith("perf ")
+        or (j.get("conclusion") == "cancelled" and not j.get("runner_name"))
+    )
+    and not (
+        j.get("conclusion") == "cancelled"
+        and (j.get("name", "").startswith("package ") or j.get("name") == "bridge-extension")
+    )
 ]
 # A job cancelled after it had a runner was cancelled by a person (the queue's timeout cancels jobs that
 # never got one, `runner_name` empty): that run stays cancelled.

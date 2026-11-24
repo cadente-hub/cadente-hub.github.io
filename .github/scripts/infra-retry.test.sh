@@ -45,4 +45,7 @@ expect code "$T/by-hand.json"
 # A perf job the queue cancelled before it had a runner runs again.
 echo '{"jobs":[{"name":"perf aarch64-apple-darwin full","conclusion":"cancelled","steps":[]}]}' > "$T/perf-queue.json"
 expect retry "$T/perf-queue.json"
+# A package or bridge-extension job cancelled by concurrency on a superseded beta does not trigger retry.
+echo '{"jobs":[{"name":"package aarch64-apple-darwin","conclusion":"cancelled","steps":[]}]}' > "$T/pkg-cancel.json"
+expect code "$T/pkg-cancel.json"
 echo "infra-retry: ok"
