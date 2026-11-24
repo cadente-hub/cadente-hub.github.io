@@ -1,0 +1,484 @@
+name: native-perf
+run-name: native-perf ${{ inputs.version || inputs.sha }}
+
+# Long performance measurement (ADR 0081 §3.5: P1, P2, P4, P5 and P6 on the three systems), extracted
+# from native-ci (ADR 0082 §7, decisão 1 emendada) so it never stalls CI runs or beta releases. Dispatched
+# automatically by `publish` on every published beta/stable, and records the `native-ci/perf` commit status
+# required by `native-promote.yml`.
+# Automatic beta runs coalesce to the latest published beta on main (`cancel-in-progress: true`), avoiding
+# wasted runner minutes on superseded commits during push bursts; manual promotion runs can pass `dedicated: true`.
+on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: "Private repo commit SHA (40 hex)"
+        required: true
+        type: string
+      version:
+        description: "Published version (e.g. 1.1.0-beta.3045 or 1.1.0)"
+        required: true
+        type: string
+      tag:
+        description: "Release tag (e.g. v1.1.0-beta.3045)"
+        required: true
+        type: string
+      channel:
+        description: "Release channel"
+        required: false
+        default: beta
+        type: choice
+        options: [beta, stable]
+      dedicated:
+        description: "Keep this run from being cancelled by newer runs on the same ref"
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: native-perf-${{ github.ref }}-${{ inputs.dedicated && inputs.sha || 'latest' }}
+  cancel-in-progress: ${{ !inputs.dedicated }}
+
+permissions:
+  contents: read
+
+env:
+  PRIVATE_REPO: jeancatarina/catarina-claude
+
+jobs:
+  prepare:
+    name: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: Validate inputs and mark native-ci/perf pending
+        env:
+          SHA: ${{ inputs.sha }}
+          VERSION: ${{ inputs.version }}
+          TAG: ${{ inputs.tag }}
+          PRIVATE_WRITE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
+          ON_MAIN: ${{ github.ref == 'refs/heads/main' }}
+        run: |
+          set -euo pipefail
+          echo "::add-mask::${PRIVATE_WRITE_TOKEN}"
+          printf '%s' "$SHA" | grep -qE '^[0-9a-f]{40}$' || { echo "::error::Invalid SHA: $SHA"; exit 1; }
+          printf '%s' "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+(-beta\.[0-9]+)?$' || { echo "::error::Invalid version: $VERSION"; exit 1; }
+          printf '%s' "$TAG" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+(-beta\.[0-9]+)?$' || { echo "::error::Invalid tag: $TAG"; exit 1; }
+          if [ "$ON_MAIN" = "true" ]; then
+            BODY="$(jq -cn --arg state "pending" --arg description "native-perf running" --arg context "native-ci/perf" \
+              --arg url "https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" \
+              '{state: $state, target_url: $url, description: $description, context: $context}')"
+            curl -sf -X POST "https://api.github.com/repos/${PRIVATE_REPO}/statuses/${SHA}" \
+              -H "Authorization: Bearer ${PRIVATE_WRITE_TOKEN}" -H "Accept: application/vnd.github+json" \
+              -d "$BODY" >/dev/null 2>&1 || echo "::warning::Could not record pending native-ci/perf"
+          fi
+
+  smoke-macos:
+    name: perf ${{ matrix.target }} ${{ matrix.part }}
+    needs: prepare
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    permissions: &smoke-permissions
+      contents: read
+      actions: read
+    strategy:
+      matrix:
+        include:
+          - { part: full, os: macos-15, target: aarch64-apple-darwin, measure: "30 120", p2: "30 120", payload: darwin-aarch64.tar.gz, installer: "macos-arm64.dmg" }
+    defaults: &bash
+      run:
+        shell: bash
+    steps: &smoke-steps
+      - name: Download the installer from the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+          VERSION: ${{ inputs.version }}
+          INSTALLER_SUFFIX: ${{ matrix.installer }}
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          ASSET="cadente-${VERSION}-${INSTALLER_SUFFIX}"
+          ok=false
+          for attempt in 1 2 3; do
+            if gh release download "$TAG" -R "$GITHUB_REPOSITORY" -p "$ASSET" -D dist --clobber; then ok=true; break; fi
+            echo "::warning::Could not download $ASSET (attempt $attempt of 3)"
+            sleep $((attempt * 10))
+          done
+          $ok || { echo "::error::Failed to download $ASSET from $TAG"; exit 1; }
+
+      - name: Stage the measurement script and the last beta
+        env:
+          BASE: https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.version }}
+          PAYLOAD: ${{ matrix.payload }}
+          PART: ${{ matrix.part }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/scripts" "$RUNNER_TEMP/beta"
+          for F in .github/scripts/smoke-measure.py .github/scripts/ci-log-crypto.cjs .github/ci-log-key.pub.pem; do
+            curl -fsSL --retry 3 -o "$RUNNER_TEMP/scripts/${F##*/}" "$BASE/$F"
+          done
+          [ "$PART" = p6 ] || exit 0
+          # The newest published release other than this version: the app payload the launcher installs.
+          TAG="$(gh release list -R "$GITHUB_REPOSITORY" --limit 20 --exclude-drafts --json tagName \
+            --jq "[.[].tagName | select(. != \"v${VERSION}\")][0] // empty")"
+          if [ -n "$TAG" ] && gh release download "$TAG" -R "$GITHUB_REPOSITORY" -p "cadente-${TAG#v}-${PAYLOAD}" -D "$RUNNER_TEMP/beta"; then
+            cd "$RUNNER_TEMP/beta"
+            case "$PAYLOAD" in *.zip) unzip -oq ./*.zip ;; *) tar xzf ./*.tar.gz ;; esac
+            echo "última beta: $TAG"; ls
+          else
+            echo "nenhuma beta para comparar"
+          fi
+
+      - name: Cache key of the system packages (Linux)
+        id: debs
+        if: runner.os == 'Linux'
+        run: echo "key=smoke-debs-${ImageOS:-linux}-${ImageVersion:-v0}" >> "$GITHUB_OUTPUT"
+
+      - name: Restore the system packages (Linux)
+        id: debs-cache
+        if: runner.os == 'Linux'
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/smoke-debs
+          key: ${{ steps.debs.outputs.key }}
+
+      - name: Install the package
+        id: install
+        run: |
+          set -euo pipefail
+          case "$RUNNER_OS" in
+            macOS)
+              hdiutil attach dist/*.dmg -mountpoint /Volumes/CadenteSmoke -nobrowse -quiet
+              cp -R /Volumes/CadenteSmoke/Cadente.app "$RUNNER_TEMP/"
+              hdiutil detach /Volumes/CadenteSmoke -quiet
+              DIR="$RUNNER_TEMP/Cadente.app/Contents/MacOS"
+              test -f "$RUNNER_TEMP/Cadente.app/Contents/SharedSupport/baseline_version/metadata.json"
+              EXE="" ;;
+            Linux)
+              PKGS="xvfb libgl1-mesa-dri libegl1 libxkbcommon-x11-0"
+              DEBS="$HOME/smoke-debs"
+              # shellcheck disable=SC2086
+              if dpkg -s $PKGS > /dev/null 2>&1 && sudo dpkg -i ./dist/*.deb > /dev/null 2>&1; then
+                echo "pacotes do sistema: já na imagem"
+              elif compgen -G "$DEBS/*.deb" > /dev/null && sudo DEBIAN_FRONTEND=noninteractive dpkg -i "$DEBS"/*.deb ./dist/*.deb > /dev/null 2>&1; then
+                echo "pacotes do sistema: do cache ($(ls "$DEBS" | wc -l) .deb)"
+              else
+                sudo DEBIAN_FRONTEND=noninteractive dpkg --configure -a || true
+                sudo apt-get -o Acquire::Retries=3 update
+                # shellcheck disable=SC2086
+                sudo apt-get -o Acquire::Retries=3 install -y -f --download-only $PKGS ./dist/*.deb
+                mkdir -p "$DEBS"
+                find /var/cache/apt/archives -maxdepth 1 -name '*.deb' ! -name 'cadente*' -exec cp {} "$DEBS/" \;
+                # shellcheck disable=SC2086
+                sudo apt-get -o Acquire::Retries=3 install -y -f $PKGS ./dist/*.deb
+                echo "pacotes do sistema: do espelho ($(ls "$DEBS" | wc -l) .deb guardados)"
+                echo "debs_new=true" >> "$GITHUB_OUTPUT"
+              fi
+              DIR=/usr/bin
+              test -f /usr/lib/Cadente/baseline_version/metadata.json
+              EXE="" ;;
+            Windows)
+              INSTALLER="$(ls dist/cadente-*-windows-x64.exe | head -1)"
+              "$INSTALLER" //S
+              for _ in $(seq 1 60); do [ -f "$LOCALAPPDATA/Programs/Cadente/cadente-core.exe" ] && break; sleep 2; done
+              DIR="$LOCALAPPDATA/Programs/Cadente"
+              test -f "$DIR/baseline_version/metadata.json"
+              EXE=".exe" ;;
+          esac
+          test -x "$DIR/cadente$EXE"
+          test -x "$DIR/cadente-core$EXE"
+          echo "dir=$DIR" >> "$GITHUB_OUTPUT"
+          echo "exe=$EXE" >> "$GITHUB_OUTPUT"
+
+      - name: Save the system packages (Linux)
+        if: runner.os == 'Linux' && github.ref == 'refs/heads/main' && steps.install.outputs.debs_new == 'true' && matrix.part != ''
+        continue-on-error: true
+        uses: actions/cache/save@v4
+        with:
+          path: ~/smoke-debs
+          key: ${{ steps.debs.outputs.key }}
+
+      - name: The launcher finds the Core it ships
+        env:
+          DIR: ${{ steps.install.outputs.dir }}
+          EXE: ${{ steps.install.outputs.exe }}
+          EXPECTED: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          FOUND="$("$DIR/cadente$EXE" --system-install)"
+          echo "$FOUND"
+          printf '%s' "$FOUND" | grep -q "\"version\":\"$EXPECTED\""
+
+      - name: The Core opens, draws and measures
+        env:
+          DIR: ${{ steps.install.outputs.dir }}
+          EXE: ${{ steps.install.outputs.exe }}
+          MEASURE: ${{ matrix.measure || '5 60' }}
+          P2_MEASURE: ${{ matrix.p2 }}
+          TARGET: ${{ matrix.target }}
+          PART: ${{ matrix.part }}
+        run: |
+          set -euo pipefail
+          ERR="$RUNNER_TEMP/core-stderr.log"
+          export ERR
+          measure() {
+            local OUT="$2" STATUS=0 WAITED=0 REPORTED=""
+            export OUT CADENTE_HOME="$3"
+            # shellcheck disable=SC2086,SC2016
+            if [ "$RUNNER_OS" = "Linux" ]; then
+              xvfb-run -a -s "-screen 0 1440x900x24" sh -c 'exec "$0" "$@" > "$OUT" 2>> "$ERR"' "$1" --measure $MEASURE &
+            else
+              "$1" --measure $MEASURE > "$OUT" 2>> "$ERR" &
+            fi
+            local PID=$!
+            while kill -0 "$PID" 2>/dev/null; do
+              if [ -z "$REPORTED" ] && grep -q '"states"' "$OUT" 2>/dev/null; then REPORTED=$WAITED; fi
+              if [ -n "$REPORTED" ] && [ $((WAITED - REPORTED)) -ge 20 ]; then
+                kill "$PID" 2>/dev/null || true
+                [ "${4:-}" = beta ] && return 0
+                echo "::error::$1 wrote its report and did not exit within 20 s (D3)"
+                return 1
+              fi
+              if [ "$WAITED" -ge "${LIMIT:-300}" ]; then
+                kill "$PID" 2>/dev/null || true
+                echo "::error::$1 did not finish the measurement within ${LIMIT:-300} s"
+                return 1
+              fi
+              sleep 1
+              WAITED=$((WAITED + 1))
+            done
+            wait "$PID" || STATUS=$?
+            return "$STATUS"
+          }
+          POWER=""
+          if [ "$RUNNER_OS" = "macOS" ] && [ "$PART" != basic ]; then
+            POWER="$RUNNER_TEMP/power.plist"
+            python3 -c 'import time; print(int(time.time() * 1000))' > "$POWER.start"
+            sudo powermetrics --samplers tasks --show-process-energy -i 1000 -f plist -o "$POWER" \
+              > /dev/null 2> "$RUNNER_TEMP/powermetrics.err" &
+          fi
+          STATUS=0
+          P2_EXTRA=""
+          if [ "$PART" = full ]; then
+            MEASURE="$P2_MEASURE" LIMIT=420 measure "$DIR/cadente-core$EXE" "$RUNNER_TEMP/measure.out" "$RUNNER_TEMP/cadente-home" || STATUS=$?
+            for N in 1 2; do
+              OUT="$RUNNER_TEMP/p2-extra-$N.out"
+              CADENTE_MEASURE_CHATS=0 CADENTE_MEASURE_TERMINALS=0 CADENTE_MEASURE_IDLE_S=2 CADENTE_MEASURE_CLOSED_S=2 \
+                CADENTE_MEASURE_MIN_FRAMES=0 MEASURE="$P2_MEASURE" LIMIT=420 \
+                measure "$DIR/cadente-core$EXE" "$OUT" "$RUNNER_TEMP/home-p2-$N" || echo "::warning::P2 round $N did not finish"
+              P2_EXTRA="$P2_EXTRA,$OUT"
+            done
+          fi
+          P6_BETA="" P6_NEW=""
+          OLD="$(ls "$RUNNER_TEMP"/beta/cadente "$RUNNER_TEMP"/beta/cadente.exe 2>/dev/null | head -1 || true)"
+          if [ "$PART" = p6 ] && [ -n "$OLD" ]; then
+            chmod +x "$OLD"
+            mkdir -p "$RUNNER_TEMP/new"
+            NEW="$RUNNER_TEMP/new/cadente-core$EXE"
+            cp "$DIR/cadente-core$EXE" "$NEW"
+            for WARM in "$OLD" "$NEW"; do
+              CADENTE_HOME="$RUNNER_TEMP/home-warm" "$WARM" --dump-plugins > /dev/null 2>> "$ERR" || true
+            done
+            export CADENTE_MEASURE_CHATS=0 CADENTE_MEASURE_TERMINALS=0 CADENTE_MEASURE_CLOSED_S=10 CADENTE_MEASURE_MIN_FRAMES=0 CADENTE_MEASURE_WARM_UP=0
+            for RUN in warm-beta warm-new beta-1 new-1 new-2 beta-2 new-3 beta-3 beta-4 new-4; do
+              OUT="$RUNNER_TEMP/p6-$RUN.out"
+              case "$RUN" in
+                warm-beta) measure "$OLD" "$OUT" "$RUNNER_TEMP/home-$RUN" beta || echo "::warning::the last beta's warm-up round did not finish" ;;
+                warm-new) measure "$NEW" "$OUT" "$RUNNER_TEMP/home-$RUN" || STATUS=$? ;;
+                beta-*) measure "$OLD" "$OUT" "$RUNNER_TEMP/home-$RUN" beta || echo "::warning::the last beta's run $RUN did not finish"
+                  P6_BETA="$P6_BETA,$OUT" ;;
+                new-*) measure "$NEW" "$OUT" "$RUNNER_TEMP/home-$RUN" || STATUS=$?
+                  P6_NEW="$P6_NEW,$OUT" ;;
+              esac
+            done
+            unset CADENTE_MEASURE_CHATS CADENTE_MEASURE_TERMINALS CADENTE_MEASURE_CLOSED_S CADENTE_MEASURE_MIN_FRAMES CADENTE_MEASURE_WARM_UP
+          fi
+          export P6_BETA P6_NEW P2_EXTRA SMOKE_PART="$PART"
+          if [ -n "$POWER" ]; then
+            sudo pkill -INT powermetrics || true
+            sleep 2
+            echo "powermetrics: $(wc -c < "$POWER" 2>/dev/null || echo 0) bytes"
+            head -c 600 "$RUNNER_TEMP/powermetrics.err" || true
+          fi
+          if [ "$PART" != p6 ]; then
+            echo "esta versão, rodada ${PART}:"
+            cat "$RUNNER_TEMP/measure.out"
+          fi
+          for FILE in ${P2_EXTRA//,/ }; do echo "$(basename "$FILE") (P2 round):"; grep '"states"' "$FILE" | tail -1 || true; done
+          for FILE in ${P6_BETA//,/ } ${P6_NEW//,/ }; do echo "$(basename "$FILE"):"; tail -1 "$FILE" || true; done
+          RESULT=0
+          python3 "$RUNNER_TEMP/scripts/smoke-measure.py" "$RUNNER_TEMP/measure.out" "$RUNNER_TEMP/measure.json" "$TARGET" \
+            "$POWER" || RESULT=$?
+          [ "$STATUS" = 0 ] || { echo "::error::the Core exited with $STATUS"; exit "$STATUS"; }
+          exit "$RESULT"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: smoke-${{ matrix.target }}-${{ matrix.part }}
+          path: ${{ runner.temp }}/measure.json
+          if-no-files-found: ignore
+          retention-days: 1
+
+      - name: Seal the log of the smoke
+        if: failure() || cancelled()
+        env:
+          TARGET: ${{ matrix.target }}
+          PART: ${{ matrix.part }}
+          SHA: ${{ inputs.sha }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/sealed"
+          {
+            echo "native-perf ${TARGET} ${PART} ${SHA}"
+            echo "run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            for F in "$RUNNER_TEMP"/measure.out "$RUNNER_TEMP"/p6-*.out "$RUNNER_TEMP"/powermetrics.err; do
+              [ -s "$F" ] && { echo; echo "== $(basename "$F")"; cat "$F"; }
+            done
+            if [ -s "$RUNNER_TEMP/core-stderr.log" ]; then echo; echo "== core stderr"; cat "$RUNNER_TEMP/core-stderr.log"; fi
+          } > "$RUNNER_TEMP/sealed.log" 2>&1 || true
+          node "$RUNNER_TEMP/scripts/ci-log-crypto.cjs" encrypt "$RUNNER_TEMP/scripts/ci-log-key.pub.pem" \
+            "$RUNNER_TEMP/sealed.log" "$RUNNER_TEMP/sealed/ci-log.enc.json"
+          rm -f "$RUNNER_TEMP/sealed.log"
+
+      - uses: actions/upload-artifact@v4
+        if: failure() || cancelled()
+        with:
+          name: release-log-perf-${{ matrix.target }}-${{ matrix.part }}
+          path: ${{ runner.temp }}/sealed/
+          if-no-files-found: ignore
+          retention-days: 1
+
+  smoke-macos-p6:
+    name: perf ${{ matrix.target }} ${{ matrix.part }}
+    needs: prepare
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    permissions: *smoke-permissions
+    strategy:
+      matrix:
+        include:
+          - { part: p6, os: macos-15, target: aarch64-apple-darwin, measure: "30 120", p2: "30 120", payload: darwin-aarch64.tar.gz, installer: "macos-arm64.dmg" }
+    defaults: *bash
+    steps: *smoke-steps
+
+  smoke-linux:
+    name: perf ${{ matrix.target }} ${{ matrix.part }}
+    needs: prepare
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    permissions: *smoke-permissions
+    strategy:
+      fail-fast: false
+      matrix:
+        part: [full, p6]
+        include:
+          - { os: ubuntu-22.04, target: x86_64-unknown-linux-gnu, measure: "5 60", p2: "30 60", payload: linux-x86_64.tar.gz, installer: "linux-x64.deb" }
+    defaults: *bash
+    steps: *smoke-steps
+
+  smoke-windows:
+    name: perf ${{ matrix.target }} ${{ matrix.part }}
+    needs: prepare
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    permissions: *smoke-permissions
+    strategy:
+      fail-fast: false
+      matrix:
+        part: [full, p6]
+        include:
+          - { os: windows-latest, target: x86_64-pc-windows-msvc, measure: "5 60", p2: "30 60", payload: windows-x86_64.zip, installer: "windows-x64.exe" }
+    defaults: *bash
+    steps: *smoke-steps
+
+  perf:
+    name: perf
+    needs: [prepare, smoke-macos, smoke-macos-p6, smoke-linux, smoke-windows]
+    if: always() && needs.prepare.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Setup builder scripts
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            .github/scripts/ci-log-crypto.cjs
+            .github/scripts/persist-private-log.sh
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        timeout-minutes: 1
+        with:
+          pattern: release-log-perf-*
+          path: ${{ runner.temp }}/sealed
+
+      - name: Store failed perf logs in the private repository
+        env:
+          CI_LOG_PRIVATE_KEY: ${{ secrets.CI_LOG_PRIVATE_KEY }}
+          PRIVATE_LOG_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
+        run: |
+          set -euo pipefail
+          source .github/scripts/persist-private-log.sh
+          shopt -s nullglob
+          OUT="$RUNNER_TEMP/plain"
+          mkdir -p "$OUT"
+          for DIR in "$RUNNER_TEMP"/sealed/release-log-*; do
+            TARGET="$(basename "$DIR")"
+            TARGET="${TARGET#release-log-}"
+            [ -f "$DIR/ci-log.enc.json" ] && node .github/scripts/ci-log-crypto.cjs decrypt "$DIR/ci-log.enc.json" "$OUT/perf-$TARGET.log" || true
+          done
+          if compgen -G "$OUT/*.log" > /dev/null; then
+            persist_private_files "$OUT" "public-actions/${GITHUB_RUN_ID}" "native-perf logs"
+          fi
+          rm -rf "$OUT"
+
+      - name: Record native-ci/perf
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PRIVATE_WRITE_TOKEN: ${{ secrets.CATARINA_PRIVATE_READ_TOKEN }}
+          SHA: ${{ inputs.sha }}
+          ON_MAIN: ${{ github.ref == 'refs/heads/main' }}
+        run: |
+          set -euo pipefail
+          echo "::add-mask::${PRIVATE_WRITE_TOKEN}"
+          gh api --paginate "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/attempts/${GITHUB_RUN_ATTEMPT}/jobs" \
+            --jq '.jobs[] | select(.name | startswith("perf ")) | [.name, (.conclusion // "cancelled")] | @tsv' \
+            > "$RUNNER_TEMP/perf.tsv"
+          TOTAL="$(wc -l < "$RUNNER_TEMP/perf.tsv" | tr -d ' ')"
+          PASSED="$(awk -F'\t' '$2 == "success"' "$RUNNER_TEMP/perf.tsv" | wc -l | tr -d ' ')"
+          if [ "$TOTAL" = 6 ] && [ "$PASSED" = 6 ]; then
+            STATE=success; DESCRIPTION="P1, P2, P4, P5 e P6 nos três sistemas"
+          else
+            STATE=failure
+            DESCRIPTION="reprovou: $(awk -F'\t' '$2 != "success" { printf "%s%s (%s)", sep, $1, $2; sep = ", " }' "$RUNNER_TEMP/perf.tsv")"
+            [ "$TOTAL" = 6 ] || DESCRIPTION="${DESCRIPTION}; ${TOTAL} de 6 jobs"
+          fi
+          {
+            echo "## native-ci/perf: ${STATE}"
+            echo
+            echo "A medição longa não segura o beta; a promoção para a estável exige este status verde (ADR 0082 §7)."
+            echo
+            echo "| Job | Resultado |"
+            echo "|---|---|"
+            awk -F'\t' '{ printf "| %s | %s |\n", $1, $2 }' "$RUNNER_TEMP/perf.tsv"
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$ON_MAIN" != "true" ]; then
+            echo "Ensaio: um run de main gravaria native-ci/perf=${STATE} (${DESCRIPTION}) em ${SHA}."
+            exit 0
+          fi
+          BODY="$(jq -cn --arg state "$STATE" --arg description "${DESCRIPTION:0:140}" --arg context "native-ci/perf" \
+            --arg url "https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" \
+            '{state: $state, target_url: $url, description: $description, context: $context}')"
+          curl -sf -X POST "https://api.github.com/repos/${PRIVATE_REPO}/statuses/${SHA}" \
+            -H "Authorization: Bearer ${PRIVATE_WRITE_TOKEN}" -H "Accept: application/vnd.github+json" \
+            -d "$BODY" > /dev/null
+          echo "native-ci/perf: ${STATE} (${DESCRIPTION})"
