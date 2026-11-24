@@ -1625,9 +1625,14 @@ jobs:
       - name: Run the Windows tests of the diff (cargo nextest)
         env:
           WINDOWS_FILTER: ${{ inputs.windows_filter }}
+          CADENTE_BROWSER_E2E: "1"
         run: |
+          package=cadente-app
+          case "$WINDOWS_FILTER" in
+            'test(=engine::chromium::e2e::the_engine_runs_a_real_page_end_to_end)') package=cadente-native-browser ;;
+          esac
           echo "Passo: cargo nextest run -E <filtro do diff> (Windows)"
-          cargo nextest run -p cadente-app --no-fail-fast --no-tests=pass -E "$WINDOWS_FILTER" > "$RUNNER_TEMP/preflight.log" 2>&1 \
+          cargo nextest run -p "$package" --no-fail-fast --no-tests=fail -E "$WINDOWS_FILTER" > "$RUNNER_TEMP/preflight.log" 2>&1 \
             && echo "Resultado: OK" \
             || { echo "Resultado: FALHOU (o log não sai: nomes de arquivos privados)"; exit 1; }
 
