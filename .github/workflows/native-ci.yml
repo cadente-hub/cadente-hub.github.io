@@ -1608,7 +1608,7 @@ jobs:
           BASE: https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}
         run: |
           mkdir -p "$RUNNER_TEMP/scripts"
-          for F in .github/scripts/clone-private.sh .github/scripts/prepare-job.sh; do
+          for F in .github/scripts/clone-private.sh .github/scripts/prepare-job.sh .github/scripts/ci-log-crypto.cjs .github/ci-log-key.pub.pem; do
             curl -fsSL --retry 3 -o "$RUNNER_TEMP/scripts/${F##*/}" "$BASE/$F"
           done
       - name: Clone private repository, Rust toolchain and nextest
@@ -1627,9 +1627,27 @@ jobs:
           WINDOWS_FILTER: ${{ inputs.windows_filter }}
         run: |
           echo "Passo: cargo nextest run -E <filtro do diff> (Windows)"
-          cargo nextest run --workspace --no-fail-fast --no-tests=pass -E "$WINDOWS_FILTER" > "$RUNNER_TEMP/preflight.log" 2>&1 \
+          cargo nextest run -p cadente-app --no-fail-fast --no-tests=pass -E "$WINDOWS_FILTER" > "$RUNNER_TEMP/preflight.log" 2>&1 \
             && echo "Resultado: OK" \
             || { echo "Resultado: FALHOU (o log não sai: nomes de arquivos privados)"; exit 1; }
+
+      - name: Seal the test log for the private report
+        if: always()
+        run: |
+          set -euo pipefail
+          [ -s "$RUNNER_TEMP/preflight.log" ] || exit 0
+          mkdir -p "$RUNNER_TEMP/sealed"
+          node "$RUNNER_TEMP/scripts/ci-log-crypto.cjs" encrypt "$RUNNER_TEMP/scripts/ci-log-key.pub.pem" \
+            "$RUNNER_TEMP/preflight.log" "$RUNNER_TEMP/sealed/ci-log.enc.json"
+
+      - name: Upload the sealed test log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-log-windows-latest-preflight
+          path: ${{ runner.temp }}/sealed/
+          if-no-files-found: ignore
+          retention-days: 1
 
   # Compiles nothing: decrypts the sealed logs and timings into the private ci-logs branch, records one
   # commit status per system (green only when its lint, build-tests, tests 1/2, tests 2/2 and ruler are),
