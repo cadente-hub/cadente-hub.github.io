@@ -74,9 +74,44 @@ jobs:
               -d "$BODY" >/dev/null 2>&1 || echo "::warning::Could not record pending native-ci/perf"
           fi
 
+  wait-macos-slot:
+    name: wait for macOS slot
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Yield macOS runners while native-ci is busy
+        if: inputs.channel == 'beta' && !inputs.dedicated
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          for _ in $(seq 1 45); do
+            BUSY="$(
+              {
+                gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/native-ci.yml/runs?status=in_progress&per_page=10" --jq '.workflow_runs[].id' 2>/dev/null
+                gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/native-ci.yml/runs?status=queued&per_page=10" --jq '.workflow_runs[].id' 2>/dev/null
+              } | sort -u | while read -r rid; do
+                [ -n "$rid" ] || continue
+                gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${rid}/jobs?per_page=100" \
+                  --jq '.jobs[] | select((.name | test("macos-15|apple-darwin")) and .status != "completed") | .id' 2>/dev/null || true
+              done | wc -l | tr -d ' '
+            )"
+            if [ "${BUSY:-0}" -lt 3 ]; then
+              echo "macOS runners free (native-ci active macOS jobs=${BUSY:-0}); starting macOS perf."
+              exit 0
+            fi
+            echo "Yielding macOS queue (native-ci active macOS jobs=${BUSY}); rechecking in 20s..."
+            sleep 20
+          done
+          echo "::warning::Proceeding after 15m wait for macOS slots."
+
   smoke-macos:
     name: perf ${{ matrix.target }} ${{ matrix.part }}
-    needs: prepare
+    needs: [prepare, wait-macos-slot]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     permissions: &smoke-permissions

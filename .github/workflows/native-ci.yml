@@ -696,7 +696,7 @@ jobs:
         id: cache
         uses: Swatinem/rust-cache@v2
         with:
-          shared-key: tests
+          shared-key: tests-v2
           save-if: "false"
 
       - name: Initialize log file
@@ -955,7 +955,7 @@ jobs:
         id: cache
         uses: Swatinem/rust-cache@v2
         with:
-          shared-key: tests
+          shared-key: tests-v2
           save-if: ${{ github.ref == 'refs/heads/main' }}
 
       - name: Initialize log file
@@ -1118,9 +1118,9 @@ jobs:
           done
           echo "Resultado: OK"
 
-      - name: Warm check metadata for lint (on cache miss only)
+      - name: Warm clippy metadata for lint (on cache miss only)
         if: github.ref == 'refs/heads/main' && steps.cache.outputs.cache-hit != 'true' && steps.build.outputs.mode == 'full'
-        run: cargo check --config .ci/.cargo/config.toml --workspace --all-targets >> "$RUNNER_TEMP/ci-build.log" 2>&1 || true
+        run: cargo clippy --config .ci/.cargo/config.toml --workspace --all-targets -- -A clippy::all >> "$RUNNER_TEMP/ci-build.log" 2>&1 || true
 
       - name: Seal the build log and the timings
         if: always()
@@ -1193,6 +1193,8 @@ jobs:
 
   # Per-OS test and ruler shards: start immediately when that OS's build-tests completes (no cross-OS
   # barriers, no waiting inside an allocated runner, especially no scarce macOS slot held idle).
+  # `ruler-macos` sits in its own job so `package-macos-x86_64` can take its freed slot at ~11 min
+  # without waiting for the 2 test shards (~15 min), staying at <=4 macOS runners.
   tests-macos:
     name: ${{ matrix.kind }} ${{ matrix.os }}${{ matrix.part && format(' {0}/{1}', matrix.part, matrix.total) || '' }}
     needs: [resolve, build-tests-macos]
@@ -1208,7 +1210,6 @@ jobs:
         include:
           - { os: macos-15, kind: tests, part: "1", total: "2" }
           - { os: macos-15, kind: tests, part: "2", total: "2" }
-          - { os: macos-15, kind: ruler, part: "", total: "" }
     defaults: *bash
     env: &run-tests-env
       SHA: ${{ needs.resolve.outputs.sha }}
@@ -1531,6 +1532,22 @@ jobs:
           if-no-files-found: ignore
           retention-days: 1
 
+  ruler-macos:
+    name: ${{ matrix.kind }} ${{ matrix.os }}
+    needs: [resolve, build-tests-macos]
+    if: *build-tests-if
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    permissions: *tests-permissions
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: macos-15, kind: ruler, part: "", total: "" }
+    defaults: *bash
+    env: *run-tests-env
+    steps: *run-tests-steps
+
   tests-linux:
     name: ${{ matrix.kind }} ${{ matrix.os }}${{ matrix.part && format(' {0}/{1}', matrix.part, matrix.total) || '' }}
     needs: [resolve, build-tests-linux]
@@ -1603,7 +1620,7 @@ jobs:
       - name: Rust cache
         uses: Swatinem/rust-cache@v2
         with:
-          shared-key: tests
+          shared-key: tests-v2
           save-if: "false"
       - name: Run the Windows tests of the diff (cargo nextest)
         env:
@@ -1619,7 +1636,7 @@ jobs:
   # decides the Supabase deploy and keeps one generation of each Rust cache.
   report:
     name: report
-    needs: [resolve, lint, build-tests-macos, build-tests-linux, build-tests-windows, tests-macos, tests-linux, tests-windows]
+    needs: [resolve, lint, build-tests-macos, build-tests-linux, build-tests-windows, tests-macos, ruler-macos, tests-linux, tests-windows]
     if: always() && needs.resolve.result == 'success' && needs.resolve.outputs.skip != 'true' && needs.resolve.outputs.docs_only != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -1783,7 +1800,7 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
         with:
-          shared-key: tests
+          shared-key: tests-v2
           save-if: "false"
 
       - name: Build browser extension (WebAssembly)
@@ -1928,7 +1945,7 @@ jobs:
           CADENTE_BUILD_VERSION: ${{ needs.resolve.outputs.version }}
           RUSTC_WRAPPER: sccache
           SCCACHE_DIR: ${{ runner.temp }}/sccache
-          SCCACHE_CACHE_SIZE: ${{ vars.SCCACHE_PACKAGE_CACHE_SIZE || '260M' }}
+          SCCACHE_CACHE_SIZE: ${{ vars.SCCACHE_PACKAGE_CACHE_SIZE || '350M' }}
           SCCACHE_IDLE_TIMEOUT: "0"
           T: ${{ matrix.target }}
         run: |
@@ -1980,7 +1997,7 @@ jobs:
         env:
           RUSTC_WRAPPER: sccache
           SCCACHE_DIR: ${{ runner.temp }}/sccache
-          SCCACHE_CACHE_SIZE: ${{ vars.SCCACHE_PACKAGE_CACHE_SIZE || '260M' }}
+          SCCACHE_CACHE_SIZE: ${{ vars.SCCACHE_PACKAGE_CACHE_SIZE || '350M' }}
           SCCACHE_IDLE_TIMEOUT: "0"
           T: ${{ matrix.target }}
         run: |
@@ -2214,7 +2231,7 @@ jobs:
 
   package-macos-x86_64:
     name: package ${{ matrix.target }}
-    needs: [resolve, lint, tests-macos]
+    needs: [resolve, lint, ruler-macos]
     if: *package-if
     runs-on: ${{ matrix.os }}
     timeout-minutes: 90
@@ -2619,7 +2636,7 @@ jobs:
   # one line per main run there, from which it takes the p50 and p90 of the last 20 runs.
   summary:
     name: summary
-    needs: [resolve, lint, build-tests-macos, build-tests-linux, build-tests-windows, tests-macos, tests-linux, tests-windows, report, bridge-extension, package-macos-arm64, package-macos-x86_64, package-linux, package-windows, sign, publish]
+    needs: [resolve, lint, build-tests-macos, build-tests-linux, build-tests-windows, tests-macos, ruler-macos, tests-linux, tests-windows, report, bridge-extension, package-macos-arm64, package-macos-x86_64, package-linux, package-windows, sign, publish]
     if: always() && needs.resolve.result == 'success' && needs.resolve.outputs.skip != 'true' && needs.resolve.outputs.lint_only != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
