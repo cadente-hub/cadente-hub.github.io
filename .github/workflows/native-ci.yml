@@ -1654,7 +1654,7 @@ jobs:
   # decides the Supabase deploy and keeps one generation of each Rust cache.
   report:
     name: report
-    needs: [resolve, lint, build-tests-macos, build-tests-linux, build-tests-windows, tests-macos, tests-linux, tests-windows]
+    needs: [resolve, lint, build-tests-macos, build-tests-linux, build-tests-windows, tests-macos, tests-linux, tests-windows, preflight-windows]
     if: always() && needs.resolve.result == 'success' && needs.resolve.outputs.skip != 'true' && needs.resolve.outputs.docs_only != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
