@@ -614,7 +614,7 @@ jobs:
   lint:
     name: lint ${{ matrix.os }}
     needs: resolve
-    if: needs.resolve.outputs.skip != 'true' && needs.resolve.outputs.docs_only != 'true'
+    if: needs.resolve.outputs.skip != 'true' && needs.resolve.outputs.docs_only != 'true' && inputs.windows_filter != 'chromium-pipe-probe'
     runs-on: ${{ matrix.os }}
     # Without a limit a hung step holds the run, and the queue behind it, for six hours.
     timeout-minutes: 45
@@ -1592,7 +1592,7 @@ jobs:
   preflight-windows:
     name: preflight windows
     needs: resolve
-    if: needs.resolve.outputs.lint_only == 'true' && inputs.windows_filter != ''
+    if: needs.resolve.outputs.lint_only == 'true' && inputs.windows_filter != '' && inputs.windows_filter != 'chromium-pipe-probe'
     runs-on: windows-latest
     timeout-minutes: 30
     permissions:
@@ -1648,6 +1648,17 @@ jobs:
           path: ${{ runner.temp }}/sealed/
           if-no-files-found: ignore
           retention-days: 1
+
+  chromium-pipe-probe:
+    name: Probe Chromium's Windows DevTools pipe
+    if: inputs.only == 'lint' && inputs.windows_filter == 'chromium-pipe-probe'
+    runs-on: windows-latest
+    timeout-minutes: 3
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - run: python .github/scripts/chromium-pipe-probe.py
 
   # Compiles nothing: decrypts the sealed logs and timings into the private ci-logs branch, records one
   # commit status per system (green only when its lint, build-tests, tests 1/2, tests 2/2 and ruler are),
