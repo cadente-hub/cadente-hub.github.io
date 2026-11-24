@@ -1660,6 +1660,49 @@ jobs:
       - uses: actions/checkout@v4
       - run: python .github/scripts/chromium-pipe-probe.py
 
+  cadente-pipe-probe:
+    name: Probe Cadente's Windows pipe transport
+    needs: resolve
+    if: inputs.only == 'lint' && inputs.windows_filter == 'chromium-pipe-probe'
+    runs-on: windows-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    defaults: *bash
+    env:
+      SHA: ${{ needs.resolve.outputs.sha }}
+    steps:
+      - name: Stage the focused harness
+        env:
+          BASE: https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/scripts" "$RUNNER_TEMP/pipe-probe/src"
+          for script in clone-private.sh prepare-job.sh; do
+            curl -fsSL --retry 3 -o "$RUNNER_TEMP/scripts/$script" "$BASE/.github/scripts/$script"
+          done
+          curl -fsSL --retry 3 -o "$RUNNER_TEMP/pipe-probe/src/main.rs" "$BASE/.github/scripts/cadente-pipe-probe.rs"
+      - name: Fetch the exact Windows transport
+        env:
+          DEPLOY_KEY: ${{ secrets.CATARINA_PRIVATE_DEPLOY_KEY }}
+          TOOLCHAIN: ${{ needs.resolve.outputs.toolchain }}
+        run: |
+          bash "$RUNNER_TEMP/scripts/prepare-job.sh" "$SHA" "$TOOLCHAIN" ""
+          cp crates/native-browser/src/platform/windows.rs "$RUNNER_TEMP/pipe-probe/src/windows.rs"
+          cp rust-toolchain.toml "$RUNNER_TEMP/pipe-probe/rust-toolchain.toml"
+      - name: Run the Rust transport without the application
+        run: |
+          cd "$RUNNER_TEMP/pipe-probe"
+          cat > Cargo.toml <<'TOML'
+          [package]
+          name = "cadente-pipe-probe"
+          version = "0.0.0"
+          edition = "2021"
+          [dependencies]
+          tokio = { version = "=1.54.1", features = ["fs", "io-util", "macros", "process", "rt", "time"] }
+          windows-sys = { version = "0.59", features = ["Win32_Foundation", "Win32_System_Threading"] }
+          TOML
+          cargo run --quiet
+
   # Compiles nothing: decrypts the sealed logs and timings into the private ci-logs branch, records one
   # commit status per system (green only when its lint, build-tests, tests 1/2, tests 2/2 and ruler are),
   # decides the Supabase deploy and keeps one generation of each Rust cache.
