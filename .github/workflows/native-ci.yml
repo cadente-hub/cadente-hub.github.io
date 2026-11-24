@@ -2231,7 +2231,7 @@ jobs:
 
   package-macos-x86_64:
     name: package ${{ matrix.target }}
-    needs: resolve
+    needs: [resolve, package-macos-arm64]
     if: *package-if
     runs-on: ${{ matrix.os }}
     timeout-minutes: 90

@@ -354,7 +354,7 @@ jobs:
 
   smoke-macos-p6:
     name: perf ${{ matrix.target }} ${{ matrix.part }}
-    needs: prepare
+    needs: [prepare, smoke-macos]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 45
     permissions: *smoke-permissions

@@ -11,7 +11,7 @@ name: native-ci-retry
 # reruns the failed jobs of a run only after the run is complete.
 on:
   workflow_run:
-    workflows: [native-ci]
+    workflows: [native-ci, native-perf]
     types: [completed]
 
 permissions:
