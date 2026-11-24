@@ -646,6 +646,15 @@ jobs:
       - name: Start the clock
         run: echo "t0=$(date +%s)" > "$RUNNER_TEMP/metrics.env"
 
+      - &win-defender-excl
+        name: Exclude CI dirs from Windows Defender
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          foreach ($p in @($env:GITHUB_WORKSPACE, $env:RUNNER_TEMP, $env:CARGO_HOME, "$env:USERPROFILE\.cargo")) {
+            if ($p) { try { Add-MpPreference -ExclusionPath $p -ErrorAction SilentlyContinue } catch {} }
+          }
+
       # W6 (ADR 0082): the three builder files come straight from this commit of the public repository;
       # the checkout action took 6 to 11 s on Windows.
       - name: Stage builder scripts
@@ -735,6 +744,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+
+      - name: Cache jscpd (npm)
+        if: runner.os == 'Linux'
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: npm-jscpd-4.3.0-${{ runner.os }}
 
       - name: File size and duplication (cargo xtask lines, jscpd)
         if: runner.os == 'Linux'
@@ -915,6 +931,8 @@ jobs:
     steps: &build-tests-steps
       - name: Start the clock
         run: echo "t0=$(date +%s)" > "$RUNNER_TEMP/metrics.env"
+
+      - *win-defender-excl
 
       - name: Stage builder scripts
         env:
@@ -1226,6 +1244,8 @@ jobs:
       - name: Start the clock
         run: echo "t0=$(date +%s)" > "$RUNNER_TEMP/metrics.env"
 
+      - *win-defender-excl
+
       - name: Stage builder scripts
         env:
           BASE: https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}
@@ -1532,10 +1552,13 @@ jobs:
           if-no-files-found: ignore
           retention-days: 1
 
+  # Runs once `package-macos-x86_64` frees its macOS slot (~10 min), keeping peak macOS slots <=4
+  # while both macOS packages build in parallel right after `lint` (`always()` ensures skipped/failed
+  # packages never skip macOS ruler verification).
   ruler-macos:
     name: ${{ matrix.kind }} ${{ matrix.os }}
-    needs: [resolve, build-tests-macos]
-    if: *build-tests-if
+    needs: [resolve, build-tests-macos, package-macos-x86_64]
+    if: always() && needs.resolve.result == 'success' && needs.resolve.outputs.skip != 'true' && needs.resolve.outputs.docs_only != 'true' && needs.resolve.outputs.lint_only != 'true' && needs.build-tests-macos.result == 'success'
     runs-on: ${{ matrix.os }}
     timeout-minutes: 45
     permissions: *tests-permissions
@@ -1865,6 +1888,8 @@ jobs:
       - name: Start the clock
         run: echo "t0=$(date +%s)" > "$RUNNER_TEMP/metrics.env"
 
+      - *win-defender-excl
+
       - name: Stage builder scripts
         env:
           BASE: https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}
@@ -1930,6 +1955,18 @@ jobs:
         env:
           CACHE_HIT: ${{ steps.cache.outputs.cache-hit }}
         run: |
+          mkdir -p .ci/.cargo
+          {
+            echo "# native-ci release profile tuning: keep third-party deps identical to Cargo.toml"
+            echo "# so rust-cache stays 100% warm while accelerating heavy workspace crates."
+            echo "[profile.release.package.cadente-core]"
+            echo "codegen-units = 32"
+            echo "[profile.release.package.cadente-app]"
+            echo "codegen-units = 32"
+            echo "[profile.release.package.cadente-app-ui]"
+            echo "opt-level = 2"
+            echo "codegen-units = 32"
+          } > .ci/.cargo/release-config.toml
           ROOT="$PWD"
           CARGO_DIR="${CARGO_HOME:-$HOME/.cargo}"
           if [ "$RUNNER_OS" = "Windows" ]; then
@@ -1952,7 +1989,7 @@ jobs:
           set -euo pipefail
           echo "Passo: cargo build --release --target $T"
           START=$(date +%s)
-          if cargo build --release -p cadente-app -p cadente-launcher --features cadente-app/extra-grammars --target "$T" --timings >> "$RUNNER_TEMP/release-build.log" 2>&1; then
+          if cargo build --config .ci/.cargo/release-config.toml --release -p cadente-app -p cadente-launcher --features cadente-app/extra-grammars --target "$T" --timings >> "$RUNNER_TEMP/release-build.log" 2>&1; then
             echo "compile_s=$(( $(date +%s) - START ))" >> "$RUNNER_TEMP/metrics.env"
             cp target/cargo-timings/cargo-timing.html "$RUNNER_TEMP/timings-$T.html" 2>/dev/null || true
             sed 's/\x1b\[[0-9;]*m//g' "$RUNNER_TEMP/release-build.log" | grep -E '^ *Finished ' | sed -E 's/^ *//' | tail -1 || true
@@ -2231,7 +2268,7 @@ jobs:
 
   package-macos-x86_64:
     name: package ${{ matrix.target }}
-    needs: [resolve, lint, ruler-macos]
+    needs: [resolve, lint]
     if: *package-if
     runs-on: ${{ matrix.os }}
     timeout-minutes: 90
