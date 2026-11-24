@@ -501,9 +501,15 @@ jobs:
               if f.startswith("crates/app/ui/"):
                   seeds.add("cadente-app-ui")
                   continue
+              if f.startswith("crates/app/vendor/"):
+                  sys.exit(0)
               matched = None
               for d in sorted_dirs:
-                  if f.startswith(d + "/src/") or f.startswith(d + "/tests/"):
+                  prefix = d + "/"
+                  if f.startswith(prefix):
+                      rel = f[len(prefix):]
+                      if rel in ("Cargo.toml", "build.rs") or rel.startswith("build/"):
+                          sys.exit(0)
                       matched = dir_to_pkg[d]
                       break
               if matched is None:
@@ -524,7 +530,7 @@ jobs:
                       affected.add(nxt)
                       queue.append(nxt)
 
-          if not affected or len(affected) >= 12:
+          if not affected or len(affected) >= 20:
               sys.exit(0)
 
           print(" ".join(sorted(affected)))
@@ -671,6 +677,9 @@ jobs:
             echo "# native-ci (ADR 0082 W4); only CI reads this file, through --config."
             echo "[profile.dev]"
             echo "debug = 0"
+            # Swatinem/rust-cache sets CARGO_INCREMENTAL=0, which drops dev codegen-units to 16;
+            # 64 splits large crates (cadente-core, cadente-app-ui) across runner cores.
+            echo "codegen-units = 64"
             if [ "$RUNNER_OS" = "Windows" ]; then
               echo 'strip = "debuginfo"'
             fi
@@ -957,23 +966,8 @@ jobs:
           if [ "$CACHE_HIT" = "true" ]; then CACHE=inteiro; elif [ -d target ] && [ -n "$(ls -A target 2>/dev/null)" ]; then CACHE=parcial; else CACHE=nenhum; fi
           { echo "cache=$CACHE"; echo "work_start=$(date +%s)"; } >> "$RUNNER_TEMP/metrics.env"
 
-      - name: Install sccache
-        uses: taiki-e/install-action@sccache
-
-      - name: Restore the sccache folder
-        uses: actions/cache/restore@v4
-        with:
-          path: ${{ runner.temp }}/sccache
-          key: sccache-tests-${{ runner.os }}-${{ github.run_id }}
-          restore-keys: sccache-tests-${{ runner.os }}-
-
       - name: Build the tests (cargo nextest archive)
         id: build
-        env:
-          RUSTC_WRAPPER: sccache
-          SCCACHE_DIR: ${{ runner.temp }}/sccache
-          SCCACHE_CACHE_SIZE: ${{ vars.SCCACHE_CACHE_SIZE || '250M' }}
-          SCCACHE_IDLE_TIMEOUT: "0"
         run: |
           PKG_FLAGS=""
           if [ -n "$DELTA_PACKAGES" ] && [ "$PLANT_FAILURE" != "true" ]; then
@@ -1001,25 +995,11 @@ jobs:
             MB=$(( $(wc -c < "$ARCHIVE") / 1048576 ))
             echo "archive_mb=$MB" >> "$RUNNER_TEMP/metrics.env"
             echo "Resultado: OK (${MB} MB de arquivo ${MODE})"
-            STATS="$(sccache --show-stats --stats-format json 2>/dev/null || echo '{}')"
-            HITS="$(printf '%s' "$STATS" | jq -r '[.stats.cache_hits.counts // {} | .[]] | add // 0')"
-            MISSES="$(printf '%s' "$STATS" | jq -r '[.stats.cache_misses.counts // {} | .[]] | add // 0')"
-            SIZE="$(du -sm "$SCCACHE_DIR" 2>/dev/null | cut -f1)"
-            echo "sccache: ${HITS} acertos, ${MISSES} faltas, ${SIZE:-0} MB na pasta"
-            { echo "sccache_hits=$HITS"; echo "sccache_misses=$MISSES"; echo "sccache_mb=${SIZE:-0}"; } >> "$RUNNER_TEMP/metrics.env"
-            sccache --stop-server > /dev/null 2>&1 || true
           else
             echo "Resultado: FALHOU"
             echo "cargo nextest archive" > "$RUNNER_TEMP/failed_step"
             exit 1
           fi
-
-      - name: Save the sccache folder
-        if: github.ref == 'refs/heads/main' && vars.SCCACHE_SAVE == 'true'
-        uses: actions/cache/save@v4
-        with:
-          path: ${{ runner.temp }}/sccache
-          key: sccache-tests-${{ runner.os }}-${{ github.run_id }}
 
       - name: Mark the archive upload
         run: echo "upload_start=$(date +%s)" >> "$RUNNER_TEMP/metrics.env"
@@ -1214,7 +1194,7 @@ jobs:
   # Per-OS test and ruler shards: start immediately when that OS's build-tests completes (no cross-OS
   # barriers, no waiting inside an allocated runner, especially no scarce macOS slot held idle).
   tests-macos:
-    name: ${{ matrix.kind }} ${{ matrix.os }}${{ matrix.part && format(' {0}/2', matrix.part) || '' }}
+    name: ${{ matrix.kind }} ${{ matrix.os }}${{ matrix.part && format(' {0}/{1}', matrix.part, matrix.total) || '' }}
     needs: [resolve, build-tests-macos]
     if: *build-tests-if
     runs-on: ${{ matrix.os }}
@@ -1226,9 +1206,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { os: macos-15, kind: tests, part: "1" }
-          - { os: macos-15, kind: tests, part: "2" }
-          - { os: macos-15, kind: ruler, part: "" }
+          - { os: macos-15, kind: tests, part: "1", total: "2" }
+          - { os: macos-15, kind: tests, part: "2", total: "2" }
+          - { os: macos-15, kind: ruler, part: "", total: "" }
     defaults: *bash
     env: &run-tests-env
       SHA: ${{ needs.resolve.outputs.sha }}
@@ -1237,6 +1217,7 @@ jobs:
       MATRIX_OS: ${{ matrix.os }}
       JOB_KIND: ${{ matrix.kind }}${{ matrix.part && format('-{0}', matrix.part) || '' }}
       PART: ${{ matrix.part }}
+      TOTAL: ${{ matrix.total }}
       KIND: ${{ matrix.kind }}
       STRESS_FILTER: ${{ inputs.stress_filter }}
       PLANT_FAILURE: ${{ github.ref != 'refs/heads/main' && inputs.plant_failure && matrix.os == 'ubuntu-latest' }}
@@ -1391,7 +1372,7 @@ jobs:
             PUBLIC="$(sed 's/\x1b\[[0-9;]*m//g' "$NEXTEST_RAW" | grep -E '^ *(Finished |Summary \[)' | sed -E 's/^ *//' || true)"
             printf '%s\n' "$PUBLIC"
           elif [ "$MODE" = "delta" ]; then
-            echo "Passo: cargo nextest run --archive-file (delta + base complementar, metade $PART de 2)"
+            echo "Passo: cargo nextest run --archive-file (delta + base complementar, metade $PART de $TOTAL)"
             DELTA_EXPR=""
             for P in $DELTA_PACKAGES; do
               [ -n "$DELTA_EXPR" ] && DELTA_EXPR="$DELTA_EXPR | "
@@ -1401,10 +1382,10 @@ jobs:
             DELTA_RAW="$RUNNER_TEMP/nextest_delta_raw.log"
             set +e
             cargo-nextest nextest run --archive-file "$RUNNER_TEMP/base/nextest-base.tar.zst" --extract-to . --extract-overwrite \
-              --workspace-remap . --profile ci --no-tests=pass -E "not (${DELTA_EXPR}) & not ${RULER}" --partition "hash:${PART}/2" > "$BASE_RAW" 2>&1
+              --workspace-remap . --profile ci --no-tests=pass -E "not (${DELTA_EXPR}) & not ${RULER}" --partition "hash:${PART}/${TOTAL}" > "$BASE_RAW" 2>&1
             EXIT_BASE=$?
             cargo-nextest nextest run --archive-file "$RUNNER_TEMP/delta/nextest-delta.tar.zst" --extract-to . --extract-overwrite \
-              --workspace-remap . --profile ci --no-tests=pass -E "not ${RULER}" --partition "hash:${PART}/2" > "$DELTA_RAW" 2>&1
+              --workspace-remap . --profile ci --no-tests=pass -E "not ${RULER}" --partition "hash:${PART}/${TOTAL}" > "$DELTA_RAW" 2>&1
             EXIT_DELTA=$?
             set -e
             cat "$BASE_RAW" "$DELTA_RAW" >> "$RUNNER_TEMP/ci-build.log"
@@ -1412,10 +1393,10 @@ jobs:
             PUBLIC=""
             [ "$EXIT_BASE" -eq 0 ] && [ "$EXIT_DELTA" -eq 0 ] || NEXTEST_EXIT=1
           else
-            echo "Passo: cargo nextest run --archive-file (sem a régua, metade $PART de 2)"
+            echo "Passo: cargo nextest run --archive-file (sem a régua, metade $PART de $TOTAL)"
             set +e
             cargo-nextest nextest run --archive-file "$RUNNER_TEMP/base/nextest-base.tar.zst" --extract-to . --extract-overwrite \
-              --workspace-remap . --profile ci -E "not ${RULER}" --partition "hash:${PART}/2" > "$NEXTEST_RAW" 2>&1
+              --workspace-remap . --profile ci -E "not ${RULER}" --partition "hash:${PART}/${TOTAL}" > "$NEXTEST_RAW" 2>&1
             NEXTEST_EXIT=$?
             set -e
             cat "$NEXTEST_RAW" >> "$RUNNER_TEMP/ci-build.log"
@@ -1545,13 +1526,13 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: metrics-${{ matrix.kind }}-${{ matrix.os }}${{ matrix.part && format('-{0}-2', matrix.part) || '' }}
+          name: metrics-${{ matrix.kind }}-${{ matrix.os }}${{ matrix.part && format('-{0}-{1}', matrix.part, matrix.total) || '' }}
           path: ${{ runner.temp }}/metrics.env
           if-no-files-found: ignore
           retention-days: 1
 
   tests-linux:
-    name: ${{ matrix.kind }} ${{ matrix.os }}${{ matrix.part && format(' {0}/2', matrix.part) || '' }}
+    name: ${{ matrix.kind }} ${{ matrix.os }}${{ matrix.part && format(' {0}/{1}', matrix.part, matrix.total) || '' }}
     needs: [resolve, build-tests-linux]
     if: *build-tests-if
     runs-on: ${{ matrix.os }}
@@ -1561,15 +1542,16 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { os: ubuntu-latest, kind: tests, part: "1" }
-          - { os: ubuntu-latest, kind: tests, part: "2" }
-          - { os: ubuntu-latest, kind: ruler, part: "" }
+          - { os: ubuntu-latest, kind: tests, part: "1", total: "3" }
+          - { os: ubuntu-latest, kind: tests, part: "2", total: "3" }
+          - { os: ubuntu-latest, kind: tests, part: "3", total: "3" }
+          - { os: ubuntu-latest, kind: ruler, part: "", total: "" }
     defaults: *bash
     env: *run-tests-env
     steps: *run-tests-steps
 
   tests-windows:
-    name: ${{ matrix.kind }} ${{ matrix.os }}${{ matrix.part && format(' {0}/2', matrix.part) || '' }}
+    name: ${{ matrix.kind }} ${{ matrix.os }}${{ matrix.part && format(' {0}/{1}', matrix.part, matrix.total) || '' }}
     needs: [resolve, build-tests-windows]
     if: *build-tests-if
     runs-on: ${{ matrix.os }}
@@ -1579,9 +1561,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { os: windows-latest, kind: tests, part: "1" }
-          - { os: windows-latest, kind: tests, part: "2" }
-          - { os: windows-latest, kind: ruler, part: "" }
+          - { os: windows-latest, kind: tests, part: "1", total: "3" }
+          - { os: windows-latest, kind: tests, part: "2", total: "3" }
+          - { os: windows-latest, kind: tests, part: "3", total: "3" }
+          - { os: windows-latest, kind: ruler, part: "", total: "" }
     defaults: *bash
     env: *run-tests-env
     steps: *run-tests-steps
@@ -1836,12 +1819,12 @@ jobs:
           if-no-files-found: warn
           retention-days: 1
 
-  # Parallel packaging across all 4 targets (Wave 1): `package-macos-arm64` and `package-macos-x86_64`
-  # run side-by-side on separate Apple Silicon runners with isolated rust-cache/sccache keys, fitting
-  # within GitHub Free's 5-runner macOS pool alongside `build-tests-macos` (or 3 `tests-macos` shards).
+  # Parallel packaging across targets: Linux and Windows start immediately on abundant runners, while
+  # macOS staggers within GitHub Free's 5-runner pool (`arm64` waits for `lint`, leaving 2 slots at t=0;
+  # `x86_64` starts right when `tests-macos` releases its 3 slots).
   package-macos-arm64:
     name: package ${{ matrix.target }}
-    needs: resolve
+    needs: [resolve, lint]
     if: *package-if
     runs-on: ${{ matrix.os }}
     timeout-minutes: 90
@@ -1945,7 +1928,7 @@ jobs:
           CADENTE_BUILD_VERSION: ${{ needs.resolve.outputs.version }}
           RUSTC_WRAPPER: sccache
           SCCACHE_DIR: ${{ runner.temp }}/sccache
-          SCCACHE_CACHE_SIZE: ${{ vars.SCCACHE_CACHE_SIZE || '250M' }}
+          SCCACHE_CACHE_SIZE: ${{ vars.SCCACHE_PACKAGE_CACHE_SIZE || '260M' }}
           SCCACHE_IDLE_TIMEOUT: "0"
           T: ${{ matrix.target }}
         run: |
@@ -1997,7 +1980,7 @@ jobs:
         env:
           RUSTC_WRAPPER: sccache
           SCCACHE_DIR: ${{ runner.temp }}/sccache
-          SCCACHE_CACHE_SIZE: ${{ vars.SCCACHE_CACHE_SIZE || '250M' }}
+          SCCACHE_CACHE_SIZE: ${{ vars.SCCACHE_PACKAGE_CACHE_SIZE || '260M' }}
           SCCACHE_IDLE_TIMEOUT: "0"
           T: ${{ matrix.target }}
         run: |
@@ -2231,7 +2214,7 @@ jobs:
 
   package-macos-x86_64:
     name: package ${{ matrix.target }}
-    needs: [resolve, package-macos-arm64]
+    needs: [resolve, lint, tests-macos]
     if: *package-if
     runs-on: ${{ matrix.os }}
     timeout-minutes: 90
