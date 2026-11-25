@@ -1001,7 +1001,7 @@ jobs:
             export RUSTC_WRAPPER=sccache
             export CARGO_INCREMENTAL=0
             export SCCACHE_DIR="$RUNNER_TEMP/sccache-tests"
-            export SCCACHE_CACHE_SIZE="${SCCACHE_TESTS_CACHE_SIZE:-260M}"
+            export SCCACHE_CACHE_SIZE="${SCCACHE_TESTS_CACHE_SIZE:-420M}"
             export SCCACHE_IDLE_TIMEOUT=0
           fi
           PKG_FLAGS=""
@@ -1565,6 +1565,7 @@ jobs:
 
       - name: Upload the sealed log
         if: always()
+        continue-on-error: ${{ job.status == 'success' }}
         uses: actions/upload-artifact@v4
         with:
           name: ci-log-${{ matrix.os }}-${{ matrix.kind }}${{ matrix.part && format('-{0}', matrix.part) || '' }}
@@ -1574,6 +1575,7 @@ jobs:
 
       - name: Upload the seconds of each ruler face
         if: always() && matrix.kind == 'ruler'
+        continue-on-error: ${{ job.status == 'success' }}
         uses: actions/upload-artifact@v4
         with:
           name: ruler-times-${{ matrix.os }}
@@ -1583,6 +1585,7 @@ jobs:
 
       - name: Upload the metrics
         if: always()
+        continue-on-error: ${{ job.status == 'success' }}
         uses: actions/upload-artifact@v4
         with:
           name: metrics-${{ matrix.kind }}-${{ matrix.os }}${{ matrix.part && format('-{0}-{1}', matrix.part, matrix.total) || '' }}
