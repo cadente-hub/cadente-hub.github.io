@@ -1226,8 +1226,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { os: macos-15, kind: tests, part: "1", total: "2" }
-          - { os: macos-15, kind: tests, part: "2", total: "2" }
+          - { os: macos-15, kind: tests, part: "1", total: "3" }
+          - { os: macos-15, kind: tests, part: "2", total: "3" }
+          - { os: macos-15, kind: tests, part: "3", total: "3" }
     defaults: *bash
     env: &run-tests-env
       SHA: ${{ needs.resolve.outputs.sha }}
@@ -1552,13 +1553,12 @@ jobs:
           if-no-files-found: ignore
           retention-days: 1
 
-  # Runs once `package-macos-x86_64` frees its macOS slot (~10 min), keeping peak macOS slots <=4
-  # while both macOS packages build in parallel right after `lint` (`always()` ensures skipped/failed
-  # packages never skip macOS ruler verification).
+  # Starts right after `build-tests-macos` alongside `tests-macos` (4 macOS slots total). Both macOS
+  # package jobs start at `t=0` and finish right around `build-tests-macos`, keeping peak slots <=5.
   ruler-macos:
     name: ${{ matrix.kind }} ${{ matrix.os }}
-    needs: [resolve, build-tests-macos, package-macos-x86_64]
-    if: always() && needs.resolve.result == 'success' && needs.resolve.outputs.skip != 'true' && needs.resolve.outputs.docs_only != 'true' && needs.resolve.outputs.lint_only != 'true' && needs.build-tests-macos.result == 'success'
+    needs: [resolve, build-tests-macos]
+    if: *build-tests-if
     runs-on: ${{ matrix.os }}
     timeout-minutes: 45
     permissions: *tests-permissions
@@ -1859,12 +1859,11 @@ jobs:
           if-no-files-found: warn
           retention-days: 1
 
-  # Parallel packaging across targets: Linux and Windows start immediately on abundant runners, while
-  # macOS staggers within GitHub Free's 5-runner pool (`arm64` waits for `lint`, leaving 2 slots at t=0;
-  # `x86_64` starts right when `tests-macos` releases its 3 slots).
+  # Start both macOS packages immediately at `t=0` (4 concurrent macOS slots with `lint` + `build-tests`
+  # <= GitHub's 5-runner limit), avoiding a ~5m wait behind Windows lint.
   package-macos-arm64:
     name: package ${{ matrix.target }}
-    needs: [resolve, lint]
+    needs: resolve
     if: *package-if
     runs-on: ${{ matrix.os }}
     timeout-minutes: 90
@@ -1982,7 +1981,7 @@ jobs:
           CADENTE_BUILD_VERSION: ${{ needs.resolve.outputs.version }}
           RUSTC_WRAPPER: sccache
           SCCACHE_DIR: ${{ runner.temp }}/sccache
-          SCCACHE_CACHE_SIZE: ${{ vars.SCCACHE_PACKAGE_CACHE_SIZE || '350M' }}
+          SCCACHE_CACHE_SIZE: ${{ vars.SCCACHE_PACKAGE_CACHE_SIZE || '275M' }}
           SCCACHE_IDLE_TIMEOUT: "0"
           T: ${{ matrix.target }}
         run: |
@@ -2034,7 +2033,7 @@ jobs:
         env:
           RUSTC_WRAPPER: sccache
           SCCACHE_DIR: ${{ runner.temp }}/sccache
-          SCCACHE_CACHE_SIZE: ${{ vars.SCCACHE_PACKAGE_CACHE_SIZE || '350M' }}
+          SCCACHE_CACHE_SIZE: ${{ vars.SCCACHE_PACKAGE_CACHE_SIZE || '275M' }}
           SCCACHE_IDLE_TIMEOUT: "0"
           T: ${{ matrix.target }}
         run: |
@@ -2268,7 +2267,7 @@ jobs:
 
   package-macos-x86_64:
     name: package ${{ matrix.target }}
-    needs: [resolve, lint]
+    needs: resolve
     if: *package-if
     runs-on: ${{ matrix.os }}
     timeout-minutes: 90
