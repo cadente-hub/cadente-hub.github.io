@@ -976,17 +976,15 @@ jobs:
           shared-key: tests-v2
           save-if: ${{ github.ref == 'refs/heads/main' }}
 
-      - name: Install sccache (macOS)
-        if: runner.os == 'macOS'
+      - name: Install sccache
         uses: taiki-e/install-action@sccache
 
-      - name: Restore test sccache (macOS)
-        if: runner.os == 'macOS'
+      - name: Restore test sccache
         uses: actions/cache/restore@v4
         with:
           path: ${{ runner.temp }}/sccache-tests
-          key: sccache-tests-macos-${{ github.run_id }}
-          restore-keys: sccache-tests-macos-
+          key: sccache-tests-${{ runner.os == 'macOS' && 'macos' || runner.os }}-${{ github.run_id }}
+          restore-keys: sccache-tests-${{ runner.os == 'macOS' && 'macos' || runner.os }}-
 
       - name: Initialize log file
         env:
@@ -999,10 +997,11 @@ jobs:
       - name: Build the tests (cargo nextest archive)
         id: build
         run: |
-          if [ "$RUNNER_OS" = "macOS" ] && command -v sccache >/dev/null 2>&1; then
+          if command -v sccache >/dev/null 2>&1; then
             export RUSTC_WRAPPER=sccache
+            export CARGO_INCREMENTAL=0
             export SCCACHE_DIR="$RUNNER_TEMP/sccache-tests"
-            export SCCACHE_CACHE_SIZE="${SCCACHE_TESTS_CACHE_SIZE:-320M}"
+            export SCCACHE_CACHE_SIZE="${SCCACHE_TESTS_CACHE_SIZE:-220M}"
             export SCCACHE_IDLE_TIMEOUT=0
           fi
           PKG_FLAGS=""
@@ -1025,12 +1024,12 @@ jobs:
           EXIT=$?
           set -e
           echo "compile_s=$(( $(date +%s) - START ))" >> "$RUNNER_TEMP/metrics.env"
-          if [ "$RUNNER_OS" = "macOS" ] && command -v sccache >/dev/null 2>&1; then
+          if command -v sccache >/dev/null 2>&1; then
             STATS="$(sccache --show-stats --stats-format json 2>/dev/null || echo '{}')"
             HITS="$(printf '%s' "$STATS" | jq -r '.stats.cache_hits.counts.Rust // 0' 2>/dev/null || echo 0)"
             MISSES="$(printf '%s' "$STATS" | jq -r '.stats.cache_misses.counts.Rust // 0' 2>/dev/null || echo 0)"
             SIZE="$(du -sm "$SCCACHE_DIR" 2>/dev/null | cut -f1 || echo 0)"
-            echo "sccache (build-tests macOS): ${HITS} acertos, ${MISSES} faltas, ${SIZE:-0} MB na pasta"
+            echo "sccache (build-tests ${RUNNER_OS}): ${HITS} acertos, ${MISSES} faltas, ${SIZE:-0} MB na pasta"
             sccache --stop-server > /dev/null 2>&1 || true
           fi
           cat "$RAW" >> "$RUNNER_TEMP/ci-build.log"
@@ -1045,12 +1044,12 @@ jobs:
             exit 1
           fi
 
-      - name: Save test sccache (macOS)
-        if: runner.os == 'macOS' && github.ref == 'refs/heads/main'
+      - name: Save test sccache
+        if: github.ref == 'refs/heads/main'
         uses: actions/cache/save@v4
         with:
           path: ${{ runner.temp }}/sccache-tests
-          key: sccache-tests-macos-${{ github.run_id }}
+          key: sccache-tests-${{ runner.os == 'macOS' && 'macos' || runner.os }}-${{ github.run_id }}
 
       - name: Mark the archive upload
         run: echo "upload_start=$(date +%s)" >> "$RUNNER_TEMP/metrics.env"
@@ -1409,6 +1408,11 @@ jobs:
           NEXTEST_RAW="$RUNNER_TEMP/nextest_raw.log"
           START=$(date +%s)
           NEXTEST_EXIT=0
+          # macos-15 has 3 vCPUs while live::parity overrides require 2 threads, serializing parity tests.
+          THREADS_FLAG=""
+          if [ "$MATRIX_OS" = "macos-15" ] && [ "$KIND" != "ruler" ]; then
+            THREADS_FLAG="--test-threads 4"
+          fi
 
           if [ "$KIND" = "ruler" ]; then
             echo "Passo: cargo nextest run --archive-file (só a régua, modo $MODE)"
@@ -1437,10 +1441,10 @@ jobs:
             DELTA_RAW="$RUNNER_TEMP/nextest_delta_raw.log"
             set +e
             cargo-nextest nextest run --archive-file "$RUNNER_TEMP/base/nextest-base.tar.zst" --extract-to . --extract-overwrite \
-              --workspace-remap . --profile ci --no-tests=pass -E "not (${DELTA_EXPR}) & not ${RULER}" --partition "hash:${PART}/${TOTAL}" > "$BASE_RAW" 2>&1
+              --workspace-remap . --profile ci --no-tests=pass -E "not (${DELTA_EXPR}) & not ${RULER}" --partition "hash:${PART}/${TOTAL}" $THREADS_FLAG > "$BASE_RAW" 2>&1
             EXIT_BASE=$?
             cargo-nextest nextest run --archive-file "$RUNNER_TEMP/delta/nextest-delta.tar.zst" --extract-to . --extract-overwrite \
-              --workspace-remap . --profile ci --no-tests=pass -E "not ${RULER}" --partition "hash:${PART}/${TOTAL}" > "$DELTA_RAW" 2>&1
+              --workspace-remap . --profile ci --no-tests=pass -E "not ${RULER}" --partition "hash:${PART}/${TOTAL}" $THREADS_FLAG > "$DELTA_RAW" 2>&1
             EXIT_DELTA=$?
             set -e
             cat "$BASE_RAW" "$DELTA_RAW" >> "$RUNNER_TEMP/ci-build.log"
@@ -1451,7 +1455,7 @@ jobs:
             echo "Passo: cargo nextest run --archive-file (sem a régua, metade $PART de $TOTAL)"
             set +e
             cargo-nextest nextest run --archive-file "$RUNNER_TEMP/base/nextest-base.tar.zst" --extract-to . --extract-overwrite \
-              --workspace-remap . --profile ci -E "not ${RULER}" --partition "hash:${PART}/${TOTAL}" > "$NEXTEST_RAW" 2>&1
+              --workspace-remap . --profile ci -E "not ${RULER}" --partition "hash:${PART}/${TOTAL}" $THREADS_FLAG > "$NEXTEST_RAW" 2>&1
             NEXTEST_EXIT=$?
             set -e
             cat "$NEXTEST_RAW" >> "$RUNNER_TEMP/ci-build.log"
