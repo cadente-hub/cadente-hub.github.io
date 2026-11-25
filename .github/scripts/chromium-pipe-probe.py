@@ -1,4 +1,4 @@
-"""Compare the two DevTools switch orders with the runner's own Chrome."""
+"""Compare Chrome profile paths and parity's isolated Windows home."""
 import json
 import msvcrt
 import os
@@ -24,10 +24,21 @@ def version_from_pipe(fd, results):
         results.put(("error", str(error)))
 
 
-def probe(chrome, pipe_before_url):
-    print("pipe switch before URL:", pipe_before_url, flush=True)
+def probe(chrome, home, extended=False):
+    print(f"home={home}, extended={extended}", flush=True)
     with tempfile.TemporaryDirectory(prefix="cadente-pipe-") as directory:
         root = Path(directory)
+        profile = root / "data" / "browser" / "profile"
+        profile.mkdir(parents=True)
+        profile_arg = str(profile)
+        if extended:
+            profile_arg = "\\\\?\\" + profile_arg
+        env = os.environ.copy()
+        if home != "runner":
+            fake_home = root / "home"
+            if home == "created":
+                fake_home.mkdir()
+            env.update(HOME=str(fake_home), USERPROFILE=str(fake_home))
         child_read, write = os.pipe()
         read, child_write = os.pipe()
         try:
@@ -43,13 +54,14 @@ def probe(chrome, pipe_before_url):
                 "--disable-extensions", "--disable-breakpad",
                 "--disable-features=Translate,MediaRouter,OptimizationHints",
                 "--force-color-profile=srgb", "--mute-audio",
-                f"--user-data-dir={root / 'profile'}", "--enable-logging=stderr",
+                f"--user-data-dir={profile_arg}", "--enable-logging=stderr",
             ]
-            args.extend([pipe_switch, "about:blank"] if pipe_before_url else ["about:blank", pipe_switch])
+            args.extend(["about:blank", pipe_switch])
             with (root / "chrome.log").open("wb") as log:
                 process = subprocess.Popen(args, startupinfo=startup, stdin=subprocess.DEVNULL,
                                            stdout=subprocess.DEVNULL, stderr=log,
-                                           creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)
+                                           creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
+                                           env=env, cwd=root)
             os.close(child_read)
             os.close(child_write)
             child_read = child_write = None
@@ -85,5 +97,7 @@ candidates = [
 chrome = next((path for path in candidates if path.is_file()), None)
 assert chrome is not None, "No supported Chromium executable on the Windows runner"
 print(chrome, flush=True)
-probe(chrome, False)
-probe(chrome, True)
+probe(chrome, "runner")
+probe(chrome, "missing")
+probe(chrome, "created")
+probe(chrome, "runner", extended=True)
