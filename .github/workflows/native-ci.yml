@@ -111,6 +111,8 @@ jobs:
       version: ${{ steps.version.outputs.version }}
       tag: ${{ steps.version.outputs.tag }}
       delta_packages: ${{ steps.test_plan.outputs.delta_packages }}
+      delta_core: ${{ steps.test_plan.outputs.delta_core }}
+      delta_app: ${{ steps.test_plan.outputs.delta_app }}
       base_run_id: ${{ steps.test_plan.outputs.base_run_id }}
     steps:
       - uses: actions/checkout@v4
@@ -328,6 +330,8 @@ jobs:
           set -euo pipefail
           if [ "$WARM_UP" = "true" ] || [ "$PLANT_FAILURE" = "true" ] || [ -n "$LOCK_UPDATE" ]; then
             echo "delta_packages=" >> "$GITHUB_OUTPUT"
+            echo "delta_core=" >> "$GITHUB_OUTPUT"
+            echo "delta_app=" >> "$GITHUB_OUTPUT"
             echo "base_run_id=" >> "$GITHUB_OUTPUT"
             echo "Test plan: full (warm_up=$WARM_UP, plant_failure=$PLANT_FAILURE, lock_update=${LOCK_UPDATE:+set})."
             exit 0
@@ -347,7 +351,7 @@ jobs:
             [ "$DIST" -le 30 ] || continue
             ARTS="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}/artifacts?per_page=100" \
               --jq '[.artifacts[] | select(.expired == false) | .name]' 2>/dev/null || echo '[]')"
-            if printf '%s' "$ARTS" | jq -e 'index("nextest-base-macos-15") and index("nextest-base-ubuntu-latest") and index("nextest-base-windows-latest")' >/dev/null; then
+            if printf '%s' "$ARTS" | jq -e 'index("nextest-base-macos-15") and index("nextest-base-ubuntu-latest") and index("nextest-base-windows-latest") and index("nextest-app-base-macos-15") and index("nextest-app-base-ubuntu-latest") and index("nextest-app-base-windows-latest")' >/dev/null; then
               BASE_RUN_ID="$RUN_ID"
               BASE_SHA="$CAND"
               break
@@ -356,8 +360,10 @@ jobs:
 
           if [ -z "$BASE_RUN_ID" ] || [ -z "$BASE_SHA" ]; then
             echo "delta_packages=" >> "$GITHUB_OUTPUT"
+            echo "delta_core=" >> "$GITHUB_OUTPUT"
+            echo "delta_app=" >> "$GITHUB_OUTPUT"
             echo "base_run_id=" >> "$GITHUB_OUTPUT"
-            echo "Test plan: full (no recent main base run with all 3 nextest-base-* artifacts)."
+            echo "Test plan: full (no recent main base run with all 6 nextest-*base-* artifacts)."
             exit 0
           fi
 
@@ -539,13 +545,25 @@ jobs:
 
           if [ -z "$DELTA" ]; then
             echo "delta_packages=" >> "$GITHUB_OUTPUT"
+            echo "delta_core=" >> "$GITHUB_OUTPUT"
+            echo "delta_app=" >> "$GITHUB_OUTPUT"
             echo "base_run_id=" >> "$GITHUB_OUTPUT"
-            echo "Test plan: full (diff touches shared build/root files or >=12 crates)."
+            echo "Test plan: full (diff touches shared build/root files or >=20 crates)."
           else
+            DELTA_CORE=""
+            DELTA_APP=""
+            for P in $DELTA; do
+              case "$P" in
+                cadente-app|cadente-app-ui) DELTA_APP="${DELTA_APP:+$DELTA_APP }$P" ;;
+                *) DELTA_CORE="${DELTA_CORE:+$DELTA_CORE }$P" ;;
+              esac
+            done
             COUNT="$(printf '%s\n' "$DELTA" | wc -w | tr -d ' ')"
             echo "delta_packages=$DELTA" >> "$GITHUB_OUTPUT"
+            echo "delta_core=$DELTA_CORE" >> "$GITHUB_OUTPUT"
+            echo "delta_app=$DELTA_APP" >> "$GITHUB_OUTPUT"
             echo "base_run_id=$BASE_RUN_ID" >> "$GITHUB_OUTPUT"
-            echo "Test plan: delta (${COUNT} packages) against base run ${BASE_RUN_ID} (base ${BASE_SHA:0:12})."
+            echo "Test plan: delta (${COUNT} packages; core='${DELTA_CORE:-none}', app='${DELTA_APP:-none}') against base run ${BASE_RUN_ID} (base ${BASE_SHA:0:12})."
           fi
 
       # A run from another branch tests this workflow and leaves the commit's statuses alone, and so does
@@ -607,7 +625,7 @@ jobs:
           set -uo pipefail
           while :; do
             PENDING="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/attempts/${GITHUB_RUN_ATTEMPT}/jobs?per_page=100" \
-              --jq '[.jobs[] | select((.name | test("^(lint|build-tests|package) ")) and .status != "completed")] | length' 2>/dev/null || echo 1)"
+              --jq '[.jobs[] | select((.name | test("^(lint|build-tests|build-tests-app|package) ")) and .status != "completed")] | length' 2>/dev/null || echo 1)"
             bash .github/scripts/prune-rust-caches.sh | grep -v '^cache in use' || true
             [ "$PENDING" = 0 ] && break
             sleep 20
@@ -909,7 +927,7 @@ jobs:
   # or affected delta closure against a recent green `nextest-base-*` archive), then fans out to
   # 3 parallel runners (`tests 1/2`, `tests 2/2`, `ruler`) with zero runner-slot polling.
   build-tests-macos:
-    name: build-tests ${{ matrix.os }}
+    name: ${{ matrix.group == 'app' && 'build-tests-app' || 'build-tests' }} ${{ matrix.os }}
     needs: resolve
     if: &build-tests-if needs.resolve.outputs.skip != 'true' && needs.resolve.outputs.docs_only != 'true' && needs.resolve.outputs.lint_only != 'true'
     runs-on: ${{ matrix.os }}
@@ -918,16 +936,21 @@ jobs:
       contents: read
     strategy:
       matrix:
-        os: [macos-15]
+        include:
+          - { os: macos-15, group: core }
     defaults: &bash
       run:
         shell: bash
     env: &build-tests-env
       SHA: ${{ needs.resolve.outputs.sha }}
       DELTA_PACKAGES: ${{ needs.resolve.outputs.delta_packages }}
+      DELTA_CORE: ${{ needs.resolve.outputs.delta_core }}
+      DELTA_APP: ${{ needs.resolve.outputs.delta_app }}
       MATRIX_OS: ${{ matrix.os }}
-      JOB_KIND: build-tests
-      PLANT_FAILURE: ${{ github.ref != 'refs/heads/main' && inputs.plant_failure && matrix.os == 'ubuntu-latest' }}
+      GROUP: ${{ matrix.group }}
+      ARCHIVE_PREFIX: ${{ matrix.group == 'app' && 'nextest-app' || 'nextest' }}
+      JOB_KIND: ${{ matrix.group == 'app' && 'build-tests-app' || 'build-tests' }}
+      PLANT_FAILURE: ${{ github.ref != 'refs/heads/main' && inputs.plant_failure && matrix.os == 'ubuntu-latest' && matrix.group == 'core' }}
     steps: &build-tests-steps
       - name: Start the clock
         run: echo "t0=$(date +%s)" > "$RUNNER_TEMP/metrics.env"
@@ -974,7 +997,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
         with:
           shared-key: tests-v2
-          save-if: ${{ github.ref == 'refs/heads/main' }}
+          save-if: ${{ github.ref == 'refs/heads/main' && matrix.group == 'core' }}
 
       - name: Install sccache
         uses: taiki-e/install-action@sccache
@@ -1005,16 +1028,32 @@ jobs:
             export SCCACHE_IDLE_TIMEOUT=0
           fi
           PKG_FLAGS=""
+          IS_DELTA=false
           if [ -n "$DELTA_PACKAGES" ] && [ "$PLANT_FAILURE" != "true" ]; then
-            for P in $DELTA_PACKAGES; do PKG_FLAGS="$PKG_FLAGS -p $P"; done
-            MODE=delta
-            ARCHIVE="$RUNNER_TEMP/nextest-delta.tar.zst"
-            echo "Passo: cargo nextest archive (delta)"
+            IS_DELTA=true
+          fi
+          if [ "$GROUP" = "app" ]; then
+            GROUP_DELTA="$DELTA_APP"
+            FULL_FLAGS="-p cadente-app -p cadente-app-ui"
           else
-            PKG_FLAGS="--workspace"
+            GROUP_DELTA="$DELTA_CORE"
+            FULL_FLAGS="--workspace --exclude cadente-app --exclude cadente-app-ui"
+          fi
+          if [ "$IS_DELTA" = true ] && [ -z "$GROUP_DELTA" ]; then
+            echo "mode=skip" >> "$GITHUB_OUTPUT"
+            echo "compile_s=0" >> "$RUNNER_TEMP/metrics.env"
+            echo "Resultado: OK (nenhuma crate ${GROUP} no delta; usando archive base)"
+            exit 0
+          elif [ "$IS_DELTA" = true ]; then
+            for P in $GROUP_DELTA; do PKG_FLAGS="$PKG_FLAGS -p $P"; done
+            MODE=delta
+            ARCHIVE="$RUNNER_TEMP/${ARCHIVE_PREFIX}-delta.tar.zst"
+            echo "Passo: cargo nextest archive (${GROUP} delta)"
+          else
+            PKG_FLAGS="$FULL_FLAGS"
             MODE=full
-            ARCHIVE="$RUNNER_TEMP/nextest-base.tar.zst"
-            echo "Passo: cargo nextest archive --workspace"
+            ARCHIVE="$RUNNER_TEMP/${ARCHIVE_PREFIX}-base.tar.zst"
+            echo "Passo: cargo nextest archive (${GROUP} ${PKG_FLAGS})"
           fi
           echo "mode=$MODE" >> "$GITHUB_OUTPUT"
           RAW="$RUNNER_TEMP/archive_raw.log"
@@ -1029,7 +1068,7 @@ jobs:
             HITS="$(printf '%s' "$STATS" | jq -r '.stats.cache_hits.counts.Rust // 0' 2>/dev/null || echo 0)"
             MISSES="$(printf '%s' "$STATS" | jq -r '.stats.cache_misses.counts.Rust // 0' 2>/dev/null || echo 0)"
             SIZE="$(du -sm "$SCCACHE_DIR" 2>/dev/null | cut -f1 || echo 0)"
-            echo "sccache (build-tests ${RUNNER_OS}): ${HITS} acertos, ${MISSES} faltas, ${SIZE:-0} MB na pasta"
+            echo "sccache (${JOB_KIND} ${RUNNER_OS}): ${HITS} acertos, ${MISSES} faltas, ${SIZE:-0} MB na pasta"
             sccache --stop-server > /dev/null 2>&1 || true
           fi
           cat "$RAW" >> "$RUNNER_TEMP/ci-build.log"
@@ -1037,7 +1076,7 @@ jobs:
           if [ $EXIT -eq 0 ]; then
             MB=$(( $(wc -c < "$ARCHIVE") / 1048576 ))
             echo "archive_mb=$MB" >> "$RUNNER_TEMP/metrics.env"
-            echo "Resultado: OK (${MB} MB de arquivo ${MODE})"
+            echo "Resultado: OK (${MB} MB de arquivo ${GROUP} ${MODE})"
           else
             echo "Resultado: FALHOU"
             echo "cargo nextest archive" > "$RUNNER_TEMP/failed_step"
@@ -1045,7 +1084,7 @@ jobs:
           fi
 
       - name: Save test sccache
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' && matrix.group == 'core'
         uses: actions/cache/save@v4
         with:
           path: ${{ runner.temp }}/sccache-tests
@@ -1058,8 +1097,8 @@ jobs:
         if: steps.build.outputs.mode == 'full'
         uses: actions/upload-artifact@v4
         with:
-          name: nextest-base-${{ matrix.os }}
-          path: ${{ runner.temp }}/nextest-base.tar.zst
+          name: ${{ matrix.group == 'app' && 'nextest-app' || 'nextest' }}-base-${{ matrix.os }}
+          path: ${{ runner.temp }}/${{ matrix.group == 'app' && 'nextest-app' || 'nextest' }}-base.tar.zst
           compression-level: 0
           if-no-files-found: error
           retention-days: ${{ github.ref == 'refs/heads/main' && 5 || 1 }}
@@ -1068,8 +1107,8 @@ jobs:
         if: steps.build.outputs.mode == 'delta'
         uses: actions/upload-artifact@v4
         with:
-          name: nextest-delta-${{ matrix.os }}
-          path: ${{ runner.temp }}/nextest-delta.tar.zst
+          name: ${{ matrix.group == 'app' && 'nextest-app' || 'nextest' }}-delta-${{ matrix.os }}
+          path: ${{ runner.temp }}/${{ matrix.group == 'app' && 'nextest-app' || 'nextest' }}-delta.tar.zst
           compression-level: 0
           if-no-files-found: error
           retention-days: 1
@@ -1080,7 +1119,7 @@ jobs:
           echo "upload_s=$(( $(date +%s) - START ))" >> "$RUNNER_TEMP/metrics.env"
 
       - name: Documentation tests (cargo test --doc)
-        if: runner.os == 'Linux'
+        if: runner.os == 'Linux' && matrix.group == 'core'
         run: |
           set -uo pipefail
           CRATES="$(python3 - <<'PY'
@@ -1169,7 +1208,7 @@ jobs:
           echo "Resultado: OK"
 
       - name: Warm clippy metadata for lint (on cache miss only)
-        if: github.ref == 'refs/heads/main' && steps.cache.outputs.cache-hit != 'true' && steps.build.outputs.mode == 'full'
+        if: github.ref == 'refs/heads/main' && matrix.group == 'core' && steps.cache.outputs.cache-hit != 'true' && steps.build.outputs.mode == 'full'
         run: cargo clippy --config .ci/.cargo/config.toml --workspace --all-targets -- -A clippy::all >> "$RUNNER_TEMP/ci-build.log" 2>&1 || true
 
       - name: Seal the build log and the timings
@@ -1199,7 +1238,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ci-log-${{ matrix.os }}-build-tests
+          name: ci-log-${{ matrix.os }}-${{ matrix.group == 'app' && 'build-tests-app' || 'build-tests' }}
           path: ${{ runner.temp }}/sealed/
           if-no-files-found: ignore
           retention-days: 1
@@ -1208,13 +1247,13 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: metrics-build-tests-${{ matrix.os }}
+          name: metrics-${{ matrix.group == 'app' && 'build-tests-app' || 'build-tests' }}-${{ matrix.os }}
           path: ${{ runner.temp }}/metrics.env
           if-no-files-found: ignore
           retention-days: 1
 
-  build-tests-linux:
-    name: build-tests ${{ matrix.os }}
+  build-tests-app-macos:
+    name: ${{ matrix.group == 'app' && 'build-tests-app' || 'build-tests' }} ${{ matrix.os }}
     needs: resolve
     if: *build-tests-if
     runs-on: ${{ matrix.os }}
@@ -1222,13 +1261,44 @@ jobs:
     permissions: *read-only
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        include:
+          - { os: macos-15, group: app }
+    defaults: *bash
+    env: *build-tests-env
+    steps: *build-tests-steps
+
+  build-tests-linux:
+    name: ${{ matrix.group == 'app' && 'build-tests-app' || 'build-tests' }} ${{ matrix.os }}
+    needs: resolve
+    if: *build-tests-if
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    permissions: *read-only
+    strategy:
+      matrix:
+        include:
+          - { os: ubuntu-latest, group: core }
+    defaults: *bash
+    env: *build-tests-env
+    steps: *build-tests-steps
+
+  build-tests-app-linux:
+    name: ${{ matrix.group == 'app' && 'build-tests-app' || 'build-tests' }} ${{ matrix.os }}
+    needs: resolve
+    if: *build-tests-if
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    permissions: *read-only
+    strategy:
+      matrix:
+        include:
+          - { os: ubuntu-latest, group: app }
     defaults: *bash
     env: *build-tests-env
     steps: *build-tests-steps
 
   build-tests-windows:
-    name: build-tests ${{ matrix.os }}
+    name: ${{ matrix.group == 'app' && 'build-tests-app' || 'build-tests' }} ${{ matrix.os }}
     needs: resolve
     if: *build-tests-if
     runs-on: ${{ matrix.os }}
@@ -1236,7 +1306,23 @@ jobs:
     permissions: *read-only
     strategy:
       matrix:
-        os: [windows-latest]
+        include:
+          - { os: windows-latest, group: core }
+    defaults: *bash
+    env: *build-tests-env
+    steps: *build-tests-steps
+
+  build-tests-app-windows:
+    name: ${{ matrix.group == 'app' && 'build-tests-app' || 'build-tests' }} ${{ matrix.os }}
+    needs: resolve
+    if: *build-tests-if
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    permissions: *read-only
+    strategy:
+      matrix:
+        include:
+          - { os: windows-latest, group: app }
     defaults: *bash
     env: *build-tests-env
     steps: *build-tests-steps
@@ -1258,15 +1344,17 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { os: macos-15, kind: tests, part: "1", total: "3" }
-          - { os: macos-15, kind: tests, part: "2", total: "3" }
-          - { os: macos-15, kind: tests, part: "3", total: "3" }
+          - { os: macos-15, kind: tests, group: core, part: "", total: "" }
     defaults: *bash
     env: &run-tests-env
       SHA: ${{ needs.resolve.outputs.sha }}
       DELTA_PACKAGES: ${{ needs.resolve.outputs.delta_packages }}
+      DELTA_CORE: ${{ needs.resolve.outputs.delta_core }}
+      DELTA_APP: ${{ needs.resolve.outputs.delta_app }}
       BASE_RUN_ID: ${{ needs.resolve.outputs.base_run_id }}
       MATRIX_OS: ${{ matrix.os }}
+      GROUP: ${{ matrix.group }}
+      ARCHIVE_PREFIX: ${{ matrix.group == 'app' && 'nextest-app' || 'nextest' }}
       JOB_KIND: ${{ matrix.kind }}${{ matrix.part && format('-{0}', matrix.part) || '' }}
       PART: ${{ matrix.part }}
       TOTAL: ${{ matrix.total }}
@@ -1333,18 +1421,20 @@ jobs:
           if [ -n "$DELTA_PACKAGES" ] && [ -n "$BASE_RUN_ID" ] && [ "$PLANT_FAILURE" != "true" ]; then
             IS_DELTA=true
           fi
-          RULER_IN_DELTA=false
-          if [ "$IS_DELTA" = true ] && printf ' %s ' "$DELTA_PACKAGES" | grep -qF ' cadente-app '; then
-            RULER_IN_DELTA=true
+          if [ "$GROUP" = "app" ]; then
+            GROUP_DELTA="$DELTA_APP"
+          else
+            GROUP_DELTA="$DELTA_CORE"
           fi
+          echo "group_delta=$GROUP_DELTA" >> "$GITHUB_OUTPUT"
 
           NEED_DELTA=false
           NEED_BASE_CROSS=false
           if [ "$IS_DELTA" = true ]; then
-            if [ "$KIND" = "tests" ] || [ "$RULER_IN_DELTA" = true ] || { [ -n "$STRESS_FILTER" ] && [ "$MATRIX_OS" = "ubuntu-latest" ]; }; then
+            if [ -n "$GROUP_DELTA" ]; then
               NEED_DELTA=true
             fi
-            if [ "$KIND" = "tests" ] || [ "$RULER_IN_DELTA" != true ] || { [ -n "$STRESS_FILTER" ] && [ "$MATRIX_OS" = "ubuntu-latest" ]; }; then
+            if [ "$KIND" != "ruler" ] || [ -z "$GROUP_DELTA" ] || { [ -n "$STRESS_FILTER" ] && [ "$MATRIX_OS" = "ubuntu-latest" ]; }; then
               NEED_BASE_CROSS=true
             fi
             echo "mode=delta" >> "$GITHUB_OUTPUT"
@@ -1353,20 +1443,19 @@ jobs:
           fi
           echo "need_delta=$NEED_DELTA" >> "$GITHUB_OUTPUT"
           echo "need_base_cross=$NEED_BASE_CROSS" >> "$GITHUB_OUTPUT"
-          echo "ruler_in_delta=$RULER_IN_DELTA" >> "$GITHUB_OUTPUT"
 
       - name: Download test archive (base)
         if: steps.dl.outputs.mode == 'full'
         uses: actions/download-artifact@v4
         with:
-          name: nextest-base-${{ matrix.os }}
+          name: ${{ matrix.group == 'app' && 'nextest-app' || 'nextest' }}-base-${{ matrix.os }}
           path: ${{ runner.temp }}/base
 
       - name: Download test archive (delta)
         if: steps.dl.outputs.need_delta == 'true'
         uses: actions/download-artifact@v4
         with:
-          name: nextest-delta-${{ matrix.os }}
+          name: ${{ matrix.group == 'app' && 'nextest-app' || 'nextest' }}-delta-${{ matrix.os }}
           path: ${{ runner.temp }}/delta
 
       - name: Download test archive (base run)
@@ -1378,11 +1467,11 @@ jobs:
           ok=false
           for attempt in 1 2 3; do
             rm -rf "$RUNNER_TEMP/base"
-            if gh run download "$BASE_RUN_ID" -R "$GITHUB_REPOSITORY" -n "nextest-base-${MATRIX_OS}" -D "$RUNNER_TEMP/base"; then
+            if gh run download "$BASE_RUN_ID" -R "$GITHUB_REPOSITORY" -n "${ARCHIVE_PREFIX}-base-${MATRIX_OS}" -D "$RUNNER_TEMP/base"; then
               ok=true
               break
             fi
-            echo "::warning::Could not download nextest-base-${MATRIX_OS} from run ${BASE_RUN_ID} (attempt $attempt of 3)"
+            echo "::warning::Could not download ${ARCHIVE_PREFIX}-base-${MATRIX_OS} from run ${BASE_RUN_ID} (attempt $attempt of 3)"
             sleep $((attempt * 10))
           done
           $ok || { echo "::error::Failed to download base test archive from run ${BASE_RUN_ID}"; exit 1; }
@@ -1392,7 +1481,7 @@ jobs:
           set -euo pipefail
           DL_START="$(sed -n 's/^dl_start=//p' "$RUNNER_TEMP/metrics.env" | tail -1)"
           TOTAL_BYTES=0
-          for F in "$RUNNER_TEMP/base/nextest-base.tar.zst" "$RUNNER_TEMP/delta/nextest-delta.tar.zst"; do
+          for F in "$RUNNER_TEMP/base/${ARCHIVE_PREFIX}-base.tar.zst" "$RUNNER_TEMP/delta/${ARCHIVE_PREFIX}-delta.tar.zst"; do
             [ -f "$F" ] && TOTAL_BYTES=$(( TOTAL_BYTES + $(wc -c < "$F") ))
           done
           MB=$(( TOTAL_BYTES / 1048576 ))
@@ -1403,24 +1492,34 @@ jobs:
       - name: Run from the archive (cargo nextest)
         env:
           MODE: ${{ steps.dl.outputs.mode }}
-          RULER_IN_DELTA: ${{ steps.dl.outputs.ruler_in_delta }}
+          GROUP_DELTA: ${{ steps.dl.outputs.group_delta }}
         run: |
           NEXTEST_RAW="$RUNNER_TEMP/nextest_raw.log"
           START=$(date +%s)
           NEXTEST_EXIT=0
+          APP_SCOPE="(package(cadente-app) | package(cadente-app-ui))"
+          if [ "$GROUP" = "app" ]; then
+            SCOPE_EXPR="$APP_SCOPE"
+          else
+            SCOPE_EXPR="not $APP_SCOPE"
+          fi
+          PART_FLAG=""
+          [ -n "$PART" ] && PART_FLAG="--partition hash:${PART}/${TOTAL}"
           # macos-15 has 3 vCPUs while live::parity overrides require 2 threads, serializing parity tests.
           THREADS_FLAG=""
           if [ "$MATRIX_OS" = "macos-15" ] && [ "$KIND" != "ruler" ]; then
             THREADS_FLAG="--test-threads 4"
           fi
+          BASE_ARCHIVE="$RUNNER_TEMP/base/${ARCHIVE_PREFIX}-base.tar.zst"
+          DELTA_ARCHIVE="$RUNNER_TEMP/delta/${ARCHIVE_PREFIX}-delta.tar.zst"
 
           if [ "$KIND" = "ruler" ]; then
             echo "Passo: cargo nextest run --archive-file (só a régua, modo $MODE)"
             export CADENTE_RULER_TIMES_OUT="$RUNNER_TEMP/ruler-times.json"
-            if [ "$MODE" = "delta" ] && [ "$RULER_IN_DELTA" = "true" ]; then
-              ARCHIVE="$RUNNER_TEMP/delta/nextest-delta.tar.zst"
+            if [ "$MODE" = "delta" ] && [ -n "$GROUP_DELTA" ]; then
+              ARCHIVE="$DELTA_ARCHIVE"
             else
-              ARCHIVE="$RUNNER_TEMP/base/nextest-base.tar.zst"
+              ARCHIVE="$BASE_ARCHIVE"
             fi
             set +e
             cargo-nextest nextest run --archive-file "$ARCHIVE" --extract-to . --extract-overwrite \
@@ -1431,31 +1530,39 @@ jobs:
             PUBLIC="$(sed 's/\x1b\[[0-9;]*m//g' "$NEXTEST_RAW" | grep -E '^ *(Finished |Summary \[)' | sed -E 's/^ *//' || true)"
             printf '%s\n' "$PUBLIC"
           elif [ "$MODE" = "delta" ]; then
-            echo "Passo: cargo nextest run --archive-file (delta + base complementar, metade $PART de $TOTAL)"
-            DELTA_EXPR=""
-            for P in $DELTA_PACKAGES; do
-              [ -n "$DELTA_EXPR" ] && DELTA_EXPR="$DELTA_EXPR | "
-              DELTA_EXPR="${DELTA_EXPR}package(${P})"
-            done
+            echo "Passo: cargo nextest run --archive-file (${GROUP} delta + base complementar${PART:+, metade $PART de $TOTAL})"
+            BASE_FILTER="${SCOPE_EXPR} & not ${RULER}"
+            if [ -n "$GROUP_DELTA" ]; then
+              DELTA_EXPR=""
+              for P in $GROUP_DELTA; do
+                [ -n "$DELTA_EXPR" ] && DELTA_EXPR="$DELTA_EXPR | "
+                DELTA_EXPR="${DELTA_EXPR}package(${P})"
+              done
+              BASE_FILTER="(${BASE_FILTER}) & not (${DELTA_EXPR})"
+            fi
             BASE_RAW="$RUNNER_TEMP/nextest_base_raw.log"
             DELTA_RAW="$RUNNER_TEMP/nextest_delta_raw.log"
+            : > "$DELTA_RAW"
             set +e
-            cargo-nextest nextest run --archive-file "$RUNNER_TEMP/base/nextest-base.tar.zst" --extract-to . --extract-overwrite \
-              --workspace-remap . --profile ci --no-tests=pass -E "not (${DELTA_EXPR}) & not ${RULER}" --partition "hash:${PART}/${TOTAL}" $THREADS_FLAG > "$BASE_RAW" 2>&1
+            cargo-nextest nextest run --archive-file "$BASE_ARCHIVE" --extract-to . --extract-overwrite \
+              --workspace-remap . --profile ci --no-tests=pass -E "$BASE_FILTER" $PART_FLAG $THREADS_FLAG > "$BASE_RAW" 2>&1
             EXIT_BASE=$?
-            cargo-nextest nextest run --archive-file "$RUNNER_TEMP/delta/nextest-delta.tar.zst" --extract-to . --extract-overwrite \
-              --workspace-remap . --profile ci --no-tests=pass -E "not ${RULER}" --partition "hash:${PART}/${TOTAL}" $THREADS_FLAG > "$DELTA_RAW" 2>&1
-            EXIT_DELTA=$?
+            EXIT_DELTA=0
+            if [ -n "$GROUP_DELTA" ]; then
+              cargo-nextest nextest run --archive-file "$DELTA_ARCHIVE" --extract-to . --extract-overwrite \
+                --workspace-remap . --profile ci --no-tests=pass -E "(${SCOPE_EXPR}) & not ${RULER}" $PART_FLAG $THREADS_FLAG > "$DELTA_RAW" 2>&1
+              EXIT_DELTA=$?
+            fi
             set -e
             cat "$BASE_RAW" "$DELTA_RAW" >> "$RUNNER_TEMP/ci-build.log"
             sed 's/\x1b\[[0-9;]*m//g' "$BASE_RAW" "$DELTA_RAW" | grep -E '^ *(Finished |Summary \[)' | sed -E 's/^ *//' || true
             PUBLIC=""
             [ "$EXIT_BASE" -eq 0 ] && [ "$EXIT_DELTA" -eq 0 ] || NEXTEST_EXIT=1
           else
-            echo "Passo: cargo nextest run --archive-file (sem a régua, metade $PART de $TOTAL)"
+            echo "Passo: cargo nextest run --archive-file (${GROUP}, sem a régua${PART:+, metade $PART de $TOTAL})"
             set +e
-            cargo-nextest nextest run --archive-file "$RUNNER_TEMP/base/nextest-base.tar.zst" --extract-to . --extract-overwrite \
-              --workspace-remap . --profile ci -E "not ${RULER}" --partition "hash:${PART}/${TOTAL}" $THREADS_FLAG > "$NEXTEST_RAW" 2>&1
+            cargo-nextest nextest run --archive-file "$BASE_ARCHIVE" --extract-to . --extract-overwrite \
+              --workspace-remap . --profile ci --no-tests=pass -E "(${SCOPE_EXPR}) & not ${RULER}" $PART_FLAG $THREADS_FLAG > "$NEXTEST_RAW" 2>&1
             NEXTEST_EXIT=$?
             set -e
             cat "$NEXTEST_RAW" >> "$RUNNER_TEMP/ci-build.log"
@@ -1484,29 +1591,43 @@ jobs:
       # Y6 (ADR 0091): the tests this commit touched run 20 times in a row (`--stress-count 20`), once, on
       # Linux, in at most a minute.
       - name: Stress the tests of this commit (cargo nextest --stress-count 20)
-        if: inputs.stress_filter != '' && matrix.kind == 'ruler' && matrix.os == 'ubuntu-latest'
+        if: inputs.stress_filter != '' && (matrix.kind == 'ruler' || matrix.group == 'core') && matrix.os == 'ubuntu-latest'
         timeout-minutes: 2
         env:
           MODE: ${{ steps.dl.outputs.mode }}
+          GROUP_DELTA: ${{ steps.dl.outputs.group_delta }}
         run: |
-          echo "Passo: cargo nextest run --archive-file --stress-count 20 (testes do commit)"
+          echo "Passo: cargo nextest run --archive-file --stress-count 20 (${GROUP})"
           STRESS_RAW="$RUNNER_TEMP/nextest_stress.log"
           : > "$STRESS_RAW"
+          APP_SCOPE="(package(cadente-app) | package(cadente-app-ui))"
+          if [ "$GROUP" = "app" ]; then
+            SCOPE_EXPR="$APP_SCOPE"
+          else
+            SCOPE_EXPR="not $APP_SCOPE"
+          fi
+          BASE_ARCHIVE="$RUNNER_TEMP/base/${ARCHIVE_PREFIX}-base.tar.zst"
+          DELTA_ARCHIVE="$RUNNER_TEMP/delta/${ARCHIVE_PREFIX}-delta.tar.zst"
           STRESS_EXIT=0
           if [ "$MODE" = "delta" ]; then
             DELTA_EXPR=""
-            for P in $DELTA_PACKAGES; do
+            for P in $GROUP_DELTA; do
               [ -n "$DELTA_EXPR" ] && DELTA_EXPR="$DELTA_EXPR | "
               DELTA_EXPR="${DELTA_EXPR}package(${P})"
             done
-            set +e
-            timeout 55 cargo-nextest nextest run --archive-file "$RUNNER_TEMP/delta/nextest-delta.tar.zst" --extract-to . --extract-overwrite \
-              --workspace-remap . --profile ci --no-tests=pass --stress-count 20 -E "$STRESS_FILTER" >> "$STRESS_RAW" 2>&1
-            E1=$?
+            E1=0
             E2=0
-            if [ "$E1" -eq 0 ] && [ -f "$RUNNER_TEMP/base/nextest-base.tar.zst" ]; then
-              timeout 30 cargo-nextest nextest run --archive-file "$RUNNER_TEMP/base/nextest-base.tar.zst" --extract-to . --extract-overwrite \
-                --workspace-remap . --profile ci --no-tests=pass --stress-count 20 -E "(${STRESS_FILTER}) & not (${DELTA_EXPR})" >> "$STRESS_RAW" 2>&1
+            set +e
+            if [ -n "$GROUP_DELTA" ]; then
+              timeout 55 cargo-nextest nextest run --archive-file "$DELTA_ARCHIVE" --extract-to . --extract-overwrite \
+                --workspace-remap . --profile ci --no-tests=pass --stress-count 20 -E "(${STRESS_FILTER}) & (${SCOPE_EXPR})" >> "$STRESS_RAW" 2>&1
+              E1=$?
+            fi
+            if [ "$E1" -eq 0 ] && [ -f "$BASE_ARCHIVE" ]; then
+              BASE_STRESS="(${STRESS_FILTER}) & (${SCOPE_EXPR})"
+              [ -n "$DELTA_EXPR" ] && BASE_STRESS="${BASE_STRESS} & not (${DELTA_EXPR})"
+              timeout 30 cargo-nextest nextest run --archive-file "$BASE_ARCHIVE" --extract-to . --extract-overwrite \
+                --workspace-remap . --profile ci --no-tests=pass --stress-count 20 -E "$BASE_STRESS" >> "$STRESS_RAW" 2>&1
               E2=$?
             fi
             set -e
@@ -1517,8 +1638,8 @@ jobs:
             fi
           else
             set +e
-            timeout 55 cargo-nextest nextest run --archive-file "$RUNNER_TEMP/base/nextest-base.tar.zst" --extract-to . --extract-overwrite \
-              --workspace-remap . --profile ci --no-tests=pass --stress-count 20 -E "$STRESS_FILTER" > "$STRESS_RAW" 2>&1
+            timeout 55 cargo-nextest nextest run --archive-file "$BASE_ARCHIVE" --extract-to . --extract-overwrite \
+              --workspace-remap . --profile ci --no-tests=pass --stress-count 20 -E "(${STRESS_FILTER}) & (${SCOPE_EXPR})" > "$STRESS_RAW" 2>&1
             STRESS_EXIT=$?
             set -e
           fi
@@ -1590,11 +1711,11 @@ jobs:
           if-no-files-found: ignore
           retention-days: 1
 
-  # Starts right after `build-tests-macos` alongside `tests-macos` (4 macOS slots total). Both macOS
-  # package jobs start at `t=0` and finish right around `build-tests-macos`, keeping peak slots <=5.
-  ruler-macos:
-    name: ${{ matrix.kind }} ${{ matrix.os }}
-    needs: [resolve, build-tests-macos]
+  # App tests and ruler start immediately when `build-tests-app` finishes (~3 min) without waiting for
+  # `cadente-core` test binaries (`build-tests-*`), keeping peak macOS slots at <=5.
+  tests-app-macos:
+    name: ${{ matrix.kind }} ${{ matrix.os }}${{ matrix.part && format(' {0}/{1}', matrix.part, matrix.total) || '' }}
+    needs: [resolve, build-tests-app-macos]
     if: *build-tests-if
     runs-on: ${{ matrix.os }}
     timeout-minutes: 45
@@ -1603,7 +1724,24 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { os: macos-15, kind: ruler, part: "", total: "" }
+          - { os: macos-15, kind: tests-app, group: app, part: "1", total: "2" }
+          - { os: macos-15, kind: tests-app, group: app, part: "2", total: "2" }
+    defaults: *bash
+    env: *run-tests-env
+    steps: *run-tests-steps
+
+  ruler-macos:
+    name: ${{ matrix.kind }} ${{ matrix.os }}
+    needs: [resolve, build-tests-app-macos]
+    if: *build-tests-if
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    permissions: *tests-permissions
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: macos-15, kind: ruler, group: app, part: "", total: "" }
     defaults: *bash
     env: *run-tests-env
     steps: *run-tests-steps
@@ -1619,10 +1757,25 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { os: ubuntu-latest, kind: tests, part: "1", total: "3" }
-          - { os: ubuntu-latest, kind: tests, part: "2", total: "3" }
-          - { os: ubuntu-latest, kind: tests, part: "3", total: "3" }
-          - { os: ubuntu-latest, kind: ruler, part: "", total: "" }
+          - { os: ubuntu-latest, kind: tests, group: core, part: "", total: "" }
+    defaults: *bash
+    env: *run-tests-env
+    steps: *run-tests-steps
+
+  tests-app-linux:
+    name: ${{ matrix.kind }} ${{ matrix.os }}${{ matrix.part && format(' {0}/{1}', matrix.part, matrix.total) || '' }}
+    needs: [resolve, build-tests-app-linux]
+    if: *build-tests-if
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    permissions: *tests-permissions
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-latest, kind: tests-app, group: app, part: "1", total: "2" }
+          - { os: ubuntu-latest, kind: tests-app, group: app, part: "2", total: "2" }
+          - { os: ubuntu-latest, kind: ruler, group: app, part: "", total: "" }
     defaults: *bash
     env: *run-tests-env
     steps: *run-tests-steps
@@ -1638,10 +1791,25 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { os: windows-latest, kind: tests, part: "1", total: "3" }
-          - { os: windows-latest, kind: tests, part: "2", total: "3" }
-          - { os: windows-latest, kind: tests, part: "3", total: "3" }
-          - { os: windows-latest, kind: ruler, part: "", total: "" }
+          - { os: windows-latest, kind: tests, group: core, part: "", total: "" }
+    defaults: *bash
+    env: *run-tests-env
+    steps: *run-tests-steps
+
+  tests-app-windows:
+    name: ${{ matrix.kind }} ${{ matrix.os }}${{ matrix.part && format(' {0}/{1}', matrix.part, matrix.total) || '' }}
+    needs: [resolve, build-tests-app-windows]
+    if: *build-tests-if
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    permissions: *tests-permissions
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: windows-latest, kind: tests-app, group: app, part: "1", total: "2" }
+          - { os: windows-latest, kind: tests-app, group: app, part: "2", total: "2" }
+          - { os: windows-latest, kind: ruler, group: app, part: "", total: "" }
     defaults: *bash
     env: *run-tests-env
     steps: *run-tests-steps
@@ -1696,7 +1864,7 @@ jobs:
   # decides the Supabase deploy and keeps one generation of each Rust cache.
   report:
     name: report
-    needs: [resolve, lint, build-tests-macos, build-tests-linux, build-tests-windows, tests-macos, ruler-macos, tests-linux, tests-windows]
+    needs: [resolve, lint, build-tests-macos, build-tests-app-macos, build-tests-linux, build-tests-app-linux, build-tests-windows, build-tests-app-windows, tests-macos, tests-app-macos, ruler-macos, tests-linux, tests-app-linux, tests-windows, tests-app-windows]
     if: always() && needs.resolve.result == 'success' && needs.resolve.outputs.skip != 'true' && needs.resolve.outputs.docs_only != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -1756,16 +1924,16 @@ jobs:
           set -euo pipefail
           echo "::add-mask::${PRIVATE_WRITE_TOKEN}"
           gh api --paginate "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/attempts/${GITHUB_RUN_ATTEMPT}/jobs" \
-            --jq '.jobs[] | select(.name | test("^(lint|build-tests|tests|ruler) (macos-15|ubuntu-latest|windows-latest)( [0-9]/[0-9])?$"))
+            --jq '.jobs[] | select(.name | test("^(lint|build-tests|build-tests-app|tests|tests-app|ruler) (macos-15|ubuntu-latest|windows-latest)( [0-9]/[0-9])?$"))
                   | (.name | split(" ")) as $n
                   | [$n[1], ($n[0] + (if $n[2] then " " + $n[2] else "" end)), (.conclusion // "cancelled"), ([.steps[] | select(.conclusion == "failure") | .name][0] // "")] | @tsv' \
             > "$RUNNER_TEMP/jobs.tsv"
           GREEN=true
           for OS in macos-15 ubuntu-latest windows-latest; do
-            # A system is green only when its lint, build-tests, tests 1/2, tests 2/2 and ruler ran and passed.
+            # A system is green only when its lint, build-tests, build-tests-app, tests, tests-app 1/2..2/2 and ruler ran and passed.
             TOTAL="$(awk -F'\t' -v os="$OS" '$1 == os' "$RUNNER_TEMP/jobs.tsv" | wc -l | tr -d ' ')"
             PASSED="$(awk -F'\t' -v os="$OS" '$1 == os && $3 == "success"' "$RUNNER_TEMP/jobs.tsv" | wc -l | tr -d ' ')"
-            if [ "$TOTAL" -ge 5 ] && [ "$PASSED" = "$TOTAL" ]; then
+            if [ "$TOTAL" -ge 7 ] && [ "$PASSED" = "$TOTAL" ]; then
               STATE=success; DESCRIPTION="native-ci passed"; CONCLUSION=success
             else
               STATE=failure; CONCLUSION=failure; GREEN=false
@@ -2709,7 +2877,7 @@ jobs:
   # one line per main run there, from which it takes the p50 and p90 of the last 20 runs.
   summary:
     name: summary
-    needs: [resolve, lint, build-tests-macos, build-tests-linux, build-tests-windows, tests-macos, ruler-macos, tests-linux, tests-windows, report, bridge-extension, package-macos-arm64, package-macos-x86_64, package-linux, package-windows, sign, publish]
+    needs: [resolve, lint, build-tests-macos, build-tests-app-macos, build-tests-linux, build-tests-app-linux, build-tests-windows, build-tests-app-windows, tests-macos, tests-app-macos, ruler-macos, tests-linux, tests-app-linux, tests-windows, tests-app-windows, report, bridge-extension, package-macos-arm64, package-macos-x86_64, package-linux, package-windows, sign, publish]
     if: always() && needs.resolve.result == 'success' && needs.resolve.outputs.skip != 'true' && needs.resolve.outputs.lint_only != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
