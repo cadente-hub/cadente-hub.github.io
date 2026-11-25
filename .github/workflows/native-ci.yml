@@ -1259,10 +1259,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { os: macos-15, kind: tests, part: "1", total: "4" }
-          - { os: macos-15, kind: tests, part: "2", total: "4" }
-          - { os: macos-15, kind: tests, part: "3", total: "4" }
-          - { os: macos-15, kind: tests, part: "4", total: "4" }
+          - { os: macos-15, kind: tests, part: "1", total: "3" }
+          - { os: macos-15, kind: tests, part: "2", total: "3" }
+          - { os: macos-15, kind: tests, part: "3", total: "3" }
     defaults: *bash
     env: &run-tests-env
       SHA: ${{ needs.resolve.outputs.sha }}
