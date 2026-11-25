@@ -976,6 +976,18 @@ jobs:
           shared-key: tests-v2
           save-if: ${{ github.ref == 'refs/heads/main' }}
 
+      - name: Install sccache (macOS)
+        if: runner.os == 'macOS'
+        uses: taiki-e/install-action@sccache
+
+      - name: Restore test sccache (macOS)
+        if: runner.os == 'macOS'
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ runner.temp }}/sccache-tests
+          key: sccache-tests-macos-${{ github.run_id }}
+          restore-keys: sccache-tests-macos-
+
       - name: Initialize log file
         env:
           CACHE_HIT: ${{ steps.cache.outputs.cache-hit }}
@@ -987,6 +999,12 @@ jobs:
       - name: Build the tests (cargo nextest archive)
         id: build
         run: |
+          if [ "$RUNNER_OS" = "macOS" ] && command -v sccache >/dev/null 2>&1; then
+            export RUSTC_WRAPPER=sccache
+            export SCCACHE_DIR="$RUNNER_TEMP/sccache-tests"
+            export SCCACHE_CACHE_SIZE="${SCCACHE_TESTS_CACHE_SIZE:-320M}"
+            export SCCACHE_IDLE_TIMEOUT=0
+          fi
           PKG_FLAGS=""
           if [ -n "$DELTA_PACKAGES" ] && [ "$PLANT_FAILURE" != "true" ]; then
             for P in $DELTA_PACKAGES; do PKG_FLAGS="$PKG_FLAGS -p $P"; done
@@ -1007,6 +1025,14 @@ jobs:
           EXIT=$?
           set -e
           echo "compile_s=$(( $(date +%s) - START ))" >> "$RUNNER_TEMP/metrics.env"
+          if [ "$RUNNER_OS" = "macOS" ] && command -v sccache >/dev/null 2>&1; then
+            STATS="$(sccache --show-stats --stats-format json 2>/dev/null || echo '{}')"
+            HITS="$(printf '%s' "$STATS" | jq -r '.stats.cache_hits.counts.Rust // 0' 2>/dev/null || echo 0)"
+            MISSES="$(printf '%s' "$STATS" | jq -r '.stats.cache_misses.counts.Rust // 0' 2>/dev/null || echo 0)"
+            SIZE="$(du -sm "$SCCACHE_DIR" 2>/dev/null | cut -f1 || echo 0)"
+            echo "sccache (build-tests macOS): ${HITS} acertos, ${MISSES} faltas, ${SIZE:-0} MB na pasta"
+            sccache --stop-server > /dev/null 2>&1 || true
+          fi
           cat "$RAW" >> "$RUNNER_TEMP/ci-build.log"
           sed 's/\x1b\[[0-9;]*m//g' "$RAW" | grep -E '^ *Finished ' | sed -E 's/^ *//' | tail -1 || true
           if [ $EXIT -eq 0 ]; then
@@ -1018,6 +1044,13 @@ jobs:
             echo "cargo nextest archive" > "$RUNNER_TEMP/failed_step"
             exit 1
           fi
+
+      - name: Save test sccache (macOS)
+        if: runner.os == 'macOS' && github.ref == 'refs/heads/main'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ runner.temp }}/sccache-tests
+          key: sccache-tests-macos-${{ github.run_id }}
 
       - name: Mark the archive upload
         run: echo "upload_start=$(date +%s)" >> "$RUNNER_TEMP/metrics.env"
@@ -1226,9 +1259,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { os: macos-15, kind: tests, part: "1", total: "3" }
-          - { os: macos-15, kind: tests, part: "2", total: "3" }
-          - { os: macos-15, kind: tests, part: "3", total: "3" }
+          - { os: macos-15, kind: tests, part: "1", total: "4" }
+          - { os: macos-15, kind: tests, part: "2", total: "4" }
+          - { os: macos-15, kind: tests, part: "3", total: "4" }
+          - { os: macos-15, kind: tests, part: "4", total: "4" }
     defaults: *bash
     env: &run-tests-env
       SHA: ${{ needs.resolve.outputs.sha }}
@@ -1981,7 +2015,7 @@ jobs:
           CADENTE_BUILD_VERSION: ${{ needs.resolve.outputs.version }}
           RUSTC_WRAPPER: sccache
           SCCACHE_DIR: ${{ runner.temp }}/sccache
-          SCCACHE_CACHE_SIZE: ${{ vars.SCCACHE_PACKAGE_CACHE_SIZE || '275M' }}
+          SCCACHE_CACHE_SIZE: ${{ vars.SCCACHE_PACKAGE_CACHE_SIZE || '250M' }}
           SCCACHE_IDLE_TIMEOUT: "0"
           T: ${{ matrix.target }}
         run: |
@@ -2033,7 +2067,7 @@ jobs:
         env:
           RUSTC_WRAPPER: sccache
           SCCACHE_DIR: ${{ runner.temp }}/sccache
-          SCCACHE_CACHE_SIZE: ${{ vars.SCCACHE_PACKAGE_CACHE_SIZE || '275M' }}
+          SCCACHE_CACHE_SIZE: ${{ vars.SCCACHE_PACKAGE_CACHE_SIZE || '250M' }}
           SCCACHE_IDLE_TIMEOUT: "0"
           T: ${{ matrix.target }}
         run: |
