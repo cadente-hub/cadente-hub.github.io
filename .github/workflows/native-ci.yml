@@ -1159,17 +1159,21 @@ jobs:
           fi
           COUNT="$(printf '%s\n' "$CRATES" | wc -w | tr -d ' ')"
           echo "Passo: cargo test --doc (${COUNT} crates)"
+          PACKAGES=()
           for CRATE in $CRATES; do
-            if ! cargo test --config .ci/.cargo/config.toml --doc -p "$CRATE" >> "$RUNNER_TEMP/ci-build.log" 2>&1; then
-              echo "Resultado: FALHOU"
-              echo "cargo test --doc" > "$RUNNER_TEMP/failed_step"
-              exit 1
-            fi
+            PACKAGES+=(-p "$CRATE")
           done
+          if ! cargo test --config .ci/.cargo/config.toml --doc "${PACKAGES[@]}" >> "$RUNNER_TEMP/ci-build.log" 2>&1; then
+            echo "Resultado: FALHOU"
+            echo "cargo test --doc" > "$RUNNER_TEMP/failed_step"
+            exit 1
+          fi
           echo "Resultado: OK"
 
-      - name: Warm clippy metadata for lint (on cache miss only)
-        if: github.ref == 'refs/heads/main' && steps.cache.outputs.cache-hit != 'true' && steps.build.outputs.mode == 'full'
+      # Normal builds already run lint in parallel. Keep optional cache priming off the test-shard
+      # critical path and do it when explicitly warming the caches on main.
+      - name: Warm clippy metadata for lint
+        if: github.ref == 'refs/heads/main' && inputs.warm_up && steps.cache.outputs.cache-hit != 'true'
         run: cargo clippy --config .ci/.cargo/config.toml --workspace --all-targets -- -A clippy::all >> "$RUNNER_TEMP/ci-build.log" 2>&1 || true
 
       - name: Seal the build log and the timings
