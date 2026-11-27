@@ -421,7 +421,7 @@ jobs:
                   s = strip_comments(raw)
                   if not s:
                       continue
-                  m = re.match(r"^\[([^\[\]]+)\]$", s)
+                  m = re.match(r"^\[+([^\[\]]+)\]+$", s)
                   if m:
                       sec = m.group(1).strip()
                       in_pkg = (sec == "package")
@@ -439,7 +439,7 @@ jobs:
                       continue
                   if in_pkg:
                       pm = re.match(r'^name\s*=\s*"([^"]+)"', s)
-                      if pm:
+                      if pm and pkg is None:
                           pkg = pm.group(1)
                   elif in_deps:
                       if subpkg is not None:
