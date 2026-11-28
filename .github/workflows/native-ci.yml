@@ -297,13 +297,6 @@ jobs:
               echo "A beta as new as ${VERSION} is already out; this run tests and builds no package."
               RELEASE=false
             fi
-            # Superseded main commit: origin/main already advanced past SHA, so skip beta packaging while
-            # still running lint, tests, and ruler for its commit statuses.
-            MAIN_HEAD="$(git rev-parse origin/main)"
-            if [ "$RELEASE" = true ] && [ "$GITHUB_REF" = "refs/heads/main" ] && [ "$SHA" != "$MAIN_HEAD" ]; then
-              echo "main is already at ${MAIN_HEAD:0:12}; skipping beta packages for superseded commit ${SHA:0:12} (tests still run)."
-              RELEASE=false
-            fi
           fi
           # A warm-up run (W4) builds the packages to save their caches and publishes nothing.
           PUBLISH="$RELEASE"
